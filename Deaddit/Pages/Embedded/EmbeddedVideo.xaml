@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:Class="Deaddit.EmbeddedVideo"
+             Title="EmbeddedVideo">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid
+            x:Name="navigationBar"
+            Grid.Row="0"
+            HorizontalOptions="FillAndExpand"
+            VerticalOptions="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Back Button -->
+            <Button
+                Text="❌"
+                Grid.Column="0"
+                HorizontalOptions="Start"
+                Clicked="OnBackClicked"
+                BackgroundColor="Transparent" />
+
+            <!-- Save Button -->
+            <Button
+                Text="💾"
+                Grid.Column="2"
+                HorizontalOptions="End"
+                Clicked="OnSaveClicked"
+                BackgroundColor="Transparent" />
+        </Grid>
+
+        <toolkit:MediaElement
+            Grid.Row="1"
+            HorizontalOptions="Fill"
+            VerticalOptions="Fill"
+            ShouldAutoPlay="True"
+            Aspect="AspectFit"
+            MetadataArtworkUrl="https://lh3.googleusercontent.com/pw/AP1GczNRrebWCJvfdIau1EbsyyYiwAfwHS0JXjbioXvHqEwYIIdCzuLodQCZmA57GADIo5iB3yMMx3t_vsefbfoHwSg0jfUjIXaI83xpiih6d-oT7qD_slR0VgNtfAwJhDBU09kS5V2T5ZML-WWZn8IrjD4J-g=w1792-h1024-s-no-gm"
+            x:Name="mediaView" />
+    </Grid>
+</ContentPage>

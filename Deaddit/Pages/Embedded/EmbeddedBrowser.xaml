@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Deaddit.EmbeddedBrowser"
+             Title="EmbeddedBrowser">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid
+            x:Name="navigationBar"
+            Grid.Row="0"
+            HorizontalOptions="FillAndExpand"
+            VerticalOptions="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Back Button -->
+            <Button
+                Text="❌"
+                Grid.Column="0"
+                HorizontalOptions="Start"
+                Clicked="OnBackClicked"
+                BackgroundColor="Transparent" />
+
+            <!-- Save Button -->
+            <Button
+                Text=""
+                Grid.Column="2"
+                HorizontalOptions="End"
+                Clicked="OnSaveClicked"
+                BackgroundColor="Transparent" />
+        </Grid>
+
+        <WebView
+            x:Name="webView"
+            Grid.Row="1"
+            Margin="0"
+            HorizontalOptions="Fill"
+            VerticalOptions="Fill" />
+    </Grid>
+</ContentPage>

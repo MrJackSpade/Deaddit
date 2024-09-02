@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:deaddit="clr-namespace:Deaddit.Components"
+             x:Class="Deaddit.Pages.PostPage">
+    <ScrollView
+        x:Name="scrollView">
+        <VerticalStackLayout
+            x:Name="mainStack"
+            VerticalOptions="Fill"
+            Padding="0,0"
+            Spacing="0"
+            BackgroundColor="{Binding SecondaryColor}">
+            <HorizontalStackLayout
+            x:Name="actionButtonsStack"
+            HorizontalOptions="FillAndExpand"
+            VerticalOptions="Start"
+            BackgroundColor="{Binding HighlightColor}"
+            Margin="0"
+            Padding="0"
+            Spacing="0">
+                <Button
+                    Text="Back"
+                    Clicked="OnBackClicked"
+                    BackgroundColor="Transparent"
+                    TextColor="{Binding TextColor}" />
+
+                <Button
+                    Text="Share"
+                    Clicked="OnShareClicked"
+                    BackgroundColor="Transparent"
+                    TextColor="{Binding TextColor}" />
+
+                <Button
+                    Text="Save"
+                    Clicked="OnSaveClicked"
+                    BackgroundColor="Transparent"
+                    TextColor="{Binding TextColor}" />
+
+                <Button
+                    Text="..."
+                    Clicked="OnMoreOptionsClicked"
+                    BackgroundColor="Transparent"
+                    TextColor="{Binding TextColor}" />
+
+                <Button
+                    Text="Reply"
+                    Clicked="OnReplyClicked"
+                    BackgroundColor="Transparent"
+                    TextColor="{Binding TextColor}" />
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
