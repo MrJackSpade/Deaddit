@@ -25,7 +25,7 @@ namespace Deaddit.Pages
             _replyTo = replyTo;
 
             BindingContext = new ReplyPageViewModel(appTheme, replyTo);
-            InitializeComponent();
+            this.InitializeComponent();
 
             RedditThing toRender = replyTo;
             SelectionTracker unused = new();
@@ -35,12 +35,12 @@ namespace Deaddit.Pages
                 {
                     RedditCommentComponent redditCommentComponent = RedditCommentComponent.Preview(toRender, redditClient, appTheme, unused, markDownService);
 
-                    this.commentStack.Children.Insert(0, redditCommentComponent);
+                    commentStack.Children.Insert(0, redditCommentComponent);
                 }
                 else if (toRender is RedditPost post)
                 {
                     RedditPostComponent redditPostComponent = RedditPostComponent.PostView(post, redditClient, appTheme, unused, markDownService);
-                    this.commentStack.Children.Insert(0, redditPostComponent);
+                    commentStack.Children.Insert(0, redditPostComponent);
                 }
 
                 toRender = toRender.Parent;
@@ -60,11 +60,11 @@ namespace Deaddit.Pages
 
         public async void OnSubmitClicked(object sender, EventArgs e)
         {
-            string commentBody = this.textEditor.Text;
+            string commentBody = textEditor.Text;
 
             RedditCommentMeta meta = await _redditClient.Comment(_replyTo, commentBody);
 
-            OnSubmitted?.Invoke(this, new ReplySubmittedEventArgs(this._replyTo, meta));
+            OnSubmitted?.Invoke(this, new ReplySubmittedEventArgs(_replyTo, meta));
 
             await Navigation.PopAsync();
         }

@@ -1,5 +1,6 @@
 using Deaddit.Components;
 using Deaddit.Configurations;
+using Deaddit.EventArguments;
 using Deaddit.Interfaces;
 using Deaddit.PageModels;
 using Deaddit.Services;
@@ -12,7 +13,7 @@ namespace Deaddit.Pages
 
         private readonly AppConfiguration _appConfiguration;
 
-        private readonly LandingPageSubscriptions _configuration;
+        private readonly LandingPageConfiguration _configuration;
 
         private readonly IConfigurationService _configurationService;
 
@@ -45,22 +46,31 @@ namespace Deaddit.Pages
 
             _redditClient = redditClient;
             _appConfiguration = appConfiguration;
-            _configuration = configurationService.Read<LandingPageSubscriptions>();
+            _configuration = configurationService.Read<LandingPageConfiguration>();
             _configurationService = configurationService;
             _appTheme = appTheme;
             _markDownService = markDownService;
             _selectionTracker = new SelectionTracker();
 
             BindingContext = _viewModel = new LandingPageViewModel(appTheme);
-            InitializeComponent();
+            this.InitializeComponent();
 
-            this.mainStack.Add(new SubRedditComponent("All", "r/all", "Hot", redditClient, appTheme, _selectionTracker, _markDownService));
-            this.mainStack.Add(new SubRedditComponent("Home", "", "Hot", redditClient, appTheme, _selectionTracker, _markDownService));
+            this.mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("All", "r/all", "Hot"), redditClient, appTheme, _selectionTracker, _markDownService));
+            this.mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("Home", "", "Hot"), redditClient, appTheme, _selectionTracker, _markDownService));
 
-            foreach (LandingPageSubscription subscription in _configuration.Subscriptions)
+            foreach (SubRedditSubscription subscription in _configuration.Subscriptions)
             {
-                this.mainStack.Add(new SubRedditComponent(subscription.SubReddit, subscription.Sort, redditClient, appTheme, _selectionTracker, _markDownService));
+                SubRedditComponent subRedditComponent = SubRedditComponent.Removable(subscription, redditClient, appTheme, _selectionTracker, _markDownService);
+                subRedditComponent.OnRemove += this.SubRedditComponent_OnRemove;
+                this.mainStack.Add(subRedditComponent);
             }
+        }
+
+        private void SubRedditComponent_OnRemove(object? sender, SubRedditSubscriptionRemoveEventArgs e)
+        {
+            this.mainStack.Remove(e.Component);
+            _configuration.Subscriptions.Remove(e.Subscription);
+            _configurationService.Write(_configuration);
         }
 
         public async void OnAddClicked(object sender, EventArgs e)
@@ -77,15 +87,20 @@ namespace Deaddit.Pages
                 result = $"r/{result}";
             }
 
-            _configuration.Subscriptions.Add(new LandingPageSubscription()
+            SubRedditSubscription newSubscription = new()
             {
                 SubReddit = result,
+                DisplayString = result,
                 Sort = "Hot"
-            });
+            };
+
+            _configuration.Subscriptions.Add(newSubscription);
 
             _configurationService.Write(_configuration);
 
-            this.mainStack.Add(new SubRedditComponent(result, "Hot", _redditClient, _appTheme, _selectionTracker, _markDownService));
+            SubRedditComponent subRedditComponent = SubRedditComponent.Removable(newSubscription, _redditClient, _appTheme, _selectionTracker, _markDownService);
+            subRedditComponent.OnRemove += this.SubRedditComponent_OnRemove;
+            this.mainStack.Add(subRedditComponent);
         }
     }
 }

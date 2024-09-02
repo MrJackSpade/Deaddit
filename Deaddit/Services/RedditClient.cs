@@ -175,8 +175,13 @@ namespace Deaddit.Services
                 // Set the Authorization header
                 _httpClient.SetDefaultHeader("Authorization", "Basic " + text);
 
-                // Prepare the content
-                StringContent content = new($"grant_type=password&username={_username}&password={_password}", System.Text.Encoding.UTF8, "application/x-www-form-urlencoded");
+                // Encode the form values
+                string encodedUsername = Uri.EscapeDataString(_username);
+                string encodedPassword = Uri.EscapeDataString(_password);
+
+                // Prepare the content with encoded values
+                StringContent content = new($"grant_type=password&username={encodedUsername}&password={encodedPassword}",
+                    System.Text.Encoding.UTF8, "application/x-www-form-urlencoded");
 
                 // Make the POST request
                 HttpResponseMessage response = await _httpClient.PostAsync($"{AUTHORIZATION_ROOT}/api/v1/access_token", content);
@@ -190,6 +195,7 @@ namespace Deaddit.Services
                 _jsonClient.SetDefaultHeader("Authorization", _oAuthToken.TokenType + " " + _oAuthToken.AccessToken);
             }
         }
+
 
         private void SetParent(RedditThing parent, RedditCommentMeta comment)
         {

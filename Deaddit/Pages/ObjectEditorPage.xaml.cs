@@ -24,7 +24,7 @@ namespace Deaddit.Pages
 
             BindingContext = new ObjectEditorPageViewModel(appTheme);
 
-            InitializeComponent();
+            this.InitializeComponent();
 
             if (!_topLevel)
             {
@@ -64,11 +64,11 @@ namespace Deaddit.Pages
 
         private View CreateEditorForType(PropertyInfo prop, object obj)
         {
-            var propertyType = prop.PropertyType;
+            Type propertyType = prop.PropertyType;
 
             if (propertyType == typeof(string))
             {
-                var entry = new Entry
+                Entry entry = new()
                 {
                     Text = prop.GetValue(obj)?.ToString()
                 };
@@ -79,7 +79,7 @@ namespace Deaddit.Pages
 
             if (propertyType == typeof(int) || propertyType == typeof(double))
             {
-                var entry = new Entry
+                Entry entry = new()
                 {
                     Keyboard = Keyboard.Numeric,
                     Text = prop.GetValue(obj)?.ToString()
@@ -102,7 +102,7 @@ namespace Deaddit.Pages
 
             if (propertyType == typeof(bool))
             {
-                var toggle = new Switch { IsToggled = (bool)prop.GetValue(obj) };
+                Switch toggle = new() { IsToggled = (bool)prop.GetValue(obj) };
                 toggle.Toggled += (s, e) => prop.SetValue(obj, e.Value);
                 return toggle;
             }
@@ -113,7 +113,7 @@ namespace Deaddit.Pages
 
                 string hex = stored?.ToHex();
 
-                var entry = new Entry { Text = hex};
+                Entry entry = new() { Text = hex };
 
                 entry.TextChanged += (s, e) =>
                 {
@@ -142,16 +142,17 @@ namespace Deaddit.Pages
 
                 string labelText = prop.Name;
 
-                if(prop.GetCustomAttribute<DisplayAttribute>() is DisplayAttribute da && !string.IsNullOrWhiteSpace(da.Name))
+                if (prop.GetCustomAttribute<DisplayAttribute>() is DisplayAttribute da && !string.IsNullOrWhiteSpace(da.Name))
                 {
                     labelText = da.Name;
                 }
 
                 // Create a label for the property name
-                Label label = new() { 
-                    Text = labelText, 
-                    TextColor = _appTheme.TextColor, 
-                    Margin = new Thickness(5) 
+                Label label = new()
+                {
+                    Text = labelText,
+                    TextColor = _appTheme.TextColor,
+                    Margin = new Thickness(5)
                 };
 
                 parentLayout.Children.Add(label);

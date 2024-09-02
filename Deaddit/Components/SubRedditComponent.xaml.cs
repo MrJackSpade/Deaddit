@@ -1,4 +1,6 @@
 using Deaddit.Components.ComponentModels;
+using Deaddit.Configurations;
+using Deaddit.EventArguments;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.Models.Json.Response;
@@ -20,45 +22,45 @@ namespace Deaddit.Components
 
         private readonly ISelectionTracker _selectionTracker;
 
-        private readonly string _sort;
+        private readonly SubRedditSubscription _subscription;
 
-        private readonly string _subreddit;
-
-        public SubRedditComponent(string displayString, string subreddit, string sort, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService)
+        private SubRedditComponent(SubRedditSubscription subscription, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService)
         {
             _redditClient = redditClient;
             _appTheme = appTheme;
             _selectionTracker = selectionTracker;
-            _subreddit = subreddit;
-            _sort = sort;
+            _subscription = subscription;
             _markDownService = markDownService;
 
-            BindingContext = _postViewModel = new SubRedditComponentViewModel(displayString, appTheme);
+            BindingContext = _postViewModel = new SubRedditComponentViewModel(subscription.DisplayString, appTheme);
             this.InitializeComponent();
         }
 
-        public SubRedditComponent(string subreddit,
-                                  string sort,
-                                  IRedditClient redditClient,
-                                  IAppTheme appTheme,
-                                  ISelectionTracker selectionTracker,
-                                  IMarkDownService markDownService) : this(subreddit,
-                                                                             subreddit,
-                                                                             sort,
-                                                                             redditClient,
-                                                                             appTheme,
-                                                                             selectionTracker,
-                                                                             markDownService)
-        {
-        }
+        public event EventHandler<SubRedditSubscriptionRemoveEventArgs> OnRemove;
 
         public bool Selected { get; private set; }
 
-        public bool SelectEnabled => true;
+        public bool SelectEnabled { get; private set; }
+
+        public static SubRedditComponent Fixed(SubRedditSubscription subscription, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService)
+        {
+            return new SubRedditComponent(subscription, redditClient, appTheme, selectionTracker, markDownService)
+            {
+                SelectEnabled = false
+            };
+        }
+
+        public static SubRedditComponent Removable(SubRedditSubscription subscription, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService)
+        {
+            return new SubRedditComponent(subscription, redditClient, appTheme, selectionTracker, markDownService)
+            {
+                SelectEnabled = true
+            };
+        }
 
         public async void GoButton_Click(object sender, EventArgs e)
         {
-            var subredditPage = new SubRedditPage(_subreddit, _sort, _redditClient, _appTheme, _markDownService);
+            SubRedditPage subredditPage = new(_subscription.SubReddit, _subscription.Sort, _redditClient, _appTheme, _markDownService);
             await Navigation.PushAsync(subredditPage);
             await subredditPage.TryLoad();
         }
@@ -70,6 +72,7 @@ namespace Deaddit.Components
 
         public void OnRemoveClick(object sender, EventArgs e)
         {
+            OnRemove.Invoke(this, new SubRedditSubscriptionRemoveEventArgs(_subscription, this));
         }
 
         public void OnRemoveClicked(object sender, EventArgs e)

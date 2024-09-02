@@ -26,6 +26,7 @@ namespace Deaddit.Components.ComponentModels
             TextColor = appTheme.TextColor;
             SubTextColor = appTheme.SubTextColor;
             PrimaryColor = appTheme.PrimaryColor;
+            HyperlinkColor = appTheme.HyperlinkColor;
             Thumbnail = redditPost.TryGetPreview();
             Title = HttpUtility.HtmlDecode(redditPost.Title);
             CommentsSubReddit = $"{redditPost.NumComments} comments {redditPost.Subreddit}";
@@ -34,7 +35,11 @@ namespace Deaddit.Components.ComponentModels
             PostBodyVisible = postBodyIsVisible;
             this.SetUpvoteState(redditPost.Likes);
         }
-
+        public Color HyperlinkColor
+        {
+            get => this.GetValue<Color>();
+            set => this.SetValue(value);
+        }
         public string CommentsSubReddit
         {
             get => this.GetValue<string>();
