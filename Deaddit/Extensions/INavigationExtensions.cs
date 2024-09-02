@@ -7,14 +7,14 @@ namespace Deaddit.Extensions
 {
     internal static class INavigationExtensions
     {
-        public static async Task OpenPost(this INavigation navigation, RedditPost post, IRedditClient redditClient, IAppTheme appTheme, IMarkDownService markDownService)
+        public static async Task OpenPost(this INavigation navigation, RedditPost post, IRedditClient redditClient, IAppTheme appTheme, IMarkDownService markDownService, IBlockConfiguration blockConfiguration)
         {
             Models.RedditResource? resource = post.GetResource();
 
-            navigation.OpenResource(resource, redditClient, appTheme, markDownService, post);
+            navigation.OpenResource(resource, redditClient, appTheme, markDownService, blockConfiguration, post);
         }
 
-        public static async Task OpenResource(this INavigation navigation, RedditResource resource, IRedditClient redditClient, IAppTheme appTheme, IMarkDownService markDownService, RedditPost? post = null)
+        public static async Task OpenResource(this INavigation navigation, RedditResource resource, IRedditClient redditClient, IAppTheme appTheme, IMarkDownService markDownService, IBlockConfiguration blockConfiguration, RedditPost? post = null)
         {
             switch (resource.Kind)
             {
@@ -24,7 +24,7 @@ namespace Deaddit.Extensions
                         throw new NotImplementedException();
                     }
 
-                    await navigation.PushAsync(new PostPage(post, redditClient, appTheme, markDownService));
+                    await navigation.PushAsync(new PostPage(post, redditClient, appTheme, markDownService, blockConfiguration));
                     break;
 
                 case Models.RedditResourceKind.Url:
