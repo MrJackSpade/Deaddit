@@ -41,27 +41,45 @@
                     <TapGestureRecognizer Tapped="OnParentTapped" />
                 </VerticalStackLayout.GestureRecognizers>
 
-                <Label
-                Text="{Binding Title}"
-                HorizontalOptions="Fill"
-                TextColor="{Binding TextColor}"
-                LineBreakMode="WordWrap" />
+
 
                 <Label
-                Text="{Binding CommentsSubReddit}"
-                VerticalOptions="FillAndExpand"
-                TextColor="{Binding SubTextColor}"
-                FontSize="{Binding FontSize, Converter={StaticResource MultiplyConverter}, ConverterParameter=0.75}"
-                Padding="0,0,0,0" />
+                    Text="{Binding Title}"
+                    HorizontalOptions="StartAndExpand"
+                    TextColor="{Binding TextColor}"
+                    LineBreakMode="WordWrap"
+                    VerticalOptions="Center" />
+
+                <Border 
+                    Stroke="{Binding LinkFlairBackgroundColor}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 3,3,3,3"
+                    Margin="0,0,10,0"
+                    BackgroundColor="{Binding PrimaryColor}"
+                    HorizontalOptions="Start"
+                    IsVisible="{Binding LinkFlairIsVisible}">
+                    <Label
+                        Text="{Binding LinkFlairText}"
+                        HorizontalOptions="Fill"
+                        TextColor="{Binding TextColor}"
+                        FontSize="{Binding FontSize, Converter={StaticResource MultiplyConverter}, ConverterParameter=0.75}"
+                        BackgroundColor="{Binding PrimaryColor}"/>
+                </Border>
 
                 <Label
-                x:Name="timeUser"
-                Text="{Binding TimeUser}"
-                IsVisible="False"
-                VerticalOptions="FillAndExpand"
-                TextColor="{Binding SubTextColor}"
-                FontSize="{Binding FontSize, Converter={StaticResource MultiplyConverter}, ConverterParameter=0.75}"
-                Padding="0,0,0,0" />
+                    Text="{Binding CommentsSubReddit}"
+                    VerticalOptions="FillAndExpand"
+                    TextColor="{Binding SubTextColor}"
+                    FontSize="{Binding FontSize, Converter={StaticResource MultiplyConverter}, ConverterParameter=0.75}"
+                    Padding="0,0,0,0" />
+                <Label
+                    x:Name="timeUser"
+                    Text="{Binding TimeUser}"
+                    IsVisible="False"
+                    VerticalOptions="FillAndExpand"
+                    TextColor="{Binding SubTextColor}"
+                    FontSize="{Binding FontSize, Converter={StaticResource MultiplyConverter}, ConverterParameter=0.75}"
+                    Padding="0,0,0,0" />
             </VerticalStackLayout>
 
             <!-- Vote Stack -->
@@ -179,6 +197,7 @@
                     Margin="5"
                     BackgroundColor="Transparent"
                     HyperlinkColor="{Binding HyperlinkColor}"
+                    BlockQuoteBorderColor="{Binding TextColor}"
                     TextColor="{Binding TextColor}"
                     BlockQuoteBackgroundColor="{Binding SecondaryColor}"
                     BlockQuoteTextColor="{Binding TextColor}"  

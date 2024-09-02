@@ -61,9 +61,9 @@ namespace Deaddit.Services
 
             if (response.Json.Errors.Count > 0)
             {
-                List<Exception> exceptions = new();
+                List<Exception> exceptions = [];
 
-                foreach (var error in response.Json.Errors)
+                foreach (string error in response.Json.Errors)
                 {
                     exceptions.Add(new Exception(error));
                 }
@@ -195,7 +195,6 @@ namespace Deaddit.Services
                 _jsonClient.SetDefaultHeader("Authorization", _oAuthToken.TokenType + " " + _oAuthToken.AccessToken);
             }
         }
-
 
         private void SetParent(RedditThing parent, RedditCommentMeta comment)
         {

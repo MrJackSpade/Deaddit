@@ -29,7 +29,7 @@ namespace Deaddit.Services
 
                 if (property is JsonArray ja)
                 {
-                    foreach (var j in ja)
+                    foreach (JsonNode? j in ja)
                     {
                         object? item = Deserialize(j, collectionType);
                         targetList.Add(item);
@@ -42,10 +42,6 @@ namespace Deaddit.Services
             {
                 return property?.ToString();
             }
-            else if (targetType.IsClass)
-            {
-                return DeserializeObject(property, targetType);
-            }
             else if (targetType.IsEnum)
             {
                 return ParseEnum(targetType, property?.ToString());
@@ -56,7 +52,7 @@ namespace Deaddit.Services
             }
             else if (targetType == typeof(Color))
             {
-                return ParseColor(property.ToString());
+                return ParseColor(property?.ToString());
             }
             else if (targetType == typeof(int))
             {
@@ -74,6 +70,7 @@ namespace Deaddit.Services
             {
                 return ParseOptionalDateTime(property?.ToString());
             }
+
             else if (targetType == typeof(double))
             {
                 return ParseDouble(property.ToString());
@@ -92,6 +89,11 @@ namespace Deaddit.Services
                 {
                     return Deserialize(property, nullableType);
                 }
+            }
+            //Must be last to prevent catching other types
+            else if (targetType.IsClass)
+            {
+                return DeserializeObject(property, targetType);
             }
 
             throw new Exception("Unhandled Property Type");
@@ -116,7 +118,7 @@ namespace Deaddit.Services
             {
                 foreach (PropertyInfo pi in type.GetProperties())
                 {
-                    List<string> names = new();
+                    List<string> names = [];
 
                     if (pi.GetCustomAttribute<JsonPropertyNameAttribute>() is JsonPropertyNameAttribute jpn)
                     {
@@ -168,24 +170,39 @@ namespace Deaddit.Services
             throw new NotImplementedException();
         }
 
-        private static Color ParseColor(string v)
+        private static Color? ParseColor(string? v)
         {
+            if (string.IsNullOrWhiteSpace(v))
+            {
+                return null;
+            }
+
             if (Color.TryParse(v, out Color longValue))
             {
                 return longValue;
             }
 
-            throw new NotImplementedException();
+            if(v == "dark")
+            {
+                return Color.FromHex("#212121");
+            }
+
+            if(v == "light")
+            {
+                return Color.FromHex("#D3D3D3");
+            }
+
+            throw new NotImplementedException($"No color mapping for value {v}");
         }
 
         private static DateTime ParseDateTime(string value)
         {
-            if (DateTime.TryParse(value, out var dt))
+            if (DateTime.TryParse(value, out DateTime dt))
             {
                 return dt;
             }
 
-            if (decimal.TryParse(value, out var decimalValue) && (long)decimalValue == decimalValue)
+            if (decimal.TryParse(value, out decimal decimalValue) && (long)decimalValue == decimalValue)
             {
                 long ms = (long)decimalValue;
 
@@ -199,7 +216,7 @@ namespace Deaddit.Services
 
         private static decimal ParseDecimal(string value)
         {
-            if (decimal.TryParse(value, out var result))
+            if (decimal.TryParse(value, out decimal result))
             {
                 return result;
             }
@@ -209,7 +226,7 @@ namespace Deaddit.Services
 
         private static double ParseDouble(string value)
         {
-            if (double.TryParse(value, out var result))
+            if (double.TryParse(value, out double result))
             {
                 return result;
             }
@@ -287,12 +304,12 @@ namespace Deaddit.Services
                 return OptionalDateTime.Null;
             }
 
-            if (DateTime.TryParse(value, out var dt))
+            if (DateTime.TryParse(value, out DateTime dt))
             {
                 return dt;
             }
 
-            if (decimal.TryParse(value, out var decimalValue) && (long)decimalValue == decimalValue)
+            if (decimal.TryParse(value, out decimal decimalValue) && (long)decimalValue == decimalValue)
             {
                 long ms = (long)decimalValue;
 

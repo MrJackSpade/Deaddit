@@ -1,8 +1,14 @@
+using Deaddit.Attributes;
 using Deaddit.EventArguments;
+using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.PageModels;
+using Deaddit.Services;
+using System.Collections;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Reflection;
+using Switch = Microsoft.Maui.Controls.Switch;
 
 namespace Deaddit.Pages
 {
@@ -12,19 +18,39 @@ namespace Deaddit.Pages
 
         private readonly object _toEdit;
 
-        private readonly bool _topLevel;
+        private readonly object _original;
 
-        public ObjectEditorPage(object toEdit, bool topLevel, IAppTheme appTheme)
+        private readonly bool _topLevel;
+        private readonly DeepCopyHelper _deepCopyHelper;
+        public ObjectEditorPage(object original, bool topLevel, IAppTheme appTheme)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
-            _toEdit = toEdit;
+            _deepCopyHelper = new();
+            _deepCopyHelper.ReferenceCopyTypes.Add(typeof(Color));
+
+            if (topLevel)
+            {
+                _toEdit = _deepCopyHelper.DeepCopy(original);
+            } else
+            {
+                _toEdit = original;
+            }
+
+            _original = original;
             _appTheme = appTheme;
             _topLevel = topLevel;
 
             BindingContext = new ObjectEditorPageViewModel(appTheme);
 
             this.InitializeComponent();
+        }
+
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+
+            mainStack.Children.Clear();
 
             if (!_topLevel)
             {
@@ -32,7 +58,7 @@ namespace Deaddit.Pages
                 cancelButton.Text = "Back";
             }
 
-            this.GenerateEditor(_toEdit, (Layout)mainStack);
+            this.GenerateEditor(_toEdit, mainStack);
         }
 
         public event EventHandler<ObjectEditorSaveEventArgs> OnSave;
@@ -49,22 +75,133 @@ namespace Deaddit.Pages
 
         public async void OnCancelClicked(object sender, EventArgs e)
         {
-            await Navigation.PopAsync();
+            try
+            {
+                await Navigation.PopAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+            }
         }
 
         public void OnSubmitClicked(object sender, EventArgs e)
         {
             if (_topLevel)
             {
+                _deepCopyHelper.DeepCopy(_toEdit, _original);
                 OnSave(this, new ObjectEditorSaveEventArgs(sender));
             }
 
             Navigation.PopAsync();
         }
 
-        private View CreateEditorForType(PropertyInfo prop, object obj)
+        private View CreateEditorForType(PropertyInfo prop, object obj, Layout parentLayout)
         {
             Type propertyType = prop.PropertyType;
+
+            if (propertyType.IsGenericType && propertyType.GetGenericTypeDefinition() == typeof(List<>))
+            {
+                Type itemType = propertyType.GetGenericArguments()[0];
+
+                if (!itemType.IsClass)
+                {
+                    throw new NotImplementedException("Only lists of class types are supported.");
+                }
+
+                // Create a vertical stack layout to hold the list items and the "Add" button
+                StackLayout listLayout = new();
+
+                foreach (var item in (IEnumerable)prop.GetValue(obj))
+                {
+                    Grid itemGrid = [];
+
+                    itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Star }); // Expanding column for the label
+                    itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // Auto-sized column for the "Edit" button
+                    itemGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto }); // Auto-sized column for the "Remove" button
+
+                    // Display item.ToString()
+                    Label itemLabel = new()
+                    {
+                        Text = item.ToString(),
+                        TextColor = _appTheme.TextColor,
+                        VerticalOptions = LayoutOptions.Center
+                    };
+                    Grid.SetColumn(itemLabel, 0);
+
+                    // Add "Edit" button
+                    Button editButton = new()
+                    {
+                        Text = "Edit",
+                        BackgroundColor = _appTheme.PrimaryColor,
+                        Margin = new Thickness(10, 0, 0, 0),
+                        VerticalOptions = LayoutOptions.Center
+                    };
+                    Grid.SetColumn(editButton, 1);
+                    editButton.Clicked += (s, e) =>
+                    {
+                        ObjectEditorPage nestedEditor = new(item, false, _appTheme);
+                        Navigation.PushAsync(nestedEditor);
+                    };
+
+                    // Add "Remove" button
+                    Button removeButton = new()
+                    {
+                        Text = "Remove",
+                        BackgroundColor = Colors.Red,
+                        Margin = new Thickness(10, 0, 0, 0),
+                        VerticalOptions = LayoutOptions.Center
+                    };
+
+                    Grid.SetColumn(removeButton, 2);
+
+                    removeButton.Clicked += (s, e) =>
+                    {
+                        ((IList)prop.GetValue(obj)).Remove(item);
+                        listLayout.Remove(itemGrid); // Remove item from UI
+                    };
+
+                    // Add elements to the grid
+                    itemGrid.Children.Add(itemLabel, editButton, removeButton);
+
+                    listLayout.Children.Add(itemGrid);
+
+                }
+
+                // Add "Add" button
+                Button addButton = new() { Text = "Add", BackgroundColor = _appTheme.PrimaryColor };
+
+                addButton.Clicked += (s, e) =>
+                {
+                    object newItem = Activator.CreateInstance(itemType);
+                    ((IList)prop.GetValue(obj)).Add(newItem);
+                    ObjectEditorPage nestedEditor = new(newItem, false, _appTheme);
+                    Navigation.PushAsync(nestedEditor);
+                };
+
+                listLayout.Children.Add(addButton);
+
+                return listLayout;
+            }
+
+            if (propertyType.IsEnum)
+            {
+                Picker picker = new()
+                {
+                    ItemsSource = Enum.GetValues(propertyType).Cast<Enum>().ToList(),
+                    SelectedItem = prop.GetValue(obj)
+                };
+
+                picker.SelectedIndexChanged += (s, e) =>
+                {
+                    if (picker.SelectedItem != null)
+                    {
+                        prop.SetValue(obj, picker.SelectedItem);
+                    }
+                };
+
+                return picker;
+            }
 
             if (propertyType == typeof(string))
             {
@@ -74,6 +211,15 @@ namespace Deaddit.Pages
                 };
 
                 entry.TextChanged += (s, e) => prop.SetValue(obj, e.NewTextValue);
+
+                if (prop.GetCustomAttribute<InputAttribute>() is InputAttribute input)
+                {
+                    if (input.Masked)
+                    {
+                        entry.IsPassword = true;
+                    }
+                }
+
                 return entry;
             }
 
@@ -157,13 +303,19 @@ namespace Deaddit.Pages
 
                 parentLayout.Children.Add(label);
 
-                View editor = this.CreateEditorForType(prop, obj);
+                View editor = this.CreateEditorForType(prop, obj, parentLayout);
                 if (editor != null)
                 {
                     if (editor is InputView iv)
                     {
                         iv.TextColor = _appTheme.TextColor;
                         iv.BackgroundColor = _appTheme.TertiaryColor;
+                    }
+
+                    if(editor is Picker p)
+                    {
+                        p.TextColor = _appTheme.TextColor;
+                        p.BackgroundColor = _appTheme.TertiaryColor;
                     }
 
                     editor.Margin = new Thickness(5);
@@ -184,6 +336,10 @@ namespace Deaddit.Pages
                         }
                     };
                     parentLayout.Children.Add(editButton);
+                }
+                else if (propertyType.IsGenericType && propertyType.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    // List<T> has already been handled in CreateEditorForType
                 }
                 else
                 {
