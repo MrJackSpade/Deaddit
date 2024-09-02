@@ -23,6 +23,11 @@ namespace Deaddit.Components.ComponentModels
             TertiaryColor = appTheme.TertiaryColor;
             SecondaryColor = appTheme.SecondaryColor;
             HighlightColor = appTheme.HighlightColor;
+            LinkFlairBackgroundColor = redditPost.LinkFlairBackgroundColor;
+            LinkFlairText = redditPost.LinkFlairText;
+            LinkFlairTextColor = redditPost.LinkFlairTextColor;
+            LinkFlairIsVisible = !string.IsNullOrWhiteSpace(LinkFlairText);
+
             TextColor = appTheme.TextColor;
             SubTextColor = appTheme.SubTextColor;
             PrimaryColor = appTheme.PrimaryColor;
@@ -35,11 +40,13 @@ namespace Deaddit.Components.ComponentModels
             PostBodyVisible = postBodyIsVisible;
             this.SetUpvoteState(redditPost.Likes);
         }
-        public Color HyperlinkColor
+
+        public bool LinkFlairIsVisible
         {
-            get => this.GetValue<Color>();
+            get => this.GetValue<bool>();
             set => this.SetValue(value);
         }
+
         public string CommentsSubReddit
         {
             get => this.GetValue<string>();
@@ -61,6 +68,30 @@ namespace Deaddit.Components.ComponentModels
         }
 
         public Color HighlightColor
+        {
+            get => this.GetValue<Color>();
+            set => this.SetValue(value);
+        }
+
+        public Color HyperlinkColor
+        {
+            get => this.GetValue<Color>();
+            set => this.SetValue(value);
+        }
+
+        public Color LinkFlairBackgroundColor
+        {
+            get => this.GetValue<Color>();
+            set => this.SetValue(value);
+        }
+
+        public string LinkFlairText
+        {
+            get => this.GetValue<string>();
+            set => this.SetValue(value);
+        }
+
+        public Color LinkFlairTextColor
         {
             get => this.GetValue<Color>();
             set => this.SetValue(value);
