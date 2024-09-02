@@ -30,6 +30,8 @@ namespace Deaddit.Pages
 
         public SubRedditPage(string subreddit, string sort, IRedditClient redditClient, IAppTheme appTheme, IMarkDownService markDownService)
         {
+            NavigationPage.SetHasNavigationBar(this, false);
+
             _subreddit = subreddit;
             _sort = sort;
             _redditClient = redditClient;
@@ -37,7 +39,6 @@ namespace Deaddit.Pages
             _markDownService = markDownService;
             _selectionTracker = new SelectionTracker();
 
-            NavigationPage.SetHasNavigationBar(this, false);
             BindingContext = new SubRedditPageViewModel(subreddit, appTheme);
             this.InitializeComponent();
 

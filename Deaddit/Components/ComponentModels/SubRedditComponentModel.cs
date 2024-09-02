@@ -13,10 +13,10 @@ namespace Deaddit.Components.ComponentModels
     {
         private readonly IAppTheme _appTheme;
 
-        public SubRedditComponentViewModel(string subReddit, IAppTheme appTheme)
+        public SubRedditComponentViewModel(string displayString, IAppTheme appTheme)
         {
             _appTheme = appTheme;
-            SubReddit = subReddit;
+            SubReddit = displayString;
             PrimaryColor = appTheme.PrimaryColor;
             SecondaryColor = appTheme.SecondaryColor;
             TertiaryColor = appTheme.TertiaryColor;

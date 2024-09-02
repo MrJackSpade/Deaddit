@@ -73,6 +73,8 @@
                 MarkdownText="{Binding Content}"
                 HyperlinkColor="{Binding HyperlinkColor}"
                 TextColor="{Binding TextColor}"
+                BlockQuoteBackgroundColor="{Binding SecondaryColor}"
+                BlockQuoteTextColor="{Binding TextColor}"                
                 Margin="15,0,0,0"
                 OnHyperLinkClicked="MarkdownView_OnHyperLinkClicked" />
         </VerticalStackLayout>

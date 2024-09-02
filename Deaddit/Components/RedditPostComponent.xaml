@@ -178,7 +178,10 @@
             <deaddit:MarkdownView
                     Margin="5"
                     BackgroundColor="Transparent"
+                    HyperlinkColor="{Binding HyperlinkColor}"
                     TextColor="{Binding TextColor}"
+                    BlockQuoteBackgroundColor="{Binding SecondaryColor}"
+                    BlockQuoteTextColor="{Binding TextColor}"  
                     MarkdownText="{Binding PostBody}"
                     x:Name="postBody">
             </deaddit:MarkdownView>

@@ -6,7 +6,7 @@ namespace Deaddit.Services
 {
     internal class ConfigurationService : IConfigurationService
     {
-        private JsonSerializerOptions _options;
+        private readonly JsonSerializerOptions _options;
 
         public ConfigurationService()
         {
