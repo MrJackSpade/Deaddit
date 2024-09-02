@@ -24,14 +24,17 @@ namespace Deaddit.Pages
 
         private readonly SelectionTracker _selectionTracker;
 
+        private readonly IBlockConfiguration _blockConfiguration;
+
         private readonly string _subreddit;
 
         private string _sort;
 
-        public SubRedditPage(string subreddit, string sort, IRedditClient redditClient, IAppTheme appTheme, IMarkDownService markDownService)
+        public SubRedditPage(string subreddit, string sort, IRedditClient redditClient, IAppTheme appTheme, IMarkDownService markDownService, IBlockConfiguration blockConfiguration)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
+            _blockConfiguration = blockConfiguration;
             _subreddit = subreddit;
             _sort = sort;
             _redditClient = redditClient;
@@ -93,7 +96,7 @@ namespace Deaddit.Pages
 
                 foreach (RedditPost post in posts)
                 {
-                    RedditPostComponent redditPostComponent = RedditPostComponent.ListView(post, _redditClient, _appTheme, _selectionTracker, _markDownService);
+                    RedditPostComponent redditPostComponent = RedditPostComponent.ListView(post, _redditClient, _appTheme, _selectionTracker, _markDownService, _blockConfiguration);
 
                     mainStack.Add(redditPostComponent);
                 }

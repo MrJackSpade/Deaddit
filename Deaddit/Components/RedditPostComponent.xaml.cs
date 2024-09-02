@@ -21,9 +21,12 @@ namespace Deaddit.Components
 
         private readonly ISelectionTracker _selectionTracker;
 
-        private RedditPostComponent(RedditPost post, bool postBodyIsVisible, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService)
+        private readonly IBlockConfiguration _blockConfiguration;
+
+        private RedditPostComponent(RedditPost post, bool postBodyIsVisible, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService, IBlockConfiguration blockConfiguration)
         {
             _appTheme = appTheme;
+            _blockConfiguration = blockConfiguration;
             _redditClient = redditClient;
             _selectionTracker = selectionTracker;
             _markDownService = markDownService;
@@ -37,16 +40,16 @@ namespace Deaddit.Components
 
         public bool SelectEnabled { get; private set; }
 
-        public static RedditPostComponent ListView(RedditPost post, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService)
+        public static RedditPostComponent ListView(RedditPost post, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService, IBlockConfiguration blockConfiguration)
         {
-            RedditPostComponent toReturn = new(post, false, redditClient, appTheme, selectionTracker, markDownService);
+            RedditPostComponent toReturn = new(post, false, redditClient, appTheme, selectionTracker, markDownService, blockConfiguration);
             toReturn.SelectEnabled = true;
             return toReturn;
         }
 
-        public static RedditPostComponent PostView(RedditPost post, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService)
+        public static RedditPostComponent PostView(RedditPost post, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService, IBlockConfiguration blockConfiguration)
         {
-            RedditPostComponent toReturn = new(post, !string.IsNullOrWhiteSpace(post.Body), redditClient, appTheme, selectionTracker, markDownService);
+            RedditPostComponent toReturn = new(post, !string.IsNullOrWhiteSpace(post.Body), redditClient, appTheme, selectionTracker, markDownService, blockConfiguration);
             toReturn.timeUser.IsVisible = true;
             toReturn.SelectEnabled = false;
             return toReturn;
@@ -54,7 +57,7 @@ namespace Deaddit.Components
 
         public async void OnCommentsClicked(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new PostPage(_post, _redditClient, _appTheme, _markDownService));
+            await Navigation.PushAsync(new PostPage(_post, _redditClient, _appTheme, _markDownService, _blockConfiguration));
         }
 
         public void OnDownvoteClicked(object sender, EventArgs e)
@@ -100,7 +103,7 @@ namespace Deaddit.Components
 
         public async void OnThumbnailImageClicked(object sender, EventArgs e)
         {
-            await Navigation.OpenPost(_post, _redditClient, _appTheme, _markDownService);
+            await Navigation.OpenPost(_post, _redditClient, _appTheme, _markDownService, _blockConfiguration);
         }
 
         public void OnUpvoteClicked(object sender, EventArgs e)

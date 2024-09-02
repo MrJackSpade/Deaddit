@@ -23,6 +23,8 @@ namespace Deaddit.Pages
 
         private readonly ISelectionTracker _selectionTracker;
 
+        private readonly IBlockConfiguration _blockConfiguration;
+
         private readonly LandingPageViewModel _viewModel;
 
         public void OnMenuClicked(object sender, EventArgs e)
@@ -39,7 +41,7 @@ namespace Deaddit.Pages
             _configurationService.Write(_appConfiguration);
         }
 
-        public LandingPage(IAppTheme appTheme, AppConfiguration appConfiguration, IRedditClient redditClient, IConfigurationService configurationService, IMarkDownService markDownService)
+        public LandingPage(IAppTheme appTheme, AppConfiguration appConfiguration, IRedditClient redditClient, IConfigurationService configurationService, IMarkDownService markDownService, IBlockConfiguration blockConfiguration)
         {
             //https://www.reddit.com/r/redditdev/comments/8pbx43/get_multireddit_listing/
             NavigationPage.SetHasNavigationBar(this, false);
@@ -48,6 +50,7 @@ namespace Deaddit.Pages
             _appConfiguration = appConfiguration;
             _configuration = configurationService.Read<LandingPageConfiguration>();
             _configurationService = configurationService;
+            _blockConfiguration = blockConfiguration;
             _appTheme = appTheme;
             _markDownService = markDownService;
             _selectionTracker = new SelectionTracker();
@@ -55,12 +58,12 @@ namespace Deaddit.Pages
             BindingContext = _viewModel = new LandingPageViewModel(appTheme);
             this.InitializeComponent();
 
-            this.mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("All", "r/all", "Hot"), redditClient, appTheme, _selectionTracker, _markDownService));
-            this.mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("Home", "", "Hot"), redditClient, appTheme, _selectionTracker, _markDownService));
+            this.mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("All", "r/all", "Hot"), redditClient, appTheme, _selectionTracker, _markDownService, _blockConfiguration));
+            this.mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("Home", "", "Hot"), redditClient, appTheme, _selectionTracker, _markDownService, _blockConfiguration));
 
             foreach (SubRedditSubscription subscription in _configuration.Subscriptions)
             {
-                SubRedditComponent subRedditComponent = SubRedditComponent.Removable(subscription, redditClient, appTheme, _selectionTracker, _markDownService);
+                SubRedditComponent subRedditComponent = SubRedditComponent.Removable(subscription, redditClient, appTheme, _selectionTracker, _markDownService, _blockConfiguration);
                 subRedditComponent.OnRemove += this.SubRedditComponent_OnRemove;
                 this.mainStack.Add(subRedditComponent);
             }
@@ -98,7 +101,7 @@ namespace Deaddit.Pages
 
             _configurationService.Write(_configuration);
 
-            SubRedditComponent subRedditComponent = SubRedditComponent.Removable(newSubscription, _redditClient, _appTheme, _selectionTracker, _markDownService);
+            SubRedditComponent subRedditComponent = SubRedditComponent.Removable(newSubscription, _redditClient, _appTheme, _selectionTracker, _markDownService, _blockConfiguration);
             subRedditComponent.OnRemove += this.SubRedditComponent_OnRemove;
             this.mainStack.Add(subRedditComponent);
         }

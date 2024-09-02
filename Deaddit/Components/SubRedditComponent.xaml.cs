@@ -18,16 +18,19 @@ namespace Deaddit.Components
 
         private readonly SubRedditComponentViewModel _postViewModel;
 
+        private readonly IBlockConfiguration _blockConfiguration;
+
         private readonly IRedditClient _redditClient;
 
         private readonly ISelectionTracker _selectionTracker;
 
         private readonly SubRedditSubscription _subscription;
 
-        private SubRedditComponent(SubRedditSubscription subscription, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService)
+        private SubRedditComponent(SubRedditSubscription subscription, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService, IBlockConfiguration blockConfiguration)
         {
             _redditClient = redditClient;
             _appTheme = appTheme;
+            _blockConfiguration = blockConfiguration;
             _selectionTracker = selectionTracker;
             _subscription = subscription;
             _markDownService = markDownService;
@@ -42,17 +45,17 @@ namespace Deaddit.Components
 
         public bool SelectEnabled { get; private set; }
 
-        public static SubRedditComponent Fixed(SubRedditSubscription subscription, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService)
+        public static SubRedditComponent Fixed(SubRedditSubscription subscription, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService, IBlockConfiguration blockConfiguration)
         {
-            return new SubRedditComponent(subscription, redditClient, appTheme, selectionTracker, markDownService)
+            return new SubRedditComponent(subscription, redditClient, appTheme, selectionTracker, markDownService, blockConfiguration)
             {
                 SelectEnabled = false
             };
         }
 
-        public static SubRedditComponent Removable(SubRedditSubscription subscription, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService)
+        public static SubRedditComponent Removable(SubRedditSubscription subscription, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService, IBlockConfiguration blockConfiguration)
         {
-            return new SubRedditComponent(subscription, redditClient, appTheme, selectionTracker, markDownService)
+            return new SubRedditComponent(subscription, redditClient, appTheme, selectionTracker, markDownService, blockConfiguration)
             {
                 SelectEnabled = true
             };
@@ -60,7 +63,7 @@ namespace Deaddit.Components
 
         public async void GoButton_Click(object sender, EventArgs e)
         {
-            SubRedditPage subredditPage = new(_subscription.SubReddit, _subscription.Sort, _redditClient, _appTheme, _markDownService);
+            SubRedditPage subredditPage = new(_subscription.SubReddit, _subscription.Sort, _redditClient, _appTheme, _markDownService, _blockConfiguration);
             await Navigation.PushAsync(subredditPage);
             await subredditPage.TryLoad();
         }

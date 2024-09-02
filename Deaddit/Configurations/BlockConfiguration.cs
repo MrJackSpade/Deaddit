@@ -8,5 +8,8 @@ namespace Deaddit.Configurations
     {
         [Display(Name = "Block Rules", Order = 0)]
         public List<BlockRule> BlockRules { get; set; } = [];
+
+        [Display(Name = "Block Duplicates")]
+        public bool BlockDuplicates { get; set; }
     }
 }

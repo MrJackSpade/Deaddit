@@ -33,6 +33,7 @@ namespace Deaddit
 
             builder.Services.AddTransient<IAppTheme>((s) => s.GetRequiredService<AppConfiguration>().Theme);
             builder.Services.AddTransient<IAppCredentials>((s) => s.GetRequiredService<AppConfiguration>().Credentials);
+            builder.Services.AddTransient<IBlockConfiguration>((s) => s.GetRequiredService<AppConfiguration>().BlockConfiguration);
 
             builder.Services.AddTransient<IJsonClient, JsonClient>();
             builder.Services.AddTransient<IConfigurationService, ConfigurationService>();

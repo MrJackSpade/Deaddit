@@ -1,5 +1,6 @@
 using Deaddit.Components;
 using Deaddit.EventArguments;
+using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.Models.Json;
 using Deaddit.Models.Json.Response;
@@ -22,12 +23,15 @@ namespace Deaddit.Pages
 
         private readonly PostPageViewModel _viewModel;
 
-        public PostPage(RedditPost post, IRedditClient redditClient, IAppTheme appTheme, IMarkDownService markDownService)
+        private readonly IBlockConfiguration _blockConfiguration;
+
+        public PostPage(RedditPost post, IRedditClient redditClient, IAppTheme appTheme, IMarkDownService markDownService, IBlockConfiguration blockConfiguration)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
             _commentSelectionTracker = new SelectionTracker();
             _post = post;
+            _blockConfiguration = blockConfiguration;
             _appTheme = appTheme;
             _redditClient = redditClient;
             _markDownService = markDownService;
@@ -36,7 +40,7 @@ namespace Deaddit.Pages
 
             this.InitializeComponent();
 
-            RedditPostComponent redditPostComponent = RedditPostComponent.PostView(post, redditClient, appTheme, new SelectionTracker(), _markDownService);
+            RedditPostComponent redditPostComponent = RedditPostComponent.PostView(post, redditClient, appTheme, new SelectionTracker(), _markDownService, _blockConfiguration);
 
             //After the menu bar which is hardcoded
             mainStack.Children.Insert(0, redditPostComponent);
@@ -59,7 +63,7 @@ namespace Deaddit.Pages
 
         public async void OnReplyClicked(object sender, EventArgs e)
         {
-            ReplyPage replyPage = new(this._post, _redditClient, _appTheme, _markDownService);
+            ReplyPage replyPage = new(this._post, _redditClient, _appTheme, _markDownService, _blockConfiguration);
             replyPage.OnSubmitted += this.ReplyPage_OnSubmitted;
             await Navigation.PushAsync(replyPage);
         }
@@ -92,7 +96,12 @@ namespace Deaddit.Pages
                 {
                     if (comment.Kind is ThingKind.Comment)
                     {
-                        RedditCommentComponent commentComponent = RedditCommentComponent.FullView(comment.Data, _redditClient, _appTheme, _commentSelectionTracker, _markDownService);
+                        if (_blockConfiguration.BlockRules.IsBlocked(comment.Data))
+                        {
+                            continue;
+                        }
+
+                        RedditCommentComponent commentComponent = RedditCommentComponent.FullView(comment.Data, _redditClient, _appTheme, _commentSelectionTracker, _markDownService, _blockConfiguration);
 
                         mainStack.Add(commentComponent);
 
@@ -107,7 +116,7 @@ namespace Deaddit.Pages
 
         private void ReplyPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
         {
-            RedditCommentComponent redditCommentComponent = RedditCommentComponent.FullView(e.NewComment.Data, _redditClient, _appTheme, _commentSelectionTracker, _markDownService);
+            RedditCommentComponent redditCommentComponent = RedditCommentComponent.FullView(e.NewComment.Data, _redditClient, _appTheme, _commentSelectionTracker, _markDownService, _blockConfiguration);
 
             this.mainStack.Children.Insert(0, redditCommentComponent);
         }

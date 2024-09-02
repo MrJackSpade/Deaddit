@@ -17,7 +17,7 @@ namespace Deaddit.Pages
 
         private readonly RedditThing _replyTo;
 
-        public ReplyPage(RedditThing replyTo, IRedditClient redditClient, IAppTheme appTheme, IMarkDownService markDownService)
+        public ReplyPage(RedditThing replyTo, IRedditClient redditClient, IAppTheme appTheme, IMarkDownService markDownService, IBlockConfiguration blockConfiguration)
         {
             _redditClient = redditClient;
             _appTheme = appTheme;
@@ -33,13 +33,13 @@ namespace Deaddit.Pages
             {
                 if (toRender is RedditComment)
                 {
-                    RedditCommentComponent redditCommentComponent = RedditCommentComponent.Preview(toRender, redditClient, appTheme, unused, markDownService);
+                    RedditCommentComponent redditCommentComponent = RedditCommentComponent.Preview(toRender, redditClient, appTheme, unused, markDownService, blockConfiguration);
 
                     commentStack.Children.Insert(0, redditCommentComponent);
                 }
                 else if (toRender is RedditPost post)
                 {
-                    RedditPostComponent redditPostComponent = RedditPostComponent.PostView(post, redditClient, appTheme, unused, markDownService);
+                    RedditPostComponent redditPostComponent = RedditPostComponent.PostView(post, redditClient, appTheme, unused, markDownService, blockConfiguration);
                     commentStack.Children.Insert(0, redditPostComponent);
                 }
 
