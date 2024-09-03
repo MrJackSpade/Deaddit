@@ -10,27 +10,27 @@ namespace Deaddit.Utils
 
     public static class BlockListHelper
     {
-        public static bool IsAllowed(bool ruleValue, bool? checkValue)
+        public static bool TriggersOrSkip(bool ruleValue, bool? checkValue)
         {
             if (!ruleValue)
             {
                 return true;
             }
 
-            return checkValue != true;
+            return checkValue == true;
         }
 
-        public static bool IsAllowed(bool ruleValue, bool checkValue)
+        public static bool TriggersOrSkip(bool ruleValue, bool checkValue)
         {
             if (!ruleValue)
             {
                 return true;
             }
 
-            return !checkValue;
+            return checkValue;
         }
 
-        public static bool IsAllowed(string? ruleValue, string? checkValue, StringMatchType matchType, StringComparison stringComparison = StringComparison.OrdinalIgnoreCase)
+        public static bool TriggersOrSkip(string? ruleValue, string? checkValue, StringMatchType matchType, StringComparison stringComparison = StringComparison.OrdinalIgnoreCase)
         {
             if (string.IsNullOrWhiteSpace(ruleValue))
             {
@@ -44,11 +44,11 @@ namespace Deaddit.Utils
 
             return matchType switch
             {
-                StringMatchType.Regex => !string.Equals(ruleValue, checkValue, stringComparison),
+                StringMatchType.Regex => string.Equals(ruleValue, checkValue, stringComparison),
                 StringMatchType.String => stringComparison switch
                 {
-                    StringComparison.OrdinalIgnoreCase => !Regex.IsMatch(checkValue, ruleValue, RegexOptions.IgnoreCase),
-                    StringComparison.Ordinal => !Regex.IsMatch(ruleValue, ruleValue),
+                    StringComparison.OrdinalIgnoreCase => Regex.IsMatch(checkValue, ruleValue, RegexOptions.IgnoreCase),
+                    StringComparison.Ordinal => Regex.IsMatch(ruleValue, ruleValue),
                     _ => throw new NotImplementedException(),
                 },
                 _ => throw new NotImplementedException(),

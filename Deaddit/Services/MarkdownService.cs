@@ -19,22 +19,26 @@ namespace Deaddit.Services
             string pattern = @"(?<![\[\(])(?:https?:\/\/[^\s\)\]]+)(?!\))";
 
             // Find all matches
-            var matches = Regex.Matches(input, pattern);
+            MatchCollection matches = Regex.Matches(input, pattern);
 
             foreach (Match match in matches)
             {
                 string url = match.Value;
+
                 string linkText = url;
 
                 try
                 {
-                    Uri uri = new(url);
-                    string domain = uri.Host.ToLower();
 
-                    // Example of a hardcoded special case based on domain
-                    if (domain == "preview.redd.it")
+                    if (Uri.TryCreate(url, UriKind.Absolute, out Uri uri))
                     {
-                        linkText = "[Image]";
+                        string domain = uri.Host.ToLower();
+
+                        // Example of a hardcoded special case based on domain
+                        if (domain == "preview.redd.it")
+                        {
+                            linkText = "[Image]";
+                        }
                     }
                 }
                 catch (UriFormatException)
@@ -46,6 +50,7 @@ namespace Deaddit.Services
                 // Replace the original URL with the markdown format
                 string replacement = $"[{linkText}]({url})";
                 input = input.Replace(url, replacement);
+
             }
 
             return input;

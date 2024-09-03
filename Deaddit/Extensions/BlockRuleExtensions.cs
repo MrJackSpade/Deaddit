@@ -22,53 +22,31 @@ namespace Deaddit.Extensions
 
         public static bool IsAllowed(this BlockRule rule, RedditThing thing)
         {
+            bool blocked = true;
+
             //Add comment specific here if needed in the future
-            if (thing is RedditPost rp && rule.IsAllowed(rp))
-            {
-                return false;
-            }
-            
-            if(!BlockListHelper.IsAllowed(rule.Author, thing.Author, StringMatchType.String))
-            {
-                return false;
-            }
+            blocked &= thing is RedditPost rp && !rule.IsAllowed(rp);
+            blocked &= BlockListHelper.TriggersOrSkip(rule.Author, thing.Author, StringMatchType.String);
+            blocked &= BlockListHelper.TriggersOrSkip(rule.Body, thing.Body, StringMatchType.Regex);
 
-            if (!BlockListHelper.IsAllowed(rule.Body, thing.Body, StringMatchType.Regex))
-            {
-                return false;
-            }
-
-            return true;
+            return !blocked;
         }
 
         private static bool IsAllowed(this BlockRule rule, RedditPost post)
         {
-            if(!BlockListHelper.IsAllowed(rule.IsLocked, post.IsLocked))
-            {
-                return false;
-            }
+            bool blocked = true;
 
-            if(!BlockListHelper.IsAllowed(rule.IsArchived, post.IsArchived))
-            {
-                return false;
-            }
+            blocked &= BlockListHelper.TriggersOrSkip(rule.IsLocked, post.IsLocked);
 
-            if(!BlockListHelper.IsAllowed(rule.Flair, post.LinkFlairText, StringMatchType.String))
-            {
-                return false;
-            }
+            blocked &= BlockListHelper.TriggersOrSkip(rule.IsArchived, post.IsArchived);
 
-            if(!BlockListHelper.IsAllowed(rule.SubReddit, post.SubReddit, StringMatchType.String))
-            {
-                return false;
-            }
+            blocked &= BlockListHelper.TriggersOrSkip(rule.Flair, post.LinkFlairText, StringMatchType.String);
 
-            if(!BlockListHelper.IsAllowed(rule.Title, post.Title, StringMatchType.Regex))
-            {
-                return false;
-            }
+            blocked &= BlockListHelper.TriggersOrSkip(rule.SubReddit, post.SubReddit, StringMatchType.String);
 
-            return true;
+            blocked &= BlockListHelper.TriggersOrSkip(rule.Title, post.Title, StringMatchType.Regex);
+
+            return !blocked;
         }
     }
 }
