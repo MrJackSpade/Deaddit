@@ -11,7 +11,9 @@ using Deaddit.Reddit.Extensions;
 using Deaddit.Reddit.Interfaces;
 using Deaddit.Reddit.Models;
 using Deaddit.Reddit.Models.Api;
+using Deaddit.Services;
 using Deaddit.Utils;
+using Deaddit.Utils.Extensions;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Deaddit.MAUI.Components
@@ -28,30 +30,33 @@ namespace Deaddit.MAUI.Components
 
         private readonly IRedditClient _redditClient;
 
-        private readonly SelectionGroup _selectionGroup;
+        private readonly SelectionGroup _commentSelectionGroup;
 
         private readonly IVisitTracker _visitTracker;
 
-        private readonly RedditThing _thing;
+        private readonly RedditComment _comment;
 
-        private RedditCommentComponent(RedditThing thing, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        private readonly RedditPost _post;
+
+        private RedditCommentComponent(RedditComment comment, RedditPost post, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             _applicationTheme = applicationTheme;
             _blockConfiguration = blockConfiguration;
             _redditClient = redditClient;
-            _thing = thing;
+            _post = post;
+            _comment = comment;
             _visitTracker = visitTracker;
             _configurationService = configurationService;
-            _selectionGroup = selectionTracker;
-            BindingContext = _commentViewModel = new RedditCommentComponentViewModel(thing, applicationTheme);
+            _commentSelectionGroup = selectionTracker;
+            BindingContext = _commentViewModel = new RedditCommentComponentViewModel(comment, applicationTheme);
             this.InitializeComponent();
         }
 
         public bool SelectEnabled { get; private set; }
 
-        public static RedditCommentComponent FullView(RedditThing thing, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public static RedditCommentComponent FullView(RedditComment comment, RedditPost post, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
-            RedditCommentComponent toReturn = new(thing, redditClient, applicationTheme, visitTracker, selectionTracker, blockConfiguration, configurationService)
+            RedditCommentComponent toReturn = new(comment, post, redditClient, applicationTheme, visitTracker, selectionTracker, blockConfiguration, configurationService)
             {
                 SelectEnabled = true
             };
@@ -59,9 +64,9 @@ namespace Deaddit.MAUI.Components
             return toReturn;
         }
 
-        public static RedditCommentComponent Preview(RedditThing thing, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public static RedditCommentComponent Preview(RedditComment comment, RedditPost post, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
-            RedditCommentComponent toReturn = new(thing, redditClient, applicationTheme, visitTracker, selectionTracker, blockConfiguration, configurationService)
+            RedditCommentComponent toReturn = new(comment, post, redditClient, applicationTheme, visitTracker, selectionTracker, blockConfiguration, configurationService)
             {
                 SelectEnabled = false
             };
@@ -73,7 +78,7 @@ namespace Deaddit.MAUI.Components
         {
             foreach (RedditCommentMeta? child in children)
             {
-                if(child?.Data is null)
+                if (child?.Data is null)
                 {
                     continue;
                 }
@@ -83,61 +88,88 @@ namespace Deaddit.MAUI.Components
                     continue;
                 }
 
-                ContentView childComponent = child.Kind switch
+                if (child.Data.Id == _post.Id)
                 {
-                    ThingKind.Comment => FullView(child.Data, _redditClient, _applicationTheme, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService),
-                    ThingKind.More => new MoreCommentsComponent(child.Data, _redditClient, _applicationTheme, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService),
-                    _ => throw new UnhandledEnumException(child.Kind),
-                };
+                    continue;
+                }
 
-                if (childComponent is RedditCommentComponent rcc)
+                ContentView childComponent = null;
+
+                switch (child.Kind)
                 {
-                    rcc.AddChildren(child.GetReplies());
+                    case ThingKind.Comment:
+                        RedditCommentComponent ccomponent = FullView(child.Data, _post, _redditClient, _applicationTheme, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService);
+                        ccomponent.AddChildren(child.GetReplies());
+                        childComponent = ccomponent;
+                        break;
+                    case ThingKind.More:
+                        MoreCommentsComponent mcomponent = new(child.Data, _applicationTheme);
+                        mcomponent.OnClick += this.MoreCommentsClick;
+                        childComponent = mcomponent;
+                        break;
+                    default:
+                        throw new UnhandledEnumException(child.Kind);
                 }
 
                 childStack.Add(childComponent);
             }
         }
 
+        private async void MoreCommentsClick(object? sender, RedditComment e)
+        {
+            MoreCommentsComponent mcomponent = sender as MoreCommentsComponent;
+
+            await DataService.LoadAsync(childStack, async () => await this.LoadDataAsync(e), _applicationTheme.HighlightColor);
+
+            this.childStack.Remove(mcomponent);
+        }
+
         public void OnDownvoteClicked(object sender, EventArgs e)
         {
-            if (_thing.Likes == UpvoteState.Downvote)
+            if (_comment.Likes == UpvoteState.Downvote)
             {
-                _thing.Likes = UpvoteState.None;
+                _comment.Likes = UpvoteState.None;
                 _commentViewModel.TryAdjustScore(1);
             }
             else
             {
-                _thing.Likes = UpvoteState.Downvote;
+                _comment.Likes = UpvoteState.Downvote;
                 _commentViewModel.TryAdjustScore(-1);
             }
 
-            _commentViewModel.SetUpvoteState(_thing.Likes);
-            _redditClient.SetUpvoteState(_thing, _thing.Likes);
+            _commentViewModel.SetUpvoteState(_comment.Likes);
+            _redditClient.SetUpvoteState(_comment, _comment.Likes);
+        }
+
+        private async Task LoadDataAsync(RedditComment comment)
+        {
+            List<RedditCommentMeta> response = await _redditClient.MoreComments(_post, comment).ToList();
+
+            this.AddChildren(response);
         }
 
         public async void OnReplyClicked(object sender, EventArgs e)
         {
-            ReplyPage replyPage = new(_thing, _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
+            ReplyPage replyPage = new(_comment, _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
             replyPage.OnSubmitted += this.ReplyPage_OnSubmitted;
             await Navigation.PushAsync(replyPage);
         }
 
         public void OnUpvoteClicked(object sender, EventArgs e)
         {
-            if (_thing.Likes == UpvoteState.Upvote)
+            if (_comment.Likes == UpvoteState.Upvote)
             {
-                _thing.Likes = UpvoteState.None;
+                _comment.Likes = UpvoteState.None;
                 _commentViewModel.TryAdjustScore(-1);
             }
             else
             {
-                _thing.Likes = UpvoteState.Upvote;
+                _comment.Likes = UpvoteState.Upvote;
                 _commentViewModel.TryAdjustScore(1);
             }
 
-            _commentViewModel.SetUpvoteState(_thing.Likes);
-            _redditClient.SetUpvoteState(_thing, _thing.Likes);
+            _commentViewModel.SetUpvoteState(_comment.Likes);
+            _redditClient.SetUpvoteState(_comment, _comment.Likes);
         }
 
         void ISelectionGroupItem.Select()
@@ -190,7 +222,7 @@ namespace Deaddit.MAUI.Components
 
         public void OnParentTapped(object sender, TappedEventArgs e)
         {
-            _selectionGroup.Toggle(this);
+            _commentSelectionGroup.Toggle(this);
         }
 
         private void OnShareClicked(object sender, EventArgs e)
@@ -201,7 +233,7 @@ namespace Deaddit.MAUI.Components
         {
             Ensure.NotNull(e.NewComment.Data, "New comment data");
 
-            RedditCommentComponent redditCommentComponent = FullView(e.NewComment.Data, _redditClient, _applicationTheme, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService);
+            RedditCommentComponent redditCommentComponent = FullView(e.NewComment.Data, _post, _redditClient, _applicationTheme, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService);
 
             childStack.Children.Insert(0, redditCommentComponent);
         }

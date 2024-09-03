@@ -159,7 +159,6 @@ namespace Deaddit.MAUI.Components.ComponentModels
             set => this.SetValue(value);
         }
 
-
         public void TryAdjustScore(long mod)
         {
             if (long.TryParse(Score, out long score))

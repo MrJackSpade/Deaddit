@@ -11,9 +11,6 @@ namespace Deaddit.Reddit.Models.Api
         [EnumMember(Value = "DELETED")]
         Deleted = 1,
 
-        [EnumMember(Value = "comment score below threshold")]
-        CommentScoreBelowThreshold = 2,
-
         [EnumMember(Value = "LOW_SCORE")]
         LowScore = 2
     }
