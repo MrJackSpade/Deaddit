@@ -1,13 +1,15 @@
-﻿namespace Deaddit.Extensions
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Deaddit.Extensions
 {
     internal static class StringExtensions
     {
-        public static bool TryTrim(this string str, char start, out string trimmed)
+        public static bool TryTrim(this string str, char start, [NotNullWhen(true)] out string? trimmed)
         {
             return str.TryTrim(start, start, out trimmed);
         }
 
-        public static bool TryTrim(this string str, char start, char end, out string trimmed)
+        public static bool TryTrim(this string str, char start, char end, [NotNullWhen(true)] out string? trimmed)
         {
             if (str.Length < 2)
             {
@@ -32,12 +34,12 @@
             return true;
         }
 
-        public static bool TryTrim(this string str, string start, out string trimmed)
+        public static bool TryTrim(this string str, string start, [NotNullWhen(true)] out string? trimmed)
         {
             return str.TryTrim(start, start, out trimmed);
         }
 
-        public static bool TryTrim(this string str, string start, string end, out string trimmed)
+        public static bool TryTrim(this string str, string start, string end, [NotNullWhen(true)] out string? trimmed)
         {
             if (str.Length < start.Length + end.Length)
             {
@@ -57,9 +59,7 @@
                 return false;
             }
 
-            trimmed = str[start.Length..];
-
-            trimmed = str[..^end.Length];
+            trimmed = str[start.Length..^end.Length];
 
             return true;
         }

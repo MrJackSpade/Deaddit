@@ -1,12 +1,8 @@
 ﻿namespace Deaddit.Attributes
 {
-    internal class JsonPropertyNamesAttribute : Attribute
+    [AttributeUsage(AttributeTargets.Property)]
+    internal class JsonPropertyNamesAttribute(params string[] names) : Attribute
     {
-        public JsonPropertyNamesAttribute(params string[] names)
-        {
-            Names = names ?? [];
-        }
-
-        public string[] Names { get; set; } = [];
+        public string[] Names { get; set; } = names ?? [];
     }
 }

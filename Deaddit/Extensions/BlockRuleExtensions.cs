@@ -1,7 +1,6 @@
-﻿using Deaddit.Configurations;
-using Deaddit.Models.Json.Response;
+﻿using Deaddit.Configurations.Models;
+using Deaddit.Reddit.Models.Api;
 using Deaddit.Utils;
-using System.Text.RegularExpressions;
 
 namespace Deaddit.Extensions
 {

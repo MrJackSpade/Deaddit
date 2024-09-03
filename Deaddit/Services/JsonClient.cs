@@ -1,6 +1,7 @@
 ﻿using Deaddit.Extensions;
 using Deaddit.Interfaces;
-using Deaddit.Utils;
+using Deaddit.Json;
+using System.Diagnostics;
 using System.Net.Http.Json;
 
 namespace Deaddit.Services
@@ -41,6 +42,8 @@ namespace Deaddit.Services
 
             string response = await responseMessage.Content.ReadAsStringAsync();
 
+            Debug.WriteLine(response);
+
             responseMessage.EnsureSuccessStatusCode();
         }
 
@@ -51,6 +54,8 @@ namespace Deaddit.Services
             HttpResponseMessage responseMessage = await _httpClient.PostAsync(url, content);
 
             string response = await responseMessage.Content.ReadAsStringAsync();
+
+            Debug.WriteLine(response);
 
             responseMessage.EnsureSuccessStatusCode();
         }
@@ -65,6 +70,8 @@ namespace Deaddit.Services
 
             // Read the response content as a string
             string response = await responseMessage.Content.ReadAsStringAsync();
+
+            Debug.WriteLine(response);
 
             // Ensure the response indicates success
             responseMessage.EnsureSuccessStatusCode();

@@ -1,12 +1,15 @@
 ﻿using CommunityToolkit.Maui;
-using Deaddit.Configurations;
+using Deaddit.Configurations.Interfaces;
+using Deaddit.Configurations.Models;
+using Deaddit.Configurations.Services;
+using Deaddit.Configurations.Services.Extensions;
 using Deaddit.Interfaces;
-using Deaddit.Pages;
+using Deaddit.MAUI.Pages;
+using Deaddit.Reddit;
+using Deaddit.Reddit.Interfaces;
 using Deaddit.Services;
-using Deaddit.Services.Configuration;
-using Deaddit.Services.Configuration.Extensions;
 using Microsoft.Extensions.Logging;
-using AppTheme = Deaddit.Configurations.AppTheme;
+using ApplicationTheme = Deaddit.Configurations.Models.ApplicationTheme;
 
 namespace Deaddit
 {
@@ -18,20 +21,20 @@ namespace Deaddit
 
             builder.Services.AddTransient<IRedditClient>(s =>
             {
-                IAppCredentials appTheme = s.GetRequiredService<IAppCredentials>();
+                RedditCredentials ApplicationTheme = s.GetRequiredService<RedditCredentials>();
                 IJsonClient jsonClient = s.GetRequiredService<IJsonClient>();
                 HttpClient httpClient = s.GetRequiredService<HttpClient>();
 
-                return new RedditClient(appTheme, jsonClient, httpClient);
+                return new RedditClient(ApplicationTheme, jsonClient, httpClient);
             });
 
-            builder.Services.AddConfiguration<IAppTheme, AppTheme>();
-            builder.Services.AddConfiguration<IAppCredentials, AppCredentials>();
-            builder.Services.AddConfiguration<IBlockConfiguration, BlockConfiguration>();
+            builder.Services.AddConfiguration<ApplicationTheme>();
+            builder.Services.AddConfiguration<RedditCredentials>();
+            builder.Services.AddConfiguration<BlockConfiguration>();
 
             builder.Services.AddTransient<IJsonClient, JsonClient>();
-            builder.Services.AddTransient<IConfigurationService, ConfigurationService>();
-            builder.Services.AddTransient<IMarkDownService, MarkdownService>();
+            builder.Services.AddSingleton<IVisitTracker, PreferencesVisitTracker>();
+            builder.Services.AddTransient<IConfigurationService, PreferencesConfigurationService>();
             builder.Services.AddSingleton(s => new HttpClient());
             builder.Services.AddSingleton<LandingPage>();
 

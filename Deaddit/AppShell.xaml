@@ -3,7 +3,7 @@
     x:Class="Deaddit.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:Deaddit.Pages"
+    xmlns:local="clr-namespace:Deaddit.MAUI.Pages"
     Shell.FlyoutBehavior="Disabled"
     Title="Deaddit"
     Shell.NavBarIsVisible="False">
