@@ -20,6 +20,7 @@
             <Editor
                 BackgroundColor="{Binding PrimaryColor}"
                 TextColor="{Binding TextColor}"
+                AutoSize="TextChanges"
                 x:Name="textEditor">
             </Editor>
 

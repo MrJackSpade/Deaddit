@@ -63,14 +63,16 @@ public class DeepCopyHelper
                 targetList.RemoveAt(0);
             }
 
-            while(targetList.Count < originalList.Count)
-            {
-                targetList.Add(Activator.CreateInstance(typeToFill));
-            }
-
             for(int i = 0; i < originalList.Count; i++)
             {
-                targetList[i] = this.FillInternal(originalList[i], targetList[i]);
+                if (targetList.Count <= i)
+                {
+                    targetList.Add(originalList[i]);
+                }
+                else
+                {
+                    targetList[i] = this.FillInternal(originalList[i], targetList[i]);
+                }
             }
 
             return targetList;
