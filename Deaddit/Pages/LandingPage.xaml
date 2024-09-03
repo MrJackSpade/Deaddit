@@ -13,6 +13,7 @@
             <Button Text="&#x2699;"
                     x:Name="menuButton"
                     Background="Transparent"
+                    TextColor="{Binding TextColor}"
                     VerticalOptions="Center"
                     HorizontalOptions="Start"
                     Clicked="OnMenuClicked" />
@@ -21,6 +22,7 @@
             <Button Text="&#10133;"
                     x:Name="settingsButton"
                     VerticalOptions="Center"
+                    TextColor="{Binding TextColor}"
                     HorizontalOptions="End"
                     Background="Transparent"
                     Clicked="OnAddClicked" />

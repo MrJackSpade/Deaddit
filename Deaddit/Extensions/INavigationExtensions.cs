@@ -2,19 +2,20 @@
 using Deaddit.Models;
 using Deaddit.Models.Json.Response;
 using Deaddit.Pages;
+using Deaddit.Services.Configuration;
 
 namespace Deaddit.Extensions
 {
     internal static class INavigationExtensions
     {
-        public static async Task OpenPost(this INavigation navigation, RedditPost post, IRedditClient redditClient, IAppTheme appTheme, IMarkDownService markDownService, IBlockConfiguration blockConfiguration)
+        public static async Task OpenPost(this INavigation navigation, RedditPost post, IRedditClient redditClient, IAppTheme appTheme, IMarkDownService markDownService, IBlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             Models.RedditResource? resource = post.GetResource();
 
-            navigation.OpenResource(resource, redditClient, appTheme, markDownService, blockConfiguration, post);
+            navigation.OpenResource(resource, redditClient, appTheme, markDownService, blockConfiguration, configurationService, post);
         }
 
-        public static async Task OpenResource(this INavigation navigation, RedditResource resource, IRedditClient redditClient, IAppTheme appTheme, IMarkDownService markDownService, IBlockConfiguration blockConfiguration, RedditPost? post = null)
+        public static async Task OpenResource(this INavigation navigation, RedditResource resource, IRedditClient redditClient, IAppTheme appTheme, IMarkDownService markDownService, IBlockConfiguration blockConfiguration, IConfigurationService configurationService, RedditPost? post = null)
         {
             switch (resource.Kind)
             {
@@ -24,7 +25,7 @@ namespace Deaddit.Extensions
                         throw new NotImplementedException();
                     }
 
-                    await navigation.PushAsync(new PostPage(post, redditClient, appTheme, markDownService, blockConfiguration));
+                    await navigation.PushAsync(new PostPage(post, redditClient, appTheme, markDownService, blockConfiguration, configurationService));
                     break;
 
                 case Models.RedditResourceKind.Url:

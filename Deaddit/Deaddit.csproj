@@ -116,6 +116,7 @@
 
 	<ItemGroup>
 	  <Folder Include="Behaviours\" />
+	  <Folder Include="Pages\Interfaces\" />
 	</ItemGroup>
 
 </Project>

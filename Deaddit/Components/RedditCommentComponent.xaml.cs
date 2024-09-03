@@ -5,7 +5,7 @@ using Deaddit.Interfaces;
 using Deaddit.Models;
 using Deaddit.Models.Json.Response;
 using Deaddit.Pages;
-using Deaddit.Services;
+using Deaddit.Utils;
 
 namespace Deaddit.Components
 {
@@ -23,14 +23,17 @@ namespace Deaddit.Components
 
         private readonly IBlockConfiguration _blockConfiguration;
 
+        private readonly IConfigurationService _configurationService;
+
         private readonly RedditThing _thing;
 
-        private RedditCommentComponent(RedditThing thing, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService, IBlockConfiguration blockConfiguration)
+        private RedditCommentComponent(RedditThing thing, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService, IBlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             _appTheme = appTheme;
             _blockConfiguration = blockConfiguration;
             _redditClient = redditClient;
             _thing = thing;
+            _configurationService = configurationService;
             _markDownService = markDownService;
             _selectionTracker = selectionTracker;
 
@@ -40,9 +43,9 @@ namespace Deaddit.Components
 
         public bool SelectEnabled { get; private set; }
 
-        public static RedditCommentComponent FullView(RedditThing thing, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService, IBlockConfiguration blockConfiguration)
+        public static RedditCommentComponent FullView(RedditThing thing, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService, IBlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
-            RedditCommentComponent toReturn = new(thing, redditClient, appTheme, selectionTracker, markDownService, blockConfiguration)
+            RedditCommentComponent toReturn = new(thing, redditClient, appTheme, selectionTracker, markDownService, blockConfiguration, configurationService)
             {
                 SelectEnabled = true
             };
@@ -50,9 +53,9 @@ namespace Deaddit.Components
             return toReturn;
         }
 
-        public static RedditCommentComponent Preview(RedditThing thing, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService, IBlockConfiguration blockConfiguration)
+        public static RedditCommentComponent Preview(RedditThing thing, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService, IBlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
-            RedditCommentComponent toReturn = new(thing, redditClient, appTheme, selectionTracker, markDownService, blockConfiguration)
+            RedditCommentComponent toReturn = new(thing, redditClient, appTheme, selectionTracker, markDownService, blockConfiguration, configurationService)
             {
                 SelectEnabled = false
             };
@@ -64,12 +67,12 @@ namespace Deaddit.Components
         {
             foreach (RedditThing child in children)
             {
-                if (_blockConfiguration.BlockRules.IsBlocked(child))
+                if (!_blockConfiguration.BlockRules.IsAllowed(child))
                 {
                     continue;
                 }
 
-                RedditCommentComponent childComponent = FullView(child, _redditClient, _appTheme, _selectionTracker, _markDownService, _blockConfiguration);
+                RedditCommentComponent childComponent = FullView(child, _redditClient, _appTheme, _selectionTracker, _markDownService, _blockConfiguration, _configurationService);
                 childStack.Add(childComponent);
             }
         }
@@ -98,7 +101,7 @@ namespace Deaddit.Components
 
         public async void OnReplyClicked(object sender, EventArgs e)
         {
-            ReplyPage replyPage = new(this._thing, _redditClient, _appTheme, _markDownService, _blockConfiguration);
+            ReplyPage replyPage = new(this._thing, _redditClient, _appTheme, _markDownService, _blockConfiguration, _configurationService);
             replyPage.OnSubmitted += this.ReplyPage_OnSubmitted;
             await Navigation.PushAsync(replyPage);
         }
@@ -138,7 +141,7 @@ namespace Deaddit.Components
         {
             RedditResource resource = UrlHandler.Resolve(e.Url);
 
-            await Navigation.OpenResource(resource, _redditClient, _appTheme, null, _blockConfiguration);
+            await Navigation.OpenResource(resource, _redditClient, _appTheme, null, _blockConfiguration, _configurationService);
         }
 
         private void OnDoneClicked(object sender, EventArgs e)
@@ -153,9 +156,7 @@ namespace Deaddit.Components
 
         private async void OnMoreClicked(object sender, EventArgs e)
         {
-            SelectPage page = new("Option 1", "Option 2", "Option 3");
-            page.OnSelect += this.OnMoreSelect;
-            await Navigation.PushAsync(page);
+            string result = await this.DisplayActionSheet("Select", "Cancel", null, "Option 1", "Option 2", "Option 3");
         }
 
         private void OnMoreSelect(object? sender, string e)
@@ -179,7 +180,7 @@ namespace Deaddit.Components
 
         private void ReplyPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
         {
-            RedditCommentComponent redditCommentComponent = FullView(e.NewComment.Data, _redditClient, _appTheme, _selectionTracker, _markDownService, _blockConfiguration);
+            RedditCommentComponent redditCommentComponent = FullView(e.NewComment.Data, _redditClient, _appTheme, _selectionTracker, _markDownService, _blockConfiguration, _configurationService);
 
             this.childStack.Children.Insert(0, redditCommentComponent);
         }

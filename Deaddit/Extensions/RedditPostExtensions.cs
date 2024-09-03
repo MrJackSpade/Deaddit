@@ -1,6 +1,6 @@
 ﻿using Deaddit.Models;
 using Deaddit.Models.Json.Response;
-using Deaddit.Services;
+using Deaddit.Utils;
 using System.Web;
 
 namespace Deaddit.Extensions

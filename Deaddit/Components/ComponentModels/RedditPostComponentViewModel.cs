@@ -34,7 +34,7 @@ namespace Deaddit.Components.ComponentModels
             HyperlinkColor = appTheme.HyperlinkColor;
             Thumbnail = redditPost.TryGetPreview();
             Title = HttpUtility.HtmlDecode(redditPost.Title);
-            CommentsSubReddit = $"{redditPost.NumComments} comments {redditPost.Subreddit}";
+            CommentsSubReddit = $"{redditPost.NumComments} comments {redditPost.SubReddit}";
             TimeUser = $"{redditPost.CreatedUtc.Elapsed()} by {redditPost.Author}";
             PostBody = markDownService.Clean(_redditPost.Body);
             PostBodyVisible = postBodyIsVisible;

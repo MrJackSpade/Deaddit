@@ -1,15 +1,16 @@
-﻿using Deaddit.Interfaces;
+﻿using Deaddit.Attributes;
+using Deaddit.Interfaces;
+    using System.ComponentModel.DataAnnotations;
 
 namespace Deaddit.Configurations
 {
-    using System.ComponentModel.DataAnnotations;
 
     public class BlockConfiguration : IBlockConfiguration
     {
-        [Display(Name = "Block Rules", Order = 0)]
+        [Input(Name = "Block Rules", Order = 0)]
         public List<BlockRule> BlockRules { get; set; } = [];
 
-        [Display(Name = "Block Duplicates")]
+        [Input(Name = "Block Duplicates")]
         public bool BlockDuplicates { get; set; }
     }
 }

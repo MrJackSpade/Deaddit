@@ -1,9 +1,11 @@
 using Deaddit.Components.ComponentModels;
+using Deaddit.Configurations;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.Models;
 using Deaddit.Models.Json.Response;
 using Deaddit.Pages;
+using Deaddit.Services.Configuration;
 
 namespace Deaddit.Components
 {
@@ -23,8 +25,11 @@ namespace Deaddit.Components
 
         private readonly IBlockConfiguration _blockConfiguration;
 
-        private RedditPostComponent(RedditPost post, bool postBodyIsVisible, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService, IBlockConfiguration blockConfiguration)
+        private readonly IConfigurationService _configurationService;
+
+        private RedditPostComponent(RedditPost post, bool postBodyIsVisible, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService, IBlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
+            _configurationService = configurationService;
             _appTheme = appTheme;
             _blockConfiguration = blockConfiguration;
             _redditClient = redditClient;
@@ -34,22 +39,25 @@ namespace Deaddit.Components
 
             BindingContext = _postViewModel = new RedditPostComponentViewModel(post, postBodyIsVisible, appTheme, _markDownService);
             this.InitializeComponent();
+            _configurationService = configurationService;
         }
 
         public bool Selected { get; private set; }
 
         public bool SelectEnabled { get; private set; }
 
-        public static RedditPostComponent ListView(RedditPost post, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService, IBlockConfiguration blockConfiguration)
+        public static RedditPostComponent ListView(RedditPost post, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService, IBlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
-            RedditPostComponent toReturn = new(post, false, redditClient, appTheme, selectionTracker, markDownService, blockConfiguration);
-            toReturn.SelectEnabled = true;
+            RedditPostComponent toReturn = new(post, false, redditClient, appTheme, selectionTracker, markDownService, blockConfiguration, configurationService)
+            {
+                SelectEnabled = true
+            };
             return toReturn;
         }
 
-        public static RedditPostComponent PostView(RedditPost post, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService, IBlockConfiguration blockConfiguration)
+        public static RedditPostComponent PostView(RedditPost post, IRedditClient redditClient, IAppTheme appTheme, ISelectionTracker selectionTracker, IMarkDownService markDownService, IBlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
-            RedditPostComponent toReturn = new(post, !string.IsNullOrWhiteSpace(post.Body), redditClient, appTheme, selectionTracker, markDownService, blockConfiguration);
+            RedditPostComponent toReturn = new(post, !string.IsNullOrWhiteSpace(post.Body), redditClient, appTheme, selectionTracker, markDownService, blockConfiguration, configurationService);
             toReturn.timeUser.IsVisible = true;
             toReturn.SelectEnabled = false;
             return toReturn;
@@ -57,7 +65,7 @@ namespace Deaddit.Components
 
         public async void OnCommentsClicked(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new PostPage(_post, _redditClient, _appTheme, _markDownService, _blockConfiguration));
+            await Navigation.PushAsync(new PostPage(_post, _redditClient, _appTheme, _markDownService, _blockConfiguration, _configurationService));
         }
 
         public void OnDownvoteClicked(object sender, EventArgs e)
@@ -86,9 +94,44 @@ namespace Deaddit.Components
         {
         }
 
-        public void OnMoreOptionsClicked(object sender, EventArgs e)
+        public async void OnMoreOptionsClicked(object sender, EventArgs e)
         {
-            // Handle the More Options button click
+            PostMoreOptions? postMoreOptions = await this.DisplayActionSheet<PostMoreOptions>("Select:", null, null);
+
+            if(postMoreOptions is null)
+            {
+                return;
+            }
+
+            switch (postMoreOptions.Value)
+            {
+                case PostMoreOptions.BlockFlair:
+                    await this.NewBlockRule(new BlockRule()
+                    {
+                        Flair = _post.LinkFlairText,
+                        SubReddit = _post.SubReddit,
+                        BlockType = BlockType.Post,
+                        RuleName = $"{_post.SubReddit} [{_post.LinkFlairText}]"
+                    });
+                    break;
+                default: throw new NotImplementedException();
+            }
+        }
+
+        private async Task NewBlockRule(BlockRule blockRule)
+        {
+            ObjectEditorPage objectEditorPage = new(blockRule, _appTheme);
+
+            objectEditorPage.OnSave += this.BlockRuleOnSave;
+
+            await Navigation.PushAsync(objectEditorPage);
+        }
+
+        private void BlockRuleOnSave(object? sender, EventArguments.ObjectEditorSaveEventArgs e)
+        {
+            _blockConfiguration.BlockRules.Add((BlockRule)e.Saved);
+
+            _configurationService.Write(_blockConfiguration);
         }
 
         public void OnSaveClicked(object sender, EventArgs e)
@@ -103,7 +146,7 @@ namespace Deaddit.Components
 
         public async void OnThumbnailImageClicked(object sender, EventArgs e)
         {
-            await Navigation.OpenPost(_post, _redditClient, _appTheme, _markDownService, _blockConfiguration);
+            await Navigation.OpenPost(_post, _redditClient, _appTheme, _markDownService, _blockConfiguration, _configurationService);
         }
 
         public void OnUpvoteClicked(object sender, EventArgs e)

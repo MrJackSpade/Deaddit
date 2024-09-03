@@ -1,0 +1,48 @@
+﻿using Deaddit.Converters;
+using Deaddit.Interfaces;
+using System.Text.Json;
+
+namespace Deaddit.Services.Configuration
+{
+    internal class ConfigurationService : IConfigurationService
+    {
+        private readonly JsonSerializerOptions _options;
+
+        public ConfigurationService()
+        {
+            _options = new JsonSerializerOptions();
+
+            _options.Converters.Add(new ColorJsonConverter());
+        }
+        public T Read<T>(string name) where T : class
+        {
+            string json = Preferences.Get(name, "");
+
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return Activator.CreateInstance<T>();
+            }
+            else
+            {
+                return JsonSerializer.Deserialize<T>(json, _options)!;
+            }
+        }
+
+        public T Read<T>() where T : class
+        {
+            return this.Read<T>(typeof(T).FullName);
+        }
+
+        public void Write<T>(string name, T obj) where T : class
+        {
+            string json = JsonSerializer.Serialize(obj, _options);
+
+            Preferences.Set(name, json);
+        }
+
+        public void Write<T>(T obj) where T : class
+        {
+            this.Write(typeof(T).FullName, obj);
+        }
+    }
+}

@@ -30,6 +30,7 @@
                     Text="Cancel"
                     x:Name="cancelButton"
                     Clicked="OnCancelClicked"
+                    Margin="5"
                     BackgroundColor="{Binding PrimaryColor}"
                     TextColor="{Binding TextColor}" />
 
@@ -37,6 +38,7 @@
                     Text="Submit"
                     x:Name="submitButton"
                     Clicked="OnSubmitClicked"
+                    Margin="5"
                     BackgroundColor="{Binding PrimaryColor}"
                     TextColor="{Binding TextColor}" />
         </HorizontalStackLayout>

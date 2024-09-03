@@ -16,23 +16,30 @@ namespace Deaddit.Pages
     {
         private readonly IAppTheme _appTheme;
 
-        private readonly object _toEdit;
+        private readonly DeepCopyHelper _deepCopyHelper;
 
         private readonly object _original;
 
+        private readonly object _toEdit;
+
         private readonly bool _topLevel;
-        private readonly DeepCopyHelper _deepCopyHelper;
-        public ObjectEditorPage(object original, bool topLevel, IAppTheme appTheme)
+
+        public ObjectEditorPage(object original, IAppTheme appTheme) : this(original, true, appTheme)
+        {
+
+        }
+
+        private ObjectEditorPage(object original, bool topLevel, IAppTheme appTheme)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
             _deepCopyHelper = new();
-            _deepCopyHelper.ReferenceCopyTypes.Add(typeof(Color));
 
             if (topLevel)
             {
-                _toEdit = _deepCopyHelper.DeepCopy(original);
-            } else
+                _toEdit = _deepCopyHelper.Copy(original);
+            }
+            else
             {
                 _toEdit = original;
             }
@@ -46,26 +53,11 @@ namespace Deaddit.Pages
             this.InitializeComponent();
         }
 
-        protected override void OnAppearing()
-        {
-            base.OnAppearing();
-
-            mainStack.Children.Clear();
-
-            if (!_topLevel)
-            {
-                submitButton.IsVisible = false;
-                cancelButton.Text = "Back";
-            }
-
-            this.GenerateEditor(_toEdit, mainStack);
-        }
-
         public event EventHandler<ObjectEditorSaveEventArgs> OnSave;
 
         public int GetPropertyOrder(PropertyInfo pi)
         {
-            if (pi.GetCustomAttribute<DisplayAttribute>() is DisplayAttribute da)
+            if (pi.GetCustomAttribute<InputAttribute>() is InputAttribute da)
             {
                 return da.Order;
             }
@@ -89,11 +81,26 @@ namespace Deaddit.Pages
         {
             if (_topLevel)
             {
-                _deepCopyHelper.DeepCopy(_toEdit, _original);
-                OnSave(this, new ObjectEditorSaveEventArgs(sender));
+                _deepCopyHelper.Fill(_toEdit, _original);
+                OnSave(this, new ObjectEditorSaveEventArgs(_original));
             }
 
             Navigation.PopAsync();
+        }
+
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+
+            mainStack.Children.Clear();
+
+            if (!_topLevel)
+            {
+                submitButton.IsVisible = false;
+                cancelButton.Text = "Back";
+            }
+
+            this.GenerateEditor(_toEdit, mainStack);
         }
 
         private View CreateEditorForType(PropertyInfo prop, object obj, Layout parentLayout)
@@ -127,6 +134,7 @@ namespace Deaddit.Pages
                         TextColor = _appTheme.TextColor,
                         VerticalOptions = LayoutOptions.Center
                     };
+
                     Grid.SetColumn(itemLabel, 0);
 
                     // Add "Edit" button
@@ -134,10 +142,13 @@ namespace Deaddit.Pages
                     {
                         Text = "Edit",
                         BackgroundColor = _appTheme.PrimaryColor,
+                        TextColor = _appTheme.TextColor,
                         Margin = new Thickness(10, 0, 0, 0),
                         VerticalOptions = LayoutOptions.Center
                     };
+
                     Grid.SetColumn(editButton, 1);
+
                     editButton.Clicked += (s, e) =>
                     {
                         ObjectEditorPage nestedEditor = new(item, false, _appTheme);
@@ -165,7 +176,6 @@ namespace Deaddit.Pages
                     itemGrid.Children.Add(itemLabel, editButton, removeButton);
 
                     listLayout.Children.Add(itemGrid);
-
                 }
 
                 // Add "Add" button
@@ -284,11 +294,11 @@ namespace Deaddit.Pages
 
             foreach (PropertyInfo prop in properties.OrderBy(this.GetPropertyOrder))
             {
-                Type propertyType = prop.PropertyType;
+                Type propertyType = obj?.GetType() ?? prop.PropertyType;
 
                 string labelText = prop.Name;
 
-                if (prop.GetCustomAttribute<DisplayAttribute>() is DisplayAttribute da && !string.IsNullOrWhiteSpace(da.Name))
+                if (prop.GetCustomAttribute<InputAttribute>() is InputAttribute da && !string.IsNullOrWhiteSpace(da.Name))
                 {
                     labelText = da.Name;
                 }
@@ -312,7 +322,7 @@ namespace Deaddit.Pages
                         iv.BackgroundColor = _appTheme.TertiaryColor;
                     }
 
-                    if(editor is Picker p)
+                    if (editor is Picker p)
                     {
                         p.TextColor = _appTheme.TextColor;
                         p.BackgroundColor = _appTheme.TertiaryColor;
@@ -325,7 +335,12 @@ namespace Deaddit.Pages
                 else if (propertyType.IsClass)
                 {
                     // For class types, create a button to open a nested editor
-                    Button editButton = new() { Text = "Edit", BackgroundColor = _appTheme.PrimaryColor };
+                    Button editButton = new() { 
+                        Text = "Edit", 
+                        BackgroundColor = _appTheme.PrimaryColor,
+                        TextColor = _appTheme.TextColor
+                    };
+
                     editButton.Clicked += (s, e) =>
                     {
                         object? nestedObj = prop.GetValue(obj);
