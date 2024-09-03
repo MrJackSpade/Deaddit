@@ -6,6 +6,7 @@ namespace Deaddit.Reddit.Interfaces
 {
     public interface IRedditClient
     {
+        public string LoggedInUser { get; }
         Task<RedditCommentMeta> Comment(RedditThing replyTo, string comment);
 
         IAsyncEnumerable<RedditCommentMeta> Comments(RedditPost thing, string commentId);

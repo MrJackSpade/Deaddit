@@ -8,6 +8,7 @@ using Deaddit.Reddit.Models.Api;
 using Deaddit.Utils;
 using System.Text;
 using System.Text.Json;
+using Deaddit.Reddit.Extensions;
 
 namespace Deaddit.Reddit
 {
@@ -24,6 +25,8 @@ namespace Deaddit.Reddit
         private readonly IJsonClient _jsonClient;
 
         private OAuthToken? _oAuthToken;
+
+        public string LoggedInUser { get; private set; }
 
         public RedditClient(RedditCredentials redditCredentials, IJsonClient jsonClient, HttpClient httpClient)
         {
@@ -100,14 +103,14 @@ namespace Deaddit.Reddit
                 {
                     foreach (RedditCommentMeta child in commentReadResponse.Data.Children)
                     {
-                        if(child.Data is null)
+                        if (child.Data is null)
                         {
                             continue;
                         }
 
-                        if(child.Data.Id != parent.Id)
+                        if (child.Data.Id != parent.Id)
                         {
-                            yield return child; 
+                            yield return child;
                         }
                     }
                 }
@@ -232,6 +235,7 @@ namespace Deaddit.Reddit
 
                 _oAuthToken = JsonSerializer.Deserialize<OAuthToken>(responseContent)!;
                 _jsonClient.SetDefaultHeader("Authorization", _oAuthToken.TokenType + " " + _oAuthToken.AccessToken);
+                LoggedInUser = _redditCredentials.UserName;
             }
         }
 
@@ -260,20 +264,57 @@ namespace Deaddit.Reddit
             }
         }
 
-        public async IAsyncEnumerable<RedditCommentMeta> MoreComments(RedditPost post, RedditComment comment)
+        public async IAsyncEnumerable<RedditCommentMeta> MoreComments(RedditPost post, RedditComment moreItem)
         {
-            string fullUrl = $"{API_ROOT}/api/morechildren?api_type=json&link_id={post.Name}&children={string.Join(",", comment.ChildNames)}&limit_children=false&depth=999";
+            // Ensure the required properties are not null or empty
+            Ensure.NotNullOrWhiteSpace(post.Name);
+            Ensure.NotNullOrEmpty(moreItem.ChildNames);
 
-            MoreCommentsResponse response = await _jsonClient.Get<MoreCommentsResponse>(fullUrl);
+            await this.EnsureAuthenticated();
+
+            string fullUrl = $"{API_ROOT}/api/morechildren";
+
+            // Prepare the form values as a dictionary
+            Dictionary<string, string> formValues = new()
+            {
+                { "api_type", "json" },
+                { "link_id", post.Name },
+                { "children", string.Join(",", moreItem.ChildNames) },
+                { "limit_children", "false" },
+                { "depth", "999" }
+            };
+
+            // Use the modified Post method to send the form data
+            MoreCommentsResponse response = await _jsonClient.Post<MoreCommentsResponse>(fullUrl, formValues);
 
             if (response?.Json?.Data is null)
             {
                 yield break;
             }
 
-            foreach (RedditCommentMeta commentReadResponse in response.Json.Data.Things)
+            List<RedditCommentMeta> things = response.Json.Data.Things;
+
+            Dictionary<string, RedditCommentMeta> tree = new();
+
+            foreach (RedditCommentMeta redditCommentMeta in things)
             {
-                yield return commentReadResponse;
+                tree.Add(redditCommentMeta.Data.Name, redditCommentMeta);
+            }
+
+            foreach (RedditCommentMeta redditCommentMeta in things.ToList())
+            {
+                if(tree.TryGetValue(redditCommentMeta.Data.ParentId, out RedditCommentMeta parent))
+                {
+                    parent.AddReply(redditCommentMeta);
+                    things.Remove(redditCommentMeta);
+                }
+            }
+
+            foreach(RedditCommentMeta redditCommentMeta in things)
+            {
+                SetParent(moreItem.Parent, redditCommentMeta);
+
+                yield return redditCommentMeta;
             }
         }
     }
