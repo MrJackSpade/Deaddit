@@ -144,6 +144,8 @@ namespace Deaddit.MAUI.Pages
 
             await DataService.LoadAsync(mainStack, async () => await this.LoadMoreAsync(_post, e), _applicationTheme.HighlightColor);
 
+            mainStack.Children.Remove(mcomponent);
+
         }
 
         private void ReplyPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)

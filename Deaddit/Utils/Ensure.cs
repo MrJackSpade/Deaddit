@@ -13,6 +13,14 @@ namespace Deaddit.Utils
             }
         }
 
+        public static void NotNullOrEmpty<T>([NotNull] IList<T>? v, [CallerArgumentExpression(nameof(v))] string propertyName = "")
+        {
+            if (v is null || v.Count == 0)
+            {
+                throw new ArgumentNullException($"{propertyName} can not be null or empty");
+            }
+        }
+
         public static void NotNullOrWhiteSpace([NotNull] string? v, [CallerArgumentExpression(nameof(v))] string propertyName = "")
         {
             if (string.IsNullOrWhiteSpace(v))

@@ -11,6 +11,7 @@ using Deaddit.Reddit.Extensions;
 using Deaddit.Reddit.Interfaces;
 using Deaddit.Reddit.Models;
 using Deaddit.Reddit.Models.Api;
+using Deaddit.Reddit.Models.Options;
 using Deaddit.Services;
 using Deaddit.Utils;
 using Deaddit.Utils.Extensions;
@@ -204,10 +205,58 @@ namespace Deaddit.MAUI.Components
         {
             // Handle Hide click
         }
+        private async Task NewBlockRule(BlockRule blockRule)
+        {
+            ObjectEditorPage objectEditorPage = new(blockRule, _applicationTheme);
+
+            objectEditorPage.OnSave += this.BlockRuleOnSave;
+
+            await Navigation.PushAsync(objectEditorPage);
+        }
+
+        private void BlockRuleOnSave(object? sender, ObjectEditorSaveEventArgs e)
+        {
+            
+
+        }
 
         public async void OnMoreClicked(object sender, EventArgs e)
         {
-            string result = await this.DisplayActionSheet("Select", "Cancel", null, "Option 1", "Option 2", "Option 3");
+            if (!string.Equals(_redditClient.LoggedInUser, _comment.Author, StringComparison.OrdinalIgnoreCase))
+            {
+                CommentMoreOptions? postMoreOptions = await this.DisplayActionSheet<CommentMoreOptions>("Select:", null, null);
+
+                if (postMoreOptions is null)
+                {
+                    return;
+                }
+
+                switch (postMoreOptions.Value)
+                {
+                    case CommentMoreOptions.BlockAuthor:
+                        await this.NewBlockRule(new BlockRule()
+                        {
+                            Author = _post.Author,
+                            BlockType = BlockType.Post,
+                            RuleName = $"/u/{_post.Author}"
+                        });
+                        break;
+                }
+            }
+            else
+            {
+                MyCommentMoreOptions? postMoreOptions = await this.DisplayActionSheet<MyCommentMoreOptions>("Select:", null, null);
+
+                if (postMoreOptions is null)
+                {
+                    return;
+                }
+
+                switch (postMoreOptions.Value)
+                {
+
+                }
+            }
         }
 
         [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "<Pending>")]
