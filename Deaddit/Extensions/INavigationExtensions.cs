@@ -1,47 +1,54 @@
-﻿using Deaddit.Interfaces;
-using Deaddit.Models;
-using Deaddit.Models.Json.Response;
-using Deaddit.Pages;
-using Deaddit.Services.Configuration;
+﻿using Deaddit.Configurations.Interfaces;
+using Deaddit.Configurations.Models;
+using Deaddit.Exceptions;
+using Deaddit.MAUI.Pages;
+using Deaddit.Reddit.Extensions;
+using Deaddit.Reddit.Interfaces;
+using Deaddit.Reddit.Models;
+using Deaddit.Reddit.Models.Api;
+using Deaddit.Utils;
 
 namespace Deaddit.Extensions
 {
     internal static class INavigationExtensions
     {
-        public static async Task OpenPost(this INavigation navigation, RedditPost post, IRedditClient redditClient, IAppTheme appTheme, IMarkDownService markDownService, IBlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public static async Task OpenPost(this INavigation navigation, RedditPost post, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
-            Models.RedditResource? resource = post.GetResource();
+            PostTarget? resource = post.GetResource();
 
-            navigation.OpenResource(resource, redditClient, appTheme, markDownService, blockConfiguration, configurationService, post);
+            await navigation.OpenResource(resource, redditClient, applicationTheme, visitTracker, blockConfiguration, configurationService, post);
         }
 
-        public static async Task OpenResource(this INavigation navigation, RedditResource resource, IRedditClient redditClient, IAppTheme appTheme, IMarkDownService markDownService, IBlockConfiguration blockConfiguration, IConfigurationService configurationService, RedditPost? post = null)
+        public static async Task OpenResource(this INavigation navigation, PostTarget resource, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService, RedditPost? post = null)
         {
             switch (resource.Kind)
             {
-                case Models.RedditResourceKind.Post:
+                case PostTargetKind.Post:
                     if (post is null)
                     {
                         throw new NotImplementedException();
                     }
 
-                    await navigation.PushAsync(new PostPage(post, redditClient, appTheme, markDownService, blockConfiguration, configurationService));
+                    await navigation.PushAsync(new PostPage(post, redditClient, applicationTheme, visitTracker, blockConfiguration, configurationService));
                     break;
 
-                case Models.RedditResourceKind.Url:
-                    await navigation.PushAsync(new EmbeddedBrowser(resource.Uri, appTheme));
+                case PostTargetKind.Url:
+                    Ensure.NotNullOrWhiteSpace(resource.Uri);
+                    await navigation.PushAsync(new EmbeddedBrowser(resource.Uri, applicationTheme));
                     break;
 
-                case Models.RedditResourceKind.Video:
-                    await navigation.PushAsync(new EmbeddedVideo(resource.Uri, appTheme));
+                case PostTargetKind.Video:
+                    Ensure.NotNullOrWhiteSpace(resource.Uri);
+                    await navigation.PushAsync(new EmbeddedVideo(resource.Uri, applicationTheme));
                     break;
 
-                case Models.RedditResourceKind.Image:
-                    await navigation.PushAsync(new EmbeddedImage(resource.Uri, appTheme));
+                case PostTargetKind.Image:
+                    Ensure.NotNullOrWhiteSpace(resource.Uri);
+                    await navigation.PushAsync(new EmbeddedImage(resource.Uri, applicationTheme));
                     break;
 
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new UnhandledEnumException(resource.Kind);
             }
         }
     }

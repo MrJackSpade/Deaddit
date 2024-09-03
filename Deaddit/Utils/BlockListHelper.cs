@@ -1,10 +1,12 @@
-﻿using System.Text.RegularExpressions;
+﻿using Deaddit.Exceptions;
+using System.Text.RegularExpressions;
 
 namespace Deaddit.Utils
 {
     public enum StringMatchType
     {
         String,
+
         Regex
     }
 
@@ -49,9 +51,9 @@ namespace Deaddit.Utils
                 {
                     StringComparison.OrdinalIgnoreCase => Regex.IsMatch(checkValue, ruleValue, RegexOptions.IgnoreCase),
                     StringComparison.Ordinal => Regex.IsMatch(ruleValue, ruleValue),
-                    _ => throw new NotImplementedException(),
+                    _ => throw new UnhandledEnumException(stringComparison),
                 },
-                _ => throw new NotImplementedException(),
+                _ => throw new UnhandledEnumException(matchType),
             };
         }
     }

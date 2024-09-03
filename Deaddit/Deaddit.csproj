@@ -47,6 +47,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <AndroidResource Remove="Models\**" />
+	  <Compile Remove="Models\**" />
+	  <EmbeddedResource Remove="Models\**" />
+	  <MauiCss Remove="Models\**" />
+	  <MauiXaml Remove="Models\**" />
+	  <None Remove="Models\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="4.1.0" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.82" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.82" />
@@ -55,68 +64,67 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Update="Pages\ObjectEditorPage.xaml.cs">
+	  <Compile Update="MAUI\Pages\ObjectEditorPage.xaml.cs">
 	    <DependentUpon>ObjectEditorPage.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="Components\SubRedditComponent.xaml.cs">
+	  <Compile Update="MAUI\Components\SubRedditComponent.xaml.cs">
 	    <DependentUpon>SubRedditComponent.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="Pages\Embedded\EmbeddedImage.xaml.cs">
+	  <Compile Update="MAUI\Pages\Embedded\EmbeddedImage.xaml.cs">
 	    <DependentUpon>EmbeddedImage.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="Pages\PostPage.xaml.cs">
+	  <Compile Update="MAUI\Pages\PostPage.xaml.cs">
 	    <DependentUpon>PostPage.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="Pages\Embedded\EmbeddedVideo.xaml.cs">
+	  <Compile Update="MAUI\Pages\Embedded\EmbeddedVideo.xaml.cs">
 	    <DependentUpon>EmbeddedVideo.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="Pages\Embedded\EmbeddedVideo.xaml.cs">
+	  <Compile Update="MAUI\Pages\Embedded\EmbeddedVideo.xaml.cs">
 	    <DependentUpon>EmbeddedVideo.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="Pages\SubRedditPage.xaml.cs">
+	  <Compile Update="MAUI\Pages\SubRedditPage.xaml.cs">
 	    <DependentUpon>SubRedditPage.xaml</DependentUpon>
 	  </Compile>
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="Pages\ObjectEditorPage.xaml">
+	  <MauiXaml Update="MAUI\Pages\ObjectEditorPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Components\SubRedditComponent.xaml">
+	  <MauiXaml Update="MAUI\Components\SubRedditComponent.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Pages\Embedded\EmbeddedImage.xaml">
+	  <MauiXaml Update="MAUI\Pages\Embedded\EmbeddedImage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Pages\LandingPage.xaml">
+	  <MauiXaml Update="MAUI\Pages\LandingPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Pages\PostPage.xaml">
+	  <MauiXaml Update="MAUI\Pages\PostPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Components\RedditCommentComponent.xaml">
+	  <MauiXaml Update="MAUI\Components\RedditCommentComponent.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Components\RedditPostComponent.xaml">
+	  <MauiXaml Update="MAUI\Components\RedditPostComponent.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Pages\Embedded\EmbeddedVideo.xaml">
+	  <MauiXaml Update="MAUI\Pages\Embedded\EmbeddedVideo.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Pages\Embedded\EmbeddedBrowser.xaml">
+	  <MauiXaml Update="MAUI\Pages\Embedded\EmbeddedBrowser.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Pages\ReplyPage.xaml">
+	  <MauiXaml Update="MAUI\Pages\ReplyPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Pages\SelectPage.xaml">
+	  <MauiXaml Update="MAUI\Pages\SelectPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Behaviours\" />
-	  <Folder Include="Pages\Interfaces\" />
+	  <Folder Include="MAUI\Pages\Interfaces\" />
 	</ItemGroup>
 
 </Project>

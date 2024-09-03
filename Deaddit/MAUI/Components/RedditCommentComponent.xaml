@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:deaddit="clr-namespace:Deaddit.MAUI.Components"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Deaddit.MAUI.Components.RedditCommentComponent">
+    <StackLayout BackgroundColor="{Binding SecondaryColor}" Margin="2,0,0,0" Padding="0,10,0,0">
+
+        <!-- Top Row with buttons -->
+        <Grid
+            BackgroundColor="{Binding HighlightColor}"
+            x:Name="topBar"
+            IsVisible="False"
+            ColumnDefinitions="*,*,*,*">
+            <Button Grid.Column="0" Text="Done" Clicked="OnDoneClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
+            <Button Grid.Column="1" Text="Hide" Clicked="OnHideClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
+            <Button Grid.Column="2" Text="&#9650; Root" Clicked="OnParentClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
+            <Button Grid.Column="3" Text="&#9650; Parent" Clicked="OnParentClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
+        </Grid>
+
+        <VerticalStackLayout
+            x:Name="commentBody">
+
+            <VerticalStackLayout.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnParentTapped" />
+            </VerticalStackLayout.GestureRecognizers>
+
+            <!-- User and MetaData Row -->
+            <Grid ColumnDefinitions="Auto, Auto,Auto,Auto">
+
+                <!-- Vote indicator -->
+                <Label
+                    Grid.Column="0"
+                    Text="{Binding VoteIndicatorText}"
+                    VerticalOptions="EndAndExpand"
+                    HorizontalOptions="Start"
+                    Margin="5,0,0,0"
+                    FontAttributes="Bold"
+                    TextColor="{Binding VoteIndicatorTextColor}" />
+
+                <!-- User Name -->
+                <Label
+                    Grid.Column="1"
+                    Text="{Binding Author}"
+                    VerticalOptions="EndAndExpand"
+                    HorizontalOptions="Start"
+                    Margin="5,0,0,0"
+                    FontAttributes="Bold"
+                    TextColor="{Binding AuthorColor}" />
+
+                <!-- Image for Flair -->
+                <Image
+                    IsVisible="False"
+                    Grid.Column="2"
+                    Source="{Binding FlairImage}"
+                    HeightRequest="20"
+                    WidthRequest="20"
+                    VerticalOptions="Center"
+                    HorizontalOptions="Start" />
+
+                <!-- Meta Data -->
+                <Label
+                    Grid.Column="3"
+                    Padding="10,0,0,0"
+                    Text="{Binding MetaData}"
+                    VerticalOptions="EndAndExpand"
+                    HorizontalOptions="End"
+                    FontSize="{Binding FontSize, Converter={StaticResource MultiplyConverter}, ConverterParameter=0.75}"
+                    TextColor="{Binding SubTextColor}" />
+            </Grid>
+
+            <!-- Content Text -->
+            <deaddit:MarkdownView
+                MarkdownText="{Binding Content}"
+                HyperlinkColor="{Binding HyperlinkColor}"
+                TextColor="{Binding TextColor}"
+                BlockQuoteBorderColor="{Binding TextColor}"
+                BlockQuoteBackgroundColor="{Binding SecondaryColor}"
+                BlockQuoteTextColor="{Binding TextColor}"
+                Margin="15,0,0,0"
+                OnHyperLinkClicked="MarkdownView_OnHyperLinkClicked" />
+        </VerticalStackLayout>
+
+        <!-- Bottom Row with buttons -->
+        <Grid
+            x:Name="bottomBar"
+            IsVisible="False"
+            BackgroundColor="{Binding HighlightColor}"
+            ColumnDefinitions="*,*,*,*,*">
+            <Button Grid.Column="0" Text="▲" Clicked="OnUpvoteClicked" BackgroundColor="Transparent" TextColor="{Binding UpvoteButtonColor}" HorizontalOptions="FillAndExpand" />
+            <Button Grid.Column="1" Text="▼" Clicked="OnDownvoteClicked" BackgroundColor="Transparent" TextColor="{Binding DownvoteButtonColor}" HorizontalOptions="FillAndExpand" />
+            <Button Grid.Column="2" Text="&#x22EF;" Clicked="OnMoreClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
+            <Button Grid.Column="3" Text="&#8278;" Clicked="OnShareClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
+            <Button Grid.Column="4" Text="&#8617;" Clicked="OnReplyClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
+        </Grid>
+        <VerticalStackLayout
+            x:Name="childStack"
+            VerticalOptions="Fill"
+            Margin="20,0,0,0"
+            BackgroundColor="{Binding TertiaryColor}">
+        </VerticalStackLayout>
+    </StackLayout>
+</ContentView>
