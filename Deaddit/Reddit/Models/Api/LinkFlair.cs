@@ -9,5 +9,11 @@ namespace Deaddit.Reddit.Models.Api
 
         [JsonPropertyName("e")]
         public string? Type { get; set; }
+
+        [JsonPropertyName("a")]
+        public string? A { get; set; }
+
+        [JsonPropertyName("u")]
+        public string? U { get; set; }
     }
 }

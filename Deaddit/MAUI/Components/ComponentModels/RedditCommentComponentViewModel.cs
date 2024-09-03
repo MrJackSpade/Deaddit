@@ -20,9 +20,9 @@ namespace Deaddit.MAUI.Components.ComponentModels
             Author = comment.Author;
             Content = MarkDownHelper.Clean(comment.Body);
             Score = $"{comment.Score}";
-            TextColor = applicationTheme.TextColor;
             TertiaryColor = applicationTheme.TertiaryColor;
             SecondaryColor = applicationTheme.SecondaryColor;
+            PrimaryColor = applicationTheme.PrimaryColor;
             TextColor = applicationTheme.TextColor;
             SubTextColor = applicationTheme.SubTextColor;
             UpvoteButtonColor = applicationTheme.TextColor;
@@ -111,6 +111,12 @@ namespace Deaddit.MAUI.Components.ComponentModels
             set => this.SetValue(value);
         }
 
+        public Color PrimaryColor
+        {
+            get => this.GetValue<Color>();
+            set => this.SetValue(value);
+        }
+
         public Color SubTextColor
         {
             get => this.GetValue<Color>();
@@ -152,6 +158,7 @@ namespace Deaddit.MAUI.Components.ComponentModels
             get => this.GetValue<Color>();
             set => this.SetValue(value);
         }
+
 
         public void TryAdjustScore(long mod)
         {

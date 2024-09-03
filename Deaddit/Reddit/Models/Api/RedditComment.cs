@@ -35,6 +35,9 @@ namespace Deaddit.Reddit.Models.Api
         [JsonPropertyName("controversiality")]
         public int? Controversiality { get; set; }
 
+        [JsonPropertyName("count")]
+        public int? Count { get; set; }
+
         [JsonPropertyName("depth")]
         public int? Depth { get; set; }
 

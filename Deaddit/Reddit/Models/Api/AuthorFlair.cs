@@ -4,6 +4,9 @@ namespace Deaddit.Reddit.Models.Api
 {
     public class AuthorFlair
     {
+        [JsonPropertyName("t")]
+        public string? Text { get; set; }
+
         [JsonPropertyName("a")]
         public string? Author { get; set; }
 

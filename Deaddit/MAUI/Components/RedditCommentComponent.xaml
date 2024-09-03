@@ -73,6 +73,7 @@
                 MarkdownText="{Binding Content}"
                 HyperlinkColor="{Binding HyperlinkColor}"
                 TextColor="{Binding TextColor}"
+                TextFontSize="{Binding FontSize}"
                 BlockQuoteBorderColor="{Binding TextColor}"
                 BlockQuoteBackgroundColor="{Binding SecondaryColor}"
                 BlockQuoteTextColor="{Binding TextColor}"

@@ -64,6 +64,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="MAUI\Components\MoreCommentsComponent.xaml.cs">
+	    <DependentUpon>MoreCommentsComponent.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="MAUI\Pages\ObjectEditorPage.xaml.cs">
 	    <DependentUpon>ObjectEditorPage.xaml</DependentUpon>
 	  </Compile>
@@ -88,6 +91,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="MAUI\Components\MoreCommentsComponent.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="MAUI\Pages\ObjectEditorPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:deaddit="clr-namespace:Deaddit.MAUI.Components"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Deaddit.MAUI.Components.MoreCommentsComponent"
+             BackgroundColor="{Binding SecondaryColor}"
+             HorizontalOptions="FillAndExpand"
+             Margin="2, 0 ,0 ,0">
+    <VerticalStackLayout
+            x:Name="body"
+            HorizontalOptions="FillAndExpand">
+
+        <VerticalStackLayout.GestureRecognizers>
+            <TapGestureRecognizer Tapped="OnParentTapped" />
+        </VerticalStackLayout.GestureRecognizers>
+
+        <Label
+              Text="{Binding MoreText}"
+              HorizontalOptions="FillAndExpand"
+              Margin="0,2,0,0"
+              FontSize="{Binding FontSize}"
+              TextColor="{Binding TextColor}"
+              BackgroundColor="{Binding PrimaryColor}"
+            />
+    </VerticalStackLayout>
+</ContentView>

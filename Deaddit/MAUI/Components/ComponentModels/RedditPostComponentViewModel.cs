@@ -28,7 +28,7 @@ namespace Deaddit.MAUI.Components.ComponentModels
             SecondaryColor = applicationTheme.SecondaryColor;
             HighlightColor = applicationTheme.HighlightColor;
             LinkFlairBackgroundColor = redditPost.LinkFlairBackgroundColor;
-            LinkFlairText = redditPost.LinkFlairText;
+            LinkFlairText = HttpUtility.HtmlDecode(redditPost.LinkFlairText);
             LinkFlairTextColor = redditPost.LinkFlairTextColor;
             LinkFlairIsVisible = !string.IsNullOrWhiteSpace(LinkFlairText);
             Opacity = opacity;
@@ -43,7 +43,7 @@ namespace Deaddit.MAUI.Components.ComponentModels
             PostBody = MarkDownHelper.Clean(_redditPost.Body);
             PostBodyVisible = postBodyIsVisible;
 
-            if(Uri.TryCreate(_redditPost.Url, UriKind.Absolute, out Uri result))
+            if(!redditPost.IsSelf && Uri.TryCreate(_redditPost.Url, UriKind.Absolute, out Uri result))
             {
                 VisibleMetaData += $" ({result.Host})";
             } 
