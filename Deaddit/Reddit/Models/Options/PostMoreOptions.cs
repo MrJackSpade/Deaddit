@@ -10,11 +10,11 @@ namespace Deaddit.Reddit.Models.Options
         [EnumMember(Value = "View Author")]
         ViewAuthor,
 
-        [EnumMember(Value = "Block Author")]
-        BlockAuthor,
-
         [EnumMember(Value = "Block Subreddit")]
         BlockSubreddit,
+
+        [EnumMember(Value = "Block Author")]
+        BlockAuthor,
 
         [EnumMember(Value = "Block Flair")]
         BlockFlair,

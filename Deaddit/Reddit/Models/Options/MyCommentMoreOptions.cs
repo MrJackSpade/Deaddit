@@ -8,9 +8,6 @@ namespace Deaddit.Reddit.Models.Options
         Delete,
 
         [EnumMember(Value = "Disable Replies")]
-        DisableReplies,
-
-        [EnumMember(Value = "Enable Replies")]
-        EnableReplies,
+        ToggleReplies,
     }
 }

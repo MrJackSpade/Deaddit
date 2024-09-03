@@ -51,6 +51,11 @@ namespace Deaddit.MAUI.Pages
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
+            if (!subreddit.Contains('/'))
+            {
+                subreddit = "/r/" + subreddit;
+            }
+
             _visitTracker = visitTracker;
             _configurationService = configurationService;
             _blockConfiguration = blockConfiguration;
