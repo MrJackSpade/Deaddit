@@ -2,11 +2,10 @@
 {
     public class InputAttribute : Attribute
     {
-        public InputAttribute(bool masked)
-        {
-            Masked = masked;
-        }
+        public bool Masked { get; set; }
 
-        public bool Masked { get; private set; }
+        public string? Name { get; set; }
+
+        public int Order { get; set; }
     }
 }

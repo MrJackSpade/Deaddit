@@ -1,4 +1,5 @@
 ﻿using Deaddit.Components;
+using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.Models.Json.Response;
 using Deaddit.PageModels;
@@ -26,14 +27,17 @@ namespace Deaddit.Pages
 
         private readonly IBlockConfiguration _blockConfiguration;
 
+        private readonly IConfigurationService _configurationService;
+
         private readonly string _subreddit;
 
         private string _sort;
 
-        public SubRedditPage(string subreddit, string sort, IRedditClient redditClient, IAppTheme appTheme, IMarkDownService markDownService, IBlockConfiguration blockConfiguration)
+        public SubRedditPage(string subreddit, string sort, IRedditClient redditClient, IAppTheme appTheme, IMarkDownService markDownService, IBlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
+            _configurationService = configurationService;
             _blockConfiguration = blockConfiguration;
             _subreddit = subreddit;
             _sort = sort;
@@ -55,6 +59,7 @@ namespace Deaddit.Pages
 
         public async void OnMenuClicked(object sender, EventArgs e)
         {
+            await Navigation.PopAsync();
         }
 
         public async void OnSettingsClicked(object sender, EventArgs e)
@@ -84,6 +89,11 @@ namespace Deaddit.Pages
 
                 await foreach (RedditPost post in _redditClient.Read(after: after, subreddit: _subreddit, sort: _sort))
                 {
+                    if (!_blockConfiguration.BlockRules.IsAllowed(post))
+                    {
+                        continue;
+                    }
+
                     posts.Add(post);
 
                     if (posts.Count >= 25)
@@ -96,7 +106,7 @@ namespace Deaddit.Pages
 
                 foreach (RedditPost post in posts)
                 {
-                    RedditPostComponent redditPostComponent = RedditPostComponent.ListView(post, _redditClient, _appTheme, _selectionTracker, _markDownService, _blockConfiguration);
+                    RedditPostComponent redditPostComponent = RedditPostComponent.ListView(post, _redditClient, _appTheme, _selectionTracker, _markDownService, _blockConfiguration, _configurationService);
 
                     mainStack.Add(redditPostComponent);
                 }

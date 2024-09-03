@@ -11,5 +11,9 @@ namespace Deaddit.Interfaces
         T Read<T>() where T : class;
 
         void Write<T>(T obj) where T : class;
+
+        T Read<T>(string name) where T : class;
+
+        void Write<T>(string name, T obj) where T : class;
     }
 }

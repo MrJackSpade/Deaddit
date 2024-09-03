@@ -18,23 +18,14 @@ namespace Deaddit.Services
 
         private readonly IJsonClient _jsonClient;
 
-        private readonly string _key;
-
-        private readonly string _password;
-
-        private readonly string _secret;
-
-        private readonly string _username;
+        private readonly IAppCredentials _appCredentials;
 
         private OAuthToken _oAuthToken;
 
         public RedditClient(IAppCredentials appCredentials, IJsonClient jsonClient, HttpClient httpClient)
         {
-            _key = appCredentials.AppKey;
+            _appCredentials = appCredentials;
             _httpClient = httpClient;
-            _secret = appCredentials.AppSecret;
-            _username = appCredentials.UserName;
-            _password = appCredentials.Password;
             _jsonClient = jsonClient;
             _jsonClient.SetDefaultHeader("User-Agent", "Deaddit");
         }
@@ -170,14 +161,14 @@ namespace Deaddit.Services
         {
             if (_oAuthToken is null)
             {
-                string text = Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1").GetBytes(_key + ":" + _secret));
+                string text = Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1").GetBytes(_appCredentials.AppKey + ":" + _appCredentials.AppSecret));
 
                 // Set the Authorization header
                 _httpClient.SetDefaultHeader("Authorization", "Basic " + text);
 
                 // Encode the form values
-                string encodedUsername = Uri.EscapeDataString(_username);
-                string encodedPassword = Uri.EscapeDataString(_password);
+                string encodedUsername = Uri.EscapeDataString(_appCredentials.UserName);
+                string encodedPassword = Uri.EscapeDataString(_appCredentials.Password);
 
                 // Prepare the content with encoded values
                 StringContent content = new($"grant_type=password&username={encodedUsername}&password={encodedPassword}",

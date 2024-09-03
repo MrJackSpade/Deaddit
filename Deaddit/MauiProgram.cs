@@ -3,7 +3,10 @@ using Deaddit.Configurations;
 using Deaddit.Interfaces;
 using Deaddit.Pages;
 using Deaddit.Services;
+using Deaddit.Services.Configuration;
+using Deaddit.Services.Configuration.Extensions;
 using Microsoft.Extensions.Logging;
+using AppTheme = Deaddit.Configurations.AppTheme;
 
 namespace Deaddit
 {
@@ -22,18 +25,9 @@ namespace Deaddit
                 return new RedditClient(appTheme, jsonClient, httpClient);
             });
 
-            builder.Services.AddSingleton((s) =>
-            {
-                IConfigurationService configurationService = s.GetRequiredService<IConfigurationService>();
-
-                AppConfiguration configuration = configurationService.Read<AppConfiguration>();
-
-                return configuration;
-            });
-
-            builder.Services.AddTransient<IAppTheme>((s) => s.GetRequiredService<AppConfiguration>().Theme);
-            builder.Services.AddTransient<IAppCredentials>((s) => s.GetRequiredService<AppConfiguration>().Credentials);
-            builder.Services.AddTransient<IBlockConfiguration>((s) => s.GetRequiredService<AppConfiguration>().BlockConfiguration);
+            builder.Services.AddConfiguration<IAppTheme, AppTheme>();
+            builder.Services.AddConfiguration<IAppCredentials, AppCredentials>();
+            builder.Services.AddConfiguration<IBlockConfiguration, BlockConfiguration>();
 
             builder.Services.AddTransient<IJsonClient, JsonClient>();
             builder.Services.AddTransient<IConfigurationService, ConfigurationService>();

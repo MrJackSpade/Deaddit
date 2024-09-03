@@ -8,7 +8,7 @@ using System.Runtime.Serialization;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
-namespace Deaddit.Services
+namespace Deaddit.Utils
 {
     internal static class JsonDeserializer
     {
@@ -182,12 +182,12 @@ namespace Deaddit.Services
                 return longValue;
             }
 
-            if(v == "dark")
+            if (v == "dark")
             {
                 return Color.FromHex("#212121");
             }
 
-            if(v == "light")
+            if (v == "light")
             {
                 return Color.FromHex("#D3D3D3");
             }

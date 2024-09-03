@@ -15,7 +15,7 @@ namespace Deaddit.Models.Json.Response
         public object? ApprovedBy { get; set; }
 
         [JsonPropertyName("archived")]
-        public bool? Archived { get; set; }
+        public bool? IsArchived { get; set; }
 
         [JsonPropertyName("author")]
         public string? Author { get; set; }
@@ -99,7 +99,7 @@ namespace Deaddit.Models.Json.Response
         public UpvoteState Likes { get; set; }
 
         [JsonPropertyName("locked")]
-        public bool? Locked { get; set; }
+        public bool? IsLocked { get; set; }
 
         [JsonPropertyName("mod_note")]
         public object? ModNote { get; set; }
@@ -146,10 +146,10 @@ namespace Deaddit.Models.Json.Response
         public bool? Stickied { get; set; }
 
         [JsonPropertyName("subreddit")]
-        public string? Subreddit { get; set; }
+        public string? SubReddit { get; set; }
 
         [JsonPropertyName("subreddit_id")]
-        public string? SubredditId { get; set; }
+        public string? SubRedditId { get; set; }
 
         [JsonPropertyName("subreddit_name_prefixed")]
         public string? SubredditNamePrefixed { get; set; }

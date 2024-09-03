@@ -25,11 +25,14 @@ namespace Deaddit.Pages
 
         private readonly IBlockConfiguration _blockConfiguration;
 
-        public PostPage(RedditPost post, IRedditClient redditClient, IAppTheme appTheme, IMarkDownService markDownService, IBlockConfiguration blockConfiguration)
+        private readonly IConfigurationService _configurationService;
+
+        public PostPage(RedditPost post, IRedditClient redditClient, IAppTheme appTheme, IMarkDownService markDownService, IBlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
             _commentSelectionTracker = new SelectionTracker();
+            _configurationService = configurationService;
             _post = post;
             _blockConfiguration = blockConfiguration;
             _appTheme = appTheme;
@@ -40,7 +43,7 @@ namespace Deaddit.Pages
 
             this.InitializeComponent();
 
-            RedditPostComponent redditPostComponent = RedditPostComponent.PostView(post, redditClient, appTheme, new SelectionTracker(), _markDownService, _blockConfiguration);
+            RedditPostComponent redditPostComponent = RedditPostComponent.PostView(post, redditClient, appTheme, new SelectionTracker(), _markDownService, _blockConfiguration, _configurationService);
 
             //After the menu bar which is hardcoded
             mainStack.Children.Insert(0, redditPostComponent);
@@ -63,7 +66,7 @@ namespace Deaddit.Pages
 
         public async void OnReplyClicked(object sender, EventArgs e)
         {
-            ReplyPage replyPage = new(this._post, _redditClient, _appTheme, _markDownService, _blockConfiguration);
+            ReplyPage replyPage = new(this._post, _redditClient, _appTheme, _markDownService, _blockConfiguration, _configurationService);
             replyPage.OnSubmitted += this.ReplyPage_OnSubmitted;
             await Navigation.PushAsync(replyPage);
         }
@@ -96,12 +99,12 @@ namespace Deaddit.Pages
                 {
                     if (comment.Kind is ThingKind.Comment)
                     {
-                        if (_blockConfiguration.BlockRules.IsBlocked(comment.Data))
+                        if (!_blockConfiguration.BlockRules.IsAllowed(comment.Data))
                         {
                             continue;
                         }
 
-                        RedditCommentComponent commentComponent = RedditCommentComponent.FullView(comment.Data, _redditClient, _appTheme, _commentSelectionTracker, _markDownService, _blockConfiguration);
+                        RedditCommentComponent commentComponent = RedditCommentComponent.FullView(comment.Data, _redditClient, _appTheme, _commentSelectionTracker, _markDownService, _blockConfiguration, _configurationService);
 
                         mainStack.Add(commentComponent);
 
@@ -116,7 +119,7 @@ namespace Deaddit.Pages
 
         private void ReplyPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
         {
-            RedditCommentComponent redditCommentComponent = RedditCommentComponent.FullView(e.NewComment.Data, _redditClient, _appTheme, _commentSelectionTracker, _markDownService, _blockConfiguration);
+            RedditCommentComponent redditCommentComponent = RedditCommentComponent.FullView(e.NewComment.Data, _redditClient, _appTheme, _commentSelectionTracker, _markDownService, _blockConfiguration, _configurationService);
 
             this.mainStack.Children.Insert(0, redditCommentComponent);
         }

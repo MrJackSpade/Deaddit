@@ -11,8 +11,6 @@ namespace Deaddit.Pages
     {
         private readonly IAppTheme _appTheme;
 
-        private readonly AppConfiguration _appConfiguration;
-
         private readonly LandingPageConfiguration _configuration;
 
         private readonly IConfigurationService _configurationService;
@@ -27,9 +25,14 @@ namespace Deaddit.Pages
 
         private readonly LandingPageViewModel _viewModel;
 
+        private readonly IAppCredentials _appCredentials;
+
+        private readonly AppConfiguration _appConfiguration;
+
         public void OnMenuClicked(object sender, EventArgs e)
         {
-            ObjectEditorPage editorPage = new(_appConfiguration, true, _appTheme);
+            
+            ObjectEditorPage editorPage = new(_appConfiguration, _appTheme);
 
             editorPage.OnSave += this.EditorPage_OnSave;
 
@@ -38,16 +41,26 @@ namespace Deaddit.Pages
 
         private void EditorPage_OnSave(object? sender, EventArguments.ObjectEditorSaveEventArgs e)
         {
-            _configurationService.Write(_appConfiguration);
+            _configurationService.Write(_appConfiguration.Credentials);
+            _configurationService.Write(_appConfiguration.BlockConfiguration);
+            _configurationService.Write(_appConfiguration.Theme);
         }
 
-        public LandingPage(IAppTheme appTheme, AppConfiguration appConfiguration, IRedditClient redditClient, IConfigurationService configurationService, IMarkDownService markDownService, IBlockConfiguration blockConfiguration)
+        public LandingPage(IAppTheme appTheme, IRedditClient redditClient, IAppCredentials appCredentials, IConfigurationService configurationService, IMarkDownService markDownService, IBlockConfiguration blockConfiguration)
         {
             //https://www.reddit.com/r/redditdev/comments/8pbx43/get_multireddit_listing/
             NavigationPage.SetHasNavigationBar(this, false);
 
+            _appCredentials = appCredentials;
             _redditClient = redditClient;
-            _appConfiguration = appConfiguration;
+
+            _appConfiguration = new AppConfiguration()
+            {
+                BlockConfiguration = blockConfiguration,
+                Credentials = appCredentials,
+                Theme = appTheme
+            };
+
             _configuration = configurationService.Read<LandingPageConfiguration>();
             _configurationService = configurationService;
             _blockConfiguration = blockConfiguration;
@@ -58,12 +71,12 @@ namespace Deaddit.Pages
             BindingContext = _viewModel = new LandingPageViewModel(appTheme);
             this.InitializeComponent();
 
-            this.mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("All", "r/all", "Hot"), redditClient, appTheme, _selectionTracker, _markDownService, _blockConfiguration));
-            this.mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("Home", "", "Hot"), redditClient, appTheme, _selectionTracker, _markDownService, _blockConfiguration));
+            this.mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("All", "r/all", "Hot"), redditClient, appTheme, _selectionTracker, _markDownService, _blockConfiguration, _configurationService));
+            this.mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("Home", "", "Hot"), redditClient, appTheme, _selectionTracker, _markDownService, _blockConfiguration, _configurationService));
 
             foreach (SubRedditSubscription subscription in _configuration.Subscriptions)
             {
-                SubRedditComponent subRedditComponent = SubRedditComponent.Removable(subscription, redditClient, appTheme, _selectionTracker, _markDownService, _blockConfiguration);
+                SubRedditComponent subRedditComponent = SubRedditComponent.Removable(subscription, redditClient, appTheme, _selectionTracker, _markDownService, _blockConfiguration, _configurationService);
                 subRedditComponent.OnRemove += this.SubRedditComponent_OnRemove;
                 this.mainStack.Add(subRedditComponent);
             }
@@ -101,7 +114,7 @@ namespace Deaddit.Pages
 
             _configurationService.Write(_configuration);
 
-            SubRedditComponent subRedditComponent = SubRedditComponent.Removable(newSubscription, _redditClient, _appTheme, _selectionTracker, _markDownService, _blockConfiguration);
+            SubRedditComponent subRedditComponent = SubRedditComponent.Removable(newSubscription, _redditClient, _appTheme, _selectionTracker, _markDownService, _blockConfiguration, _configurationService);
             subRedditComponent.OnRemove += this.SubRedditComponent_OnRemove;
             this.mainStack.Add(subRedditComponent);
         }

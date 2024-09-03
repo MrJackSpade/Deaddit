@@ -1,92 +1,74 @@
 ﻿using Deaddit.Configurations;
 using Deaddit.Models.Json.Response;
+using Deaddit.Utils;
 using System.Text.RegularExpressions;
 
 namespace Deaddit.Extensions
 {
     public static class BlockRuleExtensions
     {
-        public static bool IsBlocked(this IEnumerable<BlockRule> blockRules, RedditThing thing)
+        public static bool IsAllowed(this IEnumerable<BlockRule> blockRules, RedditThing thing)
         {
             foreach (BlockRule br in blockRules)
             {
-                if (br.IsBlocked(thing))
+                if (!br.IsAllowed(thing))
                 {
-                    return true;
+                    return false;
                 }
             }
 
-            return false;
+            return true;
         }
 
-        public static bool IsBlocked(this BlockRule rule, RedditThing thing)
+        public static bool IsAllowed(this BlockRule rule, RedditThing thing)
         {
-            if(thing is RedditComment rc && rule.IsBlocked(rc))
+            //Add comment specific here if needed in the future
+            if (thing is RedditPost rp && rule.IsAllowed(rp))
             {
-                return true;
-            }
-
-            if (thing is RedditPost rp && rule.IsBlocked(rp))
-            {
-                return true;
+                return false;
             }
             
-            if (string.Equals(rule.Author, thing.Author, StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-
-            if (!string.IsNullOrWhiteSpace(rule.Body) && Regex.IsMatch(thing.Body, rule.Body, RegexOptions.IgnoreCase))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool IsBlocked(this BlockRule rule, RedditPost post)
-        {
-            if (rule.BlockType == BlockType.Comment)
+            if(!BlockListHelper.IsAllowed(rule.Author, thing.Author, StringMatchType.String))
             {
                 return false;
             }
 
-            if (rule.IsLocked && post.Locked == true)
-            {
-                return true;
-            }
-
-            if (rule.IsArchived && post.Archived == true)
-            {
-                return true;
-            }
-
-            if (!string.IsNullOrWhiteSpace(rule.Flair) && string.Equals(rule.Flair, post.LinkFlairText, StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-
-            if (string.Equals(rule.SubReddit, post.Subreddit, StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-
-            if (!string.IsNullOrWhiteSpace(rule.Title) && Regex.IsMatch(post.Title, rule.Title, RegexOptions.IgnoreCase))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool IsBlocked(this BlockRule rule, RedditComment comment)
-        {
-            if (rule.BlockType == BlockType.Post)
+            if (!BlockListHelper.IsAllowed(rule.Body, thing.Body, StringMatchType.Regex))
             {
                 return false;
             }
 
-            return false;
+            return true;
+        }
+
+        private static bool IsAllowed(this BlockRule rule, RedditPost post)
+        {
+            if(!BlockListHelper.IsAllowed(rule.IsLocked, post.IsLocked))
+            {
+                return false;
+            }
+
+            if(!BlockListHelper.IsAllowed(rule.IsArchived, post.IsArchived))
+            {
+                return false;
+            }
+
+            if(!BlockListHelper.IsAllowed(rule.Flair, post.LinkFlairText, StringMatchType.String))
+            {
+                return false;
+            }
+
+            if(!BlockListHelper.IsAllowed(rule.SubReddit, post.SubReddit, StringMatchType.String))
+            {
+                return false;
+            }
+
+            if(!BlockListHelper.IsAllowed(rule.Title, post.Title, StringMatchType.Regex))
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }
