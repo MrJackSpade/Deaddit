@@ -74,6 +74,10 @@ namespace Deaddit.Reddit.Models.Api
         [JsonPropertyName("created_utc")]
         public OptionalDateTime CreatedUtc { get; set; }
 
+        [JsonPropertyName("created")]
+        [Obsolete("Use the UTC version", true)]
+        public OptionalDateTime Created { get; set; }
+
         [JsonPropertyName("distinguished")]
         public DistinguishedKind Distinguished { get; set; }
 

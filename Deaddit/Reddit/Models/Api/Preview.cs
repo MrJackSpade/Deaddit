@@ -9,5 +9,8 @@ namespace Deaddit.Reddit.Models.Api
 
         [JsonPropertyName("images")]
         public List<RemoteImage> Images { get; set; } = [];
+
+        [JsonPropertyName("reddit_video_preview")]
+        public string? RedditVideoPreview { get; set; }
     }
 }

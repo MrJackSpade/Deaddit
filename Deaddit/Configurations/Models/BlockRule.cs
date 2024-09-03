@@ -22,6 +22,9 @@ namespace Deaddit.Configurations.Models
         [EditorDisplay(Name = "Archived", Order = 4)]
         public bool IsArchived { get; set; }
 
+        [EditorDisplay(Name = "NSFW", Order = 4)]
+        public bool IsNsfw { get; set; }
+
         [EditorDisplay(Name = "Locked", Order = 5)]
         public bool IsLocked { get; set; }
 

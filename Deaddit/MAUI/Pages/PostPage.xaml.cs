@@ -1,14 +1,18 @@
 using Deaddit.Configurations.Interfaces;
 using Deaddit.Configurations.Models;
+using Deaddit.Exceptions;
 using Deaddit.Extensions;
 using Deaddit.MAUI.Components;
 using Deaddit.MAUI.EventArguments;
 using Deaddit.MAUI.Pages.Models;
+using Deaddit.Reddit.Extensions;
 using Deaddit.Reddit.Interfaces;
 using Deaddit.Reddit.Models;
 using Deaddit.Reddit.Models.Api;
 using Deaddit.Services;
 using Deaddit.Utils;
+using Org.BouncyCastle.Asn1.Ocsp;
+using System.Diagnostics;
 
 namespace Deaddit.MAUI.Pages
 {
@@ -18,7 +22,7 @@ namespace Deaddit.MAUI.Pages
 
         private readonly BlockConfiguration _blockConfiguration;
 
-        private readonly SelectionGroup _commentSelectionTracker;
+        private readonly SelectionGroup _commentSelectionGroup;
 
         private readonly IConfigurationService _configurationService;
 
@@ -32,7 +36,7 @@ namespace Deaddit.MAUI.Pages
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
-            _commentSelectionTracker = new SelectionGroup();
+            _commentSelectionGroup = new SelectionGroup();
             _configurationService = configurationService;
             _post = post;
             _visitTracker = visitTracker;
@@ -96,26 +100,36 @@ namespace Deaddit.MAUI.Pages
                     continue;
                 }
 
-                foreach (RedditCommentMeta comment in responseItem.Data.Children)
+                foreach (RedditCommentMeta child in responseItem.Data.Children)
                 {
-                    Ensure.NotNull(comment.Data, "Comment Data");
-
-                    if (comment.Kind is ThingKind.Comment)
+                    if (child?.Data is null)
                     {
-                        if (!_blockConfiguration.BlockRules.IsAllowed(comment.Data))
-                        {
-                            continue;
-                        }
-
-                        RedditCommentComponent commentComponent = RedditCommentComponent.FullView(comment.Data, _redditClient, _applicationTheme, _visitTracker, _commentSelectionTracker, _blockConfiguration, _configurationService);
-
-                        mainStack.Add(commentComponent);
-
-                        if (comment.Data?.Replies?.Data?.Children is not null)
-                        {
-                            commentComponent.AddChildren(comment.Data.Replies.Data.Children);
-                        }
+                        continue;
                     }
+
+                    if(child.Data.Name == _post.Name)
+                    {
+                        continue;
+                    }
+
+                    if (!_blockConfiguration.BlockRules.IsAllowed(child.Data))
+                    {
+                        continue;
+                    }
+
+                    ContentView childComponent = child.Kind switch
+                    {
+                        ThingKind.Comment => RedditCommentComponent.FullView(child.Data, _redditClient, _applicationTheme, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService),
+                        ThingKind.More => new MoreCommentsComponent(child.Data, _redditClient, _applicationTheme, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService),
+                        _ => throw new UnhandledEnumException(child.Kind),
+                    };
+
+                    if (childComponent is RedditCommentComponent rcc)
+                    {
+                        rcc.AddChildren(child.GetReplies());
+                    }
+
+                    mainStack.Add(childComponent);
                 }
             }
         }
@@ -124,7 +138,7 @@ namespace Deaddit.MAUI.Pages
         {
             Ensure.NotNull(e.NewComment.Data, "New Comment Data");
 
-            RedditCommentComponent redditCommentComponent = RedditCommentComponent.FullView(e.NewComment.Data, _redditClient, _applicationTheme, _visitTracker, _commentSelectionTracker, _blockConfiguration, _configurationService);
+            RedditCommentComponent redditCommentComponent = RedditCommentComponent.FullView(e.NewComment.Data, _redditClient, _applicationTheme, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService);
 
             mainStack.Children.Insert(0, redditCommentComponent);
         }

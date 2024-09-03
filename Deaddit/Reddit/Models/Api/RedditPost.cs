@@ -94,7 +94,7 @@ namespace Deaddit.Reddit.Models.Api
         public long NumCrossPosts { get; set; }
 
         [JsonPropertyName("over_18")]
-        public bool Over18 { get; set; }
+        public bool IsNsfw { get; set; }
 
         [JsonPropertyName("parent_whitelist_status")]
         public string? ParentWhitelistStatus { get; set; }

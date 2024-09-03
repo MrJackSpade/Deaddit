@@ -37,6 +37,8 @@ namespace Deaddit.Extensions
 
             blocked &= BlockListHelper.TriggersOrSkip(rule.IsLocked, post.IsLocked);
 
+            blocked &= BlockListHelper.TriggersOrSkip(rule.IsNsfw, post.IsNsfw);
+
             blocked &= BlockListHelper.TriggersOrSkip(rule.IsArchived, post.IsArchived);
 
             blocked &= BlockListHelper.TriggersOrSkip(rule.Flair, post.LinkFlairText, StringMatchType.String);

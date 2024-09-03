@@ -110,6 +110,8 @@ namespace Deaddit.Json
 
             if (node is JsonObject jsonObject)
             {
+                HashSet<string> availableProperties = jsonObject.Select(k => k.Key).ToHashSet();
+
                 foreach (PropertyInfo pi in type.GetProperties())
                 {
                     List<string> names = [];
@@ -133,6 +135,7 @@ namespace Deaddit.Json
                     {
                         if (jsonObject.ContainsKey(propertyName))
                         {
+                            availableProperties.Remove(propertyName);
                             property = jsonObject[propertyName];
                             break;
                         }
@@ -147,6 +150,7 @@ namespace Deaddit.Json
                         }
 
                         object? propertyValue = Deserialize(property, pi.PropertyType);
+
                         pi.SetValue(toReturn, propertyValue);
                     }
                     catch (DeserializationException ex)
@@ -154,6 +158,11 @@ namespace Deaddit.Json
                         Debug.WriteLine($"Error deserializing property: {pi.Name}");
                         Debug.WriteLine(ex.Message);
                     }
+                }
+
+                if (availableProperties.Count > 0)
+                {
+                    Debug.WriteLine($"Unmapped properties found on object at path '{jsonObject.GetPath()}'; {string.Join(",", availableProperties)}");
                 }
             }
 

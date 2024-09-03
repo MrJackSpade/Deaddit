@@ -1,11 +1,13 @@
 using Deaddit.Configurations.Interfaces;
 using Deaddit.Configurations.Models;
+using Deaddit.Exceptions;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.MAUI.Components.ComponentModels;
 using Deaddit.MAUI.EventArguments;
 using Deaddit.MAUI.Extensions;
 using Deaddit.MAUI.Pages;
+using Deaddit.Reddit.Extensions;
 using Deaddit.Reddit.Interfaces;
 using Deaddit.Reddit.Models;
 using Deaddit.Reddit.Models.Api;
@@ -41,7 +43,6 @@ namespace Deaddit.MAUI.Components
             _visitTracker = visitTracker;
             _configurationService = configurationService;
             _selectionGroup = selectionTracker;
-
             BindingContext = _commentViewModel = new RedditCommentComponentViewModel(thing, applicationTheme);
             this.InitializeComponent();
         }
@@ -68,23 +69,34 @@ namespace Deaddit.MAUI.Components
             return toReturn;
         }
 
-        public void AddChildren(IEnumerable<RedditThing> children)
+        public void AddChildren(IEnumerable<RedditCommentMeta> children)
         {
-            foreach (RedditThing child in children)
+            foreach (RedditCommentMeta? child in children)
             {
-                if (!_blockConfiguration.BlockRules.IsAllowed(child))
+                if(child?.Data is null)
                 {
                     continue;
                 }
 
-                RedditCommentComponent childComponent = FullView(child, _redditClient, _applicationTheme, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService);
+                if (!_blockConfiguration.BlockRules.IsAllowed(child.Data))
+                {
+                    continue;
+                }
+
+                ContentView childComponent = child.Kind switch
+                {
+                    ThingKind.Comment => FullView(child.Data, _redditClient, _applicationTheme, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService),
+                    ThingKind.More => new MoreCommentsComponent(child.Data, _redditClient, _applicationTheme, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService),
+                    _ => throw new UnhandledEnumException(child.Kind),
+                };
+
+                if (childComponent is RedditCommentComponent rcc)
+                {
+                    rcc.AddChildren(child.GetReplies());
+                }
+
                 childStack.Add(childComponent);
             }
-        }
-
-        public void AddChildren(IEnumerable<RedditCommentMeta> children)
-        {
-            this.AddChildren(children.Where(c => c.Kind == ThingKind.Comment).Select(c => c.Data));
         }
 
         public void OnDownvoteClicked(object sender, EventArgs e)
