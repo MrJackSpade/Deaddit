@@ -5,19 +5,26 @@
     <Grid RowDefinitions="auto, *, auto">
         <!-- Navigation Bar -->
         <Grid Padding="0"
+              ColumnDefinitions="auto, *, auto"
               Row="0"
               x:Name="navigationBar">
             <!-- Left Hamburger Button -->
             <Button Text="&#x2630;"
+                    Grid.Column="0"
                     x:Name="menuButton"
                     Background="Transparent"
                     VerticalOptions="Center"
                     HorizontalOptions="Start"
                     Clicked="OnMenuClicked" />
-            <Label Text="{Binding SubReddit}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" TextColor="{Binding TextColor}"></Label>
+            <Label Text="{Binding SubReddit}" 
+                   HorizontalTextAlignment="Center" 
+                   VerticalTextAlignment="Center" 
+                   Grid.Column="1"
+                   TextColor="{Binding TextColor}"></Label>
             <!-- Right Gear Button -->
             <Button Text="&#x2699;"
                     x:Name="settingsButton"
+                    Grid.Column="2"
                     VerticalOptions="Center"
                     HorizontalOptions="End"
                     Background="Transparent"
