@@ -27,9 +27,9 @@ namespace Deaddit.MAUI.Pages
             SelectionGroup unused = new();
             do
             {
-                if (toRender is RedditComment)
+                if (toRender is RedditComment rc)
                 {
-                    RedditCommentComponent redditCommentComponent = RedditCommentComponent.Preview(toRender, redditClient, applicationTheme, visitTracker, unused, blockConfiguration, configurationService);
+                    RedditCommentComponent redditCommentComponent = RedditCommentComponent.Preview(rc, null, redditClient, applicationTheme, visitTracker, unused, blockConfiguration, configurationService);
 
                     commentStack.Children.Insert(0, redditCommentComponent);
                 }

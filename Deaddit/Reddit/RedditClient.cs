@@ -72,9 +72,14 @@ namespace Deaddit.Reddit
             return response.Json.Data.Things.Single();
         }
 
-        public async Task<List<CommentReadResponse>> Comments(RedditThing parent)
+        public async IAsyncEnumerable<RedditCommentMeta> Comments(RedditPost parent, string comment)
         {
             string fullUrl = $"{API_ROOT}/comments/{parent.Id}";
+
+            if (!string.IsNullOrWhiteSpace(comment))
+            {
+                fullUrl += $"?comment={comment}";
+            }
 
             List<CommentReadResponse> response = await _jsonClient.Get<List<CommentReadResponse>>(fullUrl);
 
@@ -89,7 +94,24 @@ namespace Deaddit.Reddit
                 }
             }
 
-            return response;
+            foreach (CommentReadResponse commentReadResponse in response)
+            {
+                if (commentReadResponse.Data?.Children != null)
+                {
+                    foreach (RedditCommentMeta child in commentReadResponse.Data.Children)
+                    {
+                        if(child.Data is null)
+                        {
+                            continue;
+                        }
+
+                        if(child.Data.Id != parent.Id)
+                        {
+                            yield return child; 
+                        }
+                    }
+                }
+            }
         }
 
         public async Task<Stream> GetStream(string url)
@@ -235,6 +257,23 @@ namespace Deaddit.Reddit
             foreach (RedditCommentMeta child in comment.Data.Replies.Data.Children)
             {
                 SetParent(comment.Data, child);
+            }
+        }
+
+        public async IAsyncEnumerable<RedditCommentMeta> MoreComments(RedditPost post, RedditComment comment)
+        {
+            string fullUrl = $"{API_ROOT}/api/morechildren?api_type=json&link_id={post.Name}&children={string.Join(",", comment.ChildNames)}&limit_children=false&depth=999";
+
+            MoreCommentsResponse response = await _jsonClient.Get<MoreCommentsResponse>(fullUrl);
+
+            if (response?.Json?.Data is null)
+            {
+                yield break;
+            }
+
+            foreach (RedditCommentMeta commentReadResponse in response.Json.Data.Things)
+            {
+                yield return commentReadResponse;
             }
         }
     }

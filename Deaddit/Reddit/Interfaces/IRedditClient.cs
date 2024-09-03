@@ -8,7 +8,9 @@ namespace Deaddit.Reddit.Interfaces
     {
         Task<RedditCommentMeta> Comment(RedditThing replyTo, string comment);
 
-        Task<List<CommentReadResponse>> Comments(RedditThing thing);
+        IAsyncEnumerable<RedditCommentMeta> Comments(RedditPost thing, string commentId);
+
+        IAsyncEnumerable<RedditCommentMeta> MoreComments(RedditPost thing, RedditComment comment);
 
         Task<Stream> GetStream(string url);
 

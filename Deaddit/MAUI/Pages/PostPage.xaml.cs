@@ -11,8 +11,7 @@ using Deaddit.Reddit.Models;
 using Deaddit.Reddit.Models.Api;
 using Deaddit.Services;
 using Deaddit.Utils;
-using Org.BouncyCastle.Asn1.Ocsp;
-using System.Diagnostics;
+using Deaddit.Utils.Extensions;
 
 namespace Deaddit.MAUI.Pages
 {
@@ -53,7 +52,7 @@ namespace Deaddit.MAUI.Pages
             //After the menu bar which is hardcoded
             mainStack.Children.Insert(0, redditPostComponent);
 
-            DataService.LoadAsync(mainStack, this.LoadDataAsync, _applicationTheme.HighlightColor);
+            DataService.LoadAsync(mainStack, async () => this.LoadDataAsync(post), _applicationTheme.HighlightColor);
         }
 
         public void OnBackClicked(object sender, EventArgs e)
@@ -89,56 +88,69 @@ namespace Deaddit.MAUI.Pages
             });
         }
 
-        private async Task LoadDataAsync()
+        private void AddChildren(IEnumerable<RedditCommentMeta> children)
         {
-            List<CommentReadResponse> response = await _redditClient.Comments(_post);
-
-            foreach (CommentReadResponse responseItem in response)
+            foreach (RedditCommentMeta child in children)
             {
-                if (responseItem.Data is null)
+                if (child?.Data is null)
                 {
                     continue;
                 }
 
-                foreach (RedditCommentMeta child in responseItem.Data.Children)
+                if (!_blockConfiguration.BlockRules.IsAllowed(child.Data))
                 {
-                    if (child?.Data is null)
-                    {
-                        continue;
-                    }
-
-                    if(child.Data.Name == _post.Name)
-                    {
-                        continue;
-                    }
-
-                    if (!_blockConfiguration.BlockRules.IsAllowed(child.Data))
-                    {
-                        continue;
-                    }
-
-                    ContentView childComponent = child.Kind switch
-                    {
-                        ThingKind.Comment => RedditCommentComponent.FullView(child.Data, _redditClient, _applicationTheme, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService),
-                        ThingKind.More => new MoreCommentsComponent(child.Data, _redditClient, _applicationTheme, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService),
-                        _ => throw new UnhandledEnumException(child.Kind),
-                    };
-
-                    if (childComponent is RedditCommentComponent rcc)
-                    {
-                        rcc.AddChildren(child.GetReplies());
-                    }
-
-                    mainStack.Add(childComponent);
+                    continue;
                 }
+
+                ContentView childComponent = null;
+
+                switch (child.Kind)
+                {
+                    case ThingKind.Comment:
+                        RedditCommentComponent ccomponent = RedditCommentComponent.FullView(child.Data, _post, _redditClient, _applicationTheme, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService);
+                        ccomponent.AddChildren(child.GetReplies());
+                        childComponent = ccomponent;
+                        break;
+                    case ThingKind.More:
+                        MoreCommentsComponent mcomponent = new(child.Data, _applicationTheme);
+                        mcomponent.OnClick += this.MoreCommentsClick;
+                        childComponent = mcomponent;
+                        break;
+                    default:
+                        throw new UnhandledEnumException(child.Kind);
+                }
+
+                mainStack.Add(childComponent);
             }
+        }
+
+        private async Task LoadDataAsync(RedditPost post)
+        {
+            List<RedditCommentMeta> response = await _redditClient.Comments(post, null).ToList();
+
+            this.AddChildren(response);
+        }
+
+        private async Task LoadMoreAsync(RedditPost post, RedditComment more)
+        {
+            List<RedditCommentMeta> response = await _redditClient.MoreComments(post, more).ToList();
+
+            this.AddChildren(response);
+        }
+
+        private async void MoreCommentsClick(object? sender, RedditComment e)
+        {
+            MoreCommentsComponent mcomponent = sender as MoreCommentsComponent;
+
+            await DataService.LoadAsync(mainStack, async () => await this.LoadMoreAsync(_post, e), _applicationTheme.HighlightColor);
+
         }
 
         private void ReplyPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
         {
             Ensure.NotNull(e.NewComment.Data, "New Comment Data");
 
-            RedditCommentComponent redditCommentComponent = RedditCommentComponent.FullView(e.NewComment.Data, _redditClient, _applicationTheme, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService);
+            RedditCommentComponent redditCommentComponent = RedditCommentComponent.FullView(e.NewComment.Data, _post, _redditClient, _applicationTheme, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService);
 
             mainStack.Children.Insert(0, redditCommentComponent);
         }

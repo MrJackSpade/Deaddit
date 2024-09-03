@@ -93,6 +93,11 @@ namespace Deaddit.Json
             //Must be last to prevent catching other types
             else if (targetType.IsClass)
             {
+                if(property is JsonValue jv && !string.IsNullOrWhiteSpace(jv.ToString()))
+                {
+                    throw new DeserializationException("Json Value found where object is expected");
+                }
+
                 return DeserializeObject(property, targetType);
             }
 

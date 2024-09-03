@@ -3,22 +3,22 @@
 namespace Deaddit.Reddit.Models.Api
 {
     // Root myDeserializedClass = JsonSerializer.Deserialize<Root>(myJsonResponse);
-    public class PostCommentData
+    public class Data
     {
         [JsonPropertyName("things")]
         public List<RedditCommentMeta> Things { get; set; } = [];
     }
 
-    public class PostCommentResponse
+    public class MoreCommentsResponse
     {
         [JsonPropertyName("json")]
-        public PostCommentResponseMeta? Json { get; set; }
+        public MoreCommentsResponseMeta? Json { get; set; }
     }
 
-    public class PostCommentResponseMeta
+    public class MoreCommentsResponseMeta
     {
         [JsonPropertyName("data")]
-        public PostCommentData? Data { get; set; }
+        public Data? Data { get; set; }
 
         [JsonPropertyName("errors")]
         public List<string> Errors { get; set; } = [];

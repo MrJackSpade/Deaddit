@@ -14,8 +14,7 @@ namespace Deaddit.Reddit.Models.Api
         public string? Before { get; set; }
 
         [JsonPropertyName("children")]
-        [Obsolete("This doesn't appear to be used", true)]
-        public List<RedditCommentMeta> Children { get; set; } = [];
+        public List<string> ChildNames { get; set; } = [];
 
         [JsonPropertyName("collapsed")]
         public bool? Collapsed { get; set; }
@@ -24,7 +23,7 @@ namespace Deaddit.Reddit.Models.Api
         public object? CollapsedBecauseCrowdControl { get; set; }
 
         [JsonPropertyName("collapsed_reason")]
-        public CollapsedReasonKind? CollapsedReason { get; set; }
+        public string? CollapsedReason { get; set; }
 
         [JsonPropertyName("collapsed_reason_code")]
         public CollapsedReasonKind CollapsedReasonCode { get; set; }
