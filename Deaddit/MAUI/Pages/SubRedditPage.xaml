@@ -9,7 +9,7 @@
               Row="0"
               x:Name="navigationBar">
             <!-- Left Hamburger Button -->
-            <Button Text="&#x2630;"
+            <Button Text="🔙"
                     Grid.Column="0"
                     x:Name="menuButton"
                     Background="Transparent"

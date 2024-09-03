@@ -110,7 +110,21 @@ namespace Deaddit.MAUI.Components
 
         public async void OnMoreOptionsClicked(object sender, EventArgs e)
         {
-            PostMoreOptions? postMoreOptions = await this.DisplayActionSheet<PostMoreOptions>("Select:", null, null);
+            Dictionary<PostMoreOptions, string> options = new();
+
+            Uri.TryCreate(_post.Domain, UriKind.Absolute, out Uri uri);
+            
+            options.Add(PostMoreOptions.BlockAuthor, $"Block /u/{_post.Author}");
+            options.Add(PostMoreOptions.BlockSubreddit, $"Block /r/{_post.SubReddit}");
+            options.Add(PostMoreOptions.ViewAuthor, $"View /u/{_post.Author}");
+            options.Add(PostMoreOptions.ViewSubreddit, $"View /r/{_post.SubReddit}");
+
+            if (uri != null)
+            {
+                options.Add(PostMoreOptions.BlockDomain, $"Block {uri.Host}");
+            }
+
+            PostMoreOptions? postMoreOptions = await this.DisplayActionSheet("Select:", null, null, options);
 
             if (postMoreOptions is null)
             {
@@ -136,6 +150,11 @@ namespace Deaddit.MAUI.Components
                         RuleName = $"/r/{_post.SubReddit}"
                     });
                     break;
+                case PostMoreOptions.ViewSubreddit:
+                    SubRedditPage page = new(_post.SubReddit, "hot", _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
+                    await Navigation.PushAsync(page);
+                    await page.TryLoad();
+                    break;
                 case PostMoreOptions.BlockAuthor:
                     await this.NewBlockRule(new BlockRule()
                     {
@@ -145,7 +164,7 @@ namespace Deaddit.MAUI.Components
                     });
                     break;
                 case PostMoreOptions.BlockDomain:
-                    if (Uri.TryCreate(_post.Domain, UriKind.Absolute, out Uri uri))
+                    if (uri != null)
                     {
                         await this.NewBlockRule(new BlockRule()
                         {

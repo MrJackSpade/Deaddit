@@ -5,7 +5,7 @@ namespace Deaddit.MAUI.Extensions
 {
     public static class ContentViewExtensions
     {
-        public static async Task<T?> DisplayActionSheet<T>(this ContentView view, string? title, string? cancel, string? destruction) where T : struct, Enum
+        public static async Task<T?> DisplayActionSheet<T>(this ContentView view, string? title, string? cancel, string? destruction, Dictionary<T, string> textOverrides = null) where T : struct, Enum
         {
             //This should all be replaced with something that looks better and uses the proper theme, but this is as good as anything for now
 
@@ -13,9 +13,15 @@ namespace Deaddit.MAUI.Extensions
 
             Dictionary<string, T> buttonValues = [];
 
+            textOverrides ??= [];
+
             foreach (T value in Enum.GetValues(typeof(T)))
-            {
-                if (value.GetAttribute<EnumMemberAttribute>() is EnumMemberAttribute ea && !string.IsNullOrWhiteSpace(ea.Value))
+            {            
+                if(textOverrides.TryGetValue(value, out string textOverride))
+                {
+                    buttonValues.Add(textOverride, value);
+                }
+                else if (value.GetAttribute<EnumMemberAttribute>() is EnumMemberAttribute ea && !string.IsNullOrWhiteSpace(ea.Value))
                 {
                     buttonValues.Add(ea.Value, value);
                 }
