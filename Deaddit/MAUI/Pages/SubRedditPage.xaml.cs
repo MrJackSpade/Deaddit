@@ -2,6 +2,7 @@
 using Deaddit.Configurations.Models;
 using Deaddit.Extensions;
 using Deaddit.MAUI.Components;
+using Deaddit.MAUI.EventArguments;
 using Deaddit.MAUI.Pages.Models;
 using Deaddit.Reddit.Interfaces;
 using Deaddit.Reddit.Models.Api;
@@ -117,6 +118,11 @@ namespace Deaddit.MAUI.Pages
                         continue;
                     }
 
+                    if (post.Hidden)
+                    {
+                        continue;
+                    }
+
                     posts.Add(post);
 
                     if (posts.Count >= 25)
@@ -129,7 +135,8 @@ namespace Deaddit.MAUI.Pages
                 {
                     RedditPostComponent redditPostComponent = RedditPostComponent.ListView(post, _redditClient, _applicationTheme, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService);
 
-                    redditPostComponent.OnBlockAdded += this.RedditPostComponent_OnBlockAdded;
+                    redditPostComponent.BlockAdded += this.RedditPostComponent_OnBlockAdded;
+                    redditPostComponent.HideClicked += this.RedditPostComponent_HideClicked;
 
                     mainStack.Add(redditPostComponent);
 
@@ -170,6 +177,11 @@ namespace Deaddit.MAUI.Pages
         {
             _sort = "Top";
             await this.Reload();
+        }
+
+        private void RedditPostComponent_HideClicked(object? sender, OnHideClickedEventArgs e)
+        {
+            mainStack.Remove(e.Component);
         }
 
         private void RedditPostComponent_OnBlockAdded(object? sender, BlockRule e)

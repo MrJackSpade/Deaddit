@@ -254,6 +254,22 @@ namespace Deaddit.Reddit
             await _jsonClient.Post(url, formValues);
         }
 
+        public async Task ToggleVisibility(ApiThing thing, bool visible)
+        {
+            await this.EnsureAuthenticated();
+
+            string url = !visible ? $"{API_ROOT}/api/hide" : $"{API_ROOT}/api/unhide";
+
+            // Prepare the form values as a dictionary
+            Dictionary<string, string> formValues = new()
+            {
+                { "id", thing.Name }
+            };
+
+            await _jsonClient.Post(url, formValues);
+        }
+
+
         public async Task ToggleSubScription(ApiSubReddit thing, bool subscribed)
         {
             await this.EnsureAuthenticated();

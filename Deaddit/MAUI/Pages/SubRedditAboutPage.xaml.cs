@@ -86,6 +86,7 @@ namespace Deaddit.MAUI.Pages
         {
             await _redditClient.ToggleSubScription(_apiSubReddit, !_apiSubReddit.UserIsSubscriber);
             _apiSubReddit.UserIsSubscriber = !_apiSubReddit.UserIsSubscriber;
+            this.SetSubscribeButtonState(_apiSubReddit.UserIsSubscriber);
         }
 
         private void SetSubscribeButtonState(bool state)
