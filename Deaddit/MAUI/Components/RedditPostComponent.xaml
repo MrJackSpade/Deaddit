@@ -5,8 +5,14 @@
              HorizontalOptions="FillAndExpand"
              VerticalOptions="FillAndExpand"
              Opacity="{Binding Opacity}"
-             xmlns:deaddit="clr-namespace:Deaddit.MAUI.Components">
+             xmlns:components="clr-namespace:Deaddit.MAUI.Components"
+             xmlns:converters="clr-namespace:Deaddit.MAUI.Converters">
 
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:MultiplyConverter x:Key="MultiplyConverter" />
+        </ResourceDictionary>
+    </ContentView.Resources>
     <VerticalStackLayout>
         <!-- Define the grid with three columns: auto for the thumbnail, star (*) for the title, auto for the vote stack -->
         <Grid
@@ -192,7 +198,7 @@
                 Padding="10"
                 BackgroundColor="{Binding PrimaryColor}"
                 HorizontalOptions="Center">
-            <deaddit:MarkdownView
+            <components:MarkdownView
                     Margin="5"
                     BackgroundColor="Transparent"
                     HyperlinkColor="{Binding HyperlinkColor}"
@@ -202,7 +208,7 @@
                     BlockQuoteTextColor="{Binding TextColor}"
                     MarkdownText="{Binding PostBody}"
                     x:Name="postBody">
-            </deaddit:MarkdownView>
+            </components:MarkdownView>
         </Border>
     </VerticalStackLayout>
 </ContentView>

@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:deaddit="clr-namespace:Deaddit.MAUI.Components"
+             xmlns:components="clr-namespace:Deaddit.MAUI.Components"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Deaddit.MAUI.Components.RedditCommentComponent">
-    <StackLayout BackgroundColor="{Binding SecondaryColor}" Margin="2,0,0,0" Padding="0,10,0,0">
+             x:Class="Deaddit.MAUI.Components.RedditCommentComponent"
+             xmlns:converters="clr-namespace:Deaddit.MAUI.Converters">
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <converters:MultiplyConverter x:Key="MultiplyConverter" />
+        </ResourceDictionary>
+    </ContentView.Resources>
+        <StackLayout BackgroundColor="{Binding SecondaryColor}" Margin="2,0,0,0" Padding="0,10,0,0">
 
         <!-- Top Row with buttons -->
         <Grid
@@ -51,7 +57,6 @@
                 <Image
                     IsVisible="False"
                     Grid.Column="2"
-                    Source="{Binding FlairImage}"
                     HeightRequest="20"
                     WidthRequest="20"
                     VerticalOptions="Center"
@@ -69,7 +74,7 @@
             </Grid>
 
             <!-- Content Text -->
-            <deaddit:MarkdownView
+            <components:MarkdownView
                 MarkdownText="{Binding Content}"
                 HyperlinkColor="{Binding HyperlinkColor}"
                 TextColor="{Binding TextColor}"
