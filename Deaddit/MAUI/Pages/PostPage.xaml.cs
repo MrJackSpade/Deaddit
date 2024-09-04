@@ -12,7 +12,9 @@ using Deaddit.Reddit.Models.Api;
 using Deaddit.Services;
 using Deaddit.Utils;
 using Deaddit.Utils.Extensions;
+using Microsoft.Maui.Controls.Shapes;
 using System.Diagnostics;
+using System.Web;
 
 namespace Deaddit.MAUI.Pages
 {
@@ -47,10 +49,28 @@ namespace Deaddit.MAUI.Pages
             BindingContext = new PostPageViewModel(applicationTheme);
 
             this.InitializeComponent();
-
             RedditPostComponent redditPostComponent = RedditPostComponent.PostView(post, redditClient, applicationTheme, visitTracker, new SelectionGroup(), _blockConfiguration, _configurationService);
 
-            //After the menu bar which is hardcoded
+            // Initialize the Border (postBodyBorder)
+            postBodyBorder = new Border
+            {
+                Stroke = _applicationTheme.TertiaryColor,
+                IsVisible = !string.IsNullOrWhiteSpace(post.Body),
+                BackgroundColor = _applicationTheme.PrimaryColor,
+                HorizontalOptions = LayoutOptions.Center
+            };
+
+            // Initialize the MarkdownView (postBody)
+            postBody = new MarkdownView
+            {
+                HyperlinkColor = _applicationTheme.HyperlinkColor,
+                BlockQuoteBorderColor = _applicationTheme.TextColor,
+                TextColor = _applicationTheme.TextColor,
+                BlockQuoteBackgroundColor = _applicationTheme.SecondaryColor,
+                BlockQuoteTextColor = _applicationTheme.TextColor,
+                MarkdownText = HttpUtility.HtmlDecode(post.Body),
+            };
+
             mainStack.Children.Insert(0, redditPostComponent);
         }
 

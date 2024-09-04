@@ -66,6 +66,12 @@ namespace Deaddit.MAUI.Pages
             navigationBar.BackgroundColor = applicationTheme.PrimaryColor;
             settingsButton.TextColor = applicationTheme.TextColor;
             menuButton.TextColor = applicationTheme.TextColor;
+
+            hotButton.TextColor = applicationTheme.TextColor;
+            controversialButton.TextColor = applicationTheme.TextColor;
+            newButton.TextColor = applicationTheme.TextColor;
+            risingButton.TextColor = applicationTheme.TextColor;
+            topButton.TextColor = applicationTheme.TextColor;
         }
 
         public async void OnInfoClicked(object sender, EventArgs e)

@@ -13,6 +13,7 @@ using Deaddit.Reddit.Models;
 using Deaddit.Reddit.Models.Api;
 using Deaddit.Reddit.Models.Options;
 using Deaddit.Utils;
+using System.Web;
 
 namespace Deaddit.MAUI.Components
 {
@@ -38,6 +39,7 @@ namespace Deaddit.MAUI.Components
 
         private RedditPostComponent(ApiPost post, bool isPreview, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
+
             _configurationService = configurationService;
             _applicationTheme = applicationTheme;
             _blockConfiguration = blockConfiguration;
@@ -52,23 +54,61 @@ namespace Deaddit.MAUI.Components
 
             bool bodyVisible = !isPreview && !string.IsNullOrWhiteSpace(post.Body);
 
-            BindingContext = _postViewModel = new RedditPostComponentViewModel(post, bodyVisible, applicationTheme);
+            BindingContext = _postViewModel = new RedditPostComponentViewModel(post, applicationTheme);
             this.InitializeComponent();
-            timeUser.IsVisible = !isPreview;
+            timeUserLabel.IsVisible = !isPreview;
 
-            this.Opacity = isPreview && visitTracker.HasVisited(post) ? applicationTheme.VisitedOpacity : 1;
-            
-            mainGrid.HeightRequest = applicationTheme.ThumbnailSize;
+            Opacity = isPreview && visitTracker.HasVisited(post) ? applicationTheme.VisitedOpacity : 1;
+
+            mainGrid.MinimumHeightRequest = applicationTheme.ThumbnailSize;
             mainGrid.BackgroundColor = applicationTheme.SecondaryColor;
 
             thumbnailImage.HeightRequest = applicationTheme.ThumbnailSize;
             thumbnailImage.WidthRequest = applicationTheme.ThumbnailSize;
             thumbnailImage.Source = post.TryGetPreview();
+
+            titleLabel.Text = HttpUtility.HtmlDecode(post.Title);
+            titleLabel.TextColor = applicationTheme.TextColor;
+
+            if (_post.LinkFlairBackgroundColor is not null)
+            {
+                linkFlairBorder.Stroke = _post.LinkFlairBackgroundColor;
+            }
+
+            linkFlairBorder.BackgroundColor = _applicationTheme.PrimaryColor;
+            linkFlairBorder.IsVisible = !string.IsNullOrWhiteSpace(_post.LinkFlairText);
+
+            linkFlairLabel.Text = HttpUtility.HtmlDecode(_post.LinkFlairText);
+            linkFlairLabel.BackgroundColor = _applicationTheme.PrimaryColor;
+            linkFlairLabel.FontSize = _applicationTheme.FontSize * 0.75;
+
+            linkFlairLabel.TextColor = _post.LinkFlairBackgroundColor ?? _applicationTheme.TextColor;
+
+            metaDataLabel.Text = $"{_post.NumComments} comments {_post.SubReddit}";
+            metaDataLabel.FontSize = _applicationTheme.FontSize * 0.75;
+            metaDataLabel.TextColor = _applicationTheme.SubTextColor;
+
+            if (!_post.IsSelf && Uri.TryCreate(_post.Url, UriKind.Absolute, out Uri result))
+            {
+                metaDataLabel.Text += $" ({result.Host})";
+            }
+
+            timeUserLabel.Text = $"{_post.CreatedUtc.Elapsed()} by {_post.Author}";
+            timeUserLabel.FontSize = _applicationTheme.FontSize * 0.75;
+            timeUserLabel.TextColor = _applicationTheme.SubTextColor;
+
+            shareButton.TextColor = applicationTheme.TextColor;
+            moreButton.TextColor = applicationTheme.TextColor;
+            commentsButton.TextColor = applicationTheme.TextColor;
+            hideButton.TextColor = applicationTheme.TextColor;
+            saveButton.TextColor = applicationTheme.TextColor;
+
+            actionButtonsStack.BackgroundColor = applicationTheme.HighlightColor;
         }
 
-        public event EventHandler<OnHideClickedEventArgs>? HideClicked;
-
         public event EventHandler<BlockRule>? BlockAdded;
+
+        public event EventHandler<OnHideClickedEventArgs>? HideClicked;
 
         public bool Selected { get; private set; }
 
@@ -90,7 +130,7 @@ namespace Deaddit.MAUI.Components
         {
             if (_post.IsSelf && _isPreview)
             {
-                this.Opacity = _applicationTheme.VisitedOpacity;
+                Opacity = _applicationTheme.VisitedOpacity;
                 _visitTracker.Visit(_post);
             }
 
@@ -216,7 +256,7 @@ namespace Deaddit.MAUI.Components
         {
             if (_isPreview)
             {
-                this.Opacity = _applicationTheme.VisitedOpacity;
+                Opacity = _applicationTheme.VisitedOpacity;
                 _visitTracker.Visit(_post);
             }
 
@@ -245,7 +285,7 @@ namespace Deaddit.MAUI.Components
             Selected = true;
             BackgroundColor = _applicationTheme.HighlightColor;
             mainGrid.BackgroundColor = _applicationTheme.HighlightColor;
-            timeUser.IsVisible = true;
+            timeUserLabel.IsVisible = true;
             actionButtonsStack.IsVisible = true;
         }
 
@@ -254,7 +294,7 @@ namespace Deaddit.MAUI.Components
             Selected = false;
             BackgroundColor = _applicationTheme.SecondaryColor;
             mainGrid.BackgroundColor = _applicationTheme.SecondaryColor;
-            timeUser.IsVisible = false;
+            timeUserLabel.IsVisible = false;
             actionButtonsStack.IsVisible = false;
         }
 

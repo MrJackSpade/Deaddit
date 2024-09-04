@@ -16,33 +16,11 @@ namespace Deaddit.MAUI.Components.ComponentModels
 
         private readonly ApiPost _redditPost;
 
-        public RedditPostComponentViewModel(ApiPost redditPost, bool postBodyIsVisible, ApplicationTheme applicationTheme)
+        public RedditPostComponentViewModel(ApiPost redditPost, ApplicationTheme applicationTheme)
         {
             _redditPost = redditPost;
             _applicationTheme = applicationTheme;
-            VoteHeight = applicationTheme.ThumbnailSize / 2;
             Score = redditPost.Score?.ToString();
-            FontSize = applicationTheme.FontSize;
-            TertiaryColor = applicationTheme.TertiaryColor;
-            HighlightColor = applicationTheme.HighlightColor;
-            LinkFlairBorderColor = redditPost.LinkFlairBackgroundColor ?? applicationTheme.PrimaryColor;
-            LinkFlairText = HttpUtility.HtmlDecode(redditPost.LinkFlairText);
-            LinkFlairTextColor = redditPost.LinkFlairTextColor;
-            LinkFlairIsVisible = !string.IsNullOrWhiteSpace(LinkFlairText);
-            TextColor = applicationTheme.TextColor;
-            SubTextColor = applicationTheme.SubTextColor;
-            PrimaryColor = applicationTheme.PrimaryColor;
-            HyperlinkColor = applicationTheme.HyperlinkColor;
-            Title = HttpUtility.HtmlDecode(redditPost.Title);
-            VisibleMetaData = $"{redditPost.NumComments} comments {redditPost.SubReddit}";
-            TimeUser = $"{redditPost.CreatedUtc.Elapsed()} by {redditPost.Author}";
-            PostBody = MarkDownHelper.Clean(_redditPost.Body);
-            PostBodyVisible = postBodyIsVisible;
-
-            if (!redditPost.IsSelf && Uri.TryCreate(_redditPost.Url, UriKind.Absolute, out Uri result))
-            {
-                VisibleMetaData += $" ({result.Host})";
-            }
 
             this.SetUpvoteState(redditPost.Likes);
         }
@@ -55,107 +33,13 @@ namespace Deaddit.MAUI.Components.ComponentModels
 
         public Color DownvoteColor => _applicationTheme.DownvoteColor;
 
-        public double FontSize
-        {
-            get => this.GetValue<double>();
-            set => this.SetValue(value);
-        }
-
-        public Color HighlightColor
-        {
-            get => this.GetValue<Color>();
-            set => this.SetValue(value);
-        }
-
-        public Color HyperlinkColor
-        {
-            get => this.GetValue<Color>();
-            set => this.SetValue(value);
-        }
-
-        public Color LinkFlairBorderColor
-        {
-            get => this.GetValue<Color>();
-            set => this.SetValue(value);
-        }
-
-        public bool LinkFlairIsVisible
-        {
-            get => this.GetValue<bool>();
-            set => this.SetValue(value);
-        }
-
-        public string? LinkFlairText
-        {
-            get => this.GetValue<string>();
-            set => this.SetValue(value);
-        }
-
-        public Color? LinkFlairTextColor
-        {
-            get => this.GetValue<Color>();
-            set => this.SetValue(value);
-        }
-
-        public string PostBody
-        {
-            get => this.GetValue<string>();
-            set => this.SetValue(value);
-        }
-
-        public bool PostBodyVisible
-        {
-            get => this.GetValue<bool>();
-            set => this.SetValue(value);
-        }
-
-        public Color PrimaryColor
-        {
-            get => this.GetValue<Color>();
-            set => this.SetValue(value);
-        }
-
         public string? Score
         {
             get => this.GetValue<string>();
             set => this.SetValue(value);
         }
 
-        public Color SubTextColor
-        {
-            get => this.GetValue<Color>();
-            set => this.SetValue(value);
-        }
-
-        public Color TertiaryColor
-        {
-            get => this.GetValue<Color>();
-            set => this.SetValue(value);
-        }
-
-        public Color TextColor
-        {
-            get => this.GetValue<Color>();
-            set => this.SetValue(value);
-        }
-
-        public string? Thumbnail
-        {
-            get => this.GetValue<string>();
-            set => this.SetValue(value);
-        }
-
-        public string TimeUser
-        {
-            get => this.GetValue<string>();
-            set => this.SetValue(value);
-        }
-
-        public string? Title
-        {
-            get => this.GetValue<string>();
-            set => this.SetValue(value);
-        }
+        public Color TextColor => _applicationTheme.TextColor;
 
         public Color UpvoteButtonColor
         {
@@ -164,18 +48,6 @@ namespace Deaddit.MAUI.Components.ComponentModels
         }
 
         public Color UpvoteColor => _applicationTheme.UpvoteColor;
-
-        public string VisibleMetaData
-        {
-            get => this.GetValue<string>();
-            set => this.SetValue(value);
-        }
-
-        public double VoteHeight
-        {
-            get => this.GetValue<double>();
-            set => this.SetValue(value);
-        }
 
         public string VoteIndicatorText
         {
