@@ -8,7 +8,7 @@
         /// <typeparam name="T"></typeparam>
         /// <param name="url"></param>
         /// <returns></returns>
-        Task<T> Get<T>(string url) where T : class, new();
+        Task<T> Get<T>(string url) where T : class;
 
         /// <summary>
         /// Posts Json and deserializes the result as json
@@ -17,7 +17,7 @@
         /// <param name="url"></param>
         /// <param name="body"></param>
         /// <returns></returns>
-        Task<T> Post<T>(string url, object body) where T : class, new();
+        Task<T> Post<T>(string url, object body) where T : class;
 
         /// <summary>
         /// Posts Json
@@ -41,7 +41,7 @@
         /// <param name="url"></param>
         /// <param name="formValues"></param>
         /// <returns></returns>
-        Task<T> Post<T>(string url, Dictionary<string, string> formValues) where T : class, new();
+        Task<T> Post<T>(string url, Dictionary<string, string> formValues) where T : class;
 
         /// <summary>
         /// Performs a post with an empty body

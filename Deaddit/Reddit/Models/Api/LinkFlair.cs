@@ -5,15 +5,15 @@ namespace Deaddit.Reddit.Models.Api
     public class LinkFlair
     {
         [JsonPropertyName("a")]
-        public string? A { get; set; }
+        public string? A { get; init; }
 
         [JsonPropertyName("t")]
-        public string? Text { get; set; }
+        public string? Text { get; init; }
 
         [JsonPropertyName("e")]
-        public string? Type { get; set; }
+        public string? Type { get; init; }
 
         [JsonPropertyName("u")]
-        public string? U { get; set; }
+        public string? U { get; init; }
     }
 }

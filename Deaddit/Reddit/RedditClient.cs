@@ -1,7 +1,6 @@
 ﻿using Deaddit.Configurations.Models;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
-using Deaddit.Reddit.Exceptions;
 using Deaddit.Reddit.Extensions;
 using Deaddit.Reddit.Interfaces;
 using Deaddit.Reddit.Models;
@@ -36,10 +35,25 @@ namespace Deaddit.Reddit
 
         public string LoggedInUser { get; private set; }
 
+        public async Task<ApiSubReddit> About(string subreddit)
+        {
+            if (!subreddit.Contains('/'))
+            {
+                subreddit = $"/r/{subreddit}";
+            }
+
+            if (!subreddit.StartsWith('/'))
+            {
+                subreddit = $"/{subreddit}";
+            }
+
+            SubRedditAboutResponse response = await _jsonClient.Get<SubRedditAboutResponse>($"{API_ROOT}{subreddit}/about");
+
+            return response.Data;
+        }
+
         public async Task<RedditCommentMeta> Comment(ApiThing thing, string comment)
         {
-            Ensure.NotNullOrWhiteSpace(thing.Name);
-
             await this.EnsureAuthenticated();
 
             string fullUrl = $"{API_ROOT}/api/comment";
@@ -54,11 +68,6 @@ namespace Deaddit.Reddit
 
             // Use the modified Post method to send the form data
             PostCommentResponse response = await _jsonClient.Post<PostCommentResponse>(fullUrl, formValues);
-
-            if (response.Json?.Data is null)
-            {
-                throw new InvalidApiResponseException("API returned an invalid response");
-            }
 
             if (response.Json.Errors.Count > 0)
             {
@@ -103,11 +112,6 @@ namespace Deaddit.Reddit
                 {
                     foreach (RedditCommentMeta child in commentReadResponse.Data.Children)
                     {
-                        if (child.Data is null)
-                        {
-                            continue;
-                        }
-
                         if (child.Data.Id != parent.Id)
                         {
                             yield return child;
@@ -127,7 +131,6 @@ namespace Deaddit.Reddit
         public async IAsyncEnumerable<RedditCommentMeta> MoreComments(ApiPost post, ApiComment moreItem)
         {
             // Ensure the required properties are not null or empty
-            Ensure.NotNullOrWhiteSpace(post.Name);
             Ensure.NotNullOrEmpty(moreItem.ChildNames);
 
             await this.EnsureAuthenticated();
@@ -147,11 +150,6 @@ namespace Deaddit.Reddit
             // Use the modified Post method to send the form data
             MoreCommentsResponse response = await _jsonClient.Post<MoreCommentsResponse>(fullUrl, formValues);
 
-            if (response?.Json?.Data is null)
-            {
-                yield break;
-            }
-
             List<RedditCommentMeta> things = response.Json.Data.Things;
 
             Dictionary<string, RedditCommentMeta> tree = [];
@@ -163,7 +161,12 @@ namespace Deaddit.Reddit
 
             foreach (RedditCommentMeta redditCommentMeta in things.ToList())
             {
-                if (tree.TryGetValue(redditCommentMeta.Data.ParentId, out RedditCommentMeta parent))
+                if (redditCommentMeta.Data?.ParentId is null)
+                {
+                    continue;
+                }
+
+                if (tree.TryGetValue(redditCommentMeta.Data.ParentId, out RedditCommentMeta? parent))
                 {
                     parent.AddReply(redditCommentMeta);
                     things.Remove(redditCommentMeta);
@@ -172,6 +175,11 @@ namespace Deaddit.Reddit
 
             foreach (RedditCommentMeta redditCommentMeta in things)
             {
+                if (moreItem.Parent is null)
+                {
+                    continue;
+                }
+
                 SetParent(moreItem.Parent, redditCommentMeta);
 
                 yield return redditCommentMeta;
@@ -195,40 +203,13 @@ namespace Deaddit.Reddit
             {
                 SubRedditReadResponse posts = await _jsonClient.Get<SubRedditReadResponse>(fullUrl);
 
-                if (posts.Meta is null)
-                {
-                    throw new InvalidApiResponseException($"{nameof(SubRedditReadResponse)} contains no meta");
-                }
-
                 foreach (RedditPostMeta redditPostMeta in posts.Meta.Children)
                 {
-                    if (redditPostMeta.RedditPost is null)
-                    {
-                        throw new InvalidApiResponseException("Post meta contains no data");
-                    }
-
                     yield return redditPostMeta.RedditPost;
 
                     after = redditPostMeta.RedditPost.Id;
                 }
             } while (true);
-        }
-
-        public async Task<ApiSubReddit> About(string subreddit)
-        {
-            if (!subreddit.Contains('/'))
-            {
-                subreddit = $"/r/{subreddit}";
-            }
-
-            if (!subreddit.StartsWith('/'))
-            {
-                subreddit = $"/{subreddit}";
-            }
-
-            SubRedditAboutResponse response = await _jsonClient.Get<SubRedditAboutResponse>($"{API_ROOT}{subreddit}/about");
-
-            return response.Data;
         }
 
         public async Task SetUpvoteState(ApiThing thing, UpvoteState state)
@@ -273,6 +254,22 @@ namespace Deaddit.Reddit
             await _jsonClient.Post(url, formValues);
         }
 
+        public async Task ToggleSubScription(ApiSubReddit thing, bool subscribed)
+        {
+            await this.EnsureAuthenticated();
+
+            string url = $"{API_ROOT}/api/subscribe";
+
+            // Prepare the form values as a dictionary
+            Dictionary<string, string> formValues = new()
+            {
+                { "action", subscribed ? "sub" : "unsub" },
+                { "sr", $"{thing.Name}" }
+            };
+
+            await _jsonClient.Post(url, formValues);
+        }
+
         private static string FixSort(string? sort)
         {
             if (string.IsNullOrWhiteSpace(sort))
@@ -292,11 +289,6 @@ namespace Deaddit.Reddit
 
         private static void SetParent(ApiThing parent, RedditCommentMeta comment)
         {
-            if (comment.Data is null)
-            {
-                return;
-            }
-
             comment.Data.Parent = parent;
 
             if (comment.Data.Replies?.Data is null)

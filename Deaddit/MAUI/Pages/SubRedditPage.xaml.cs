@@ -36,11 +36,6 @@ namespace Deaddit.MAUI.Pages
 
         private string _sort;
 
-        public async void OnInfoClicked(object sender,  EventArgs e)
-        {
-            await _redditClient.About(_subreddit);
-        }
-
         public SubRedditPage(string subreddit, string sort, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             NavigationPage.SetHasNavigationBar(this, false);
@@ -69,6 +64,13 @@ namespace Deaddit.MAUI.Pages
             navigationBar.BackgroundColor = applicationTheme.PrimaryColor;
             settingsButton.TextColor = applicationTheme.TextColor;
             menuButton.TextColor = applicationTheme.TextColor;
+        }
+
+        public async void OnInfoClicked(object sender, EventArgs e)
+        {
+            SubRedditAboutPage page = new(_subreddit, _redditClient, _applicationTheme);
+            await page.TryLoad();
+            await Navigation.PushAsync(page);
         }
 
         public async void OnMenuClicked(object sender, EventArgs e)

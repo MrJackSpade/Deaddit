@@ -6,6 +6,6 @@ namespace Deaddit.Reddit.Models.Api
     public class CommentContributionSettings
     {
         [JsonPropertyName("allowed_media_types")]
-        public List<string> AllowedMediaTypes { get; set; } = [];
+        public List<string> AllowedMediaTypes { get; init; } = [];
     }
 }

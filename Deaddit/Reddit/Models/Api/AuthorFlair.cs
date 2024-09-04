@@ -5,15 +5,15 @@ namespace Deaddit.Reddit.Models.Api
     public class AuthorFlair
     {
         [JsonPropertyName("a")]
-        public string? Author { get; set; }
+        public string? Author { get; init; }
 
         [JsonPropertyName("e")]
-        public string? Emoji { get; set; }
+        public string? Emoji { get; init; }
 
         [JsonPropertyName("t")]
-        public string? Text { get; set; }
+        public string? Text { get; init; }
 
         [JsonPropertyName("u")]
-        public string? UserLink { get; set; }
+        public string? UserLink { get; init; }
     }
 }

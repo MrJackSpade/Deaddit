@@ -23,5 +23,7 @@ namespace Deaddit.Reddit.Interfaces
         Task SetUpvoteState(ApiThing thing, UpvoteState state);
 
         Task ToggleInboxReplies(ApiThing thing, bool enabled);
+
+        Task ToggleSubScription(ApiSubReddit thing, bool subscribed);
     }
 }

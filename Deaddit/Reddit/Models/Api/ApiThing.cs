@@ -6,177 +6,177 @@ namespace Deaddit.Reddit.Models.Api
     public class ApiThing
     {
         [JsonPropertyName("all_awardings")]
-        public List<object> AllAwardings { get; set; } = [];
+        public List<object> AllAwardings { get; init; } = [];
 
         [JsonPropertyName("approved_at_utc")]
-        public OptionalDateTime ApprovedAtUtc { get; set; }
+        public OptionalDateTime ApprovedAtUtc { get; init; }
 
         [JsonPropertyName("approved_by")]
-        public object? ApprovedBy { get; set; }
+        public object? ApprovedBy { get; init; }
 
         [JsonPropertyName("author")]
-        public string? Author { get; set; }
+        public string? Author { get; init; }
 
         [JsonPropertyName("author_flair_background_color")]
-        public Color? AuthorFlairBackgroundColor { get; set; }
+        public Color? AuthorFlairBackgroundColor { get; init; }
 
         [JsonPropertyName("author_flair_css_class")]
-        public string? AuthorFlairCssClass { get; set; }
+        public string? AuthorFlairCssClass { get; init; }
 
         [JsonPropertyName("author_flair_richtext")]
-        public List<AuthorFlair> AuthorFlairRichText { get; set; } = [];
+        public List<AuthorFlair> AuthorFlairRichText { get; init; } = [];
 
         [JsonPropertyName("author_flair_template_id")]
-        public string? AuthorFlairTemplateId { get; set; }
+        public string? AuthorFlairTemplateId { get; init; }
 
         [JsonPropertyName("author_flair_text")]
-        public string? AuthorFlairText { get; set; }
+        public string? AuthorFlairText { get; init; }
 
         [JsonPropertyName("author_flair_text_color")]
-        public Color? AuthorFlairTextColor { get; set; }
+        public Color? AuthorFlairTextColor { get; init; }
 
         [JsonPropertyName("author_flair_type")]
-        public string? AuthorFlairType { get; set; }
+        public string? AuthorFlairType { get; init; }
 
         [JsonPropertyName("author_fullname")]
-        public string? AuthorFullName { get; set; }
+        public string? AuthorFullName { get; init; }
 
         [JsonPropertyName("author_is_blocked")]
-        public bool? AuthorIsBlocked { get; set; }
+        public bool? AuthorIsBlocked { get; init; }
 
         [JsonPropertyName("author_patreon_flair")]
-        public bool? AuthorPatreonFlair { get; set; }
+        public bool? AuthorPatreonFlair { get; init; }
 
         [JsonPropertyName("author_premium")]
-        public bool? AuthorPremium { get; set; }
+        public bool? AuthorPremium { get; init; }
 
         [JsonPropertyName("awarders")]
-        public List<object> Awarders { get; set; } = [];
+        public List<object> Awarders { get; init; } = [];
 
         [JsonPropertyName("banned_at_utc")]
-        public DateTime? BannedAtUtc { get; set; }
+        public DateTime? BannedAtUtc { get; init; }
 
         [JsonPropertyName("banned_by")]
-        public object? BannedBy { get; set; }
+        public object? BannedBy { get; init; }
 
         [JsonPropertyNames("body", "selftext")]
-        public string? Body { get; set; }
+        public string? Body { get; init; }
 
         [JsonPropertyNames("body_html", "selftext_html")]
-        public string? BodyHtml { get; set; }
+        public string? BodyHtml { get; init; }
 
         [JsonPropertyName("can_gild")]
-        public bool? CanGild { get; set; }
+        public bool? CanGild { get; init; }
 
         [JsonPropertyName("can_mod_post")]
-        public bool? CanModPost { get; set; }
+        public bool? CanModPost { get; init; }
 
         [JsonPropertyName("created")]
         [Obsolete("Use the UTC version", true)]
-        public OptionalDateTime Created { get; set; }
+        public OptionalDateTime Created { get; init; }
 
         [JsonPropertyName("created_utc")]
-        public OptionalDateTime CreatedUtc { get; set; }
+        public OptionalDateTime CreatedUtc { get; init; }
 
         [JsonPropertyName("distinguished")]
-        public DistinguishedKind Distinguished { get; set; }
+        public DistinguishedKind Distinguished { get; init; }
 
         [JsonPropertyName("downs")]
-        public long? Downs { get; set; }
+        public long? Downs { get; init; }
 
         [JsonPropertyName("edited")]
-        public OptionalDateTime Edited { get; set; }
+        public OptionalDateTime Edited { get; init; }
 
         [JsonPropertyName("gilded")]
-        public int? Gilded { get; set; }
+        public int? Gilded { get; init; }
 
         [JsonPropertyName("gildings")]
-        public Gildings? Gildings { get; set; }
+        public Gildings? Gildings { get; init; }
 
         [JsonPropertyName("id")]
-        public string? Id { get; set; }
+        public string? Id { get; init; }
 
         [JsonPropertyName("archived")]
-        public bool? IsArchived { get; set; }
+        public bool? IsArchived { get; init; }
 
         [JsonPropertyName("locked")]
-        public bool? IsLocked { get; set; }
+        public bool? IsLocked { get; init; }
 
         [JsonPropertyName("likes")]
         public UpvoteState Likes { get; set; }
 
         [JsonPropertyName("media_metadata")]
-        public Dictionary<string, MediaMetaData>? MediaMetaData { get; set; } = [];
+        public Dictionary<string, MediaMetaData>? MediaMetaData { get; init; } = [];
 
         [JsonPropertyName("mod_note")]
-        public object? ModNote { get; set; }
+        public object? ModNote { get; init; }
 
         [JsonPropertyName("mod_reason_by")]
-        public object? ModReasonBy { get; set; }
+        public object? ModReasonBy { get; init; }
 
         [JsonPropertyName("mod_reason_title")]
-        public object? ModReasonTitle { get; set; }
+        public object? ModReasonTitle { get; init; }
 
         [JsonPropertyName("mod_reports")]
-        public List<object> ModReports { get; set; } = [];
+        public List<object> ModReports { get; init; } = [];
 
         [JsonPropertyName("name")]
-        public string? Name { get; set; }
+        public string Name { get; init; }
 
         [JsonPropertyName("no_follow")]
-        public bool? NoFollow { get; set; }
+        public bool? NoFollow { get; init; }
 
         [JsonPropertyName("num_reports")]
-        public int? NumReports { get; set; }
+        public int? NumReports { get; init; }
 
         public ApiThing? Parent { get; set; }
 
         [JsonPropertyName("permalink")]
-        public string? Permalink { get; set; }
+        public string? Permalink { get; init; }
 
         [JsonPropertyName("removal_reason")]
-        public object? RemovalReason { get; set; }
+        public object? RemovalReason { get; init; }
 
         [JsonPropertyName("report_reasons")]
-        public List<string> ReportReasons { get; set; } = [];
+        public List<string> ReportReasons { get; init; } = [];
 
         [JsonPropertyName("saved")]
-        public bool? Saved { get; set; }
+        public bool? Saved { get; init; }
 
         [JsonPropertyName("score")]
-        public long? Score { get; set; }
+        public long? Score { get; init; }
 
         [JsonPropertyName("send_replies")]
         public bool? SendReplies { get; set; }
 
         [JsonPropertyName("stickied")]
-        public bool? Stickied { get; set; }
+        public bool? Stickied { get; init; }
 
         [JsonPropertyName("subreddit")]
-        public string? SubReddit { get; set; }
+        public string? SubReddit { get; init; }
 
         [JsonPropertyName("subreddit_id")]
-        public string? SubRedditId { get; set; }
+        public string? SubRedditId { get; init; }
 
         [JsonPropertyName("subreddit_name_prefixed")]
-        public string? SubredditNamePrefixed { get; set; }
+        public string? SubredditNamePrefixed { get; init; }
 
         [JsonPropertyName("subreddit_type")]
-        public string? SubredditType { get; set; }
+        public string? SubredditType { get; init; }
 
         [JsonPropertyName("top_awarded_type")]
-        public object? TopAwardedType { get; set; }
+        public object? TopAwardedType { get; init; }
 
         [JsonPropertyName("total_awards_received")]
-        public long? TotalAwardsReceived { get; set; }
+        public long? TotalAwardsReceived { get; init; }
 
         [JsonPropertyName("treatment_tags")]
-        public List<object> TreatmentTags { get; set; } = [];
+        public List<object> TreatmentTags { get; init; } = [];
 
         [JsonPropertyName("ups")]
-        public long? Ups { get; set; }
+        public long? Ups { get; init; }
 
         [JsonPropertyName("user_reports")]
-        public List<object> UserReports { get; set; } = [];
+        public List<object> UserReports { get; init; } = [];
     }
 }

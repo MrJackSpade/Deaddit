@@ -5,12 +5,12 @@ namespace Deaddit.Reddit.Models.Api
     public class Source
     {
         [JsonPropertyName("height")]
-        public int Height { get; set; }
+        public int Height { get; init; }
 
         [JsonPropertyName("url")]
-        public string? Url { get; set; }
+        public string? Url { get; init; }
 
         [JsonPropertyName("width")]
-        public int Width { get; set; }
+        public int Width { get; init; }
     }
 }

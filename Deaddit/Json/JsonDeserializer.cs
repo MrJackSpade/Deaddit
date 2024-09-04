@@ -2,6 +2,7 @@
 using Deaddit.Extensions;
 using Deaddit.Json.Exceptions;
 using Deaddit.Reddit.Models;
+using Deaddit.Utils.Extensions;
 using System.Collections;
 using System.Diagnostics;
 using System.Reflection;
@@ -13,7 +14,7 @@ namespace Deaddit.Json
 {
     internal static class JsonDeserializer
     {
-        public static T Deserialize<T>(string json) where T : new()
+        public static T Deserialize<T>(string json)
         {
             JsonNode jsonNode = JsonNode.Parse(json)!;
 
@@ -176,6 +177,11 @@ namespace Deaddit.Json
                         }
 
                         object? propertyValue = Deserialize(property, pi.PropertyType);
+
+                        if (propertyValue is null && pi.IsRequired())
+                        {
+                            throw new DeserializationException($"Required property {pi.Name} was not found");
+                        }
 
                         pi.SetValue(toReturn, propertyValue);
                     }

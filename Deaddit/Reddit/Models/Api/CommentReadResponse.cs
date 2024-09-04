@@ -5,9 +5,9 @@ namespace Deaddit.Reddit.Models.Api
     public class CommentReadResponse
     {
         [JsonPropertyName("data")]
-        public ReadMetaData<RedditCommentMeta>? Data { get; set; }
+        public ReadMetaData<RedditCommentMeta> Data { get; init; }
 
         [JsonPropertyName("kind")]
-        public string? Kind { get; set; }
+        public ThingKind Kind { get; init; }
     }
 }

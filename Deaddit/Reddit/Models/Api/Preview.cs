@@ -5,12 +5,12 @@ namespace Deaddit.Reddit.Models.Api
     public class Preview
     {
         [JsonPropertyName("enabled")]
-        public bool Enabled { get; set; }
+        public bool Enabled { get; init; }
 
         [JsonPropertyName("images")]
-        public List<RemoteImage> Images { get; set; } = [];
+        public List<RemoteImage> Images { get; init; } = [];
 
         [JsonPropertyName("reddit_video_preview")]
-        public string? RedditVideoPreview { get; set; }
+        public string? RedditVideoPreview { get; init; }
     }
 }

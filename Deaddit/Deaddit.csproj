@@ -91,6 +91,12 @@
 	  <Compile Update="MAUI\Pages\Embedded\EmbeddedVideo.xaml.cs">
 	    <DependentUpon>EmbeddedVideo.xaml</DependentUpon>
 	  </Compile>
+	  <Compile Update="MAUI\Pages\SubRedditAboutPage.xaml.cs">
+	    <DependentUpon>SubRedditAboutPage.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="MAUI\Pages\SubRedditAboutPage.xaml.cs">
+	    <DependentUpon>SubRedditAboutPage.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="MAUI\Pages\SubRedditPage.xaml.cs">
 	    <DependentUpon>SubRedditPage.xaml</DependentUpon>
 	  </Compile>
@@ -139,7 +145,7 @@
 	  <MauiXaml Update="MAUI\Pages\SelectPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="MAUI\Pages\SubRedditInfo.xaml">
+	  <MauiXaml Update="MAUI\Pages\SubRedditAboutPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

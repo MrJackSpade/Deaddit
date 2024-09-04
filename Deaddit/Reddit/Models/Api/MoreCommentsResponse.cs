@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 
 namespace Deaddit.Reddit.Models.Api
 {
@@ -6,21 +7,23 @@ namespace Deaddit.Reddit.Models.Api
     public class MoreCommentsData
     {
         [JsonPropertyName("things")]
-        public List<RedditCommentMeta> Things { get; set; } = [];
+        public List<RedditCommentMeta> Things { get; init; } = [];
     }
 
     public class MoreCommentsResponse
     {
+        [NotNull]
         [JsonPropertyName("json")]
-        public MoreCommentsResponseMeta? Json { get; set; }
+        public MoreCommentsResponseMeta Json { get; init; }
     }
 
     public class MoreCommentsResponseMeta
     {
+        [NotNull]
         [JsonPropertyName("data")]
-        public MoreCommentsData? Data { get; set; }
+        public MoreCommentsData Data { get; init; }
 
         [JsonPropertyName("errors")]
-        public List<string> Errors { get; set; } = [];
+        public List<string> Errors { get; init; } = [];
     }
 }
