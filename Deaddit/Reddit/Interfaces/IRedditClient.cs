@@ -7,18 +7,21 @@ namespace Deaddit.Reddit.Interfaces
     public interface IRedditClient
     {
         public string LoggedInUser { get; }
-        Task<RedditCommentMeta> Comment(RedditThing replyTo, string comment);
 
-        IAsyncEnumerable<RedditCommentMeta> Comments(RedditPost thing, string commentId);
+        Task<ApiSubReddit> About(string subreddit);
 
-        IAsyncEnumerable<RedditCommentMeta> MoreComments(RedditPost thing, RedditComment comment);
+        Task<RedditCommentMeta> Comment(ApiThing replyTo, string comment);
+
+        IAsyncEnumerable<RedditCommentMeta> Comments(ApiPost thing, string commentId);
 
         Task<Stream> GetStream(string url);
 
-        IAsyncEnumerable<RedditPost> Read(string subreddit, string sort = "hot", string? after = null, Region region = Region.GLOBAL);
+        IAsyncEnumerable<RedditCommentMeta> MoreComments(ApiPost thing, ApiComment comment);
 
-        Task SetUpvoteState(RedditThing thing, UpvoteState state);
+        IAsyncEnumerable<ApiPost> Read(string subreddit, string sort = "hot", string? after = null, Region region = Region.GLOBAL);
 
-        Task ToggleInboxReplies(RedditThing thing, bool enabled);
+        Task SetUpvoteState(ApiThing thing, UpvoteState state);
+
+        Task ToggleInboxReplies(ApiThing thing, bool enabled);
     }
 }

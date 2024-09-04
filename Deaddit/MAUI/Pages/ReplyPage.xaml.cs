@@ -13,9 +13,9 @@ namespace Deaddit.MAUI.Pages
     {
         private readonly IRedditClient _redditClient;
 
-        private readonly RedditThing _replyTo;
+        private readonly ApiThing _replyTo;
 
-        public ReplyPage(RedditThing replyTo, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public ReplyPage(ApiThing replyTo, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             _redditClient = redditClient;
             _replyTo = replyTo;
@@ -23,17 +23,17 @@ namespace Deaddit.MAUI.Pages
             BindingContext = new ReplyPageViewModel(applicationTheme);
             this.InitializeComponent();
 
-            RedditThing? toRender = replyTo;
+            ApiThing? toRender = replyTo;
             SelectionGroup unused = new();
             do
             {
-                if (toRender is RedditComment rc)
+                if (toRender is ApiComment rc)
                 {
                     RedditCommentComponent redditCommentComponent = RedditCommentComponent.Preview(rc, null, redditClient, applicationTheme, visitTracker, unused, blockConfiguration, configurationService);
 
                     commentStack.Children.Insert(0, redditCommentComponent);
                 }
-                else if (toRender is RedditPost post)
+                else if (toRender is ApiPost post)
                 {
                     RedditPostComponent redditPostComponent = RedditPostComponent.PostView(post, redditClient, applicationTheme, visitTracker, unused, blockConfiguration, configurationService);
                     commentStack.Children.Insert(0, redditPostComponent);

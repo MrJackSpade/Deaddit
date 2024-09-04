@@ -14,9 +14,9 @@ namespace Deaddit.MAUI.Components.ComponentModels
     {
         private readonly ApplicationTheme _applicationTheme;
 
-        private readonly RedditPost _redditPost;
+        private readonly ApiPost _redditPost;
 
-        public RedditPostComponentViewModel(RedditPost redditPost, bool postBodyIsVisible, double opacity, ApplicationTheme applicationTheme)
+        public RedditPostComponentViewModel(ApiPost redditPost, bool postBodyIsVisible, double opacity, ApplicationTheme applicationTheme)
         {
             _redditPost = redditPost;
             _applicationTheme = applicationTheme;
@@ -43,24 +43,12 @@ namespace Deaddit.MAUI.Components.ComponentModels
             PostBody = MarkDownHelper.Clean(_redditPost.Body);
             PostBodyVisible = postBodyIsVisible;
 
-            if(!redditPost.IsSelf && Uri.TryCreate(_redditPost.Url, UriKind.Absolute, out Uri result))
+            if (!redditPost.IsSelf && Uri.TryCreate(_redditPost.Url, UriKind.Absolute, out Uri result))
             {
                 VisibleMetaData += $" ({result.Host})";
-            } 
+            }
 
             this.SetUpvoteState(redditPost.Likes);
-        }
-
-        public double Opacity
-        {
-            get => this.GetValue<double>();
-            set => this.SetValue(value);
-        }
-
-        public string VisibleMetaData
-        {
-            get => this.GetValue<string>();
-            set => this.SetValue(value);
         }
 
         public Color DownvoteButtonColor
@@ -114,6 +102,12 @@ namespace Deaddit.MAUI.Components.ComponentModels
         }
 
         public double MinHeight
+        {
+            get => this.GetValue<double>();
+            set => this.SetValue(value);
+        }
+
+        public double Opacity
         {
             get => this.GetValue<double>();
             set => this.SetValue(value);
@@ -192,6 +186,12 @@ namespace Deaddit.MAUI.Components.ComponentModels
         }
 
         public Color UpvoteColor => _applicationTheme.UpvoteColor;
+
+        public string VisibleMetaData
+        {
+            get => this.GetValue<string>();
+            set => this.SetValue(value);
+        }
 
         public double VoteHeight
         {

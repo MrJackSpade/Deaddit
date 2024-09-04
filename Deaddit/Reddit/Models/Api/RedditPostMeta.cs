@@ -8,6 +8,6 @@ namespace Deaddit.Reddit.Models.Api
         public ThingKind Kind { get; set; }
 
         [JsonPropertyName("data")]
-        public RedditPost? RedditPost { get; set; }
+        public ApiPost? RedditPost { get; set; }
     }
 }

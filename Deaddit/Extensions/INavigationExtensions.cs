@@ -12,14 +12,14 @@ namespace Deaddit.Extensions
 {
     internal static class INavigationExtensions
     {
-        public static async Task OpenPost(this INavigation navigation, RedditPost post, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public static async Task OpenPost(this INavigation navigation, ApiPost post, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             PostTarget? resource = post.GetResource();
 
             await navigation.OpenResource(resource, redditClient, applicationTheme, visitTracker, blockConfiguration, configurationService, post);
         }
 
-        public static async Task OpenResource(this INavigation navigation, PostTarget resource, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService, RedditPost? post = null)
+        public static async Task OpenResource(this INavigation navigation, PostTarget resource, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService, ApiPost? post = null)
         {
             switch (resource.Kind)
             {

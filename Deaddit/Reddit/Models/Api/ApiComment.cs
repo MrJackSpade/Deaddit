@@ -2,7 +2,7 @@
 
 namespace Deaddit.Reddit.Models.Api
 {
-    public class RedditComment : RedditThing
+    public class ApiComment : ApiThing
     {
         [JsonPropertyName("after")]
         public string? After { get; set; }
@@ -10,14 +10,14 @@ namespace Deaddit.Reddit.Models.Api
         [JsonPropertyName("associated_award")]
         public object? AssociatedAward { get; set; }
 
+        [JsonPropertyName("author_cakeday")]
+        public bool? AuthorCakeDay { get; set; }
+
         [JsonPropertyName("before")]
         public string? Before { get; set; }
 
         [JsonPropertyName("children")]
         public List<string> ChildNames { get; set; } = [];
-
-        [JsonPropertyName("author_cakeday")]
-        public bool? AuthorCakeDay { get; set; }
 
         [JsonPropertyName("collapsed")]
         public bool? Collapsed { get; set; }

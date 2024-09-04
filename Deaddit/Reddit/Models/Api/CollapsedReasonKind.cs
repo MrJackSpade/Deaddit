@@ -2,7 +2,6 @@
 
 namespace Deaddit.Reddit.Models.Api
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1069:Enums values should not be duplicated")]
     public enum CollapsedReasonKind
     {
         [EnumMember(Value = null)]

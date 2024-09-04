@@ -4,18 +4,6 @@ namespace Deaddit.Utils
 {
     public class SelectionGroup
     {
-        public void Toggle(ISelectionGroupItem item)
-        {
-            if (this.IsSelected(item))
-            {
-                this.Unselect(item);
-            }
-            else
-            {
-                this.Select(item);
-            }
-        }
-
         private ISelectionGroupItem? _selected = null;
 
         public bool IsSelected(ISelectionGroupItem selected)
@@ -33,6 +21,18 @@ namespace Deaddit.Utils
             _selected?.Unselect();
             _selected = selected;
             selected.Select();
+        }
+
+        public void Toggle(ISelectionGroupItem item)
+        {
+            if (this.IsSelected(item))
+            {
+                this.Unselect(item);
+            }
+            else
+            {
+                this.Select(item);
+            }
         }
 
         public void Unselect(ISelectionGroupItem selected)

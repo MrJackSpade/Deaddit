@@ -8,7 +8,7 @@ namespace Deaddit.Reddit.Extensions
 {
     public static class RedditPostExtensions
     {
-        public static PostTarget GetResource(this RedditPost post)
+        public static PostTarget GetResource(this ApiPost post)
         {
             if (post.IsSelf)
             {
@@ -30,7 +30,7 @@ namespace Deaddit.Reddit.Extensions
             return UrlHandler.Resolve(post.Url);
         }
 
-        public static string? TryGetPreview(this RedditPost redditPost)
+        public static string? TryGetPreview(this ApiPost redditPost)
         {
             if (redditPost?.Thumbnail?.Contains("://") ?? false)
             {

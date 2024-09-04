@@ -12,12 +12,6 @@ namespace Deaddit.MAUI.Pages
 {
     public partial class SubRedditPage : ContentPage
     {
-        class LoadedPost
-        {
-            public RedditPost Post { get; set; }
-            public RedditPostComponent PostComponent { get; set; }
-        }
-
         private readonly ApplicationTheme _applicationTheme;
 
         private readonly BlockConfiguration _blockConfiguration;
@@ -38,13 +32,13 @@ namespace Deaddit.MAUI.Pages
 
         private readonly string _subreddit;
 
-        private string _sort;
-
         private readonly IVisitTracker _visitTracker;
 
-        public async void OnReloadClicked(object sender, EventArgs e)
+        private string _sort;
+
+        public async void OnInfoClicked(object sender,  EventArgs e)
         {
-            await this.Reload();
+            await _redditClient.About(_subreddit);
         }
 
         public SubRedditPage(string subreddit, string sort, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
@@ -82,6 +76,11 @@ namespace Deaddit.MAUI.Pages
             await Navigation.PopAsync();
         }
 
+        public async void OnReloadClicked(object sender, EventArgs e)
+        {
+            await this.Reload();
+        }
+
         public async void OnSettingsClicked(object sender, EventArgs e)
         {
             _loadedPosts.Clear();
@@ -105,11 +104,11 @@ namespace Deaddit.MAUI.Pages
         {
             await DataService.LoadAsync(mainStack, async () =>
             {
-                List<RedditPost> posts = [];
+                List<ApiPost> posts = [];
 
                 string? after = _loadedPosts.LastOrDefault()?.Post.Name;
 
-                await foreach (RedditPost post in _redditClient.Read(after: after, subreddit: _subreddit, sort: _sort))
+                await foreach (ApiPost post in _redditClient.Read(after: after, subreddit: _subreddit, sort: _sort))
                 {
                     if (!_blockConfiguration.BlockRules.IsAllowed(post))
                     {
@@ -124,7 +123,7 @@ namespace Deaddit.MAUI.Pages
                     }
                 }
 
-                foreach (RedditPost post in posts)
+                foreach (ApiPost post in posts)
                 {
                     RedditPostComponent redditPostComponent = RedditPostComponent.ListView(post, _redditClient, _applicationTheme, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService);
 
@@ -139,18 +138,6 @@ namespace Deaddit.MAUI.Pages
                     });
                 }
             }, _applicationTheme.HighlightColor);
-        }
-
-        private void RedditPostComponent_OnBlockAdded(object? sender, BlockRule e)
-        {
-            foreach (LoadedPost loadedPost in _loadedPosts)
-            {
-                if (!e.IsAllowed(loadedPost.Post))
-                {
-                    mainStack.Remove(loadedPost.PostComponent);
-                    _loadedPosts.Remove(loadedPost);
-                }
-            }
         }
 
         private async void OnControversialClicked(object sender, EventArgs e)
@@ -183,6 +170,18 @@ namespace Deaddit.MAUI.Pages
             await this.Reload();
         }
 
+        private void RedditPostComponent_OnBlockAdded(object? sender, BlockRule e)
+        {
+            foreach (LoadedPost loadedPost in _loadedPosts)
+            {
+                if (!e.IsAllowed(loadedPost.Post))
+                {
+                    mainStack.Remove(loadedPost.PostComponent);
+                    _loadedPosts.Remove(loadedPost);
+                }
+            }
+        }
+
         private async Task Reload()
         {
             _loadedPosts.Clear();
@@ -193,6 +192,13 @@ namespace Deaddit.MAUI.Pages
             mainStack.Children.Add(nav);
 
             await this.TryLoad();
+        }
+
+        private class LoadedPost
+        {
+            public ApiPost Post { get; set; }
+
+            public RedditPostComponent PostComponent { get; set; }
         }
     }
 }

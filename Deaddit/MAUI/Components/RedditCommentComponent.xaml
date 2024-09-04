@@ -9,10 +9,10 @@
             <converters:MultiplyConverter x:Key="MultiplyConverter" />
         </ResourceDictionary>
     </ContentView.Resources>
-    <StackLayout 
+    <StackLayout
         x:Name="commentContainer"
-        BackgroundColor="{Binding SecondaryColor}" 
-        Margin="2,0,0,0" 
+        BackgroundColor="{Binding SecondaryColor}"
+        Margin="2,0,0,0"
         Padding="0,10,0,0">
         <VerticalStackLayout
             x:Name="commentBody">
@@ -22,7 +22,6 @@
             </VerticalStackLayout.GestureRecognizers>
 
             <VerticalStackLayout x:Name="topBarPlaceholder">
-
             </VerticalStackLayout>
             <!-- User and MetaData Row -->
             <Grid ColumnDefinitions="Auto, Auto,Auto,Auto">

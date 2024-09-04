@@ -1,29 +1,26 @@
 ﻿using Deaddit.Configurations.Models;
-using Deaddit.MAUI.Pages.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Deaddit.MAUI.Components.ComponentModels
+namespace Deaddit.MAUI.Pages.Models
 {
-    internal class MoreCommentsComponentViewModel : BaseViewModel
+    internal class SubRedditInfoPageModel : BaseViewModel
     {
-        public MoreCommentsComponentViewModel(string viewText, ApplicationTheme applicationTheme)
+        public SubRedditInfoPageModel(ApplicationTheme applicationTheme)
         {
-            TertiaryColor = applicationTheme.TertiaryColor;
             SecondaryColor = applicationTheme.SecondaryColor;
-            PrimaryColor = applicationTheme.PrimaryColor;
             TextColor = applicationTheme.TextColor;
-            MoreText = viewText;
-            FontSize = applicationTheme.FontSize;
+            PrimaryColor = applicationTheme.PrimaryColor;
+            HighlightColor = applicationTheme.HighlightColor;
+            TertiaryColor = applicationTheme.TertiaryColor;
         }
 
-        public double FontSize
+        public Color HighlightColor
         {
-            get => this.GetValue<double>();
-            set => this.SetValue(value);
-        }
-
-        public string MoreText
-        {
-            get => this.GetValue<string>();
+            get => this.GetValue<Color>();
             set => this.SetValue(value);
         }
 

@@ -12,9 +12,9 @@ namespace Deaddit.MAUI.Components.ComponentModels
     {
         private readonly ApplicationTheme _applicationTheme;
 
-        private readonly RedditThing _comment;
+        private readonly ApiThing _comment;
 
-        public RedditCommentComponentViewModel(RedditThing comment, ApplicationTheme applicationTheme)
+        public RedditCommentComponentViewModel(ApiThing comment, ApplicationTheme applicationTheme)
         {
             _comment = comment;
             Author = comment.Author;
@@ -95,6 +95,12 @@ namespace Deaddit.MAUI.Components.ComponentModels
             set => this.SetValue(value);
         }
 
+        public Color PrimaryColor
+        {
+            get => this.GetValue<Color>();
+            set => this.SetValue(value);
+        }
+
         public string Score
         {
             get => this.GetValue<string>();
@@ -106,12 +112,6 @@ namespace Deaddit.MAUI.Components.ComponentModels
         }
 
         public Color SecondaryColor
-        {
-            get => this.GetValue<Color>();
-            set => this.SetValue(value);
-        }
-
-        public Color PrimaryColor
         {
             get => this.GetValue<Color>();
             set => this.SetValue(value);

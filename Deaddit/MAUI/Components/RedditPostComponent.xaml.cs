@@ -22,11 +22,11 @@ namespace Deaddit.MAUI.Components
 
         private readonly IConfigurationService _configurationService;
 
-        private readonly RedditPost _post;
+        private readonly bool _isPreview;
+
+        private readonly ApiPost _post;
 
         private readonly RedditPostComponentViewModel _postViewModel;
-
-        public event EventHandler<BlockRule>? OnBlockAdded;
 
         private readonly IRedditClient _redditClient;
 
@@ -34,8 +34,7 @@ namespace Deaddit.MAUI.Components
 
         private readonly IVisitTracker _visitTracker;
 
-        private readonly bool _isPreview;
-        private RedditPostComponent(RedditPost post, bool isPreview, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        private RedditPostComponent(ApiPost post, bool isPreview, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             _configurationService = configurationService;
             _applicationTheme = applicationTheme;
@@ -55,21 +54,21 @@ namespace Deaddit.MAUI.Components
             BindingContext = _postViewModel = new RedditPostComponentViewModel(post, bodyVisible, opacity, applicationTheme);
             this.InitializeComponent();
             timeUser.IsVisible = !isPreview;
-
         }
+
+        public event EventHandler<BlockRule>? OnBlockAdded;
 
         public bool Selected { get; private set; }
 
         public bool SelectEnabled { get; private set; }
 
-        public static RedditPostComponent ListView(RedditPost post, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public static RedditPostComponent ListView(ApiPost post, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
-
             RedditPostComponent toReturn = new(post, true, redditClient, applicationTheme, visitTracker, selectionTracker, blockConfiguration, configurationService);
             return toReturn;
         }
 
-        public static RedditPostComponent PostView(RedditPost post, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public static RedditPostComponent PostView(ApiPost post, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             RedditPostComponent toReturn = new(post, false, redditClient, applicationTheme, visitTracker, selectionTracker, blockConfiguration, configurationService);
             return toReturn;
@@ -83,7 +82,7 @@ namespace Deaddit.MAUI.Components
                 _visitTracker.Visit(_post);
             }
 
-            PostPage postPage = new (_post, _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
+            PostPage postPage = new(_post, _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
             await Navigation.PushAsync(postPage);
             await postPage.TryLoad();
         }
@@ -112,10 +111,10 @@ namespace Deaddit.MAUI.Components
 
         public async void OnMoreOptionsClicked(object sender, EventArgs e)
         {
-            Dictionary<PostMoreOptions, string> options = new();
+            Dictionary<PostMoreOptions, string> options = [];
 
             Uri.TryCreate(_post.Domain, UriKind.Absolute, out Uri uri);
-            
+
             options.Add(PostMoreOptions.BlockAuthor, $"Block /u/{_post.Author}");
             options.Add(PostMoreOptions.BlockSubreddit, $"Block /r/{_post.SubReddit}");
             options.Add(PostMoreOptions.ViewAuthor, $"View /u/{_post.Author}");
@@ -144,6 +143,7 @@ namespace Deaddit.MAUI.Components
                         RuleName = $"{_post.SubReddit} [{_post.LinkFlairText}]"
                     });
                     break;
+
                 case PostMoreOptions.BlockSubreddit:
                     await this.NewBlockRule(new BlockRule()
                     {
@@ -152,11 +152,13 @@ namespace Deaddit.MAUI.Components
                         RuleName = $"/r/{_post.SubReddit}"
                     });
                     break;
+
                 case PostMoreOptions.ViewSubreddit:
                     SubRedditPage page = new(_post.SubReddit, "hot", _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
                     await Navigation.PushAsync(page);
                     await page.TryLoad();
                     break;
+
                 case PostMoreOptions.BlockAuthor:
                     await this.NewBlockRule(new BlockRule()
                     {
@@ -165,6 +167,7 @@ namespace Deaddit.MAUI.Components
                         RuleName = $"/u/{_post.Author}"
                     });
                     break;
+
                 case PostMoreOptions.BlockDomain:
                     if (uri != null)
                     {
@@ -177,6 +180,7 @@ namespace Deaddit.MAUI.Components
                     }
 
                     break;
+
                 default: throw new UnhandledEnumException(postMoreOptions.Value);
             }
         }
@@ -250,7 +254,6 @@ namespace Deaddit.MAUI.Components
                 _configurationService.Write(_blockConfiguration);
 
                 OnBlockAdded?.Invoke(this, blockRule);
-
             }
         }
 

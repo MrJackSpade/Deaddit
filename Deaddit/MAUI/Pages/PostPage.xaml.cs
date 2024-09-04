@@ -25,13 +25,13 @@ namespace Deaddit.MAUI.Pages
 
         private readonly IConfigurationService _configurationService;
 
-        private readonly IVisitTracker _visitTracker;
-
-        private readonly RedditPost _post;
+        private readonly ApiPost _post;
 
         private readonly IRedditClient _redditClient;
 
-        public PostPage(RedditPost post, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        private readonly IVisitTracker _visitTracker;
+
+        public PostPage(ApiPost post, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
@@ -86,6 +86,11 @@ namespace Deaddit.MAUI.Pages
             });
         }
 
+        public async Task TryLoad()
+        {
+            await DataService.LoadAsync(mainStack, async () => await this.LoadDataAsync(_post), _applicationTheme.HighlightColor);
+        }
+
         private void AddChildren(IEnumerable<RedditCommentMeta> children)
         {
             foreach (RedditCommentMeta child in children)
@@ -109,11 +114,13 @@ namespace Deaddit.MAUI.Pages
                         ccomponent.AddChildren(child.GetReplies());
                         childComponent = ccomponent;
                         break;
+
                     case ThingKind.More:
                         MoreCommentsComponent mcomponent = new(child.Data, _applicationTheme);
                         mcomponent.OnClick += this.MoreCommentsClick;
                         childComponent = mcomponent;
                         break;
+
                     default:
                         throw new UnhandledEnumException(child.Kind);
                 }
@@ -122,33 +129,27 @@ namespace Deaddit.MAUI.Pages
             }
         }
 
-        private async Task LoadDataAsync(RedditPost post)
+        private async Task LoadDataAsync(ApiPost post)
         {
             List<RedditCommentMeta> response = await _redditClient.Comments(post, null).ToList();
 
             this.AddChildren(response);
         }
 
-        private async Task LoadMoreAsync(RedditPost post, RedditComment more)
+        private async Task LoadMoreAsync(ApiPost post, ApiComment more)
         {
             List<RedditCommentMeta> response = await _redditClient.MoreComments(post, more).ToList();
 
             this.AddChildren(response);
         }
 
-        private async void MoreCommentsClick(object? sender, RedditComment e)
+        private async void MoreCommentsClick(object? sender, ApiComment e)
         {
             MoreCommentsComponent mcomponent = sender as MoreCommentsComponent;
 
             await DataService.LoadAsync(mainStack, async () => await this.LoadMoreAsync(_post, e), _applicationTheme.HighlightColor);
 
             mainStack.Children.Remove(mcomponent);
-
-        }
-
-        public async Task TryLoad()
-        {
-            await DataService.LoadAsync(mainStack, async () => await this.LoadDataAsync(_post), _applicationTheme.HighlightColor);
         }
 
         private void ReplyPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)

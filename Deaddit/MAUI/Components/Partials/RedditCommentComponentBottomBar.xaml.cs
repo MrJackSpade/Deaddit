@@ -6,7 +6,7 @@ namespace Deaddit.MAUI.Components.Partials
 {
     public partial class RedditCommentComponentBottomBar : ContentView
     {
-        public RedditCommentComponentBottomBar(RedditComment comment, ApplicationTheme applicationTheme)
+        public RedditCommentComponentBottomBar(ApiComment comment, ApplicationTheme applicationTheme)
         {
             BindingContext = new RedditCommentComponentViewModel(comment, applicationTheme);
             this.InitializeComponent();
