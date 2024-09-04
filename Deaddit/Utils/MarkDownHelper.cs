@@ -5,13 +5,32 @@ namespace Deaddit.Utils
 {
     internal static class MarkDownHelper
     {
+        /// <summary>
+        /// Regex pattern to match URLs that are not already wrapped
+        /// </summary>
+        public const string URL_PATTERN = @"(?<![\[\(])(?:https?:\/\/[^\s\)\]]+)(?!\))";
+
+        public const string MARKDOWN_PATTERN = @"(>!.*?!<|\*\*\*.*?\*\*\*|~~.*?~~|\*\*.*?\*\*|__.*?__|_.*?_|`.*?`|\[.*?\]\(.*?\)|\*.*?\*)";
+
+        public static bool IsMarkDown(string input)
+        {
+            if (Regex.IsMatch(input, URL_PATTERN))
+            {
+                return true;
+            }
+
+            if (Regex.IsMatch(input, MARKDOWN_PATTERN))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public static string EnableLinks(string input)
         {
-            // Regex pattern to match URLs that are not already wrapped
-            string pattern = @"(?<![\[\(])(?:https?:\/\/[^\s\)\]]+)(?!\))";
-
             // Find all matches
-            MatchCollection matches = Regex.Matches(input, pattern);
+            MatchCollection matches = Regex.Matches(input, URL_PATTERN);
 
             foreach (Match match in matches)
             {
