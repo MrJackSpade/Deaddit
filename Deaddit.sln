@@ -5,7 +5,13 @@ VisualStudioVersion = 17.11.35222.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Deaddit", "Deaddit\Deaddit.csproj", "{F2BB44D1-1977-4D16-A0F4-A88564E5F429}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Deaddit.Tests", "Deaddit.Tests\Deaddit.Tests.csproj", "{F1E6EF3E-4207-43F9-9652-8CA632FC4CD9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Deaddit.Tests", "Deaddit.Tests\Deaddit.Tests.csproj", "{F1E6EF3E-4207-43F9-9652-8CA632FC4CD9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DC6B1B6B-13E7-42EC-BCB0-2D3445FD52E8}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
