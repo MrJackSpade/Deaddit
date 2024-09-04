@@ -5,18 +5,18 @@ namespace Deaddit.Reddit.Models.Api
     public class ImageLocation
     {
         [JsonPropertyName("gif")]
-        public string? Gif { get; set; }
+        public string? Gif { get; init; }
 
         [JsonPropertyName("mp4")]
-        public string? Mp4 { get; set; }
+        public string? Mp4 { get; init; }
 
         [JsonPropertyName("u")]
-        public string? Url { get; set; }
+        public string? Url { get; init; }
 
         [JsonPropertyName("x")]
-        public int X { get; set; }
+        public int X { get; init; }
 
         [JsonPropertyName("y")]
-        public int Y { get; set; }
+        public int Y { get; init; }
     }
 }

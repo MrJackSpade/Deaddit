@@ -16,14 +16,14 @@ namespace Deaddit.Services
             this.SetDefaultHeader("Accept", "application/json");
         }
 
-        public async Task<T> Get<T>(string url) where T : class, new()
+        public async Task<T> Get<T>(string url) where T : class
         {
             string response = await _httpClient.GetStringAsync(url);
 
             return JsonDeserializer.Deserialize<T>(response);
         }
 
-        public async Task<T> Post<T>(string url, object body) where T : class, new()
+        public async Task<T> Post<T>(string url, object body) where T : class
         {
             JsonContent content = JsonContent.Create(body);
 
@@ -77,7 +77,7 @@ namespace Deaddit.Services
             responseMessage.EnsureSuccessStatusCode();
         }
 
-        public async Task<T> Post<T>(string url, Dictionary<string, string> formValues) where T : class, new()
+        public async Task<T> Post<T>(string url, Dictionary<string, string> formValues) where T : class
         {
             // Create the content to be posted as form data
             FormUrlEncodedContent content = new(formValues);

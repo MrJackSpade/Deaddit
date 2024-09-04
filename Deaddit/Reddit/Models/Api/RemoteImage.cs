@@ -5,15 +5,15 @@ namespace Deaddit.Reddit.Models.Api
     public class RemoteImage
     {
         [JsonPropertyName("id")]
-        public string? Id { get; set; }
+        public string? Id { get; init; }
 
         [JsonPropertyName("resolutions")]
-        public List<Source> Resolutions { get; set; } = [];
+        public List<Source> Resolutions { get; init; } = [];
 
         [JsonPropertyName("source")]
-        public Source? Source { get; set; }
+        public Source? Source { get; init; }
 
         [JsonPropertyName("variants")]
-        public Variants? Variants { get; set; }
+        public Variants? Variants { get; init; }
     }
 }

@@ -7,24 +7,9 @@ namespace Deaddit.Reddit.Extensions
     {
         public static void AddReply(this RedditCommentMeta redditCommentMeta, RedditCommentMeta child)
         {
-            if (redditCommentMeta.Data is null)
-            {
-                throw new Exception();
-            }
-
             if (redditCommentMeta.Data.Replies is null)
             {
-                redditCommentMeta.Data.Replies = new CommentReadResponse();
-            }
-
-            if (redditCommentMeta.Data.Replies.Data is null)
-            {
-                redditCommentMeta.Data.Replies.Data = new ReadMetaData<RedditCommentMeta>();
-            }
-
-            if (redditCommentMeta.Data.Replies.Data.Children is null)
-            {
-                redditCommentMeta.Data.Replies.Data.Children = [];
+                redditCommentMeta.Data.Replies = new CommentReadResponse() { Data = new ReadMetaData<RedditCommentMeta>() };
             }
 
             redditCommentMeta.Data.Replies.Data.Children.Add(child);

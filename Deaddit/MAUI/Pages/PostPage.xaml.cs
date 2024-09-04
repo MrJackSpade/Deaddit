@@ -95,11 +95,6 @@ namespace Deaddit.MAUI.Pages
         {
             foreach (RedditCommentMeta child in children)
             {
-                if (child?.Data is null)
-                {
-                    continue;
-                }
-
                 if (!_blockConfiguration.BlockRules.IsAllowed(child.Data))
                 {
                     continue;

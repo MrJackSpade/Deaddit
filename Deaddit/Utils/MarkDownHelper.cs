@@ -206,14 +206,23 @@ namespace Deaddit.Utils
         public static bool IsTable(string[] lines, int currentIndex, out int tableEndIndex)
         {
             tableEndIndex = currentIndex;
-            if (!lines[currentIndex].Contains('|'))
+
+            int barCount = TryGetBars(lines, currentIndex);
+
+            if (barCount == 0)
+            {
+                return false;
+            }
+
+            if (TryGetBars(lines, currentIndex + 1) != barCount &&
+               TryGetBars(lines, barCount - 1) != barCount)
             {
                 return false;
             }
 
             for (int i = currentIndex + 1; i < lines.Length; i++)
             {
-                if (!lines[i].Contains('|'))
+                if (TryGetBars(lines, i) != barCount)
                 {
                     tableEndIndex = i - 1;
                     return true;
@@ -229,6 +238,21 @@ namespace Deaddit.Utils
             string trimmedLine = line.TrimStart();
 
             return trimmedLine.StartsWith("- ") || trimmedLine.StartsWith("* ") || trimmedLine.StartsWith("+ ");
+        }
+
+        public static int TryGetBars(string[] lines, int index)
+        {
+            if (index < 0)
+            {
+                return -1;
+            }
+
+            if (index >= lines.Length)
+            {
+                return -1;
+            }
+
+            return lines[index].Count(c => c == '|');
         }
     }
 }

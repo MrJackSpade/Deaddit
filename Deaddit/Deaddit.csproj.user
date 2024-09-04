@@ -57,7 +57,7 @@
     <MauiXaml Update="MAUI\Pages\SelectPage.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="MAUI\Pages\SubRedditInfo.xaml">
+    <MauiXaml Update="MAUI\Pages\SubRedditAboutPage.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
   </ItemGroup>

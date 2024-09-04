@@ -73,7 +73,7 @@ namespace Deaddit.MAUI.Components
                     BlockQuoteTextColor = _commentViewModel.TextColor,
                     Margin = new Thickness(15, 0, 0, 0)
                 };
-                markdownView.OnHyperLinkClicked += this.MarkdownView_OnHyperLinkClicked;
+                markdownView.OnHyperLinkClicked += this.OnHyperLinkClicked;
 
                 // Add to the layout
                 commentBody.Children.Insert(markdownIndex, markdownView);
@@ -110,11 +110,6 @@ namespace Deaddit.MAUI.Components
         {
             foreach (RedditCommentMeta? child in children)
             {
-                if (child?.Data is null)
-                {
-                    continue;
-                }
-
                 if (!_blockConfiguration.BlockRules.IsAllowed(child.Data))
                 {
                     continue;
@@ -125,7 +120,7 @@ namespace Deaddit.MAUI.Components
                     continue;
                 }
 
-                ContentView childComponent = null;
+                ContentView? childComponent = null;
 
                 switch (child.Kind)
                 {
@@ -148,15 +143,6 @@ namespace Deaddit.MAUI.Components
                 this.TryInitReplies();
                 _replies.Add(childComponent);
             }
-        }
-
-        public async void MarkdownView_OnHyperLinkClicked(object sender, LinkEventArgs e)
-        {
-            Ensure.NotNullOrWhiteSpace(e.Url);
-
-            PostTarget resource = UrlHandler.Resolve(e.Url);
-
-            await Navigation.OpenResource(resource, _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
         }
 
         public void OnDoneClicked(object sender, EventArgs e)
@@ -184,6 +170,15 @@ namespace Deaddit.MAUI.Components
         public void OnHideClicked(object sender, EventArgs e)
         {
             // Handle Hide click
+        }
+
+        public async void OnHyperLinkClicked(object sender, LinkEventArgs e)
+        {
+            Ensure.NotNullOrWhiteSpace(e.Url);
+
+            PostTarget resource = UrlHandler.Resolve(e.Url);
+
+            await Navigation.OpenResource(resource, _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
         }
 
         public async void OnMoreClicked(object sender, EventArgs e)

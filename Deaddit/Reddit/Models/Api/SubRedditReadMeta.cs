@@ -6,21 +6,21 @@ namespace Deaddit.Reddit.Models.Api
     public class ReadMetaData<T>
     {
         [JsonPropertyName("after")]
-        public string? After { get; set; }
+        public string? After { get; init; }
 
         [JsonPropertyName("before")]
-        public string? Before { get; set; }
+        public string? Before { get; init; }
 
         [JsonPropertyName("children")]
-        public List<T> Children { get; set; } = [];
+        public List<T> Children { get; init; } = [];
 
         [JsonPropertyName("dist")]
-        public int? Dist { get; set; }
+        public int? Dist { get; init; }
 
         [JsonPropertyName("geo_filter")]
-        public string? GeoFilter { get; set; }
+        public string? GeoFilter { get; init; }
 
         [JsonPropertyName("modhash")]
-        public string? ModHash { get; set; }
+        public string? ModHash { get; init; }
     }
 }

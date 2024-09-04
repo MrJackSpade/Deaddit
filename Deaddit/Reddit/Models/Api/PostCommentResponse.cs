@@ -6,21 +6,21 @@ namespace Deaddit.Reddit.Models.Api
     public class PostCommentData
     {
         [JsonPropertyName("things")]
-        public List<RedditCommentMeta> Things { get; set; } = [];
+        public List<RedditCommentMeta> Things { get; init; } = [];
     }
 
     public class PostCommentResponse
     {
         [JsonPropertyName("json")]
-        public PostCommentResponseMeta? Json { get; set; }
+        public PostCommentResponseMeta Json { get; init; }
     }
 
     public class PostCommentResponseMeta
     {
         [JsonPropertyName("data")]
-        public PostCommentData? Data { get; set; }
+        public PostCommentData Data { get; init; }
 
         [JsonPropertyName("errors")]
-        public List<string> Errors { get; set; } = [];
+        public List<string> Errors { get; init; } = [];
     }
 }

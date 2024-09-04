@@ -21,6 +21,7 @@ namespace Deaddit.Extensions
 
         public static async Task OpenResource(this INavigation navigation, PostTarget resource, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService, ApiPost? post = null)
         {
+            //This needs to be handled differently. There's too many dependencies.
             switch (resource.Kind)
             {
                 case PostTargetKind.Post:
