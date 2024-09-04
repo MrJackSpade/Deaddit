@@ -12,6 +12,11 @@ namespace Deaddit.Reddit.Extensions
                 redditCommentMeta.Data.Replies = new CommentReadResponse() { Data = new ReadMetaData<RedditCommentMeta>() };
             }
 
+            if(redditCommentMeta.Data.Replies.Data is null)
+            {
+                redditCommentMeta.Data.Replies.Data = new();
+            }
+
             redditCommentMeta.Data.Replies.Data.Children.Add(child);
         }
 

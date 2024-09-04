@@ -8,6 +8,7 @@ using Deaddit.Reddit.Interfaces;
 using Deaddit.Reddit.Models.Api;
 using Deaddit.Services;
 using Deaddit.Utils;
+using System.Diagnostics;
 
 namespace Deaddit.MAUI.Pages
 {
@@ -138,7 +139,13 @@ namespace Deaddit.MAUI.Pages
                     redditPostComponent.BlockAdded += this.RedditPostComponent_OnBlockAdded;
                     redditPostComponent.HideClicked += this.RedditPostComponent_HideClicked;
 
-                    mainStack.Add(redditPostComponent);
+                    try
+                    {
+                        mainStack.Add(redditPostComponent);
+                    } catch(System.MissingMethodException mme) when (mme.Message.Contains("Microsoft.Maui.Controls.Handlers.Compatibility.FrameRenderer"))
+                    {
+                        Debug.WriteLine("FrameRenderer Missing Method Exception");
+                    }
 
                     _loadedPosts.Add(new LoadedPost()
                     {

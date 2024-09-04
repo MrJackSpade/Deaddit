@@ -12,6 +12,7 @@ using Deaddit.Reddit.Models.Api;
 using Deaddit.Services;
 using Deaddit.Utils;
 using Deaddit.Utils.Extensions;
+using System.Diagnostics;
 
 namespace Deaddit.MAUI.Pages
 {
@@ -122,7 +123,14 @@ namespace Deaddit.MAUI.Pages
                         throw new UnhandledEnumException(child.Kind);
                 }
 
-                mainStack.Children.Add(childComponent);
+                try
+                {
+                    mainStack.Children.Add(childComponent);
+                } catch(MissingMethodException mme)
+                {
+                    //More android weirdness?
+                    Debug.WriteLine(mme.Message);
+                }
             }
         }
 
