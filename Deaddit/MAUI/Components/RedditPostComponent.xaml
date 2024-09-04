@@ -12,7 +12,7 @@
             <converters:MultiplyConverter x:Key="MultiplyConverter" />
         </ResourceDictionary>
     </ContentView.Resources>
-    <VerticalStackLayout VerticalOptions="StartAndExpand">
+    <VerticalStackLayout VerticalOptions="StartAndExpand" x:Name="mainStack">
         <!-- Define the grid with three columns: auto for the thumbnail, star (*) for the title, auto for the vote stack -->
         <Grid
         x:Name="mainGrid"
@@ -134,42 +134,5 @@
                 Clicked="OnDownvoteClicked" />
             </Grid>
         </Grid>
-
-        <!-- New Row of Buttons -->
-        <HorizontalStackLayout
-            x:Name="actionButtonsStack"
-            HorizontalOptions="FillAndExpand"
-            VerticalOptions="Start"
-            Margin="0"
-            Padding="0"
-            Spacing="0"
-            IsVisible="False">
-            <!-- Initially hidden -->
-            <Button
-                Text="Share"
-                x:Name="shareButton"
-                Clicked="OnShareClicked"
-                BackgroundColor="Transparent"/>
-            <Button
-                Text="Save"
-                x:Name="saveButton"
-                Clicked="OnSaveClicked"
-                BackgroundColor="Transparent"/>
-            <Button
-                Text="Hide"
-                x:Name="hideButton"
-                Clicked="OnHideClicked"
-                BackgroundColor="Transparent"/>
-            <Button
-                Text="..."
-                x:Name="moreButton"
-                Clicked="OnMoreOptionsClicked"
-                BackgroundColor="Transparent"/>
-            <Button
-                Text="Comments"
-                x:Name="commentsButton"
-                Clicked="OnCommentsClicked"
-                BackgroundColor="Transparent"/>
-        </HorizontalStackLayout>
     </VerticalStackLayout>
 </ContentView>
