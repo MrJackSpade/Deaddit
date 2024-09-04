@@ -4,6 +4,7 @@ using Deaddit.Exceptions;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.MAUI.Components.ComponentModels;
+using Deaddit.MAUI.Components.Partials;
 using Deaddit.MAUI.EventArguments;
 using Deaddit.MAUI.Extensions;
 using Deaddit.MAUI.Pages;
@@ -38,6 +39,10 @@ namespace Deaddit.MAUI.Components
         private readonly RedditComment _comment;
 
         private readonly RedditPost _post;
+
+        private RedditCommentComponentTopBar _topBar { get; set; }   
+
+        private RedditCommentComponentBottomBar _bottomBar { get; set; }
 
         private RedditCommentComponent(RedditComment comment, RedditPost post, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
@@ -175,15 +180,29 @@ namespace Deaddit.MAUI.Components
 
         void ISelectionGroupItem.Select()
         {
-            topBar.IsVisible = true;
-            bottomBar.IsVisible = true;
+            _topBar = new RedditCommentComponentTopBar(_comment, _applicationTheme);
+            topBarPlaceholder.Children.Add(_topBar);
+            _bottomBar = new RedditCommentComponentBottomBar(_comment, _applicationTheme);  
+            bottomBarPlaceholder.Children.Add(_bottomBar);
+
+            _topBar.DoneClicked += this.OnDoneClicked;
+            _topBar.HideClicked += this.OnHideClicked;
+            _topBar.ParentClicked += this.OnParentClicked;
+
+            _bottomBar.DownvoteClicked += this.OnDownvoteClicked;
+            _bottomBar.MoreClicked += this.OnMoreClicked;
+            _bottomBar.ReplyClicked += this.OnReplyClicked;
+            _bottomBar.UpvoteClicked += this.OnUpvoteClicked;
+
             commentBody.BackgroundColor = _applicationTheme.HighlightColor;
         }
 
         void ISelectionGroupItem.Unselect()
         {
-            topBar.IsVisible = false;
-            bottomBar.IsVisible = false;
+            topBarPlaceholder.Children.Remove(_topBar);
+            _topBar = null;
+            bottomBarPlaceholder.Children.Remove(_bottomBar);
+            _bottomBar = null;
             commentBody.BackgroundColor = _applicationTheme.SecondaryColor;
         }
 

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:components="clr-namespace:Deaddit.MAUI.Components"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Deaddit.MAUI.Components.Partials.RedditCommentComponentBottomBar"
+             xmlns:converters="clr-namespace:Deaddit.MAUI.Converters">
+    <!-- Bottom Row with buttons -->
+    <Grid
+            BackgroundColor="{Binding HighlightColor}"
+            ColumnDefinitions="*,*,*,*,*">
+        <Button Grid.Column="0" Text="▲" Clicked="OnUpvoteClicked" BackgroundColor="Transparent" TextColor="{Binding UpvoteButtonColor}" HorizontalOptions="FillAndExpand" />
+        <Button Grid.Column="1" Text="▼" Clicked="OnDownvoteClicked" BackgroundColor="Transparent" TextColor="{Binding DownvoteButtonColor}" HorizontalOptions="FillAndExpand" />
+        <Button Grid.Column="2" Text="&#x22EF;" Clicked="OnMoreClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
+        <Button Grid.Column="3" Text="&#8278;" Clicked="OnShareClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
+        <Button Grid.Column="4" Text="&#8617;" Clicked="OnReplyClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
+    </Grid>
+</ContentView>

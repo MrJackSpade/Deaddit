@@ -22,7 +22,28 @@ namespace Deaddit.Json
 
         private static object? Deserialize(JsonNode? property, Type targetType)
         {
-            if (targetType.IsAssignableTo(typeof(IList)))
+            // Case for IDictionary<X, Y>
+            if (targetType.IsAssignableTo(typeof(IDictionary)))
+            {
+                // Get the types for key and value
+                Type keyType = targetType.GenericTypeArguments[0];
+                Type valueType = targetType.GenericTypeArguments[1];
+
+                IDictionary targetDictionary = (IDictionary)Activator.CreateInstance(targetType)!;
+
+                if (property is JsonObject jo)
+                {
+                    foreach (KeyValuePair<string, JsonNode?> kvp in jo)
+                    {
+                        object? key = Deserialize(JsonValue.Create(kvp.Key), keyType);
+                        object? value = Deserialize(kvp.Value, valueType);
+                        targetDictionary.Add(key, value);
+                    }
+                }
+
+                return targetDictionary;
+            }
+            else if (targetType.IsAssignableTo(typeof(IList)))
             {
                 Type collectionType = targetType.GenericTypeArguments[0];
 
@@ -93,7 +114,7 @@ namespace Deaddit.Json
             //Must be last to prevent catching other types
             else if (targetType.IsClass)
             {
-                if(property is JsonValue jv && !string.IsNullOrWhiteSpace(jv.ToString()))
+                if (property is JsonValue jv && !string.IsNullOrWhiteSpace(jv.ToString()))
                 {
                     throw new DeserializationException("Json Value found where object is expected");
                 }

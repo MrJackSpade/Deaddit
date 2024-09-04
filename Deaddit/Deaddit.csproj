@@ -67,6 +67,12 @@
 	  <Compile Update="MAUI\Components\MoreCommentsComponent.xaml.cs">
 	    <DependentUpon>MoreCommentsComponent.xaml</DependentUpon>
 	  </Compile>
+	  <Compile Update="MAUI\Components\Partials\RedditCommentComponentBottomBar.xaml.cs">
+	    <DependentUpon>RedditCommentComponentBottomBar.xaml</DependentUpon>
+	  </Compile>
+	  <Compile Update="MAUI\Components\Partials\RedditCommentComponentTopBar.xaml.cs">
+	    <DependentUpon>RedditCommentComponentTopBar.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="MAUI\Pages\ObjectEditorPage.xaml.cs">
 	    <DependentUpon>ObjectEditorPage.xaml</DependentUpon>
 	  </Compile>
@@ -92,6 +98,12 @@
 
 	<ItemGroup>
 	  <MauiXaml Update="MAUI\Components\MoreCommentsComponent.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="MAUI\Components\Partials\RedditCommentComponentBottomBar.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="MAUI\Components\Partials\RedditCommentComponentTopBar.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="MAUI\Pages\ObjectEditorPage.xaml">
