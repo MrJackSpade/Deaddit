@@ -19,7 +19,7 @@
             <TapGestureRecognizer Tapped="OnParentTapped" />
         </VerticalStackLayout.GestureRecognizers>
         <!-- User and MetaData Row -->
-        <Grid ColumnDefinitions="Auto, Auto,Auto,Auto">
+        <Grid x:Name="commentHeader" ColumnDefinitions="Auto, Auto,Auto,Auto">
 
             <!-- Vote indicator -->
             <Label
@@ -41,15 +41,6 @@
                     FontAttributes="Bold"
                     TextColor="{Binding AuthorColor}" />
 
-            <!-- Image for Flair -->
-            <Image
-                    IsVisible="False"
-                    Grid.Column="2"
-                    HeightRequest="20"
-                    WidthRequest="20"
-                    VerticalOptions="Center"
-                    HorizontalOptions="Start" />
-
             <!-- Meta Data -->
             <Label
                     Grid.Column="3"
@@ -67,8 +58,7 @@
                 Text="{Binding Content}"
                 TextColor="{Binding TextColor}"
                 FontSize="{Binding FontSize}"
-                Margin="15,0,0,0"></Label>
-        <VerticalStackLayout x:Name="bottomBarPlaceholder">
-        </VerticalStackLayout>
+                Padding="15,4,4,4"></Label>
+
     </VerticalStackLayout>
 </ContentView>
