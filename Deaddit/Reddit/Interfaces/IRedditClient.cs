@@ -25,5 +25,7 @@ namespace Deaddit.Reddit.Interfaces
         Task ToggleInboxReplies(ApiThing thing, bool enabled);
 
         Task ToggleSubScription(ApiSubReddit thing, bool subscribed);
+
+        Task ToggleVisibility(ApiThing thing, bool visible);
     }
 }

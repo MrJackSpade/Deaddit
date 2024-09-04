@@ -58,8 +58,10 @@ namespace Deaddit.MAUI.Pages
             Navigation.PopAsync();
         }
 
-        public void OnHideClicked(object sender, EventArgs e)
+        public async void OnHideClicked(object sender, EventArgs e)
         {
+            await _redditClient.ToggleVisibility(_post, false);
+
         }
 
         public void OnMoreOptionsClicked(object sender, EventArgs e)

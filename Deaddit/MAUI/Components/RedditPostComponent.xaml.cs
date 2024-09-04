@@ -4,6 +4,7 @@ using Deaddit.Exceptions;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.MAUI.Components.ComponentModels;
+using Deaddit.MAUI.EventArguments;
 using Deaddit.MAUI.Extensions;
 using Deaddit.MAUI.Pages;
 using Deaddit.Reddit.Interfaces;
@@ -56,7 +57,9 @@ namespace Deaddit.MAUI.Components
             timeUser.IsVisible = !isPreview;
         }
 
-        public event EventHandler<BlockRule>? OnBlockAdded;
+        public event EventHandler<OnHideClickedEventArgs>? HideClicked;
+
+        public event EventHandler<BlockRule>? BlockAdded;
 
         public bool Selected { get; private set; }
 
@@ -104,9 +107,10 @@ namespace Deaddit.MAUI.Components
             _redditClient.SetUpvoteState(_post, _post.Likes);
         }
 
-        public void OnHideClicked(object sender, EventArgs e)
+        public async void OnHideClicked(object sender, EventArgs e)
         {
-            // Handle the Hide button click
+            await _redditClient.ToggleVisibility(_post, false);
+            HideClicked?.Invoke(this, new OnHideClickedEventArgs(_post, this));
         }
 
         public async void OnMoreOptionsClicked(object sender, EventArgs e)
@@ -253,7 +257,7 @@ namespace Deaddit.MAUI.Components
 
                 _configurationService.Write(_blockConfiguration);
 
-                OnBlockAdded?.Invoke(this, blockRule);
+                BlockAdded?.Invoke(this, blockRule);
             }
         }
 

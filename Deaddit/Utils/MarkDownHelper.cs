@@ -23,6 +23,11 @@ namespace Deaddit.Utils
 
             markdown = EnableLinks(markdown);
 
+            while (markdown.Contains("\n\n\n"))
+            {
+                markdown = markdown.Replace("\n\n\n", "\n\n");
+            }
+
             return markdown;
         }
 
@@ -132,13 +137,15 @@ namespace Deaddit.Utils
             string[] lines = Regex.Split(input, @"\r\n?|\n", RegexOptions.Compiled);
             lines = lines.Where(line => !string.IsNullOrEmpty(line)).ToArray();
 
-            if (IsTable(lines, 0, out _))
+            for(int i = 0; i < lines.Length; i++)
             {
-                return true;
-            }
+                string line = lines[i];
 
-            foreach (string line in lines)
-            {
+                if (IsTable(lines, i, out _))
+                {
+                    return true;
+                }
+
                 if (Regex.IsMatch(input, URL_PATTERN))
                 {
                     return true;

@@ -23,6 +23,9 @@ namespace Deaddit.Reddit.Models
         Award,
 
         [EnumMember(Value = "more")]
-        More
+        More,
+
+        [EnumMember(Value = "Listing")]
+        Listing
     }
 }

@@ -158,7 +158,7 @@ namespace Deaddit.Reddit.Models.Api
         public string? MobileBannerImage { get; init; }
 
         [JsonPropertyName("notification_level")]
-        public object? NotificationLevel { get; init; }
+        public string? NotificationLevel { get; init; }
 
         [JsonPropertyName("original_content_tag_enabled")]
         public bool OriginalContentTagEnabled { get; init; }
