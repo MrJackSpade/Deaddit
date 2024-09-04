@@ -15,6 +15,12 @@ namespace Deaddit.MAUI.Components.ComponentModels
             FontSize = applicationTheme.FontSize;
         }
 
+        public double FontSize
+        {
+            get => this.GetValue<double>();
+            set => this.SetValue(value);
+        }
+
         public string MoreText
         {
             get => this.GetValue<string>();
@@ -36,12 +42,6 @@ namespace Deaddit.MAUI.Components.ComponentModels
         public Color TertiaryColor
         {
             get => this.GetValue<Color>();
-            set => this.SetValue(value);
-        }
-
-        public double FontSize
-        {
-            get => this.GetValue<double>();
             set => this.SetValue(value);
         }
 

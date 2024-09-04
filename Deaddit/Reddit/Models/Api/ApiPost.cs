@@ -4,19 +4,13 @@ using System.Text.Json.Serialization;
 namespace Deaddit.Reddit.Models.Api
 {
     [DebuggerDisplay("{Title}")]
-    public class RedditPost : RedditThing
+    public class ApiPost : ApiThing
     {
         [JsonPropertyName("allow_live_comments")]
         public bool AllowLiveComments { get; set; }
 
         [JsonPropertyName("category")]
         public object? Category { get; set; }
-
-        [JsonPropertyName("is_gallery")]
-        public bool? IsGallery { get; set; }
-
-        [JsonPropertyName("gallery_data")]
-        public GalleryData? GalleryData { get; set; }
 
         [JsonPropertyName("clicked")]
         public bool Clicked { get; set; }
@@ -33,6 +27,9 @@ namespace Deaddit.Reddit.Models.Api
         [JsonPropertyName("domain")]
         public string? Domain { get; set; }
 
+        [JsonPropertyName("gallery_data")]
+        public GalleryData? GalleryData { get; set; }
+
         [JsonPropertyName("hidden")]
         public bool Hidden { get; set; }
 
@@ -45,8 +42,14 @@ namespace Deaddit.Reddit.Models.Api
         [JsonPropertyName("is_crosspostable")]
         public bool IsCrossPostable { get; set; }
 
+        [JsonPropertyName("is_gallery")]
+        public bool? IsGallery { get; set; }
+
         [JsonPropertyName("is_meta")]
         public bool IsMeta { get; set; }
+
+        [JsonPropertyName("over_18")]
+        public bool IsNsfw { get; set; }
 
         [JsonPropertyName("is_original_content")]
         public bool IsOriginalContent { get; set; }
@@ -98,9 +101,6 @@ namespace Deaddit.Reddit.Models.Api
 
         [JsonPropertyName("num_crossposts")]
         public long NumCrossPosts { get; set; }
-
-        [JsonPropertyName("over_18")]
-        public bool IsNsfw { get; set; }
 
         [JsonPropertyName("parent_whitelist_status")]
         public string? ParentWhitelistStatus { get; set; }

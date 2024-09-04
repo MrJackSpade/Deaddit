@@ -4,14 +4,11 @@ namespace Deaddit.Reddit.Models.Api
 {
     public class MediaMetaData
     {
-        [JsonPropertyName("ext")]
-        public string? Ext { get; set; }
-
-        [JsonPropertyName("t")]
-        public string? Text { get; set; }
-
         [JsonPropertyName("e")]
         public string? E { get; set; }
+
+        [JsonPropertyName("ext")]
+        public string? Ext { get; set; }
 
         [JsonPropertyName("id")]
         public string? Id { get; set; }
@@ -27,5 +24,8 @@ namespace Deaddit.Reddit.Models.Api
 
         [JsonPropertyName("status")]
         public string? Status { get; set; }
+
+        [JsonPropertyName("t")]
+        public string? Text { get; set; }
     }
 }

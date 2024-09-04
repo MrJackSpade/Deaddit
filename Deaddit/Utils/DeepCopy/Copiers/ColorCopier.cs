@@ -20,7 +20,6 @@
             }
 
             return Color.Parse(source.ToArgbHex());
-
         }
     }
 }

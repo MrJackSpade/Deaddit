@@ -6,7 +6,7 @@ namespace Deaddit.Extensions
 {
     public static class BlockRuleExtensions
     {
-        public static bool IsAllowed(this IEnumerable<BlockRule> blockRules, RedditThing thing)
+        public static bool IsAllowed(this IEnumerable<BlockRule> blockRules, ApiThing thing)
         {
             foreach (BlockRule br in blockRules)
             {
@@ -19,19 +19,19 @@ namespace Deaddit.Extensions
             return true;
         }
 
-        public static bool IsAllowed(this BlockRule rule, RedditThing thing)
+        public static bool IsAllowed(this BlockRule rule, ApiThing thing)
         {
             bool blocked = true;
 
             //Add comment specific here if needed in the future
-            blocked &= thing is RedditPost rp && !rule.IsAllowed(rp);
+            blocked &= thing is ApiPost rp && !rule.IsAllowed(rp);
             blocked &= BlockListHelper.TriggersOrSkip(rule.Author, thing.Author, StringMatchType.String);
             blocked &= BlockListHelper.TriggersOrSkip(rule.Body, thing.Body, StringMatchType.Regex);
 
             return !blocked;
         }
 
-        private static bool IsAllowed(this BlockRule rule, RedditPost post)
+        private static bool IsAllowed(this BlockRule rule, ApiPost post)
         {
             bool blocked = true;
 

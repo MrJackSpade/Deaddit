@@ -5,7 +5,7 @@
     <Grid RowDefinitions="auto, *, auto">
         <!-- Navigation Bar -->
         <Grid Padding="0"
-              ColumnDefinitions="auto, *, auto, auto"
+              ColumnDefinitions="auto, *, auto, auto, auto"
               Row="0"
               x:Name="navigationBar">
             <!-- Left Hamburger Button -->
@@ -22,10 +22,18 @@
                    VerticalTextAlignment="Center"
                    Grid.Column="1"
                    TextColor="{Binding TextColor}"></Label>
+            <Button Text="ⓘ"
+                    x:Name="infoButton"
+                    Grid.Column="2"
+                    VerticalOptions="Center"
+                    HorizontalOptions="End"
+                    Background="Transparent"
+                    TextColor="{Binding TextColor}"
+                    Clicked="OnInfoClicked" />
             <!-- Right Reload Button -->
             <Button Text="⟳"
                     x:Name="reloadButton"
-                    Grid.Column="2"
+                    Grid.Column="3"
                     VerticalOptions="Center"
                     TextColor="{Binding TextColor}"
                     HorizontalOptions="End"
@@ -34,7 +42,7 @@
             <!-- Right Gear Button -->
             <Button Text="&#x2699;"
                     x:Name="settingsButton"
-                    Grid.Column="3"
+                    Grid.Column="4"
                     VerticalOptions="Center"
                     HorizontalOptions="End"
                     Background="Transparent"

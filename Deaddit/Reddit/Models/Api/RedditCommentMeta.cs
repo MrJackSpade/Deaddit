@@ -7,7 +7,7 @@ namespace Deaddit.Reddit.Models.Api
     public class RedditCommentMeta
     {
         [JsonPropertyName("data")]
-        public RedditComment? Data { get; set; }
+        public ApiComment? Data { get; set; }
 
         [JsonPropertyName("kind")]
         public ThingKind Kind { get; set; }

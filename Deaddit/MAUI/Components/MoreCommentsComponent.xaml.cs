@@ -8,11 +8,11 @@ namespace Deaddit.MAUI.Components
     {
         private readonly ApplicationTheme _applicationTheme;
 
-        private readonly RedditComment _comment;
+        private readonly ApiComment _comment;
 
         private readonly MoreCommentsComponentViewModel _commentViewModel;
 
-        public MoreCommentsComponent(RedditComment comment, ApplicationTheme applicationTheme)
+        public MoreCommentsComponent(ApiComment comment, ApplicationTheme applicationTheme)
         {
             _applicationTheme = applicationTheme;
             _comment = comment;
@@ -20,7 +20,7 @@ namespace Deaddit.MAUI.Components
             this.InitializeComponent();
         }
 
-        public event EventHandler<RedditComment>? OnClick;
+        public event EventHandler<ApiComment>? OnClick;
 
         public async void OnParentTapped(object sender, EventArgs e)
         {

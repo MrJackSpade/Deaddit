@@ -20,7 +20,6 @@
               Margin="0,2,0,0"
               FontSize="{Binding FontSize}"
               TextColor="{Binding TextColor}"
-              BackgroundColor="{Binding PrimaryColor}"
-            />
+              BackgroundColor="{Binding PrimaryColor}" />
     </VerticalStackLayout>
 </ContentView>

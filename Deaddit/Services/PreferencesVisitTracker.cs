@@ -57,14 +57,14 @@ namespace Deaddit.Services
             }
         }
 
-        public bool HasVisited(RedditThing thing)
+        public bool HasVisited(ApiThing thing)
         {
             this.TryLoad(thing.SubRedditId);
 
             return _visited[thing.SubRedditId].Contains(thing.Name);
         }
 
-        public void Visit(RedditThing thing)
+        public void Visit(ApiThing thing)
         {
             this.TryLoad(thing.SubRedditId);
 

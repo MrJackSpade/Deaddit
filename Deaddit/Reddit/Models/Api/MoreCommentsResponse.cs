@@ -3,7 +3,7 @@
 namespace Deaddit.Reddit.Models.Api
 {
     // Root myDeserializedClass = JsonSerializer.Deserialize<Root>(myJsonResponse);
-    public class Data
+    public class MoreCommentsData
     {
         [JsonPropertyName("things")]
         public List<RedditCommentMeta> Things { get; set; } = [];
@@ -18,7 +18,7 @@ namespace Deaddit.Reddit.Models.Api
     public class MoreCommentsResponseMeta
     {
         [JsonPropertyName("data")]
-        public Data? Data { get; set; }
+        public MoreCommentsData? Data { get; set; }
 
         [JsonPropertyName("errors")]
         public List<string> Errors { get; set; } = [];

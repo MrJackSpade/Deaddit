@@ -16,8 +16,8 @@ namespace Deaddit.MAUI.Extensions
             textOverrides ??= [];
 
             foreach (T value in Enum.GetValues(typeof(T)))
-            {            
-                if(textOverrides.TryGetValue(value, out string textOverride))
+            {
+                if (textOverrides.TryGetValue(value, out string textOverride))
                 {
                     buttonValues.Add(textOverride, value);
                 }

@@ -412,7 +412,7 @@ namespace Deaddit.MAUI.Components
 
                 Span span = new();
 
-                if(part.TryTrim(">!", "!<", out string? trimmed))
+                if (part.TryTrim(">!", "!<", out string? trimmed))
                 {
                     span.Text = trimmed;
                     span.BackgroundColor = textColor;
@@ -420,9 +420,10 @@ namespace Deaddit.MAUI.Components
                     span.TextColor = textColor;
 
                     TapGestureRecognizer linkTapGestureRecognizer = new();
-                    linkTapGestureRecognizer.Tapped += (_, _) => span.BackgroundColor = new Color(0,0,0,0);
+                    linkTapGestureRecognizer.Tapped += (_, _) => span.BackgroundColor = new Color(0, 0, 0, 0);
                     span.GestureRecognizers.Add(linkTapGestureRecognizer);
-                } else if (part.TryTrim('`', out trimmed))
+                }
+                else if (part.TryTrim('`', out trimmed))
                 {
                     span.Text = trimmed;
                     span.BackgroundColor = CodeBlockBackgroundColor;

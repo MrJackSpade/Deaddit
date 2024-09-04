@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace Deaddit.Reddit.Models.Api
 {
-    public class RedditThing
+    public class ApiThing
     {
         [JsonPropertyName("all_awardings")]
         public List<object> AllAwardings { get; set; } = [];
@@ -13,9 +13,6 @@ namespace Deaddit.Reddit.Models.Api
 
         [JsonPropertyName("approved_by")]
         public object? ApprovedBy { get; set; }
-
-        [JsonPropertyName("media_metadata")]
-        public Dictionary<string, MediaMetaData>? MediaMetaData { get; set; } = [];
 
         [JsonPropertyName("author")]
         public string? Author { get; set; }
@@ -74,12 +71,12 @@ namespace Deaddit.Reddit.Models.Api
         [JsonPropertyName("can_mod_post")]
         public bool? CanModPost { get; set; }
 
-        [JsonPropertyName("created_utc")]
-        public OptionalDateTime CreatedUtc { get; set; }
-
         [JsonPropertyName("created")]
         [Obsolete("Use the UTC version", true)]
         public OptionalDateTime Created { get; set; }
+
+        [JsonPropertyName("created_utc")]
+        public OptionalDateTime CreatedUtc { get; set; }
 
         [JsonPropertyName("distinguished")]
         public DistinguishedKind Distinguished { get; set; }
@@ -108,6 +105,9 @@ namespace Deaddit.Reddit.Models.Api
         [JsonPropertyName("likes")]
         public UpvoteState Likes { get; set; }
 
+        [JsonPropertyName("media_metadata")]
+        public Dictionary<string, MediaMetaData>? MediaMetaData { get; set; } = [];
+
         [JsonPropertyName("mod_note")]
         public object? ModNote { get; set; }
 
@@ -129,7 +129,7 @@ namespace Deaddit.Reddit.Models.Api
         [JsonPropertyName("num_reports")]
         public int? NumReports { get; set; }
 
-        public RedditThing? Parent { get; set; }
+        public ApiThing? Parent { get; set; }
 
         [JsonPropertyName("permalink")]
         public string? Permalink { get; set; }

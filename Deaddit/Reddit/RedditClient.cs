@@ -2,13 +2,13 @@
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.Reddit.Exceptions;
+using Deaddit.Reddit.Extensions;
 using Deaddit.Reddit.Interfaces;
 using Deaddit.Reddit.Models;
 using Deaddit.Reddit.Models.Api;
 using Deaddit.Utils;
 using System.Text;
 using System.Text.Json;
-using Deaddit.Reddit.Extensions;
 
 namespace Deaddit.Reddit
 {
@@ -18,15 +18,13 @@ namespace Deaddit.Reddit
 
         private const string AUTHORIZATION_ROOT = "https://www.reddit.com";
 
-        private readonly RedditCredentials _redditCredentials;
-
         private readonly HttpClient _httpClient;
 
         private readonly IJsonClient _jsonClient;
 
-        private OAuthToken? _oAuthToken;
+        private readonly RedditCredentials _redditCredentials;
 
-        public string LoggedInUser { get; private set; }
+        private OAuthToken? _oAuthToken;
 
         public RedditClient(RedditCredentials redditCredentials, IJsonClient jsonClient, HttpClient httpClient)
         {
@@ -36,7 +34,9 @@ namespace Deaddit.Reddit
             _jsonClient.SetDefaultHeader("User-Agent", "Deaddit");
         }
 
-        public async Task<RedditCommentMeta> Comment(RedditThing thing, string comment)
+        public string LoggedInUser { get; private set; }
+
+        public async Task<RedditCommentMeta> Comment(ApiThing thing, string comment)
         {
             Ensure.NotNullOrWhiteSpace(thing.Name);
 
@@ -75,7 +75,7 @@ namespace Deaddit.Reddit
             return response.Json.Data.Things.Single();
         }
 
-        public async IAsyncEnumerable<RedditCommentMeta> Comments(RedditPost parent, string comment)
+        public async IAsyncEnumerable<RedditCommentMeta> Comments(ApiPost parent, string comment)
         {
             string fullUrl = $"{API_ROOT}/comments/{parent.Id}";
 
@@ -124,7 +124,61 @@ namespace Deaddit.Reddit
             return await _httpClient.GetStreamAsync(url);
         }
 
-        public async IAsyncEnumerable<RedditPost> Read(string subreddit, string? sort = null, string? after = null, Models.Region region = Models.Region.GLOBAL)
+        public async IAsyncEnumerable<RedditCommentMeta> MoreComments(ApiPost post, ApiComment moreItem)
+        {
+            // Ensure the required properties are not null or empty
+            Ensure.NotNullOrWhiteSpace(post.Name);
+            Ensure.NotNullOrEmpty(moreItem.ChildNames);
+
+            await this.EnsureAuthenticated();
+
+            string fullUrl = $"{API_ROOT}/api/morechildren";
+
+            // Prepare the form values as a dictionary
+            Dictionary<string, string> formValues = new()
+            {
+                { "api_type", "json" },
+                { "link_id", post.Name },
+                { "children", string.Join(",", moreItem.ChildNames) },
+                { "limit_children", "false" },
+                { "depth", "999" }
+            };
+
+            // Use the modified Post method to send the form data
+            MoreCommentsResponse response = await _jsonClient.Post<MoreCommentsResponse>(fullUrl, formValues);
+
+            if (response?.Json?.Data is null)
+            {
+                yield break;
+            }
+
+            List<RedditCommentMeta> things = response.Json.Data.Things;
+
+            Dictionary<string, RedditCommentMeta> tree = [];
+
+            foreach (RedditCommentMeta redditCommentMeta in things)
+            {
+                tree.Add(redditCommentMeta.Data.Name, redditCommentMeta);
+            }
+
+            foreach (RedditCommentMeta redditCommentMeta in things.ToList())
+            {
+                if (tree.TryGetValue(redditCommentMeta.Data.ParentId, out RedditCommentMeta parent))
+                {
+                    parent.AddReply(redditCommentMeta);
+                    things.Remove(redditCommentMeta);
+                }
+            }
+
+            foreach (RedditCommentMeta redditCommentMeta in things)
+            {
+                SetParent(moreItem.Parent, redditCommentMeta);
+
+                yield return redditCommentMeta;
+            }
+        }
+
+        public async IAsyncEnumerable<ApiPost> Read(string subreddit, string? sort = null, string? after = null, Models.Region region = Models.Region.GLOBAL)
         {
             await this.EnsureAuthenticated();
 
@@ -160,7 +214,24 @@ namespace Deaddit.Reddit
             } while (true);
         }
 
-        public async Task SetUpvoteState(RedditThing thing, UpvoteState state)
+        public async Task<ApiSubReddit> About(string subreddit)
+        {
+            if (!subreddit.Contains('/'))
+            {
+                subreddit = $"/r/{subreddit}";
+            }
+
+            if (!subreddit.StartsWith('/'))
+            {
+                subreddit = $"/{subreddit}";
+            }
+
+            SubRedditAboutResponse response = await _jsonClient.Get<SubRedditAboutResponse>($"{API_ROOT}{subreddit}/about");
+
+            return response.Data;
+        }
+
+        public async Task SetUpvoteState(ApiThing thing, UpvoteState state)
         {
             await this.EnsureAuthenticated();
 
@@ -186,6 +257,22 @@ namespace Deaddit.Reddit
             await _jsonClient.Post(url);
         }
 
+        public async Task ToggleInboxReplies(ApiThing thing, bool enabled)
+        {
+            await this.EnsureAuthenticated();
+
+            string url = $"{API_ROOT}/api/sendreplies";
+
+            // Prepare the form values as a dictionary
+            Dictionary<string, string> formValues = new()
+            {
+                { "id", thing.Name },
+                { "state", $"{enabled}" }
+            };
+
+            await _jsonClient.Post(url, formValues);
+        }
+
         private static string FixSort(string? sort)
         {
             if (string.IsNullOrWhiteSpace(sort))
@@ -201,6 +288,31 @@ namespace Deaddit.Reddit
             sort = sort.ToLower();
 
             return sort;
+        }
+
+        private static void SetParent(ApiThing parent, RedditCommentMeta comment)
+        {
+            if (comment.Data is null)
+            {
+                return;
+            }
+
+            comment.Data.Parent = parent;
+
+            if (comment.Data.Replies?.Data is null)
+            {
+                return;
+            }
+
+            if (comment.Kind != ThingKind.Comment)
+            {
+                return;
+            }
+
+            foreach (RedditCommentMeta child in comment.Data.Replies.Data.Children)
+            {
+                SetParent(comment.Data, child);
+            }
         }
 
         private async Task EnsureAuthenticated()
@@ -237,101 +349,6 @@ namespace Deaddit.Reddit
                 _jsonClient.SetDefaultHeader("Authorization", _oAuthToken.TokenType + " " + _oAuthToken.AccessToken);
                 LoggedInUser = _redditCredentials.UserName;
             }
-        }
-
-        private static void SetParent(RedditThing parent, RedditCommentMeta comment)
-        {
-            if (comment.Data is null)
-            {
-                return;
-            }
-
-            comment.Data.Parent = parent;
-
-            if (comment.Data.Replies?.Data is null)
-            {
-                return;
-            }
-
-            if (comment.Kind != ThingKind.Comment)
-            {
-                return;
-            }
-
-            foreach (RedditCommentMeta child in comment.Data.Replies.Data.Children)
-            {
-                SetParent(comment.Data, child);
-            }
-        }
-
-        public async IAsyncEnumerable<RedditCommentMeta> MoreComments(RedditPost post, RedditComment moreItem)
-        {
-            // Ensure the required properties are not null or empty
-            Ensure.NotNullOrWhiteSpace(post.Name);
-            Ensure.NotNullOrEmpty(moreItem.ChildNames);
-
-            await this.EnsureAuthenticated();
-
-            string fullUrl = $"{API_ROOT}/api/morechildren";
-
-            // Prepare the form values as a dictionary
-            Dictionary<string, string> formValues = new()
-            {
-                { "api_type", "json" },
-                { "link_id", post.Name },
-                { "children", string.Join(",", moreItem.ChildNames) },
-                { "limit_children", "false" },
-                { "depth", "999" }
-            };
-
-            // Use the modified Post method to send the form data
-            MoreCommentsResponse response = await _jsonClient.Post<MoreCommentsResponse>(fullUrl, formValues);
-
-            if (response?.Json?.Data is null)
-            {
-                yield break;
-            }
-
-            List<RedditCommentMeta> things = response.Json.Data.Things;
-
-            Dictionary<string, RedditCommentMeta> tree = new();
-
-            foreach (RedditCommentMeta redditCommentMeta in things)
-            {
-                tree.Add(redditCommentMeta.Data.Name, redditCommentMeta);
-            }
-
-            foreach (RedditCommentMeta redditCommentMeta in things.ToList())
-            {
-                if(tree.TryGetValue(redditCommentMeta.Data.ParentId, out RedditCommentMeta parent))
-                {
-                    parent.AddReply(redditCommentMeta);
-                    things.Remove(redditCommentMeta);
-                }
-            }
-
-            foreach(RedditCommentMeta redditCommentMeta in things)
-            {
-                SetParent(moreItem.Parent, redditCommentMeta);
-
-                yield return redditCommentMeta;
-            }
-        }
-
-        public async Task ToggleInboxReplies(RedditThing thing, bool enabled)
-        {
-            await this.EnsureAuthenticated();
-
-            string url = $"{API_ROOT}/api/sendreplies";
-
-            // Prepare the form values as a dictionary
-            Dictionary<string, string> formValues = new()
-            {
-                { "id", thing.Name },
-                { "state", $"{enabled}" }
-            };
-
-            await _jsonClient.Post(url, formValues);
         }
     }
 }

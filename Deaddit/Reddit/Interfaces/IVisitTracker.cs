@@ -4,8 +4,8 @@ namespace Deaddit.Reddit.Interfaces
 {
     public interface IVisitTracker
     {
-        bool HasVisited(RedditThing thing);
+        bool HasVisited(ApiThing thing);
 
-        void Visit(RedditThing thing);
+        void Visit(ApiThing thing);
     }
 }

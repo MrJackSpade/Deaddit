@@ -21,19 +21,19 @@ namespace Deaddit.Utils
             }
         }
 
-        public static void NotNullOrWhiteSpace([NotNull] string? v, [CallerArgumentExpression(nameof(v))] string propertyName = "")
-        {
-            if (string.IsNullOrWhiteSpace(v))
-            {
-                throw new ArgumentException($"{propertyName} can not be null or white space");
-            }
-        }
-
         public static void NotNullOrEmpty([NotNull] string? v, [CallerArgumentExpression(nameof(v))] string propertyName = "")
         {
             if (string.IsNullOrWhiteSpace(v))
             {
                 throw new ArgumentException($"{propertyName} can not be null or empty");
+            }
+        }
+
+        public static void NotNullOrWhiteSpace([NotNull] string? v, [CallerArgumentExpression(nameof(v))] string propertyName = "")
+        {
+            if (string.IsNullOrWhiteSpace(v))
+            {
+                throw new ArgumentException($"{propertyName} can not be null or white space");
             }
         }
     }
