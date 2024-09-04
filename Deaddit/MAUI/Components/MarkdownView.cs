@@ -362,7 +362,7 @@ namespace Deaddit.MAUI.Components
                 FontFamily = TextFontFace,
                 TextColor = TextColor,
                 FontAutoScalingEnabled = true,
-                VerticalOptions = LayoutOptions.Center,
+                VerticalOptions = LayoutOptions.Start,
                 HorizontalOptions = LayoutOptions.Start,
                 HorizontalTextAlignment = TextAlignment.Start,
                 VerticalTextAlignment = TextAlignment.Center,
