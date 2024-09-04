@@ -283,7 +283,7 @@ namespace Deaddit.MAUI.Components
 
         private static void HandleActiveCodeBlock(string line, ref Label activeCodeBlockLabel, ref int gridRow)
         {
-            if (IsCodeBlock(line, out bool _))
+            if (MarkDownHelper.IsCodeBlock(line, out bool _))
             {
                 activeCodeBlockLabel = null;
                 gridRow++;
@@ -292,112 +292,6 @@ namespace Deaddit.MAUI.Components
             {
                 activeCodeBlockLabel.Text += (string.IsNullOrWhiteSpace(activeCodeBlockLabel.Text) ? "" : "\n") + line;
             }
-        }
-
-        private static bool IsBlockQuote(string line)
-        {
-            string trimmedLine = line.TrimStart();
-
-            if(trimmedLine.Length < 0)
-            {
-                return false;
-            }
-
-            if(trimmedLine.Length > 1)
-            {
-                if (trimmedLine[1] == '!')
-                {
-                    //spoiler
-                    return false;
-                }
-            }
-
-            return trimmedLine[0] == '>';
-        }
-
-        private static bool IsCodeBlock(string line, out bool isSingleLineCodeBlock)
-        {
-            string trimmedLine = line.Trim();
-            isSingleLineCodeBlock = trimmedLine.Count(x => x == '`') >= 6 && trimmedLine.EndsWith("```", StringComparison.Ordinal);
-
-            return trimmedLine.StartsWith("```", StringComparison.Ordinal);
-        }
-
-        private static bool IsHeadline(string line, out int level)
-        {
-            level = 0;
-            line = line.TrimStart();
-            while (level < line.Length && line[level] == '#')
-            {
-                level++;
-            }
-
-            bool isHeadline = level > 0 && level < 7 && line.Length > level && line[level] == ' ';
-
-            if (!isHeadline)
-            {
-                level = 0;
-            }
-
-            return isHeadline;
-        }
-
-        private static bool IsHorizontalRule(string line)
-        {
-            string compactLine = line.Replace(" ", string.Empty);
-
-            return compactLine.Length >= 3 &&
-                   (compactLine.All(c => c == '-') || compactLine.All(c => c == '*') || compactLine.All(c => c == '_'));
-        }
-
-        private static bool IsImage(string line)
-        {
-            string trimmedLine = line.TrimStart();
-
-            return trimmedLine.StartsWith("![");
-        }
-
-        private static bool IsOrderedList(string line, out int listItemIndex)
-        {
-            listItemIndex = 0;
-            string trimmedLine = line.TrimStart();
-
-            Match match = Regex.Match(trimmedLine, @"^(\d+)\. ");
-            if (match.Success)
-            {
-                listItemIndex = int.Parse(match.Groups[1].Value);
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool IsTable(string[] lines, int currentIndex, out int tableEndIndex)
-        {
-            tableEndIndex = currentIndex;
-            if (!lines[currentIndex].Contains('|'))
-            {
-                return false;
-            }
-
-            for (int i = currentIndex + 1; i < lines.Length; i++)
-            {
-                if (!lines[i].Contains('|'))
-                {
-                    tableEndIndex = i - 1;
-                    return true;
-                }
-            }
-
-            tableEndIndex = lines.Length - 1;
-            return true;
-        }
-
-        private static bool IsUnorderedList(string line)
-        {
-            string trimmedLine = line.TrimStart();
-
-            return trimmedLine.StartsWith("- ") || trimmedLine.StartsWith("* ") || trimmedLine.StartsWith("+ ");
         }
 
         private static void OnMarkdownTextChanged(BindableObject bindable, object oldValue, object newValue)
@@ -868,7 +762,7 @@ namespace Deaddit.MAUI.Components
                 {
                     HandleActiveCodeBlock(line, ref activeCodeBlockLabel, ref gridRow);
                 }
-                else if (IsHeadline(line, out int headlineLevel))
+                else if (MarkDownHelper.IsHeadline(line, out int headlineLevel))
                 {
                     string headlineText = line[(headlineLevel + 1)..].Trim();
                     Color textColor = headlineLevel == 1 ? H1Color :
@@ -894,7 +788,7 @@ namespace Deaddit.MAUI.Components
                     Grid.SetColumnSpan(label, 2);
                     Grid.SetRow(label, gridRow++);
                 }
-                else if (IsImage(line))
+                else if (MarkDownHelper.IsImage(line))
                 {
                     Image image = this.CreateImageBlock(line);
 
@@ -907,11 +801,11 @@ namespace Deaddit.MAUI.Components
                     Grid.SetColumnSpan(image, 2);
                     Grid.SetRow(image, gridRow++);
                 }
-                else if (IsBlockQuote(line))
+                else if (MarkDownHelper.IsBlockQuote(line))
                 {
                     this.HandleBlockQuote(line, lineBeforeWasBlockQuote, grid, out currentLineIsBlockQuote, ref gridRow);
                 }
-                else if (IsUnorderedList(line))
+                else if (MarkDownHelper.IsUnorderedList(line))
                 {
                     if (!isUnorderedListActive)
                     {
@@ -923,7 +817,7 @@ namespace Deaddit.MAUI.Components
 
                     gridRow++;
                 }
-                else if (IsOrderedList(line, out int listItemIndex))
+                else if (MarkDownHelper.IsOrderedList(line, out int listItemIndex))
                 {
                     if (!isOrderedListActive)
                     {
@@ -935,11 +829,11 @@ namespace Deaddit.MAUI.Components
 
                     gridRow++;
                 }
-                else if (IsCodeBlock(line, out bool isSingleLineCodeBlock))
+                else if (MarkDownHelper.IsCodeBlock(line, out bool isSingleLineCodeBlock))
                 {
                     this.HandleSingleLineOrStartOfCodeBlock(line, grid, ref gridRow, isSingleLineCodeBlock, ref activeCodeBlockLabel);
                 }
-                else if (IsHorizontalRule(line))
+                else if (MarkDownHelper.IsHorizontalRule(line))
                 {
                     BoxView horizontalLine = new()
                     {
@@ -955,7 +849,7 @@ namespace Deaddit.MAUI.Components
                     Grid.SetColumnSpan(horizontalLine, 2);
                     gridRow++;
                 }
-                else if (IsTable(lines, i, out int tableEndIndex)) // Detect table
+                else if (MarkDownHelper.IsTable(lines, i, out int tableEndIndex)) // Detect table
                 {
                     Grid table = this.CreateTable(lines, i, tableEndIndex);
                     grid.Children.Add(table);
