@@ -42,6 +42,8 @@ namespace Deaddit.MAUI.Components
 
         private VerticalStackLayout _replies;
 
+        private readonly VisualElement commentBody;
+
         private RedditCommentComponent(ApiComment comment, ApiPost post, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             _applicationTheme = applicationTheme;
@@ -77,6 +79,11 @@ namespace Deaddit.MAUI.Components
 
                 // Add to the layout
                 commentContainer.Children.Insert(markdownIndex, markdownView);
+
+                commentBody = markdownView;
+            } else
+            {
+                commentBody = contentLabel;
             }
         }
 
@@ -272,7 +279,6 @@ namespace Deaddit.MAUI.Components
             commentContainer.Children.Insert(0, _topBar);
 
             _bottomBar = new RedditCommentComponentBottomBar(_comment, _applicationTheme);
-            bottomBarPlaceholder.Children.Add(_bottomBar);
 
             _topBar.DoneClicked += this.OnDoneClicked;
             _topBar.HideClicked += this.OnHideClicked;
@@ -283,16 +289,27 @@ namespace Deaddit.MAUI.Components
             _bottomBar.ReplyClicked += this.OnReplyClicked;
             _bottomBar.UpvoteClicked += this.OnUpvoteClicked;
 
-            commentContainer.BackgroundColor = _applicationTheme.HighlightColor;
+            commentHeader.BackgroundColor = _applicationTheme.HighlightColor;
+            commentBody.BackgroundColor = _applicationTheme.HighlightColor;
+
+            int indexOfComment = commentContainer.Children.IndexOf(commentBody);
+            if (indexOfComment == commentContainer.Children.Count - 1)
+            {
+                commentContainer.Children.Add(_bottomBar);
+            } else
+            {
+                commentContainer.Children.Insert(indexOfComment + 1, _bottomBar);
+            }
         }
 
         void ISelectionGroupItem.Unselect()
         {
             commentContainer.Children.Remove(_topBar);
             _topBar = null;
-            bottomBarPlaceholder.Children.Remove(_bottomBar);
+            commentContainer.Children.Remove(_bottomBar);
             _bottomBar = null;
-            commentContainer.BackgroundColor = _applicationTheme.SecondaryColor;
+            commentHeader.BackgroundColor = _applicationTheme.SecondaryColor;
+            commentBody.BackgroundColor = _applicationTheme.SecondaryColor;
         }
 
         private void BlockRuleOnSave(object? sender, ObjectEditorSaveEventArgs e)

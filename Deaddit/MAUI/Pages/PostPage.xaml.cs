@@ -136,9 +136,16 @@ namespace Deaddit.MAUI.Pages
 
         private async Task LoadDataAsync(ApiPost post)
         {
+            Stopwatch sw = new();
+            sw.Start();
+           
             List<RedditCommentMeta> response = await _redditClient.Comments(post, null).ToList();
 
             this.AddChildren(response);
+
+            sw.Stop();
+
+            Debug.WriteLine("LoadDataAsync: " + sw.ElapsedMilliseconds + "ms");
         }
 
         private async Task LoadMoreAsync(ApiPost post, ApiComment more)
