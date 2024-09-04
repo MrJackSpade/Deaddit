@@ -9,7 +9,14 @@ namespace Deaddit.MAUI.Pages.Models
             SecondaryColor = applicationTheme.SecondaryColor;
             TextColor = applicationTheme.TextColor;
             PrimaryColor = applicationTheme.PrimaryColor;
+            HighlightColor = applicationTheme.HighlightColor;
             TertiaryColor = applicationTheme.TertiaryColor;
+        }
+
+        public Color HighlightColor
+        {
+            get => this.GetValue<Color>();
+            set => this.SetValue(value);
         }
 
         public Color PrimaryColor
