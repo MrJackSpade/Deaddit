@@ -9,25 +9,20 @@
             <converters:MultiplyConverter x:Key="MultiplyConverter" />
         </ResourceDictionary>
     </ContentView.Resources>
-    <StackLayout
-        x:Name="commentContainer"
-        BackgroundColor="{Binding SecondaryColor}"
-        Margin="2,0,0,0"
-        Padding="0,10,0,0">
-        <VerticalStackLayout
-            x:Name="commentBody">
 
-            <VerticalStackLayout.GestureRecognizers>
-                <TapGestureRecognizer Tapped="OnParentTapped" />
-            </VerticalStackLayout.GestureRecognizers>
+    <VerticalStackLayout
+            x:Name="commentContainer"
+            BackgroundColor="{Binding SecondaryColor}"
+            Margin="2,0,0,0"
+            Padding="0,10,0,0">
+        <VerticalStackLayout.GestureRecognizers>
+            <TapGestureRecognizer Tapped="OnParentTapped" />
+        </VerticalStackLayout.GestureRecognizers>
+        <!-- User and MetaData Row -->
+        <Grid ColumnDefinitions="Auto, Auto,Auto,Auto">
 
-            <VerticalStackLayout x:Name="topBarPlaceholder">
-            </VerticalStackLayout>
-            <!-- User and MetaData Row -->
-            <Grid ColumnDefinitions="Auto, Auto,Auto,Auto">
-
-                <!-- Vote indicator -->
-                <Label
+            <!-- Vote indicator -->
+            <Label
                     Grid.Column="0"
                     Text="{Binding VoteIndicatorText}"
                     VerticalOptions="EndAndExpand"
@@ -36,8 +31,8 @@
                     FontAttributes="Bold"
                     TextColor="{Binding VoteIndicatorTextColor}" />
 
-                <!-- User Name -->
-                <Label
+            <!-- User Name -->
+            <Label
                     Grid.Column="1"
                     Text="{Binding Author}"
                     VerticalOptions="EndAndExpand"
@@ -46,8 +41,8 @@
                     FontAttributes="Bold"
                     TextColor="{Binding AuthorColor}" />
 
-                <!-- Image for Flair -->
-                <Image
+            <!-- Image for Flair -->
+            <Image
                     IsVisible="False"
                     Grid.Column="2"
                     HeightRequest="20"
@@ -55,8 +50,8 @@
                     VerticalOptions="Center"
                     HorizontalOptions="Start" />
 
-                <!-- Meta Data -->
-                <Label
+            <!-- Meta Data -->
+            <Label
                     Grid.Column="3"
                     Padding="10,0,0,0"
                     Text="{Binding MetaData}"
@@ -64,17 +59,16 @@
                     HorizontalOptions="End"
                     FontSize="{Binding FontSize, Converter={StaticResource MultiplyConverter}, ConverterParameter=0.75}"
                     TextColor="{Binding SubTextColor}" />
-            </Grid>
+        </Grid>
 
-            <!-- Content Text -->
-            <Label
+        <!-- Content Text -->
+        <Label
                 x:Name="contentLabel"
                 Text="{Binding Content}"
                 TextColor="{Binding TextColor}"
                 FontSize="{Binding FontSize}"
                 Margin="15,0,0,0"></Label>
-            <VerticalStackLayout x:Name="bottomBarPlaceholder">
-            </VerticalStackLayout>
+        <VerticalStackLayout x:Name="bottomBarPlaceholder">
         </VerticalStackLayout>
-    </StackLayout>
+    </VerticalStackLayout>
 </ContentView>

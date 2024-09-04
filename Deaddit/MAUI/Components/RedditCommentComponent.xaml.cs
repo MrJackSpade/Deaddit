@@ -58,8 +58,8 @@ namespace Deaddit.MAUI.Components
 
             if (MarkDownHelper.IsMarkDown(_comment.Body))
             {
-                int markdownIndex = commentBody.Children.IndexOf(contentLabel);
-                commentBody.Children.RemoveAt(markdownIndex);
+                int markdownIndex = commentContainer.Children.IndexOf(contentLabel);
+                commentContainer.Children.RemoveAt(markdownIndex);
 
                 // Content Text as Markdown
                 MarkdownView markdownView = new()
@@ -76,7 +76,7 @@ namespace Deaddit.MAUI.Components
                 markdownView.OnHyperLinkClicked += this.OnHyperLinkClicked;
 
                 // Add to the layout
-                commentBody.Children.Insert(markdownIndex, markdownView);
+                commentContainer.Children.Insert(markdownIndex, markdownView);
             }
         }
 
@@ -269,7 +269,8 @@ namespace Deaddit.MAUI.Components
         void ISelectionGroupItem.Select()
         {
             _topBar = new RedditCommentComponentTopBar(_comment, _applicationTheme);
-            topBarPlaceholder.Children.Add(_topBar);
+            commentContainer.Children.Insert(0, _topBar);
+
             _bottomBar = new RedditCommentComponentBottomBar(_comment, _applicationTheme);
             bottomBarPlaceholder.Children.Add(_bottomBar);
 
@@ -282,16 +283,16 @@ namespace Deaddit.MAUI.Components
             _bottomBar.ReplyClicked += this.OnReplyClicked;
             _bottomBar.UpvoteClicked += this.OnUpvoteClicked;
 
-            commentBody.BackgroundColor = _applicationTheme.HighlightColor;
+            commentContainer.BackgroundColor = _applicationTheme.HighlightColor;
         }
 
         void ISelectionGroupItem.Unselect()
         {
-            topBarPlaceholder.Children.Remove(_topBar);
+            commentContainer.Children.Remove(_topBar);
             _topBar = null;
             bottomBarPlaceholder.Children.Remove(_bottomBar);
             _bottomBar = null;
-            commentBody.BackgroundColor = _applicationTheme.SecondaryColor;
+            commentContainer.BackgroundColor = _applicationTheme.SecondaryColor;
         }
 
         private void BlockRuleOnSave(object? sender, ObjectEditorSaveEventArgs e)
@@ -353,7 +354,7 @@ namespace Deaddit.MAUI.Components
                     BackgroundColor = _applicationTheme.TertiaryColor
                 };
 
-                commentContainer.Children.Add(_replies);
+                this.commentContainer.Add(_replies);
             }
         }
     }
