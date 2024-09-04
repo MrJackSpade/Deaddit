@@ -345,8 +345,13 @@ namespace Deaddit.MAUI.Components
             _commentSelectionGroup.Toggle(this);
         }
 
-        private void OnShareClicked(object sender, EventArgs e)
+        private async void OnShareClicked(object sender, EventArgs e)
         {
+            await Share.Default.RequestAsync(new ShareTextRequest
+            {
+                Uri = _comment.Permalink,
+                Title = _comment.Body
+            });
         }
 
         private void ReplyPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)

@@ -186,9 +186,13 @@ namespace Deaddit.MAUI.Components
             // Handle the Save button click
         }
 
-        public void OnShareClicked(object sender, EventArgs e)
+        public async void OnShareClicked(object sender, EventArgs e)
         {
-            // Handle the Share button click
+            await Share.Default.RequestAsync(new ShareTextRequest
+            {
+                Uri = _post.Url,
+                Title = _post.Title
+            });
         }
 
         public async void OnThumbnailImageClicked(object sender, EventArgs e)
