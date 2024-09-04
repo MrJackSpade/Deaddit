@@ -12,6 +12,12 @@ namespace Deaddit.Reddit.Models.Api
         [JsonPropertyName("category")]
         public object? Category { get; set; }
 
+        [JsonPropertyName("is_gallery")]
+        public bool? IsGallery { get; set; }
+
+        [JsonPropertyName("gallery_data")]
+        public GalleryData? GalleryData { get; set; }
+
         [JsonPropertyName("clicked")]
         public bool Clicked { get; set; }
 

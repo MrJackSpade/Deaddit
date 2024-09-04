@@ -14,6 +14,9 @@ namespace Deaddit.Reddit.Models.Api
         [JsonPropertyName("approved_by")]
         public object? ApprovedBy { get; set; }
 
+        [JsonPropertyName("media_metadata")]
+        public Dictionary<string, MediaMetaData>? MediaMetaData { get; set; } = [];
+
         [JsonPropertyName("author")]
         public string? Author { get; set; }
 
