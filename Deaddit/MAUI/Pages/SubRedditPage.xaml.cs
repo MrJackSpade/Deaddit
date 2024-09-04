@@ -186,7 +186,7 @@ namespace Deaddit.MAUI.Pages
 
         private void RedditPostComponent_OnBlockAdded(object? sender, BlockRule e)
         {
-            foreach (LoadedPost loadedPost in _loadedPosts)
+            foreach (LoadedPost loadedPost in _loadedPosts.ToList())
             {
                 if (!e.IsAllowed(loadedPost.Post))
                 {

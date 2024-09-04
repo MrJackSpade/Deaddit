@@ -42,7 +42,7 @@
                 HorizontalOptions="FillAndExpand"
                 VerticalOptions="FillAndExpand"
                 Margin="0"
-                Padding="10,0,0,0">
+                Padding="8,3,3,3">
 
                 <VerticalStackLayout.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnParentTapped" />
@@ -66,6 +66,7 @@
                     <Label
                         Text="{Binding LinkFlairText}"
                         HorizontalOptions="Fill"
+                        Margin="2"
                         TextColor="{Binding TextColor}"
                         FontSize="{Binding FontSize, Converter={StaticResource MultiplyConverter}, ConverterParameter=0.75}"
                         BackgroundColor="{Binding PrimaryColor}" />
