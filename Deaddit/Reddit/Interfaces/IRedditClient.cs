@@ -18,7 +18,7 @@ namespace Deaddit.Reddit.Interfaces
 
         IAsyncEnumerable<RedditCommentMeta> MoreComments(ApiPost thing, ApiComment comment);
 
-        IAsyncEnumerable<ApiPost> Read(string subreddit, string sort = "hot", string? after = null, Region region = Region.GLOBAL);
+        IAsyncEnumerable<ApiPost> GetPosts(string subreddit, string sort = "hot", string? after = null, Region region = Region.GLOBAL);
 
         Task SetUpvoteState(ApiThing thing, UpvoteState state);
 
