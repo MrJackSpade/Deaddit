@@ -7,6 +7,7 @@ using Deaddit.MAUI.Components.ComponentModels;
 using Deaddit.MAUI.EventArguments;
 using Deaddit.MAUI.Extensions;
 using Deaddit.MAUI.Pages;
+using Deaddit.Reddit.Extensions;
 using Deaddit.Reddit.Interfaces;
 using Deaddit.Reddit.Models;
 using Deaddit.Reddit.Models.Api;
@@ -49,12 +50,20 @@ namespace Deaddit.MAUI.Components
 
             SelectEnabled = isPreview;
 
-            double opacity = isPreview && visitTracker.HasVisited(post) ? applicationTheme.VisitedOpacity : 1;
             bool bodyVisible = !isPreview && !string.IsNullOrWhiteSpace(post.Body);
 
-            BindingContext = _postViewModel = new RedditPostComponentViewModel(post, bodyVisible, opacity, applicationTheme);
+            BindingContext = _postViewModel = new RedditPostComponentViewModel(post, bodyVisible, applicationTheme);
             this.InitializeComponent();
             timeUser.IsVisible = !isPreview;
+
+            this.Opacity = isPreview && visitTracker.HasVisited(post) ? applicationTheme.VisitedOpacity : 1;
+            
+            mainGrid.HeightRequest = applicationTheme.ThumbnailSize;
+            mainGrid.BackgroundColor = applicationTheme.SecondaryColor;
+
+            thumbnailImage.HeightRequest = applicationTheme.ThumbnailSize;
+            thumbnailImage.WidthRequest = applicationTheme.ThumbnailSize;
+            thumbnailImage.Source = post.TryGetPreview();
         }
 
         public event EventHandler<OnHideClickedEventArgs>? HideClicked;
@@ -81,7 +90,7 @@ namespace Deaddit.MAUI.Components
         {
             if (_post.IsSelf && _isPreview)
             {
-                _postViewModel.Opacity = _applicationTheme.VisitedOpacity;
+                this.Opacity = _applicationTheme.VisitedOpacity;
                 _visitTracker.Visit(_post);
             }
 
@@ -207,7 +216,7 @@ namespace Deaddit.MAUI.Components
         {
             if (_isPreview)
             {
-                _postViewModel.Opacity = _applicationTheme.VisitedOpacity;
+                this.Opacity = _applicationTheme.VisitedOpacity;
                 _visitTracker.Visit(_post);
             }
 

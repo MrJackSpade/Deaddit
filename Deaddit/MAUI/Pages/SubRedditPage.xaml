@@ -65,7 +65,6 @@
                         BackgroundColor="Transparent"
                         TextColor="{Binding TextColor}"
                         Clicked="OnHotClicked" />
-
                     <Button
                         Text="New"
                         BackgroundColor="Transparent"

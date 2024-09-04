@@ -144,7 +144,7 @@ namespace Deaddit.Reddit.Models.Api
         public bool? Saved { get; init; }
 
         [JsonPropertyName("score")]
-        public long? Score { get; init; }
+        public long? Score { get; set; }
 
         [JsonPropertyName("send_replies")]
         public bool? SendReplies { get; set; }

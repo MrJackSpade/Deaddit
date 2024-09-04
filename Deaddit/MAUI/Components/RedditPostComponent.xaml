@@ -4,7 +4,6 @@
              x:Class="Deaddit.MAUI.Components.RedditPostComponent"
              HorizontalOptions="FillAndExpand"
              VerticalOptions="FillAndExpand"
-             Opacity="{Binding Opacity}"
              xmlns:components="clr-namespace:Deaddit.MAUI.Components"
              xmlns:converters="clr-namespace:Deaddit.MAUI.Converters">
 
@@ -19,9 +18,7 @@
         x:Name="mainGrid"
         ColumnDefinitions="Auto, *, Auto"
         Margin="0"
-        Padding="0"
-        MinimumHeightRequest="{Binding MinHeight}"
-        BackgroundColor="{Binding SecondaryColor}">
+        Padding="0">
 
             <!-- Thumbnail Image -->
             <ImageButton
@@ -30,9 +27,6 @@
             Aspect="AspectFill"
             Clicked="OnThumbnailImageClicked"
             Margin="0"
-            HeightRequest="{Binding MinHeight}"
-            WidthRequest="{Binding MinHeight}"
-            Source="{Binding Thumbnail}"
             VerticalOptions="Start" />
 
             <!-- Title and MetaData Stack -->
