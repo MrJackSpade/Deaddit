@@ -27,7 +27,7 @@ namespace Deaddit.MAUI.Components.ComponentModels
             TertiaryColor = applicationTheme.TertiaryColor;
             SecondaryColor = applicationTheme.SecondaryColor;
             HighlightColor = applicationTheme.HighlightColor;
-            LinkFlairBackgroundColor = redditPost.LinkFlairBackgroundColor;
+            LinkFlairBorderColor = redditPost.LinkFlairBackgroundColor ?? applicationTheme.PrimaryColor;
             LinkFlairText = HttpUtility.HtmlDecode(redditPost.LinkFlairText);
             LinkFlairTextColor = redditPost.LinkFlairTextColor;
             LinkFlairIsVisible = !string.IsNullOrWhiteSpace(LinkFlairText);
@@ -77,7 +77,7 @@ namespace Deaddit.MAUI.Components.ComponentModels
             set => this.SetValue(value);
         }
 
-        public Color? LinkFlairBackgroundColor
+        public Color LinkFlairBorderColor
         {
             get => this.GetValue<Color>();
             set => this.SetValue(value);
