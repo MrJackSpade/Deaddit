@@ -245,7 +245,12 @@ namespace Deaddit.MAUI.Components
             }
             else
             {
-                MyCommentMoreOptions? postMoreOptions = await this.DisplayActionSheet<MyCommentMoreOptions>("Select:", null, null);
+
+                Dictionary<MyCommentMoreOptions, string> overrideText = [];
+                bool replyState = _comment.SendReplies != false;
+                overrideText.Add(MyCommentMoreOptions.ToggleReplies, $"{(replyState ? "Disable" : "Enable")} Replies");
+
+                MyCommentMoreOptions? postMoreOptions = await this.DisplayActionSheet("Select:", null, null, overrideText);
 
                 if (postMoreOptions is null)
                 {
@@ -254,7 +259,10 @@ namespace Deaddit.MAUI.Components
 
                 switch (postMoreOptions.Value)
                 {
-
+                    case MyCommentMoreOptions.ToggleReplies:
+                        await _redditClient.ToggleInboxReplies(_comment, !replyState);
+                        _comment.SendReplies = !replyState;
+                        break;
                 }
             }
         }
