@@ -22,27 +22,20 @@ namespace Deaddit
                         align-items: center;
                         background-color: %BACKGROUND_COLOR%;
                     }
-                    img {
+                    img.small {
                         max-width: 100%;
                         max-height: 100%;
                         object-fit: contain;
                     }
-                    img.fullsize {
-                        max-width: none;
-                        max-height: none;
-                        width: auto;
-                        height: auto;
-                        object-fit: unset;
-                    }
                 </style>
             </head>
             <body>
-                <img id="image" src="%URL%">
+                <img id="image" src="%URL%" class="small">
                 <script>
                     const img = document.getElementById('image');
 
                     img.addEventListener('dblclick', () => {
-                        img.classList.toggle('fullsize');
+                        img.classList.toggle('small');
                     });
                 </script>
             </body>
