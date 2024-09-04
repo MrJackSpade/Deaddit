@@ -83,7 +83,9 @@ namespace Deaddit.MAUI.Components
                 _visitTracker.Visit(_post);
             }
 
-            await Navigation.PushAsync(new PostPage(_post, _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService));
+            PostPage postPage = new (_post, _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
+            await Navigation.PushAsync(postPage);
+            await postPage.TryLoad();
         }
 
         public void OnDownvoteClicked(object sender, EventArgs e)

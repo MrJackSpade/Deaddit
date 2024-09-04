@@ -51,8 +51,6 @@ namespace Deaddit.MAUI.Pages
 
             //After the menu bar which is hardcoded
             mainStack.Children.Insert(0, redditPostComponent);
-
-            DataService.LoadAsync(mainStack, async () => this.LoadDataAsync(post), _applicationTheme.HighlightColor);
         }
 
         public void OnBackClicked(object sender, EventArgs e)
@@ -146,6 +144,11 @@ namespace Deaddit.MAUI.Pages
 
             mainStack.Children.Remove(mcomponent);
 
+        }
+
+        public async Task TryLoad()
+        {
+            await DataService.LoadAsync(mainStack, async () => await this.LoadDataAsync(_post), _applicationTheme.HighlightColor);
         }
 
         private void ReplyPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)

@@ -29,7 +29,9 @@ namespace Deaddit.Extensions
                         throw new NotImplementedException();
                     }
 
-                    await navigation.PushAsync(new PostPage(post, redditClient, applicationTheme, visitTracker, blockConfiguration, configurationService));
+                    PostPage postPage = new(post, redditClient, applicationTheme, visitTracker, blockConfiguration, configurationService);
+                    await navigation.PushAsync(postPage);
+                    await postPage.TryLoad();
                     break;
 
                 case PostTargetKind.Url:

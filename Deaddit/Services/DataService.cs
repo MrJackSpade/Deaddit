@@ -1,4 +1,5 @@
 ﻿using Deaddit.Extensions;
+using System.Diagnostics;
 
 namespace Deaddit.Services
 {
@@ -27,9 +28,13 @@ namespace Deaddit.Services
 
             Task executing = toExecute();
 
+            Debug.WriteLine("--Starting async Task");
+
             _semaphore.Wait(() => _tasks.Add(executing));
 
             await executing;
+
+            Debug.WriteLine("--Completed async Task");
 
             _semaphore.Wait(() => _tasks.Remove(executing));
 

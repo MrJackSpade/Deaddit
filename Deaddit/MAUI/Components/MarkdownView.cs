@@ -297,7 +297,21 @@ namespace Deaddit.MAUI.Components
         {
             string trimmedLine = line.TrimStart();
 
-            return trimmedLine.StartsWith('>');
+            if(trimmedLine.Length < 0)
+            {
+                return false;
+            }
+
+            if(trimmedLine.Length > 1)
+            {
+                if (trimmedLine[1] == '!')
+                {
+                    //spoiler
+                    return false;
+                }
+            }
+
+            return trimmedLine[0] == '>';
         }
 
         private static bool IsCodeBlock(string line, out bool isSingleLineCodeBlock)
@@ -492,13 +506,28 @@ namespace Deaddit.MAUI.Components
         {
             FormattedString formattedString = new();
 
-            string[] parts = Regex.Split(line, @"(>!.*?<!|\*\*\*.*?\*\*\*|~~.*?~~|\*\*.*?\*\*|__.*?__|_.*?_|`.*?`|\[.*?\]\(.*?\)|\*.*?\*)");
+            string[] parts = Regex.Split(line, @"(>!.*?!<|\*\*\*.*?\*\*\*|~~.*?~~|\*\*.*?\*\*|__.*?__|_.*?_|`.*?`|\[.*?\]\(.*?\)|\*.*?\*)");
 
             foreach (string part in parts)
             {
+                if (string.IsNullOrEmpty(part))
+                {
+                    continue;
+                }
+
                 Span span = new();
 
-                if (part.TryTrim('`', out string? trimmed))
+                if(part.TryTrim(">!", "!<", out string? trimmed))
+                {
+                    span.Text = trimmed;
+                    span.BackgroundColor = textColor;
+                    span.FontFamily = CodeBlockFontFace;
+                    span.TextColor = textColor;
+
+                    TapGestureRecognizer linkTapGestureRecognizer = new();
+                    linkTapGestureRecognizer.Tapped += (_, _) => span.BackgroundColor = new Color(0,0,0,0);
+                    span.GestureRecognizers.Add(linkTapGestureRecognizer);
+                } else if (part.TryTrim('`', out trimmed))
                 {
                     span.Text = trimmed;
                     span.BackgroundColor = CodeBlockBackgroundColor;
