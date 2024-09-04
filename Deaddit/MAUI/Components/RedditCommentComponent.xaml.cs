@@ -58,6 +58,21 @@ namespace Deaddit.MAUI.Components
             BindingContext = _commentViewModel = new RedditCommentComponentViewModel(comment, applicationTheme);
             this.InitializeComponent();
 
+            //--------- SPEED
+            if (comment.Distinguished == DistinguishedKind.Moderator)
+            {
+                authorLabel.TextColor = applicationTheme.DistinguishedColor;
+            }
+            else
+            {
+                authorLabel.TextColor = applicationTheme.TertiaryColor;
+            }
+
+            authorLabel.Text = comment.Author;
+
+            commentContainer.Background = applicationTheme.SecondaryColor;
+            //----------
+
             if (MarkDownHelper.IsMarkDown(_comment.Body))
             {
                 int markdownIndex = commentContainer.Children.IndexOf(contentLabel);
@@ -66,27 +81,42 @@ namespace Deaddit.MAUI.Components
                 // Content Text as Markdown
                 MarkdownView markdownView = new()
                 {
-                    MarkdownText = _commentViewModel.Content,
-                    HyperlinkColor = _commentViewModel.HyperlinkColor,
-                    TextColor = _commentViewModel.TextColor,
-                    TextFontSize = _commentViewModel.FontSize,
-                    BlockQuoteBorderColor = _commentViewModel.TextColor,
-                    BlockQuoteBackgroundColor = _commentViewModel.SecondaryColor,
-                    BlockQuoteTextColor = _commentViewModel.TextColor,
+                    MarkdownText = MarkDownHelper.Clean(_comment.Body),
+                    HyperlinkColor = _applicationTheme.HyperlinkColor,
+                    TextColor = _applicationTheme.TextColor,
+                    TextFontSize = _applicationTheme.FontSize,
+                    BlockQuoteBorderColor = _applicationTheme.TextColor,
+                    BlockQuoteBackgroundColor = _applicationTheme.SecondaryColor,
+                    BlockQuoteTextColor = _applicationTheme.TextColor,
                     Margin = new Thickness(15, 0, 0, 0)
                 };
+
                 markdownView.OnHyperLinkClicked += this.OnHyperLinkClicked;
 
                 // Add to the layout
                 commentContainer.Children.Insert(markdownIndex, markdownView);
 
                 commentBody = markdownView;
-            } else
+            }
+            else
             {
+                contentLabel.Text = MarkDownHelper.Clean(_comment.Body);
+                contentLabel.TextColor = _applicationTheme.TextColor;
+                contentLabel.FontSize = _applicationTheme.FontSize;
                 commentBody = contentLabel;
             }
-        }
 
+            metaDataLabel.TextColor = _applicationTheme.SubTextColor;
+            metaDataLabel.FontSize = _applicationTheme.FontSize * 0.75;
+
+            voteIndicator.TextColor = _applicationTheme.TextColor;
+
+            this.UpdateMetaData();
+        }
+        private void UpdateMetaData()
+        {
+            metaDataLabel.Text = $"{_comment.Score} points {_comment.CreatedUtc.Elapsed()}";
+        }
         public bool SelectEnabled { get; private set; }
 
         private RedditCommentComponentBottomBar _bottomBar { get; set; }
@@ -162,16 +192,17 @@ namespace Deaddit.MAUI.Components
             if (_comment.Likes == UpvoteState.Downvote)
             {
                 _comment.Likes = UpvoteState.None;
-                _commentViewModel.TryAdjustScore(1);
+                _comment.Score++;
             }
             else
             {
                 _comment.Likes = UpvoteState.Downvote;
-                _commentViewModel.TryAdjustScore(-1);
+                _comment.Score--;
             }
 
             _commentViewModel.SetUpvoteState(_comment.Likes);
             _redditClient.SetUpvoteState(_comment, _comment.Likes);
+            this.UpdateMetaData();
         }
 
         public void OnHideClicked(object sender, EventArgs e)
@@ -261,16 +292,17 @@ namespace Deaddit.MAUI.Components
             if (_comment.Likes == UpvoteState.Upvote)
             {
                 _comment.Likes = UpvoteState.None;
-                _commentViewModel.TryAdjustScore(-1);
+                _comment.Score--;
             }
             else
             {
                 _comment.Likes = UpvoteState.Upvote;
-                _commentViewModel.TryAdjustScore(1);
+                _comment.Score++;
             }
 
             _commentViewModel.SetUpvoteState(_comment.Likes);
             _redditClient.SetUpvoteState(_comment, _comment.Likes);
+            this.UpdateMetaData();
         }
 
         void ISelectionGroupItem.Select()
@@ -296,7 +328,8 @@ namespace Deaddit.MAUI.Components
             if (indexOfComment == commentContainer.Children.Count - 1)
             {
                 commentContainer.Children.Add(_bottomBar);
-            } else
+            }
+            else
             {
                 commentContainer.Children.Insert(indexOfComment + 1, _bottomBar);
             }
@@ -371,7 +404,7 @@ namespace Deaddit.MAUI.Components
                     BackgroundColor = _applicationTheme.TertiaryColor
                 };
 
-                this.commentContainer.Add(_replies);
+                commentContainer.Add(_replies);
             }
         }
     }

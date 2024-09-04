@@ -12,7 +12,6 @@
 
     <VerticalStackLayout
             x:Name="commentContainer"
-            BackgroundColor="{Binding SecondaryColor}"
             Margin="2,0,0,0"
             Padding="0,10,0,0">
         <VerticalStackLayout.GestureRecognizers>
@@ -24,6 +23,7 @@
             <!-- Vote indicator -->
             <Label
                     Grid.Column="0"
+                    x:Name="voteIndicator"
                     Text="{Binding VoteIndicatorText}"
                     VerticalOptions="EndAndExpand"
                     HorizontalOptions="Start"
@@ -33,31 +33,25 @@
 
             <!-- User Name -->
             <Label
+                    x:Name="authorLabel"
                     Grid.Column="1"
-                    Text="{Binding Author}"
                     VerticalOptions="EndAndExpand"
                     HorizontalOptions="Start"
                     Margin="5,0,0,0"
-                    FontAttributes="Bold"
-                    TextColor="{Binding AuthorColor}" />
+                    FontAttributes="Bold" />
 
             <!-- Meta Data -->
             <Label
                     Grid.Column="3"
                     Padding="10,0,0,0"
-                    Text="{Binding MetaData}"
+                    x:Name="metaDataLabel"
                     VerticalOptions="EndAndExpand"
-                    HorizontalOptions="End"
-                    FontSize="{Binding FontSize, Converter={StaticResource MultiplyConverter}, ConverterParameter=0.75}"
-                    TextColor="{Binding SubTextColor}" />
+                    HorizontalOptions="End"></Label>
         </Grid>
 
         <!-- Content Text -->
         <Label
                 x:Name="contentLabel"
-                Text="{Binding Content}"
-                TextColor="{Binding TextColor}"
-                FontSize="{Binding FontSize}"
                 Padding="15,4,4,4"></Label>
 
     </VerticalStackLayout>

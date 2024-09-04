@@ -16,27 +16,23 @@ namespace Deaddit.MAUI.Components.ComponentModels
 
         private readonly ApiPost _redditPost;
 
-        public RedditPostComponentViewModel(ApiPost redditPost, bool postBodyIsVisible, double opacity, ApplicationTheme applicationTheme)
+        public RedditPostComponentViewModel(ApiPost redditPost, bool postBodyIsVisible, ApplicationTheme applicationTheme)
         {
             _redditPost = redditPost;
             _applicationTheme = applicationTheme;
-            MinHeight = applicationTheme.ThumbnailSize;
             VoteHeight = applicationTheme.ThumbnailSize / 2;
             Score = redditPost.Score?.ToString();
             FontSize = applicationTheme.FontSize;
             TertiaryColor = applicationTheme.TertiaryColor;
-            SecondaryColor = applicationTheme.SecondaryColor;
             HighlightColor = applicationTheme.HighlightColor;
             LinkFlairBorderColor = redditPost.LinkFlairBackgroundColor ?? applicationTheme.PrimaryColor;
             LinkFlairText = HttpUtility.HtmlDecode(redditPost.LinkFlairText);
             LinkFlairTextColor = redditPost.LinkFlairTextColor;
             LinkFlairIsVisible = !string.IsNullOrWhiteSpace(LinkFlairText);
-            Opacity = opacity;
             TextColor = applicationTheme.TextColor;
             SubTextColor = applicationTheme.SubTextColor;
             PrimaryColor = applicationTheme.PrimaryColor;
             HyperlinkColor = applicationTheme.HyperlinkColor;
-            Thumbnail = redditPost.TryGetPreview();
             Title = HttpUtility.HtmlDecode(redditPost.Title);
             VisibleMetaData = $"{redditPost.NumComments} comments {redditPost.SubReddit}";
             TimeUser = $"{redditPost.CreatedUtc.Elapsed()} by {redditPost.Author}";
@@ -101,18 +97,6 @@ namespace Deaddit.MAUI.Components.ComponentModels
             set => this.SetValue(value);
         }
 
-        public double MinHeight
-        {
-            get => this.GetValue<double>();
-            set => this.SetValue(value);
-        }
-
-        public double Opacity
-        {
-            get => this.GetValue<double>();
-            set => this.SetValue(value);
-        }
-
         public string PostBody
         {
             get => this.GetValue<string>();
@@ -134,12 +118,6 @@ namespace Deaddit.MAUI.Components.ComponentModels
         public string? Score
         {
             get => this.GetValue<string>();
-            set => this.SetValue(value);
-        }
-
-        public Color SecondaryColor
-        {
-            get => this.GetValue<Color>();
             set => this.SetValue(value);
         }
 
