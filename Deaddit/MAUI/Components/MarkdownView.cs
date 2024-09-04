@@ -1,4 +1,5 @@
 ﻿using Deaddit.Extensions;
+using Deaddit.Utils;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
@@ -506,7 +507,7 @@ namespace Deaddit.MAUI.Components
         {
             FormattedString formattedString = new();
 
-            string[] parts = Regex.Split(line, @"(>!.*?!<|\*\*\*.*?\*\*\*|~~.*?~~|\*\*.*?\*\*|__.*?__|_.*?_|`.*?`|\[.*?\]\(.*?\)|\*.*?\*)");
+            string[] parts = Regex.Split(line, MarkDownHelper.MARKDOWN_PATTERN);
 
             foreach (string part in parts)
             {
