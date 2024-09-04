@@ -111,7 +111,7 @@ namespace Deaddit.MAUI.Pages
 
                 string? after = _loadedPosts.LastOrDefault()?.Post.Name;
 
-                await foreach (ApiPost post in _redditClient.Read(after: after, subreddit: _subreddit, sort: _sort))
+                await foreach (ApiPost post in _redditClient.GetPosts(after: after, subreddit: _subreddit, sort: _sort))
                 {
                     if (!_blockConfiguration.BlockRules.IsAllowed(post))
                     {
