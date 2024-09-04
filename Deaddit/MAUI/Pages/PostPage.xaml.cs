@@ -4,7 +4,6 @@ using Deaddit.Exceptions;
 using Deaddit.Extensions;
 using Deaddit.MAUI.Components;
 using Deaddit.MAUI.EventArguments;
-using Deaddit.MAUI.Pages.Models;
 using Deaddit.Reddit.Extensions;
 using Deaddit.Reddit.Interfaces;
 using Deaddit.Reddit.Models;
@@ -12,7 +11,6 @@ using Deaddit.Reddit.Models.Api;
 using Deaddit.Services;
 using Deaddit.Utils;
 using Deaddit.Utils.Extensions;
-using Microsoft.Maui.Controls.Shapes;
 using System.Diagnostics;
 using System.Web;
 
@@ -46,30 +44,28 @@ namespace Deaddit.MAUI.Pages
             _applicationTheme = applicationTheme;
             _redditClient = redditClient;
 
-            BindingContext = new PostPageViewModel(applicationTheme);
-
             this.InitializeComponent();
             RedditPostComponent redditPostComponent = RedditPostComponent.PostView(post, redditClient, applicationTheme, visitTracker, new SelectionGroup(), _blockConfiguration, _configurationService);
 
-            // Initialize the Border (postBodyBorder)
-            postBodyBorder = new Border
-            {
-                Stroke = _applicationTheme.TertiaryColor,
-                IsVisible = !string.IsNullOrWhiteSpace(post.Body),
-                BackgroundColor = _applicationTheme.PrimaryColor,
-                HorizontalOptions = LayoutOptions.Center
-            };
+            BackgroundColor = _applicationTheme.SecondaryColor;
 
-            // Initialize the MarkdownView (postBody)
-            postBody = new MarkdownView
-            {
-                HyperlinkColor = _applicationTheme.HyperlinkColor,
-                BlockQuoteBorderColor = _applicationTheme.TextColor,
-                TextColor = _applicationTheme.TextColor,
-                BlockQuoteBackgroundColor = _applicationTheme.SecondaryColor,
-                BlockQuoteTextColor = _applicationTheme.TextColor,
-                MarkdownText = HttpUtility.HtmlDecode(post.Body),
-            };
+            postBodyBorder.Stroke = _applicationTheme.TertiaryColor;
+            postBodyBorder.IsVisible = !string.IsNullOrWhiteSpace(post.Body);
+            postBodyBorder.BackgroundColor = _applicationTheme.PrimaryColor;
+            postBodyBorder.HorizontalOptions = LayoutOptions.Center;
+
+            postBody.HyperlinkColor = _applicationTheme.HyperlinkColor;
+            postBody.BlockQuoteBorderColor = _applicationTheme.TextColor;
+            postBody.TextColor = _applicationTheme.TextColor;
+            postBody.BlockQuoteBackgroundColor = _applicationTheme.SecondaryColor;
+            postBody.BlockQuoteTextColor = _applicationTheme.TextColor;
+            postBody.MarkdownText = MarkDownHelper.Clean(post.Body);
+
+            backButton.TextColor = _applicationTheme.TextColor;
+            shareButton.TextColor = _applicationTheme.TextColor;
+            saveButton.TextColor = _applicationTheme.TextColor;
+            moreButton.TextColor = _applicationTheme.TextColor;
+            replyButton.TextColor = _applicationTheme.TextColor;
 
             mainStack.Children.Insert(0, redditPostComponent);
         }
@@ -146,7 +142,8 @@ namespace Deaddit.MAUI.Pages
                 try
                 {
                     mainStack.Children.Add(childComponent);
-                } catch(MissingMethodException mme)
+                }
+                catch (MissingMethodException mme)
                 {
                     //More android weirdness?
                     Debug.WriteLine(mme.Message);
@@ -158,7 +155,7 @@ namespace Deaddit.MAUI.Pages
         {
             Stopwatch sw = new();
             sw.Start();
-           
+
             List<RedditCommentMeta> response = await _redditClient.Comments(post, null).ToList();
 
             this.AddChildren(response);

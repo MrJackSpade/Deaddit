@@ -9,8 +9,7 @@
             x:Name="mainStack"
             VerticalOptions="Fill"
             Padding="0,0"
-            Spacing="0"
-            BackgroundColor="{Binding SecondaryColor}">
+            Spacing="0">
             <HorizontalStackLayout
             x:Name="actionButtonsStack"
             HorizontalOptions="FillAndExpand"
@@ -21,53 +20,44 @@
             Spacing="0">
                 <Button
                     Text="Back"
+                    x:Name="backButton"
                     Clicked="OnBackClicked"
-                    BackgroundColor="Transparent"
-                    TextColor="{Binding TextColor}" />
+                    BackgroundColor="Transparent"/>
 
                 <Button
                     Text="Share"
+                    x:Name="shareButton"
                     Clicked="OnShareClicked"
-                    BackgroundColor="Transparent"
-                    TextColor="{Binding TextColor}" />
+                    BackgroundColor="Transparent"/>
 
                 <Button
                     Text="Save"
+                    x:Name="saveButton"
                     Clicked="OnSaveClicked"
-                    BackgroundColor="Transparent"
-                    TextColor="{Binding TextColor}" />
+                    BackgroundColor="Transparent"/>
 
                 <Button
                     Text="..."
+                    x:Name="moreButton"
                     Clicked="OnMoreOptionsClicked"
-                    BackgroundColor="Transparent"
-                    TextColor="{Binding TextColor}" />
+                    BackgroundColor="Transparent"/>
 
                 <Button
                     Text="Reply"
+                    x:Name="replyButton"
                     Clicked="OnReplyClicked"
-                    BackgroundColor="Transparent"
-                    TextColor="{Binding TextColor}" />
+                    BackgroundColor="Transparent"/>
             </HorizontalStackLayout>
             <Border 
                 x:Name="postBodyBorder"
-                Stroke="{Binding TertiaryColor}"
-                IsVisible="{Binding PostBodyVisible}"
                 StrokeThickness="2"
                 StrokeShape="RoundRectangle 5,5,5,5"
                 Padding="10"
-                BackgroundColor="{Binding PrimaryColor}"
                 HorizontalOptions="Center">
                 <components:MarkdownView
                     x:Name="postBody"
                     Margin="5"
-                    BackgroundColor="Transparent"
-                    HyperlinkColor="{Binding HyperlinkColor}"
-                    BlockQuoteBorderColor="{Binding TextColor}"
-                    TextColor="{Binding TextColor}"
-                    BlockQuoteBackgroundColor="{Binding SecondaryColor}"
-                    BlockQuoteTextColor="{Binding TextColor}"
-                    MarkdownText="{Binding PostBody}">
+                    BackgroundColor="Transparent">
                 </components:MarkdownView>
             </Border>
         </VerticalStackLayout>

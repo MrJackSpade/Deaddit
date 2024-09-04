@@ -37,9 +37,10 @@ namespace Deaddit.MAUI.Components
 
         private readonly IVisitTracker _visitTracker;
 
+        private HorizontalStackLayout _actionButtonsStack;
+
         private RedditPostComponent(ApiPost post, bool isPreview, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
-
             _configurationService = configurationService;
             _applicationTheme = applicationTheme;
             _blockConfiguration = blockConfiguration;
@@ -96,14 +97,6 @@ namespace Deaddit.MAUI.Components
             timeUserLabel.Text = $"{_post.CreatedUtc.Elapsed()} by {_post.Author}";
             timeUserLabel.FontSize = _applicationTheme.FontSize * 0.75;
             timeUserLabel.TextColor = _applicationTheme.SubTextColor;
-
-            shareButton.TextColor = applicationTheme.TextColor;
-            moreButton.TextColor = applicationTheme.TextColor;
-            commentsButton.TextColor = applicationTheme.TextColor;
-            hideButton.TextColor = applicationTheme.TextColor;
-            saveButton.TextColor = applicationTheme.TextColor;
-
-            actionButtonsStack.BackgroundColor = applicationTheme.HighlightColor;
         }
 
         public event EventHandler<BlockRule>? BlockAdded;
@@ -126,7 +119,7 @@ namespace Deaddit.MAUI.Components
             return toReturn;
         }
 
-        public async void OnCommentsClicked(object sender, EventArgs e)
+        public async void OnCommentsClicked(object? sender, EventArgs e)
         {
             if (_post.IsSelf && _isPreview)
             {
@@ -156,13 +149,13 @@ namespace Deaddit.MAUI.Components
             _redditClient.SetUpvoteState(_post, _post.Likes);
         }
 
-        public async void OnHideClicked(object sender, EventArgs e)
+        public async void OnHideClicked(object? sender, EventArgs e)
         {
             await _redditClient.ToggleVisibility(_post, false);
             HideClicked?.Invoke(this, new OnHideClickedEventArgs(_post, this));
         }
 
-        public async void OnMoreOptionsClicked(object sender, EventArgs e)
+        public async void OnMoreOptionsClicked(object? sender, EventArgs e)
         {
             Dictionary<PostMoreOptions, string> options = [];
 
@@ -238,12 +231,12 @@ namespace Deaddit.MAUI.Components
             }
         }
 
-        public void OnSaveClicked(object sender, EventArgs e)
+        public void OnSaveClicked(object? sender, EventArgs e)
         {
             // Handle the Save button click
         }
 
-        public async void OnShareClicked(object sender, EventArgs e)
+        public async void OnShareClicked(object? sender, EventArgs e)
         {
             await Share.Default.RequestAsync(new ShareTextRequest
             {
@@ -252,7 +245,7 @@ namespace Deaddit.MAUI.Components
             });
         }
 
-        public async void OnThumbnailImageClicked(object sender, EventArgs e)
+        public async void OnThumbnailImageClicked(object? sender, EventArgs e)
         {
             if (_isPreview)
             {
@@ -263,7 +256,7 @@ namespace Deaddit.MAUI.Components
             await Navigation.OpenPost(_post, _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
         }
 
-        public void OnUpvoteClicked(object sender, EventArgs e)
+        public void OnUpvoteClicked(object? sender, EventArgs e)
         {
             if (_post.Likes == UpvoteState.Upvote)
             {
@@ -286,7 +279,7 @@ namespace Deaddit.MAUI.Components
             BackgroundColor = _applicationTheme.HighlightColor;
             mainGrid.BackgroundColor = _applicationTheme.HighlightColor;
             timeUserLabel.IsVisible = true;
-            actionButtonsStack.IsVisible = true;
+            this.InitActionButtons();
         }
 
         void ISelectionGroupItem.Unselect()
@@ -295,7 +288,8 @@ namespace Deaddit.MAUI.Components
             BackgroundColor = _applicationTheme.SecondaryColor;
             mainGrid.BackgroundColor = _applicationTheme.SecondaryColor;
             timeUserLabel.IsVisible = false;
-            actionButtonsStack.IsVisible = false;
+            mainStack.Children.Remove(_actionButtonsStack);
+            _actionButtonsStack = null;
         }
 
         private void BlockRuleOnSave(object? sender, MAUI.EventArguments.ObjectEditorSaveEventArgs e)
@@ -308,6 +302,75 @@ namespace Deaddit.MAUI.Components
 
                 BlockAdded?.Invoke(this, blockRule);
             }
+        }
+
+        private void InitActionButtons()
+        {
+            // Initialize the HorizontalStackLayout (actionButtonsStack)
+            _actionButtonsStack = new()
+            {
+                HorizontalOptions = LayoutOptions.FillAndExpand,
+                VerticalOptions = LayoutOptions.Start,
+                Margin = new Thickness(0),
+                Padding = new Thickness(0),
+                Spacing = 0
+            };
+
+            // Initialize the Share button
+            Button shareButton = new()
+            {
+                Text = "Share",
+                BackgroundColor = Colors.Transparent,
+                TextColor = _applicationTheme.TextColor
+            };
+            shareButton.Clicked += this.OnShareClicked;
+
+            // Initialize the Save button
+            Button saveButton = new()
+            {
+                Text = "Save",
+                BackgroundColor = Colors.Transparent,
+                TextColor = _applicationTheme.TextColor
+            };
+            saveButton.Clicked += this.OnSaveClicked;
+
+            // Initialize the Hide button
+            Button hideButton = new()
+            {
+                Text = "Hide",
+                BackgroundColor = Colors.Transparent,
+                TextColor = _applicationTheme.TextColor
+            };
+            hideButton.Clicked += this.OnHideClicked;
+
+            // Initialize the More Options button
+            Button moreButton = new()
+            {
+                Text = "...",
+                BackgroundColor = Colors.Transparent,
+                TextColor = _applicationTheme.TextColor
+            };
+            moreButton.Clicked += this.OnMoreOptionsClicked;
+
+            // Initialize the Comments button
+            Button commentsButton = new()
+            {
+                Text = "Comments",
+                BackgroundColor = Colors.Transparent,
+                TextColor = _applicationTheme.TextColor
+            };
+            commentsButton.Clicked += this.OnCommentsClicked;
+
+            // Add buttons to the HorizontalStackLayout
+            _actionButtonsStack.Children.Add(shareButton);
+            _actionButtonsStack.Children.Add(saveButton);
+            _actionButtonsStack.Children.Add(hideButton);
+            _actionButtonsStack.Children.Add(moreButton);
+            _actionButtonsStack.Children.Add(commentsButton);
+            _actionButtonsStack.BackgroundColor = _applicationTheme.HighlightColor;
+
+            // Add the HorizontalStackLayout to the page's layout (replace YourLayout with your actual layout)
+            mainStack.Children.Add(_actionButtonsStack);
         }
 
         private async Task NewBlockRule(BlockRule blockRule)
