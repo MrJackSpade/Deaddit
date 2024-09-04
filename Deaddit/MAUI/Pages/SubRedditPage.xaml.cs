@@ -42,9 +42,9 @@ namespace Deaddit.MAUI.Pages
 
         private readonly IVisitTracker _visitTracker;
 
-        public void OnReloadClicked(object sender, EventArgs e)
+        public async void OnReloadClicked(object sender, EventArgs e)
         {
-
+            await this.Reload();
         }
 
         public SubRedditPage(string subreddit, string sort, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)

@@ -16,8 +16,7 @@
         x:Name="mainGrid"
         ColumnDefinitions="*, Auto"
         Margin="0"
-        Padding="0"
-        MinimumHeightRequest="{Binding MinHeight}">
+        Padding="0">
 
             <Label Grid.Column="0" Text="{Binding SubReddit}" TextColor="{Binding TextColor}" Padding="10"></Label>
             <Button Grid.Column="1" Text="➤" Clicked="GoButton_Click" BackgroundColor="Transparent" TextColor="{Binding TextColor}"></Button>

@@ -16,20 +16,11 @@ namespace Deaddit.Reddit.Models.Api
         [JsonPropertyName("children")]
         public List<string> ChildNames { get; set; } = [];
 
-        [JsonPropertyName("media_metadata")]
-        public Dictionary<string, MediaMetaData>? MediaMetaData { get; set; } = [];
-
         [JsonPropertyName("author_cakeday")]
         public bool? AuthorCakeDay { get; set; }
 
         [JsonPropertyName("collapsed")]
         public bool? Collapsed { get; set; }
-
-        [JsonPropertyName("is_gallery")]
-        public bool? IsGallery { get; set; }
-
-        [JsonPropertyName("gallery_data")]
-        public GalleryData? GalleryData { get; set; }
 
         [JsonPropertyName("collapsed_because_crowd_control")]
         public object? CollapsedBecauseCrowdControl { get; set; }
