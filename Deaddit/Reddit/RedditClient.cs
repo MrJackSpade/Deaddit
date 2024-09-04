@@ -141,6 +141,9 @@ namespace Deaddit.Reddit
 
         public async IAsyncEnumerable<ApiPost> GetPosts(string subreddit, string? sort = null, string? after = null, Models.Region region = Models.Region.GLOBAL)
         {
+            //Returns HTML if not authenticated
+            await this.EnsureAuthenticated();
+
             var stopwatch = new System.Diagnostics.Stopwatch();
             stopwatch.Start();
 
