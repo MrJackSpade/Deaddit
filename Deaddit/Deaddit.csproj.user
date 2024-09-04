@@ -2,8 +2,8 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <IsFirstTimeProjectOpen>False</IsFirstTimeProjectOpen>
-    <ActiveDebugFramework>net8.0-android</ActiveDebugFramework>
-    <ActiveDebugProfile>Samsung SM-S901U (Android 14.0 - API 34)</ActiveDebugProfile>
+    <ActiveDebugFramework>net8.0-windows10.0.19041.0</ActiveDebugFramework>
+    <ActiveDebugProfile>Windows Machine</ActiveDebugProfile>
     <UapAppxPackageBuildMode>SideloadOnly</UapAppxPackageBuildMode>
     <AppxShowAllApps>False</AppxShowAllApps>
     <_LastSelectedProfileId>MSIX-win10-x86.pubxml</_LastSelectedProfileId>
@@ -16,6 +16,12 @@
   </PropertyGroup>
   <ItemGroup>
     <MauiXaml Update="MAUI\Components\MoreCommentsComponent.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="MAUI\Components\Partials\RedditCommentComponentBottomBar.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
+    <MauiXaml Update="MAUI\Components\Partials\RedditCommentComponentTopBar.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="MAUI\Pages\ObjectEditorPage.xaml">

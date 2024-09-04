@@ -16,6 +16,9 @@ namespace Deaddit.Reddit.Models.Api
         [JsonPropertyName("children")]
         public List<string> ChildNames { get; set; } = [];
 
+        [JsonPropertyName("media_metadata")]
+        public Dictionary<string, MediaMetaData>? MediaMetaData { get; set; } = [];
+
         [JsonPropertyName("collapsed")]
         public bool? Collapsed { get; set; }
 

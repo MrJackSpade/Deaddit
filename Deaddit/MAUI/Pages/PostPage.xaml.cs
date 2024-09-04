@@ -120,7 +120,7 @@ namespace Deaddit.MAUI.Pages
                         throw new UnhandledEnumException(child.Kind);
                 }
 
-                mainStack.Add(childComponent);
+                mainStack.Children.Add(childComponent);
             }
         }
 
