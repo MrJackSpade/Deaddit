@@ -56,7 +56,7 @@
                     VerticalOptions="Center" />
 
                 <Border
-                    Stroke="{Binding LinkFlairBackgroundColor}"
+                    Stroke="{Binding LinkFlairBorderColor}"
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 3,3,3,3"
                     Margin="0,0,10,0"
