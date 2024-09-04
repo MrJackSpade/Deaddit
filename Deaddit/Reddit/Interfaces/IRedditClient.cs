@@ -18,5 +18,7 @@ namespace Deaddit.Reddit.Interfaces
         IAsyncEnumerable<RedditPost> Read(string subreddit, string sort = "hot", string? after = null, Region region = Region.GLOBAL);
 
         Task SetUpvoteState(RedditThing thing, UpvoteState state);
+
+        Task ToggleInboxReplies(RedditThing thing, bool enabled);
     }
 }

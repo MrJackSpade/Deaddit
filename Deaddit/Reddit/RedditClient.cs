@@ -317,5 +317,21 @@ namespace Deaddit.Reddit
                 yield return redditCommentMeta;
             }
         }
+
+        public async Task ToggleInboxReplies(RedditThing thing, bool enabled)
+        {
+            await this.EnsureAuthenticated();
+
+            string url = $"{API_ROOT}/api/sendreplies";
+
+            // Prepare the form values as a dictionary
+            Dictionary<string, string> formValues = new()
+            {
+                { "id", thing.Name },
+                { "state", $"{enabled}" }
+            };
+
+            await _jsonClient.Post(url, formValues);
+        }
     }
 }
