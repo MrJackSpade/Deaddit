@@ -62,28 +62,28 @@
                     BackgroundColor="{Binding SecondaryColor}">
                     <Button
                         Text="Hot"
+                        x:Name="hotButton"
                         BackgroundColor="Transparent"
-                        TextColor="{Binding TextColor}"
                         Clicked="OnHotClicked" />
                     <Button
                         Text="New"
+                        x:Name="newButton"
                         BackgroundColor="Transparent"
-                        TextColor="{Binding TextColor}"
                         Clicked="OnNewClicked" />
                     <Button
                         Text="Rising"
+                        x:Name="risingButton"
                         BackgroundColor="Transparent"
-                        TextColor="{Binding TextColor}"
                         Clicked="OnRisingClicked" />
                     <Button
                         Text="Controversial"
+                        x:Name="controversialButton"
                         BackgroundColor="Transparent"
-                        TextColor="{Binding TextColor}"
                         Clicked="OnControversialClicked" />
                     <Button
                         Text="Top"
+                        x:Name="topButton"
                         BackgroundColor="Transparent"
-                        TextColor="{Binding TextColor}"
                         Clicked="OnTopClicked" />
                 </HorizontalStackLayout>
             </VerticalStackLayout>

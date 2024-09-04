@@ -12,7 +12,7 @@
             <converters:MultiplyConverter x:Key="MultiplyConverter" />
         </ResourceDictionary>
     </ContentView.Resources>
-    <VerticalStackLayout>
+    <VerticalStackLayout VerticalOptions="StartAndExpand">
         <!-- Define the grid with three columns: auto for the thumbnail, star (*) for the title, auto for the vote stack -->
         <Grid
         x:Name="mainGrid"
@@ -43,42 +43,31 @@
                 </VerticalStackLayout.GestureRecognizers>
 
                 <Label
-                    Text="{Binding Title}"
+                    x:Name="titleLabel"
                     HorizontalOptions="StartAndExpand"
-                    TextColor="{Binding TextColor}"
                     LineBreakMode="WordWrap"
                     VerticalOptions="Center" />
 
                 <Border
-                    Stroke="{Binding LinkFlairBorderColor}"
+                    x:Name="linkFlairBorder"
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 3,3,3,3"
                     Margin="0,0,10,0"
-                    BackgroundColor="{Binding PrimaryColor}"
-                    HorizontalOptions="Start"
-                    IsVisible="{Binding LinkFlairIsVisible}">
+                    HorizontalOptions="Start">
                     <Label
-                        Text="{Binding LinkFlairText}"
+                        x:Name="linkFlairLabel"
                         HorizontalOptions="Fill"
-                        Margin="2"
-                        TextColor="{Binding TextColor}"
-                        FontSize="{Binding FontSize, Converter={StaticResource MultiplyConverter}, ConverterParameter=0.75}"
-                        BackgroundColor="{Binding PrimaryColor}" />
+                        Margin="2" />
                 </Border>
 
                 <Label
-                    Text="{Binding VisibleMetaData}"
+                    x:Name="metaDataLabel"
                     VerticalOptions="FillAndExpand"
-                    TextColor="{Binding SubTextColor}"
-                    FontSize="{Binding FontSize, Converter={StaticResource MultiplyConverter}, ConverterParameter=0.75}"
                     Padding="0,0,0,0" />
                 <Label
-                    x:Name="timeUser"
-                    Text="{Binding TimeUser}"
+                    x:Name="timeUserLabel"
                     IsVisible="False"
                     VerticalOptions="FillAndExpand"
-                    TextColor="{Binding SubTextColor}"
-                    FontSize="{Binding FontSize, Converter={StaticResource MultiplyConverter}, ConverterParameter=0.75}"
                     Padding="0,0,0,0" />
             </VerticalStackLayout>
 
@@ -87,8 +76,7 @@
             x:Name="voteStack"
             Grid.Column="2"
             WidthRequest="50"
-            VerticalOptions="Center"
-            MinimumHeightRequest="{Binding MinHeight}">
+            VerticalOptions="Center">
 
                 <!-- StackLayout for the vote buttons and score -->
                 <StackLayout
@@ -152,7 +140,6 @@
             x:Name="actionButtonsStack"
             HorizontalOptions="FillAndExpand"
             VerticalOptions="Start"
-            BackgroundColor="{Binding HighlightColor}"
             Margin="0"
             Padding="0"
             Spacing="0"
@@ -160,50 +147,29 @@
             <!-- Initially hidden -->
             <Button
                 Text="Share"
+                x:Name="shareButton"
                 Clicked="OnShareClicked"
-                BackgroundColor="Transparent"
-                TextColor="{Binding TextColor}" />
-
+                BackgroundColor="Transparent"/>
             <Button
                 Text="Save"
+                x:Name="saveButton"
                 Clicked="OnSaveClicked"
-                BackgroundColor="Transparent"
-                TextColor="{Binding TextColor}" />
+                BackgroundColor="Transparent"/>
             <Button
                 Text="Hide"
+                x:Name="hideButton"
                 Clicked="OnHideClicked"
-                BackgroundColor="Transparent"
-                TextColor="{Binding TextColor}" />
+                BackgroundColor="Transparent"/>
             <Button
                 Text="..."
+                x:Name="moreButton"
                 Clicked="OnMoreOptionsClicked"
-                BackgroundColor="Transparent"
-                TextColor="{Binding TextColor}" />
+                BackgroundColor="Transparent"/>
             <Button
                 Text="Comments"
+                x:Name="commentsButton"
                 Clicked="OnCommentsClicked"
-                BackgroundColor="Transparent"
-                TextColor="{Binding TextColor}" />
+                BackgroundColor="Transparent"/>
         </HorizontalStackLayout>
-
-        <Border Stroke="{Binding TertiaryColor}"
-                IsVisible="{Binding PostBodyVisible}"
-                StrokeThickness="2"
-                StrokeShape="RoundRectangle 5,5,5,5"
-                Padding="10"
-                BackgroundColor="{Binding PrimaryColor}"
-                HorizontalOptions="Center">
-            <components:MarkdownView
-                    Margin="5"
-                    BackgroundColor="Transparent"
-                    HyperlinkColor="{Binding HyperlinkColor}"
-                    BlockQuoteBorderColor="{Binding TextColor}"
-                    TextColor="{Binding TextColor}"
-                    BlockQuoteBackgroundColor="{Binding SecondaryColor}"
-                    BlockQuoteTextColor="{Binding TextColor}"
-                    MarkdownText="{Binding PostBody}"
-                    x:Name="postBody">
-            </components:MarkdownView>
-        </Border>
     </VerticalStackLayout>
 </ContentView>

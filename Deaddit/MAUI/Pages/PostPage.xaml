@@ -49,6 +49,27 @@
                     BackgroundColor="Transparent"
                     TextColor="{Binding TextColor}" />
             </HorizontalStackLayout>
+            <Border 
+                x:Name="postBodyBorder"
+                Stroke="{Binding TertiaryColor}"
+                IsVisible="{Binding PostBodyVisible}"
+                StrokeThickness="2"
+                StrokeShape="RoundRectangle 5,5,5,5"
+                Padding="10"
+                BackgroundColor="{Binding PrimaryColor}"
+                HorizontalOptions="Center">
+                <components:MarkdownView
+                    x:Name="postBody"
+                    Margin="5"
+                    BackgroundColor="Transparent"
+                    HyperlinkColor="{Binding HyperlinkColor}"
+                    BlockQuoteBorderColor="{Binding TextColor}"
+                    TextColor="{Binding TextColor}"
+                    BlockQuoteBackgroundColor="{Binding SecondaryColor}"
+                    BlockQuoteTextColor="{Binding TextColor}"
+                    MarkdownText="{Binding PostBody}">
+                </components:MarkdownView>
+            </Border>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
