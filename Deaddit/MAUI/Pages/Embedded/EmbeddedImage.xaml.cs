@@ -16,10 +16,11 @@ namespace Deaddit
                     html, body {
                         margin: 0;
                         padding: 0;
+                        width: 100%;
+                        background-color: %BACKGROUND_COLOR%;
                     }
 
-                    body.small {
-                        background-color: %BACKGROUND_COLOR%;
+                    body {
                         display: flex;
                         justify-content: center;
                         align-items: center;
@@ -37,7 +38,7 @@ namespace Deaddit
                         height: auto;
                         max-width: none;
                         max-height: none;
-                        margin: auto;
+                        margin: 0 auto;
                     }
                 </style>
             </head>
