@@ -132,6 +132,28 @@ namespace Deaddit.Reddit
             System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in Comments method: {stopwatch.ElapsedMilliseconds}ms");
         }
 
+        public async Task Delete(ApiThing thing)
+        {
+            await this.EnsureAuthenticated();
+
+            System.Diagnostics.Stopwatch stopwatch = new();
+            stopwatch.Start();
+
+            string url = $"{API_ROOT}/api/del";
+
+            // Prepare the form values as a dictionary
+            Dictionary<string, string> formValues = new()
+            {
+                { "id", thing.Name }
+            };
+
+            await _jsonClient.Post(url, formValues);
+
+            stopwatch.Stop();
+
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in Delete method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+        }
+
         public async IAsyncEnumerable<ApiPost> GetPosts(SubRedditName subreddit, ApiPostSort sort = ApiPostSort.Undefined, string? after = null, Models.Region region = Models.Region.GLOBAL)
         {
             //Returns HTML if not authenticated
@@ -151,7 +173,7 @@ namespace Deaddit.Reddit
                 stopwatch.Stop();
                 System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in GetPosts method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
 
-                if(!posts.Meta.Children.NotNullAny())
+                if (!posts.Meta.Children.NotNullAny())
                 {
                     yield break;
                 }
@@ -335,28 +357,6 @@ namespace Deaddit.Reddit
             System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in ToggleVisibility method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
         }
 
-        public async Task Delete(ApiThing thing)
-        {
-            await this.EnsureAuthenticated();
-
-            System.Diagnostics.Stopwatch stopwatch = new();
-            stopwatch.Start();
-
-            string url =$"{API_ROOT}/api/del";
-
-            // Prepare the form values as a dictionary
-            Dictionary<string, string> formValues = new()
-            {
-                { "id", thing.Name }
-            };
-
-            await _jsonClient.Post(url, formValues);
-
-            stopwatch.Stop();
-
-            System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in Delete method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
-        }
-
         private static string GetSortString(ApiPostSort sort)
         {
             string sortString = sort.ToString();
@@ -364,7 +364,8 @@ namespace Deaddit.Reddit
             if (sort == ApiPostSort.Undefined)
             {
                 sortString = "hot";
-            } else
+            }
+            else
             {
                 sortString = sort.ToString().ToLower();
             }

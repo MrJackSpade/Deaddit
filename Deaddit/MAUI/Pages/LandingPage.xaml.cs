@@ -11,9 +11,11 @@ namespace Deaddit.MAUI.Pages
 {
     public partial class LandingPage : ContentPage
     {
-        private readonly AppConfiguration _appConfiguration;
+        private readonly ApplicationConfiguration _appConfiguration;
 
-        private readonly ApplicationTheme _applicationTheme;
+        private readonly ApplicationHacks _applicationHacks;
+
+        private readonly ApplicationStyling _applicationTheme;
 
         private readonly BlockConfiguration _blockConfiguration;
 
@@ -27,18 +29,19 @@ namespace Deaddit.MAUI.Pages
 
         private readonly IVisitTracker _visitTracker;
 
-        public LandingPage(ApplicationTheme applicationTheme, IVisitTracker visitTracker, IRedditClient redditClient, RedditCredentials RedditCredentials, IConfigurationService configurationService, BlockConfiguration blockConfiguration)
+        public LandingPage(ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, IRedditClient redditClient, RedditCredentials RedditCredentials, IConfigurationService configurationService, BlockConfiguration blockConfiguration)
         {
             //https://www.reddit.com/r/redditdev/comments/8pbx43/get_multireddit_listing/
             NavigationPage.SetHasNavigationBar(this, false);
 
             _redditClient = redditClient;
 
-            _appConfiguration = new AppConfiguration()
+            _appConfiguration = new ApplicationConfiguration()
             {
                 BlockConfiguration = blockConfiguration,
                 Credentials = RedditCredentials,
-                Theme = applicationTheme
+                Styling = applicationTheme,
+                ApplicationHacks = applicationHacks
             };
 
             _configuration = configurationService.Read<LandingPageConfiguration>();
@@ -51,12 +54,12 @@ namespace Deaddit.MAUI.Pages
             BindingContext = new LandingPageViewModel(applicationTheme);
             this.InitializeComponent();
 
-            mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("All", "r/all", ApiPostSort.Hot), redditClient, applicationTheme, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService));
-            mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("Home", "", ApiPostSort.Hot), redditClient, applicationTheme, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService));
+            mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("All", "r/all", ApiPostSort.Hot), redditClient, applicationTheme, applicationHacks, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService));
+            mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("Home", "", ApiPostSort.Hot), redditClient, applicationTheme, applicationHacks, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService));
 
             foreach (SubRedditSubscription subscription in _configuration.Subscriptions)
             {
-                SubRedditComponent subRedditComponent = SubRedditComponent.Removable(subscription, redditClient, applicationTheme, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService);
+                SubRedditComponent subRedditComponent = SubRedditComponent.Removable(subscription, redditClient, applicationTheme, applicationHacks, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService);
                 subRedditComponent.OnRemove += this.SubRedditComponent_OnRemove;
                 mainStack.Add(subRedditComponent);
             }
@@ -87,7 +90,7 @@ namespace Deaddit.MAUI.Pages
 
             _configurationService.Write(_configuration);
 
-            SubRedditComponent subRedditComponent = SubRedditComponent.Removable(newSubscription, _redditClient, _applicationTheme, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService);
+            SubRedditComponent subRedditComponent = SubRedditComponent.Removable(newSubscription, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService);
             subRedditComponent.OnRemove += this.SubRedditComponent_OnRemove;
             mainStack.Add(subRedditComponent);
         }
@@ -105,7 +108,7 @@ namespace Deaddit.MAUI.Pages
         {
             _configurationService.Write(_appConfiguration.Credentials);
             _configurationService.Write(_appConfiguration.BlockConfiguration);
-            _configurationService.Write(_appConfiguration.Theme);
+            _configurationService.Write(_appConfiguration.Styling);
         }
 
         private void SubRedditComponent_OnRemove(object? sender, SubRedditSubscriptionRemoveEventArgs e)

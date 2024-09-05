@@ -4,7 +4,7 @@ namespace Deaddit.MAUI.Pages.Models
 {
     internal class ObjectEditorPageViewModel : BaseViewModel
     {
-        public ObjectEditorPageViewModel(ApplicationTheme applicationTheme)
+        public ObjectEditorPageViewModel(ApplicationStyling applicationTheme)
         {
             SecondaryColor = applicationTheme.SecondaryColor;
             TextColor = applicationTheme.TextColor;

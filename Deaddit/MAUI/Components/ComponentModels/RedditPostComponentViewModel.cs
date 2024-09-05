@@ -8,11 +8,11 @@ namespace Deaddit.MAUI.Components.ComponentModels
 {
     public class RedditPostComponentViewModel : BaseViewModel, IVotableViewModel
     {
-        private readonly ApplicationTheme _applicationTheme;
+        private readonly ApplicationStyling _applicationTheme;
 
         private readonly ApiPost _redditPost;
 
-        public RedditPostComponentViewModel(ApiPost redditPost, ApplicationTheme applicationTheme)
+        public RedditPostComponentViewModel(ApiPost redditPost, ApplicationStyling applicationTheme)
         {
             _redditPost = redditPost;
             _applicationTheme = applicationTheme;

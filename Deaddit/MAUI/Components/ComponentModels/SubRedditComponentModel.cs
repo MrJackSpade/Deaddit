@@ -5,7 +5,7 @@ namespace Deaddit.MAUI.Components.ComponentModels
 {
     internal class SubRedditComponentViewModel : BaseViewModel
     {
-        public SubRedditComponentViewModel(string? displayString, ApplicationTheme applicationTheme)
+        public SubRedditComponentViewModel(string? displayString, ApplicationStyling applicationTheme)
         {
             SubReddit = displayString;
             PrimaryColor = applicationTheme.PrimaryColor;

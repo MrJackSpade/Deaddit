@@ -17,9 +17,13 @@ namespace Deaddit.MAUI.Pages
 {
     public partial class PostPage : ContentPage
     {
-        private readonly ApplicationTheme _applicationTheme;
+        private readonly ApplicationHacks _applicationHacks;
+
+        private readonly ApplicationStyling _applicationTheme;
 
         private readonly BlockConfiguration _blockConfiguration;
+
+        private readonly ApiComment? _commentFocus;
 
         private readonly SelectionGroup _commentSelectionGroup;
 
@@ -31,24 +35,24 @@ namespace Deaddit.MAUI.Pages
 
         private readonly IVisitTracker _visitTracker;
 
-        private readonly ApiComment? _commentFocus;
-
         public PostPage(ApiPost post,
                         IRedditClient redditClient,
-                        ApplicationTheme applicationTheme,
+                        ApplicationStyling applicationTheme,
+                        ApplicationHacks applicationHacks,
                         IVisitTracker visitTracker,
                         BlockConfiguration blockConfiguration,
                         IConfigurationService configurationService) : this(post,
                                                                            null,
                                                                            redditClient,
                                                                            applicationTheme,
+                                                                           applicationHacks,
                                                                            visitTracker,
                                                                            blockConfiguration,
                                                                            configurationService)
         {
-
         }
-        public PostPage(ApiPost post, ApiComment? focus, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+
+        public PostPage(ApiPost post, ApiComment? focus, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
@@ -57,12 +61,13 @@ namespace Deaddit.MAUI.Pages
             _configurationService = configurationService;
             _post = post;
             _visitTracker = visitTracker;
+            _applicationHacks = applicationHacks;
             _blockConfiguration = blockConfiguration;
             _applicationTheme = applicationTheme;
             _redditClient = redditClient;
 
             this.InitializeComponent();
-            RedditPostComponent redditPostComponent = RedditPostComponent.PostView(post, redditClient, applicationTheme, visitTracker, new SelectionGroup(), _blockConfiguration, _configurationService);
+            RedditPostComponent redditPostComponent = RedditPostComponent.PostView(post, redditClient, applicationTheme, applicationHacks, visitTracker, new SelectionGroup(), _blockConfiguration, _configurationService);
 
             BackgroundColor = _applicationTheme.SecondaryColor;
 
@@ -76,7 +81,7 @@ namespace Deaddit.MAUI.Pages
             postBody.TextColor = _applicationTheme.TextColor;
             postBody.BlockQuoteBackgroundColor = _applicationTheme.SecondaryColor;
             postBody.BlockQuoteTextColor = _applicationTheme.TextColor;
-            postBody.MarkdownText = MarkDownHelper.Clean(post.Body);
+            postBody.MarkdownText = MarkDownHelper.Clean(applicationHacks.CleanBody(post.Body));
 
             backButton.TextColor = _applicationTheme.TextColor;
             shareButton.TextColor = _applicationTheme.TextColor;
@@ -97,13 +102,22 @@ namespace Deaddit.MAUI.Pages
             await _redditClient.ToggleVisibility(_post, false);
         }
 
+        public async void OnHyperLinkClicked(object? sender, LinkEventArgs e)
+        {
+            Ensure.NotNullOrWhiteSpace(e.Url);
+
+            PostTarget resource = UrlHandler.Resolve(e.Url);
+
+            await Navigation.OpenResource(resource, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _blockConfiguration, _configurationService);
+        }
+
         public void OnMoreOptionsClicked(object? sender, EventArgs e)
         {
         }
 
         public async void OnReplyClicked(object? sender, EventArgs e)
         {
-            ReplyPage replyPage = new(_post, _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
+            ReplyPage replyPage = new(_post, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _blockConfiguration, _configurationService);
             replyPage.OnSubmitted += this.ReplyPage_OnSubmitted;
             await Navigation.PushAsync(replyPage);
         }
@@ -145,9 +159,11 @@ namespace Deaddit.MAUI.Pages
                 switch (child.Kind)
                 {
                     case ThingKind.Comment:
-                        RedditCommentComponent ccomponent = RedditCommentComponent.FullView(child.Data, _post, _redditClient, _applicationTheme, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService);
+                        RedditCommentComponent ccomponent = RedditCommentComponent.FullView(child.Data, _post, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService);
                         ccomponent.AddChildren(child.GetReplies());
                         ccomponent.OnDelete += this.OnCommentDelete;
+                        //outer most comment padded only.
+                        ccomponent.Margin = new Thickness(0, 0, 10, 0);
                         childComponent = ccomponent;
                         break;
 
@@ -171,11 +187,6 @@ namespace Deaddit.MAUI.Pages
                     Debug.WriteLine(mme.Message);
                 }
             }
-        }
-
-        private void OnCommentDelete(object? sender, OnDeleteClickedEventArgs e)
-        {
-            mainStack.Children.Remove(e.Component);
         }
 
         private async Task LoadDataAsync()
@@ -209,24 +220,20 @@ namespace Deaddit.MAUI.Pages
             mainStack.Children.Remove(mcomponent);
         }
 
+        private void OnCommentDelete(object? sender, OnDeleteClickedEventArgs e)
+        {
+            mainStack.Children.Remove(e.Component);
+        }
+
         private void ReplyPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
         {
             Ensure.NotNull(e.NewComment.Data, "New Comment Data");
 
-            RedditCommentComponent redditCommentComponent = RedditCommentComponent.FullView(e.NewComment.Data, _post, _redditClient, _applicationTheme, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService);
+            RedditCommentComponent redditCommentComponent = RedditCommentComponent.FullView(e.NewComment.Data, _post, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService);
 
             redditCommentComponent.OnDelete += this.OnCommentDelete;
 
             mainStack.Children.InsertAfter(postBodyBorder, redditCommentComponent);
-        }
-
-        public async void OnHyperLinkClicked(object? sender, LinkEventArgs e)
-        {
-            Ensure.NotNullOrWhiteSpace(e.Url);
-
-            PostTarget resource = UrlHandler.Resolve(e.Url);
-
-            await Navigation.OpenResource(resource, _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
         }
     }
 }

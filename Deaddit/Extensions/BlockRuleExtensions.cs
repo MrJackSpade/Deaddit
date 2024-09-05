@@ -1,7 +1,6 @@
 ﻿using Deaddit.Configurations.Models;
 using Deaddit.Reddit.Models.Api;
 using Deaddit.Utils;
-using System.Data;
 
 namespace Deaddit.Extensions
 {
@@ -20,17 +19,6 @@ namespace Deaddit.Extensions
             return true;
         }
 
-        private static StringMatchType DynamicMatchType(string? toMatch)
-        {
-            if (!string.IsNullOrWhiteSpace(toMatch) && toMatch.StartsWith('/') && toMatch.EndsWith('/'))
-            {
-                return StringMatchType.Regex;
-            } else
-            {
-                return StringMatchType.String;
-            }
-        }
-
         public static bool IsAllowed(this BlockRule rule, ApiThing thing)
         {
             bool blocked = true;
@@ -43,6 +31,18 @@ namespace Deaddit.Extensions
             blocked &= BlockListHelper.TriggersOrSkip(rule.Body, thing.Body, DynamicMatchType(rule.Body));
 
             return !blocked;
+        }
+
+        private static StringMatchType DynamicMatchType(string? toMatch)
+        {
+            if (!string.IsNullOrWhiteSpace(toMatch) && toMatch.StartsWith('/') && toMatch.EndsWith('/'))
+            {
+                return StringMatchType.Regex;
+            }
+            else
+            {
+                return StringMatchType.String;
+            }
         }
 
         private static bool IsAllowed(this BlockRule rule, ApiPost post)

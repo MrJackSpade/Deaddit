@@ -58,9 +58,9 @@ namespace Deaddit
 
             """;
 
-        private readonly ApplicationTheme _applicationTheme;
+        private readonly ApplicationStyling _applicationTheme;
 
-        public EmbeddedImage(ApplicationTheme applicationTheme, params string[] urls)
+        public EmbeddedImage(ApplicationStyling applicationTheme, params string[] urls)
         {
             this.InitializeComponent();
             _applicationTheme = applicationTheme;

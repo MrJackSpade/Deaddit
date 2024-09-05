@@ -13,7 +13,7 @@ namespace Deaddit.MAUI.Pages
 {
     public partial class ObjectEditorPage : ContentPage
     {
-        private readonly ApplicationTheme _applicationTheme;
+        private readonly ApplicationStyling _applicationTheme;
 
         private readonly DeepCopyHelper _deepCopyHelper;
 
@@ -23,11 +23,11 @@ namespace Deaddit.MAUI.Pages
 
         private readonly bool _topLevel;
 
-        public ObjectEditorPage(object original, ApplicationTheme applicationTheme) : this(original, true, applicationTheme)
+        public ObjectEditorPage(object original, ApplicationStyling applicationTheme) : this(original, true, applicationTheme)
         {
         }
 
-        private ObjectEditorPage(object original, bool topLevel, ApplicationTheme applicationTheme)
+        private ObjectEditorPage(object original, bool topLevel, ApplicationStyling applicationTheme)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 

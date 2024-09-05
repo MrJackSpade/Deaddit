@@ -4,7 +4,7 @@ namespace Deaddit.MAUI.Pages.Models
 {
     internal class LandingPageViewModel : BaseViewModel
     {
-        public LandingPageViewModel(ApplicationTheme applicationTheme)
+        public LandingPageViewModel(ApplicationStyling applicationTheme)
         {
             SecondaryColor = applicationTheme.SecondaryColor;
             TextColor = applicationTheme.TextColor;

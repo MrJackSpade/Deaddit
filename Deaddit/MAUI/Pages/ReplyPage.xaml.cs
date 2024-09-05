@@ -14,17 +14,20 @@ namespace Deaddit.MAUI.Pages
 {
     public partial class ReplyPage : ContentPage
     {
-        private readonly ApplicationTheme _applicationTheme;
+        private readonly ApplicationHacks _applicationHacks;
+
+        private readonly ApplicationStyling _applicationTheme;
 
         private readonly IRedditClient _redditClient;
 
         private readonly ApiThing _replyTo;
 
-        public ReplyPage(ApiThing replyTo, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public ReplyPage(ApiThing replyTo, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             _redditClient = redditClient;
             _replyTo = replyTo;
             _applicationTheme = applicationTheme;
+            _applicationHacks = applicationHacks;
 
             BindingContext = new ReplyPageViewModel(applicationTheme);
             this.InitializeComponent();
@@ -35,13 +38,13 @@ namespace Deaddit.MAUI.Pages
             {
                 if (toRender is ApiComment rc)
                 {
-                    RedditCommentComponent redditCommentComponent = RedditCommentComponent.Preview(rc, null, redditClient, applicationTheme, visitTracker, unused, blockConfiguration, configurationService);
+                    RedditCommentComponent redditCommentComponent = RedditCommentComponent.Preview(rc, null, redditClient, applicationTheme, applicationHacks, visitTracker, unused, blockConfiguration, configurationService);
 
                     commentStack.Children.Insert(0, redditCommentComponent);
                 }
                 else if (toRender is ApiPost post)
                 {
-                    RedditPostComponent redditPostComponent = RedditPostComponent.PostView(post, redditClient, applicationTheme, visitTracker, unused, blockConfiguration, configurationService);
+                    RedditPostComponent redditPostComponent = RedditPostComponent.PostView(post, redditClient, applicationTheme, applicationHacks, visitTracker, unused, blockConfiguration, configurationService);
 
                     if (!string.IsNullOrWhiteSpace(post.Body))
                     {
@@ -114,7 +117,7 @@ namespace Deaddit.MAUI.Pages
             Ensure.NotNullOrWhiteSpace(e.Url);
             PostTarget resource = UrlHandler.Resolve(e.Url);
 
-            await Navigation.OpenResource(resource, _redditClient, _applicationTheme, null, null, null);
+            await Navigation.OpenResource(resource, _redditClient, _applicationTheme, _applicationHacks, null, null, null);
         }
     }
 }

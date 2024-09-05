@@ -1,5 +1,4 @@
-﻿using Deaddit.MAUI.Components;
-using Deaddit.Reddit.Models.Api;
+﻿using Deaddit.Reddit.Models.Api;
 
 namespace Deaddit.MAUI.EventArguments
 {

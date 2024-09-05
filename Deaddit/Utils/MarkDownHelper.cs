@@ -1,5 +1,4 @@
 ﻿using System.Text.RegularExpressions;
-using System.Web;
 
 namespace Deaddit.Utils
 {
@@ -18,8 +17,6 @@ namespace Deaddit.Utils
             {
                 return string.Empty;
             }
-
-            markdown = HttpUtility.HtmlDecode(markdown);
 
             markdown = EnableLinks(markdown);
 
@@ -134,8 +131,6 @@ namespace Deaddit.Utils
 
         public static bool IsMarkDown(string input)
         {
-            input = HttpUtility.HtmlDecode(input);
-
             string[] lines = Regex.Split(input, @"\r\n?|\n", RegexOptions.Compiled);
 
             lines = lines.Where(line => !string.IsNullOrEmpty(line)).ToArray();

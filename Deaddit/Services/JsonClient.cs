@@ -3,7 +3,6 @@ using Deaddit.Interfaces;
 using Deaddit.Json;
 using System.Diagnostics;
 using System.Net.Http.Json;
-using System.Security.Cryptography.X509Certificates;
 
 namespace Deaddit.Services
 {
@@ -15,30 +14,6 @@ namespace Deaddit.Services
         {
             _httpClient = httpClient;
             this.SetDefaultHeader("Accept", "application/json");
-        }
-
-        private static T Retry<T>(Func<T> func, int maxRetries = 3)
-        {
-            int retries = 0;
-
-            while (true)
-            {
-                try
-                {
-                    return func();
-                }
-                catch (HttpRequestException e) when (e.StatusCode is System.Net.HttpStatusCode.ServiceUnavailable or System.Net.HttpStatusCode.NotFound)
-                {
-                    if (retries++ > maxRetries)
-                    {
-                        throw;
-                    }
-
-                    Thread.Sleep(retries++ * 1000);
-
-                    Debug.WriteLine(e.Message);
-                }
-            }
         }
 
         public async Task<T> Get<T>(string url) where T : class
@@ -122,6 +97,30 @@ namespace Deaddit.Services
         public void SetDefaultHeader(string key, string value)
         {
             _httpClient.SetDefaultHeader(key, value);
+        }
+
+        private static T Retry<T>(Func<T> func, int maxRetries = 3)
+        {
+            int retries = 0;
+
+            while (true)
+            {
+                try
+                {
+                    return func();
+                }
+                catch (HttpRequestException e) when (e.StatusCode is System.Net.HttpStatusCode.ServiceUnavailable or System.Net.HttpStatusCode.NotFound)
+                {
+                    if (retries++ > maxRetries)
+                    {
+                        throw;
+                    }
+
+                    Thread.Sleep(retries++ * 1000);
+
+                    Debug.WriteLine(e.Message);
+                }
+            }
         }
     }
 }

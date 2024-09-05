@@ -13,6 +13,7 @@ namespace Deaddit.Reddit.Interfaces
         Task<ApiCommentMeta> Comment(ApiThing replyTo, string comment);
 
         IAsyncEnumerable<ApiCommentMeta> Comments(ApiPost thing, ApiComment? focus);
+
         Task Delete(ApiThing thing);
 
         IAsyncEnumerable<ApiPost> GetPosts(SubRedditName subreddit, ApiPostSort sort = ApiPostSort.Hot, string? after = null, Region region = Region.GLOBAL);

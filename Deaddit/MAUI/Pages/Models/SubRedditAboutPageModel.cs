@@ -4,7 +4,7 @@ namespace Deaddit.MAUI.Pages.Models
 {
     internal class SubRedditAboutPageModel : BaseViewModel
     {
-        public SubRedditAboutPageModel(ApplicationTheme applicationTheme)
+        public SubRedditAboutPageModel(ApplicationStyling applicationTheme)
         {
             SecondaryColor = applicationTheme.SecondaryColor;
             TextColor = applicationTheme.TextColor;

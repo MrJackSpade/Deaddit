@@ -11,7 +11,9 @@ namespace Deaddit.MAUI.Components
 {
     public partial class SubRedditComponent : ContentView, ISelectionGroupItem
     {
-        private readonly ApplicationTheme _applicationTheme;
+        private readonly ApplicationHacks _applicationHacks;
+
+        private readonly ApplicationStyling _applicationTheme;
 
         private readonly BlockConfiguration _blockConfiguration;
 
@@ -25,13 +27,14 @@ namespace Deaddit.MAUI.Components
 
         private readonly IVisitTracker _visitTracker;
 
-        private SubRedditComponent(SubRedditSubscription subscription, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        private SubRedditComponent(SubRedditSubscription subscription, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             _redditClient = redditClient;
             _applicationTheme = applicationTheme;
             _configurationService = configurationService;
             _blockConfiguration = blockConfiguration;
             _selectionGroup = selectionTracker;
+            _applicationHacks = applicationHacks;
             _subscription = subscription;
             _visitTracker = visitTracker;
 
@@ -46,26 +49,20 @@ namespace Deaddit.MAUI.Components
 
         public bool SelectEnabled { get; private set; }
 
-        public static SubRedditComponent Fixed(SubRedditSubscription subscription, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public static SubRedditComponent Fixed(SubRedditSubscription subscription, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
-            return new SubRedditComponent(subscription, redditClient, applicationTheme, visitTracker, selectionTracker, blockConfiguration, configurationService)
+            return new SubRedditComponent(subscription, redditClient, applicationTheme, applicationHacks, visitTracker, selectionTracker, blockConfiguration, configurationService)
             {
                 SelectEnabled = false
             };
         }
 
-        public static SubRedditComponent Removable(SubRedditSubscription subscription, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public static SubRedditComponent Removable(SubRedditSubscription subscription, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
-            return new SubRedditComponent(subscription, redditClient, applicationTheme, visitTracker, selectionTracker, blockConfiguration, configurationService)
+            return new SubRedditComponent(subscription, redditClient, applicationTheme, applicationHacks, visitTracker, selectionTracker, blockConfiguration, configurationService)
             {
                 SelectEnabled = true
             };
-        }
-
-        public async void OnSettingsClick(object? sender, EventArgs e)
-        {
-            _selectionGroup.Toggle(this);
-
         }
 
         public void OnRemoveClick(object? sender, EventArgs e)
@@ -76,6 +73,11 @@ namespace Deaddit.MAUI.Components
         public void OnRemoveClicked(object? sender, EventArgs e)
         {
             // Handle the Share button click
+        }
+
+        public async void OnSettingsClick(object? sender, EventArgs e)
+        {
+            _selectionGroup.Toggle(this);
         }
 
         void ISelectionGroupItem.Select()
@@ -94,7 +96,7 @@ namespace Deaddit.MAUI.Components
 
         private async void OnParentTapped(object? sender, TappedEventArgs e)
         {
-            SubRedditPage subredditPage = new(_subscription.SubReddit, _subscription.Sort, _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
+            SubRedditPage subredditPage = new(_subscription.SubReddit, _subscription.Sort, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _blockConfiguration, _configurationService);
             await Navigation.PushAsync(subredditPage);
             await subredditPage.TryLoad();
         }

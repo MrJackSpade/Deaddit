@@ -5,7 +5,7 @@ namespace Deaddit.MAUI.Pages.Models
 {
     internal class SubRedditPageViewModel : BaseViewModel
     {
-        public SubRedditPageViewModel(SubRedditName subreddit, ApplicationTheme applicationTheme)
+        public SubRedditPageViewModel(SubRedditName subreddit, ApplicationStyling applicationTheme)
         {
             SubReddit = subreddit.DisplayName;
         }

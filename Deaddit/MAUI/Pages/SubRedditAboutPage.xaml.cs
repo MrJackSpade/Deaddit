@@ -12,7 +12,7 @@ namespace Deaddit.MAUI.Pages
 {
     public partial class SubRedditAboutPage : ContentPage
     {
-        private readonly ApplicationTheme _applicationTheme;
+        private readonly ApplicationStyling _applicationTheme;
 
         private readonly IRedditClient _redditClient;
 
@@ -22,7 +22,7 @@ namespace Deaddit.MAUI.Pages
 
         private ApiSubReddit? _apiSubReddit;
 
-        public SubRedditAboutPage(SubRedditName subredditName, IRedditClient redditClient, ApplicationTheme applicationTheme)
+        public SubRedditAboutPage(SubRedditName subredditName, IRedditClient redditClient, ApplicationStyling applicationTheme)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
@@ -71,7 +71,7 @@ namespace Deaddit.MAUI.Pages
 
             PostTarget resource = UrlHandler.Resolve(e.Url);
 
-            await Navigation.OpenResource(resource, _redditClient, _applicationTheme, null, null, null);
+            await Navigation.OpenResource(resource, _redditClient, _applicationTheme, null, null, null, null);
         }
 
         private void OnMoreClicked(object? sender, object e)
