@@ -4,21 +4,25 @@ namespace Deaddit.Reddit.Models
 {
     public enum ApiPostSort
     {
-        Undefined, 
+        [EnumMember(Value = null)]
+        Undefined = 0, 
 
         [EnumMember(Value = "hot")]
-        Hot,
+        Hot = 1,
 
         [EnumMember(Value = "new")]
-        New,
+        New = 2,
 
         [EnumMember(Value = "rising")]
-        Rising,
+        Rising = 3,
 
         [EnumMember(Value = "top")]
-        Top,
+        Top = 4,
 
         [EnumMember(Value = "controversial")]
-        Controversial
+        Controversial = 5,
+
+        [EnumMember(Value = "confidence")]
+        Confidence = 6
     }
 }
