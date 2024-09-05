@@ -8,47 +8,55 @@
         <VerticalStackLayout
             x:Name="mainStack"
             VerticalOptions="Fill"
-            Padding="0,0"
-            Spacing="0">
-            <HorizontalStackLayout
-            x:Name="actionButtonsStack"
-            HorizontalOptions="FillAndExpand"
-            VerticalOptions="Start"
-            BackgroundColor="{Binding HighlightColor}"
-            Margin="0"
             Padding="0"
             Spacing="0">
+
+            <Grid
+                x:Name="actionButtonsGrid"
+                HorizontalOptions="FillAndExpand"
+                VerticalOptions="Start"
+                BackgroundColor="{Binding HighlightColor}"
+                Margin="0"
+                Padding="0"
+                ColumnDefinitions="*,*,*,*,*">
+
                 <Button
                     Text="Back"
                     x:Name="backButton"
+                    Grid.Column="0"
                     Clicked="OnBackClicked"
-                    BackgroundColor="Transparent"/>
+                    BackgroundColor="Transparent" />
 
                 <Button
                     Text="Share"
                     x:Name="shareButton"
+                    Grid.Column="1"
                     Clicked="OnShareClicked"
-                    BackgroundColor="Transparent"/>
+                    BackgroundColor="Transparent" />
 
                 <Button
                     Text="Save"
                     x:Name="saveButton"
+                    Grid.Column="2"
                     Clicked="OnSaveClicked"
-                    BackgroundColor="Transparent"/>
+                    BackgroundColor="Transparent" />
 
                 <Button
                     Text="..."
                     x:Name="moreButton"
+                    Grid.Column="3"
                     Clicked="OnMoreOptionsClicked"
-                    BackgroundColor="Transparent"/>
+                    BackgroundColor="Transparent" />
 
                 <Button
                     Text="Reply"
                     x:Name="replyButton"
+                    Grid.Column="4"
                     Clicked="OnReplyClicked"
-                    BackgroundColor="Transparent"/>
-            </HorizontalStackLayout>
-            <Border 
+                    BackgroundColor="Transparent" />
+            </Grid>
+
+            <Border
                 x:Name="postBodyBorder"
                 StrokeThickness="2"
                 StrokeShape="RoundRectangle 5,5,5,5"
@@ -57,7 +65,8 @@
                 <components:MarkdownView
                     x:Name="postBody"
                     Margin="5"
-                    BackgroundColor="Transparent">
+                    BackgroundColor="Transparent"
+                    OnHyperLinkClicked="OnHyperLinkClicked">
                 </components:MarkdownView>
             </Border>
         </VerticalStackLayout>

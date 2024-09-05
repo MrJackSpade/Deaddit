@@ -3,14 +3,15 @@
              xmlns:components="clr-namespace:Deaddit.MAUI.Components"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Deaddit.MAUI.Components.RedditCommentComponent"
-             xmlns:converters="clr-namespace:Deaddit.MAUI.Converters">
+             xmlns:converters="clr-namespace:Deaddit.MAUI.Converters"
+             >
     <ContentView.Resources>
         <ResourceDictionary>
             <converters:MultiplyConverter x:Key="MultiplyConverter" />
         </ResourceDictionary>
     </ContentView.Resources>
 
-    <VerticalStackLayout x:Name="commentContainer">
+    <VerticalStackLayout x:Name="commentContainer" Padding="0, 0, 0, 10">
         <VerticalStackLayout.GestureRecognizers>
             <TapGestureRecognizer Tapped="OnParentTapped" />
         </VerticalStackLayout.GestureRecognizers>
@@ -33,8 +34,9 @@
             <Label
                     x:Name="authorLabel"
                     Grid.Column="1"
-                    VerticalOptions="EndAndExpand"
+                    VerticalOptions="Center"
                     HorizontalOptions="Start"
+                    LineHeight="1"
                     Margin="5,0,0,0"
                     FontAttributes="Bold" />
 
@@ -42,15 +44,15 @@
             <Label
                     Grid.Column="3"
                     Padding="10,0,0,0"
+                    LineHeight="1"
+                    VerticalOptions="Center"
                     x:Name="metaDataLabel"
-                    VerticalOptions="EndAndExpand"
                     HorizontalOptions="End"></Label>
         </Grid>
 
         <!-- Content Text -->
         <Label
                 x:Name="contentLabel"
-                Padding="10,4,4,4"></Label>
-
+                Padding="10,4,4,20"></Label>
     </VerticalStackLayout>
 </ContentView>

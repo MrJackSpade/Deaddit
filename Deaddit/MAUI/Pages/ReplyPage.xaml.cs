@@ -14,11 +14,11 @@ namespace Deaddit.MAUI.Pages
 {
     public partial class ReplyPage : ContentPage
     {
+        private readonly ApplicationTheme _applicationTheme;
+
         private readonly IRedditClient _redditClient;
 
         private readonly ApiThing _replyTo;
-
-        private readonly ApplicationTheme _applicationTheme;
 
         public ReplyPage(ApiThing replyTo, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
@@ -51,7 +51,7 @@ namespace Deaddit.MAUI.Pages
                             BackgroundColor = applicationTheme.PrimaryColor,
                             HorizontalOptions = LayoutOptions.Center,
                             Margin = new Thickness(10),
-                            StrokeThickness = 2,  
+                            StrokeThickness = 2,
                             Padding = new Thickness(10),
                             StrokeShape = new RoundRectangle
                             {
@@ -77,7 +77,6 @@ namespace Deaddit.MAUI.Pages
                         markdownView.OnHyperLinkClicked += this.OnHyperLinkClicked;
 
                         commentStack.Children.Insert(0, border);
-
                     }
 
                     // Add to the layout
@@ -88,34 +87,34 @@ namespace Deaddit.MAUI.Pages
             } while (toRender != null);
         }
 
-        private async void OnHyperLinkClicked(object sender, LinkEventArgs e)
+        public event EventHandler<ReplySubmittedEventArgs>? OnSubmitted;
+
+        public async void OnCancelClicked(object? sender, EventArgs e)
+        {
+            await Navigation.PopAsync();
+        }
+
+        public void OnPreviewClicked(object? sender, EventArgs e)
+        {
+        }
+
+        public async void OnSubmitClicked(object? sender, EventArgs e)
+        {
+            string commentBody = textEditor.Text;
+
+            ApiCommentMeta meta = await _redditClient.Comment(_replyTo, commentBody);
+
+            OnSubmitted?.Invoke(this, new ReplySubmittedEventArgs(_replyTo, meta));
+
+            await Navigation.PopAsync();
+        }
+
+        private async void OnHyperLinkClicked(object? sender, LinkEventArgs e)
         {
             Ensure.NotNullOrWhiteSpace(e.Url);
             PostTarget resource = UrlHandler.Resolve(e.Url);
 
             await Navigation.OpenResource(resource, _redditClient, _applicationTheme, null, null, null);
-        }
-
-        public event EventHandler<ReplySubmittedEventArgs>? OnSubmitted;
-
-        public async void OnCancelClicked(object sender, EventArgs e)
-        {
-            await Navigation.PopAsync();
-        }
-
-        public void OnPreviewClicked(object sender, EventArgs e)
-        {
-        }
-
-        public async void OnSubmitClicked(object sender, EventArgs e)
-        {
-            string commentBody = textEditor.Text;
-
-            RedditCommentMeta meta = await _redditClient.Comment(_replyTo, commentBody);
-
-            OnSubmitted?.Invoke(this, new ReplySubmittedEventArgs(_replyTo, meta));
-
-            await Navigation.PopAsync();
         }
     }
 }

@@ -139,7 +139,7 @@ namespace Deaddit.Reddit.Models.Api
         public long SubredditSubscribers { get; init; }
 
         [JsonPropertyName("suggested_sort")]
-        public string? SuggestedSort { get; init; }
+        public ApiPostSort? SuggestedSort { get; init; }
 
         [JsonPropertyName("thumbnail")]
         public string? Thumbnail { get; init; }

@@ -33,7 +33,7 @@ namespace Deaddit.MAUI.Extensions
                     target.VoteIndicatorText = "";
                     break;
 
-                default: throw new UnhandledEnumException(upvoteState);
+                default: throw new EnumNotImplementedException(upvoteState);
             }
         }
     }

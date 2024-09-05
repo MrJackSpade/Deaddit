@@ -63,7 +63,7 @@ namespace Deaddit.MAUI.Pages
             return 0;
         }
 
-        public async void OnCancelClicked(object sender, EventArgs e)
+        public async void OnCancelClicked(object? sender, EventArgs e)
         {
             try
             {
@@ -75,7 +75,7 @@ namespace Deaddit.MAUI.Pages
             }
         }
 
-        public void OnSubmitClicked(object sender, EventArgs e)
+        public void OnSubmitClicked(object? sender, EventArgs e)
         {
             if (_topLevel)
             {

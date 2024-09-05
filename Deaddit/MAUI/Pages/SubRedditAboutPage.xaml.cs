@@ -18,11 +18,11 @@ namespace Deaddit.MAUI.Pages
 
         private readonly SubRedditAboutPageModel _subRedditAboutPageModel;
 
-        private readonly string _subredditName;
+        private readonly SubRedditName _subredditName;
 
-        private ApiSubReddit _apiSubReddit;
+        private ApiSubReddit? _apiSubReddit;
 
-        public SubRedditAboutPage(string subredditName, IRedditClient redditClient, ApplicationTheme applicationTheme)
+        public SubRedditAboutPage(SubRedditName subredditName, IRedditClient redditClient, ApplicationTheme applicationTheme)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
@@ -60,12 +60,12 @@ namespace Deaddit.MAUI.Pages
             this.SetSubscribeButtonState(_apiSubReddit.UserIsSubscriber);
         }
 
-        private async void OnBackClicked(object sender, object e)
+        private async void OnBackClicked(object? sender, object e)
         {
             await Navigation.PopAsync();
         }
 
-        private async void OnHyperLinkClicked(object sender, LinkEventArgs e)
+        private async void OnHyperLinkClicked(object? sender, LinkEventArgs e)
         {
             Ensure.NotNullOrWhiteSpace(e.Url);
 
@@ -74,15 +74,15 @@ namespace Deaddit.MAUI.Pages
             await Navigation.OpenResource(resource, _redditClient, _applicationTheme, null, null, null);
         }
 
-        private void OnMoreClicked(object sender, object e)
+        private void OnMoreClicked(object? sender, object e)
         {
         }
 
-        private void OnRulesClicked(object sender, object e)
+        private void OnRulesClicked(object? sender, object e)
         {
         }
 
-        private async void OnSubscribeClicked(object sender, object e)
+        private async void OnSubscribeClicked(object? sender, object e)
         {
             await _redditClient.ToggleSubScription(_apiSubReddit, !_apiSubReddit.UserIsSubscriber);
             _apiSubReddit.UserIsSubscriber = !_apiSubReddit.UserIsSubscriber;

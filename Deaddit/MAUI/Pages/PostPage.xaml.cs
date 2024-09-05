@@ -12,7 +12,6 @@ using Deaddit.Services;
 using Deaddit.Utils;
 using Deaddit.Utils.Extensions;
 using System.Diagnostics;
-using System.Web;
 
 namespace Deaddit.MAUI.Pages
 {
@@ -32,10 +31,28 @@ namespace Deaddit.MAUI.Pages
 
         private readonly IVisitTracker _visitTracker;
 
-        public PostPage(ApiPost post, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        private readonly ApiComment? _commentFocus;
+
+        public PostPage(ApiPost post,
+                        IRedditClient redditClient,
+                        ApplicationTheme applicationTheme,
+                        IVisitTracker visitTracker,
+                        BlockConfiguration blockConfiguration,
+                        IConfigurationService configurationService) : this(post,
+                                                                           null,
+                                                                           redditClient,
+                                                                           applicationTheme,
+                                                                           visitTracker,
+                                                                           blockConfiguration,
+                                                                           configurationService)
+        {
+
+        }
+        public PostPage(ApiPost post, ApiComment? focus, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
+            _commentFocus = focus;
             _commentSelectionGroup = new SelectionGroup();
             _configurationService = configurationService;
             _post = post;
@@ -70,33 +87,32 @@ namespace Deaddit.MAUI.Pages
             mainStack.Children.Insert(0, redditPostComponent);
         }
 
-        public void OnBackClicked(object sender, EventArgs e)
+        public void OnBackClicked(object? sender, EventArgs e)
         {
             Navigation.PopAsync();
         }
 
-        public async void OnHideClicked(object sender, EventArgs e)
+        public async void OnHideClicked(object? sender, EventArgs e)
         {
             await _redditClient.ToggleVisibility(_post, false);
-
         }
 
-        public void OnMoreOptionsClicked(object sender, EventArgs e)
+        public void OnMoreOptionsClicked(object? sender, EventArgs e)
         {
         }
 
-        public async void OnReplyClicked(object sender, EventArgs e)
+        public async void OnReplyClicked(object? sender, EventArgs e)
         {
             ReplyPage replyPage = new(_post, _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
             replyPage.OnSubmitted += this.ReplyPage_OnSubmitted;
             await Navigation.PushAsync(replyPage);
         }
 
-        public void OnSaveClicked(object sender, EventArgs e)
+        public void OnSaveClicked(object? sender, EventArgs e)
         {
         }
 
-        public async void OnShareClicked(object sender, EventArgs e)
+        public async void OnShareClicked(object? sender, EventArgs e)
         {
             await Share.Default.RequestAsync(new ShareTextRequest
             {
@@ -107,25 +123,31 @@ namespace Deaddit.MAUI.Pages
 
         public async Task TryLoad()
         {
-            await DataService.LoadAsync(mainStack, async () => await this.LoadDataAsync(_post), _applicationTheme.HighlightColor);
+            await DataService.LoadAsync(mainStack, this.LoadDataAsync, _applicationTheme.HighlightColor);
         }
 
-        private void AddChildren(IEnumerable<RedditCommentMeta> children)
+        private void AddChildren(IEnumerable<ApiCommentMeta> children)
         {
-            foreach (RedditCommentMeta child in children)
+            foreach (ApiCommentMeta child in children)
             {
                 if (!_blockConfiguration.BlockRules.IsAllowed(child.Data))
                 {
                     continue;
                 }
 
-                ContentView childComponent = null;
+                if ((child.IsDeleted() || child.IsRemoved()) && !child.HasChildren())
+                {
+                    continue;
+                }
+
+                ContentView? childComponent = null;
 
                 switch (child.Kind)
                 {
                     case ThingKind.Comment:
                         RedditCommentComponent ccomponent = RedditCommentComponent.FullView(child.Data, _post, _redditClient, _applicationTheme, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService);
                         ccomponent.AddChildren(child.GetReplies());
+                        ccomponent.OnDelete += this.OnCommentDelete;
                         childComponent = ccomponent;
                         break;
 
@@ -136,7 +158,7 @@ namespace Deaddit.MAUI.Pages
                         break;
 
                     default:
-                        throw new UnhandledEnumException(child.Kind);
+                        throw new EnumNotImplementedException(child.Kind);
                 }
 
                 try
@@ -151,12 +173,18 @@ namespace Deaddit.MAUI.Pages
             }
         }
 
-        private async Task LoadDataAsync(ApiPost post)
+        private void OnCommentDelete(object? sender, OnDeleteClickedEventArgs e)
+        {
+            mainStack.Children.Remove(e.Component);
+        }
+
+        private async Task LoadDataAsync()
         {
             Stopwatch sw = new();
+
             sw.Start();
 
-            List<RedditCommentMeta> response = await _redditClient.Comments(post, null).ToList();
+            List<ApiCommentMeta> response = await _redditClient.Comments(_post, _commentFocus).ToList();
 
             this.AddChildren(response);
 
@@ -167,7 +195,7 @@ namespace Deaddit.MAUI.Pages
 
         private async Task LoadMoreAsync(ApiPost post, ApiComment more)
         {
-            List<RedditCommentMeta> response = await _redditClient.MoreComments(post, more).ToList();
+            List<ApiCommentMeta> response = await _redditClient.MoreComments(post, more).ToList();
 
             this.AddChildren(response);
         }
@@ -187,7 +215,18 @@ namespace Deaddit.MAUI.Pages
 
             RedditCommentComponent redditCommentComponent = RedditCommentComponent.FullView(e.NewComment.Data, _post, _redditClient, _applicationTheme, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService);
 
-            mainStack.Children.Insert(0, redditCommentComponent);
+            redditCommentComponent.OnDelete += this.OnCommentDelete;
+
+            mainStack.Children.InsertAfter(postBodyBorder, redditCommentComponent);
+        }
+
+        public async void OnHyperLinkClicked(object? sender, LinkEventArgs e)
+        {
+            Ensure.NotNullOrWhiteSpace(e.Url);
+
+            PostTarget resource = UrlHandler.Resolve(e.Url);
+
+            await Navigation.OpenResource(resource, _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
         }
     }
 }

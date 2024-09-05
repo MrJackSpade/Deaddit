@@ -4,6 +4,7 @@ using Deaddit.MAUI.Components;
 using Deaddit.MAUI.EventArguments;
 using Deaddit.MAUI.Pages.Models;
 using Deaddit.Reddit.Interfaces;
+using Deaddit.Reddit.Models;
 using Deaddit.Utils;
 
 namespace Deaddit.MAUI.Pages
@@ -50,8 +51,8 @@ namespace Deaddit.MAUI.Pages
             BindingContext = new LandingPageViewModel(applicationTheme);
             this.InitializeComponent();
 
-            mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("All", "r/all", "Hot"), redditClient, applicationTheme, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService));
-            mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("Home", "", "Hot"), redditClient, applicationTheme, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService));
+            mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("All", "r/all", ApiPostSort.Hot), redditClient, applicationTheme, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService));
+            mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("Home", "", ApiPostSort.Hot), redditClient, applicationTheme, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService));
 
             foreach (SubRedditSubscription subscription in _configuration.Subscriptions)
             {
@@ -61,7 +62,7 @@ namespace Deaddit.MAUI.Pages
             }
         }
 
-        public async void OnAddClicked(object sender, EventArgs e)
+        public async void OnAddClicked(object? sender, EventArgs e)
         {
             string result = await this.DisplayPromptAsync("", "Enter a SubReddit");
 
@@ -79,7 +80,7 @@ namespace Deaddit.MAUI.Pages
             {
                 SubReddit = result,
                 DisplayString = result,
-                Sort = "Hot"
+                Sort = ApiPostSort.Hot
             };
 
             _configuration.Subscriptions.Add(newSubscription);
@@ -91,7 +92,7 @@ namespace Deaddit.MAUI.Pages
             mainStack.Add(subRedditComponent);
         }
 
-        public void OnMenuClicked(object sender, EventArgs e)
+        public void OnMenuClicked(object? sender, EventArgs e)
         {
             ObjectEditorPage editorPage = new(_appConfiguration, _applicationTheme);
 

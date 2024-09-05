@@ -1,5 +1,6 @@
 ﻿using Deaddit.Exceptions;
 using System.Text.RegularExpressions;
+using System.Web;
 
 namespace Deaddit.Utils
 {
@@ -44,16 +45,23 @@ namespace Deaddit.Utils
                 return true;
             }
 
+            if(matchType == StringMatchType.Regex)
+            {
+                ruleValue = ruleValue.Trim('/');
+            }
+
+            checkValue = HttpUtility.HtmlDecode(checkValue);
+
             return matchType switch
             {
-                StringMatchType.Regex => string.Equals(ruleValue, checkValue, stringComparison),
-                StringMatchType.String => stringComparison switch
+                StringMatchType.String => string.Equals(ruleValue, checkValue, stringComparison),
+                StringMatchType.Regex => stringComparison switch
                 {
                     StringComparison.OrdinalIgnoreCase => Regex.IsMatch(checkValue, ruleValue, RegexOptions.IgnoreCase),
                     StringComparison.Ordinal => Regex.IsMatch(ruleValue, ruleValue),
-                    _ => throw new UnhandledEnumException(stringComparison),
+                    _ => throw new EnumNotImplementedException(stringComparison),
                 },
-                _ => throw new UnhandledEnumException(matchType),
+                _ => throw new EnumNotImplementedException(matchType),
             };
         }
     }

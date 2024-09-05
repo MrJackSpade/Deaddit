@@ -1,13 +1,15 @@
 ﻿using Deaddit.Configurations.Models;
+using Deaddit.Reddit.Models;
 
 namespace Deaddit.MAUI.Pages.Models
 {
     internal class SubRedditPageViewModel : BaseViewModel
     {
-        public SubRedditPageViewModel(string subreddit, ApplicationTheme applicationTheme)
+        public SubRedditPageViewModel(SubRedditName subreddit, ApplicationTheme applicationTheme)
         {
-            SubReddit = subreddit;
+            SubReddit = subreddit.DisplayName;
         }
+
         public string SubReddit
         {
             get => this.GetValue<string>();

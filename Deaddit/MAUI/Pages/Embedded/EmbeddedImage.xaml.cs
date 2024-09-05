@@ -47,7 +47,7 @@ namespace Deaddit
                 <script>
                     const img = document.getElementById('body');
                     const body = document.getElementById('body');
-            
+
                     img.addEventListener('dblclick', () => {
                         body.classList.toggle('small');
                         body.classList.toggle('large'); // Toggle between small and large for zooming
@@ -55,7 +55,7 @@ namespace Deaddit
                 </script>
             </body>
             </html>
-            
+
             """;
 
         private readonly ApplicationTheme _applicationTheme;
@@ -79,13 +79,13 @@ namespace Deaddit
             webView.Source = new HtmlWebViewSource() { Html = Html };
         }
 
-        private void OnBackClicked(object sender, EventArgs e)
+        private void OnBackClicked(object? sender, EventArgs e)
         {
             // Logic to go back, for example:
             Navigation.PopAsync();
         }
 
-        private void OnSaveClicked(object sender, EventArgs e)
+        private void OnSaveClicked(object? sender, EventArgs e)
         {
             // Logic to save current state or media
         }

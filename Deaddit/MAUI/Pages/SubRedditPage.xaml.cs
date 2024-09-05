@@ -5,10 +5,12 @@ using Deaddit.MAUI.Components;
 using Deaddit.MAUI.EventArguments;
 using Deaddit.MAUI.Pages.Models;
 using Deaddit.Reddit.Interfaces;
+using Deaddit.Reddit.Models;
 using Deaddit.Reddit.Models.Api;
 using Deaddit.Services;
 using Deaddit.Utils;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Deaddit.MAUI.Pages
 {
@@ -32,22 +34,18 @@ namespace Deaddit.MAUI.Pages
 
         private readonly SelectionGroup _selectionGroup;
 
-        private readonly string _subreddit;
+        private readonly SubRedditName _subreddit;
 
         private readonly IVisitTracker _visitTracker;
 
+        [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members")]
         private Thread? _loadThread = null;
 
-        private string _sort;
+        private ApiPostSort _sort;
 
-        public SubRedditPage(string subreddit, string sort, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public SubRedditPage(SubRedditName subreddit, ApiPostSort sort, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             NavigationPage.SetHasNavigationBar(this, false);
-
-            if (!subreddit.Contains('/'))
-            {
-                subreddit = "/r/" + subreddit;
-            }
 
             _visitTracker = visitTracker;
             _configurationService = configurationService;
@@ -70,7 +68,7 @@ namespace Deaddit.MAUI.Pages
             menuButton.TextColor = applicationTheme.TextColor;
 
             subredditLabel.TextColor = applicationTheme.TextColor;
-            subredditLabel.Text = subreddit;
+            subredditLabel.Text = subreddit.DisplayName;
 
             hotButton.TextColor = applicationTheme.TextColor;
             controversialButton.TextColor = applicationTheme.TextColor;
@@ -84,30 +82,30 @@ namespace Deaddit.MAUI.Pages
 
         private bool WindowInLoadRange => scrollView.ScrollY >= scrollView.ContentSize.Height - scrollView.Height - navigationBar.Height;
 
-        public async void OnInfoClicked(object sender, EventArgs e)
+        public async void OnInfoClicked(object? sender, EventArgs e)
         {
             SubRedditAboutPage page = new(_subreddit, _redditClient, _applicationTheme);
             await page.TryLoad();
             await Navigation.PushAsync(page);
         }
 
-        public async void OnMenuClicked(object sender, EventArgs e)
+        public async void OnMenuClicked(object? sender, EventArgs e)
         {
             await Navigation.PopAsync();
         }
 
-        public async void OnReloadClicked(object sender, EventArgs e)
+        public async void OnReloadClicked(object? sender, EventArgs e)
         {
             await this.Reload();
         }
 
-        public async void OnSettingsClicked(object sender, EventArgs e)
+        public async void OnSettingsClicked(object? sender, EventArgs e)
         {
             _loadedPosts.Clear();
             await this.TryLoad();
         }
 
-        public async void ScrollView_Scrolled(object sender, ScrolledEventArgs e)
+        public async void ScrollView_Scrolled(object? sender, ScrolledEventArgs e)
         {
             if (_loadSemaphore.Wait(0))
             {
@@ -115,11 +113,11 @@ namespace Deaddit.MAUI.Pages
                 {
                     //_loadThread = new(async () =>
                     //{
-                        await this.TryLoad();
+                    await this.TryLoad();
 
-                        _loadThread = null;
+                    _loadThread = null;
 
-                        _loadSemaphore.Release();
+                    _loadSemaphore.Release();
                     //});
 
                     //_loadThread.Start();
@@ -139,8 +137,12 @@ namespace Deaddit.MAUI.Pages
 
                 string? after = _loadedPosts.LastOrDefault()?.Post.Name;
 
+                HashSet<string> loadedNames = _loadedPosts.Select(_loadedPosts => _loadedPosts.Post.Name).ToHashSet();
+
                 await foreach (ApiPost post in _redditClient.GetPosts(after: after, subreddit: _subreddit, sort: _sort))
                 {
+                    after = post.Name;
+
                     if (!_blockConfiguration.BlockRules.IsAllowed(post))
                     {
                         continue;
@@ -151,7 +153,10 @@ namespace Deaddit.MAUI.Pages
                         continue;
                     }
 
-                    posts.Add(post);
+                    if (loadedNames.Add(post.Name))
+                    {
+                        posts.Add(post);
+                    }
 
                     if (posts.Count >= 25)
                     {
@@ -184,33 +189,33 @@ namespace Deaddit.MAUI.Pages
             }, _applicationTheme.HighlightColor);
         }
 
-        private async void OnControversialClicked(object sender, EventArgs e)
+        private async void OnControversialClicked(object? sender, EventArgs e)
         {
-            _sort = "Controversial";
+            _sort = ApiPostSort.Controversial;
             await this.Reload();
         }
 
-        private async void OnHotClicked(object sender, EventArgs e)
+        private async void OnHotClicked(object? sender, EventArgs e)
         {
-            _sort = "Hot";
+            _sort = ApiPostSort.Hot;
             await this.Reload();
         }
 
-        private async void OnNewClicked(object sender, EventArgs e)
+        private async void OnNewClicked(object? sender, EventArgs e)
         {
-            _sort = "New";
+            _sort = ApiPostSort.New;
             await this.Reload();
         }
 
-        private async void OnRisingClicked(object sender, EventArgs e)
+        private async void OnRisingClicked(object? sender, EventArgs e)
         {
-            _sort = "Rising";
+            _sort = ApiPostSort.Rising;
             await this.Reload();
         }
 
-        private async void OnTopClicked(object sender, EventArgs e)
+        private async void OnTopClicked(object? sender, EventArgs e)
         {
-            _sort = "Top";
+            _sort = ApiPostSort.Top;
             await this.Reload();
         }
 
@@ -247,7 +252,7 @@ namespace Deaddit.MAUI.Pages
         {
             public ApiPost Post { get; set; }
 
-            public RedditPostComponent PostComponent { get; set; }
+            public VisualElement PostComponent { get; set; }
         }
     }
 }

@@ -1,5 +1,4 @@
 using Deaddit.Configurations.Models;
-using Deaddit.MAUI.Components.ComponentModels;
 using Deaddit.Reddit.Models.Api;
 
 namespace Deaddit.MAUI.Components.Partials
@@ -8,9 +7,9 @@ namespace Deaddit.MAUI.Components.Partials
     {
         public RedditCommentComponentBottomBar(ApiComment comment, ApplicationTheme applicationTheme)
         {
-            this.InitializeComponent();      
-            
-            this.BackgroundColor = applicationTheme.HighlightColor;
+            this.InitializeComponent();
+
+            BackgroundColor = applicationTheme.HighlightColor;
             downvoteButton.TextColor = applicationTheme.TextColor;
             upvoteButton.TextColor = applicationTheme.TextColor;
             moreButton.TextColor = applicationTheme.TextColor;
@@ -28,27 +27,27 @@ namespace Deaddit.MAUI.Components.Partials
 
         public event EventHandler? UpvoteClicked;
 
-        public void OnDownvoteClicked(object sender, EventArgs e)
+        public void OnDownvoteClicked(object? sender, EventArgs e)
         {
             DownvoteClicked?.Invoke(this, e);
         }
 
-        public void OnMoreClicked(object sender, EventArgs e)
+        public void OnMoreClicked(object? sender, EventArgs e)
         {
             MoreClicked?.Invoke(this, e);
         }
 
-        public void OnReplyClicked(object sender, EventArgs e)
+        public void OnReplyClicked(object? sender, EventArgs e)
         {
             ReplyClicked?.Invoke(this, e);
         }
 
-        public void OnUpvoteClicked(object sender, EventArgs e)
+        public void OnUpvoteClicked(object? sender, EventArgs e)
         {
             UpvoteClicked?.Invoke(this, e);
         }
 
-        private void OnShareClicked(object sender, EventArgs e)
+        private void OnShareClicked(object? sender, EventArgs e)
         {
             ShareClicked?.Invoke(this, e);
         }

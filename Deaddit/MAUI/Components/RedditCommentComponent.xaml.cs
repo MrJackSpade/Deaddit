@@ -3,7 +3,6 @@ using Deaddit.Configurations.Models;
 using Deaddit.Exceptions;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
-using Deaddit.MAUI.Components.ComponentModels;
 using Deaddit.MAUI.Components.Partials;
 using Deaddit.MAUI.EventArguments;
 using Deaddit.MAUI.Extensions;
@@ -16,7 +15,6 @@ using Deaddit.Reddit.Models.Options;
 using Deaddit.Services;
 using Deaddit.Utils;
 using Deaddit.Utils.Extensions;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Deaddit.MAUI.Components
 {
@@ -38,9 +36,13 @@ namespace Deaddit.MAUI.Components
 
         private readonly IVisitTracker _visitTracker;
 
+        private readonly VisualElement commentBody;
+
+        private RedditCommentComponentBottomBar _bottomBar;
+
         private VerticalStackLayout _replies;
 
-        private readonly VisualElement commentBody;
+        private RedditCommentComponentTopBar _topBar;
 
         private RedditCommentComponent(ApiComment comment, ApiPost post, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
@@ -85,7 +87,7 @@ namespace Deaddit.MAUI.Components
                     BlockQuoteBorderColor = _applicationTheme.TextColor,
                     BlockQuoteBackgroundColor = _applicationTheme.SecondaryColor,
                     BlockQuoteTextColor = _applicationTheme.TextColor,
-                    Margin = new Thickness(15, 0, 0, 0)
+                    Padding = new Thickness(15, 0, 0, 15)
                 };
 
                 markdownView.OnHyperLinkClicked += this.OnHyperLinkClicked;
@@ -110,15 +112,10 @@ namespace Deaddit.MAUI.Components
 
             this.UpdateMetaData();
         }
-        private void UpdateMetaData()
-        {
-            metaDataLabel.Text = $"{_comment.Score} points {_comment.CreatedUtc.Elapsed()}";
-        }
+
+        public event EventHandler<OnDeleteClickedEventArgs> OnDelete;
+
         public bool SelectEnabled { get; private set; }
-
-        private RedditCommentComponentBottomBar _bottomBar { get; set; }
-
-        private RedditCommentComponentTopBar _topBar { get; set; }
 
         public static RedditCommentComponent FullView(ApiComment comment, ApiPost post, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
@@ -140,9 +137,9 @@ namespace Deaddit.MAUI.Components
             return toReturn;
         }
 
-        public void AddChildren(IEnumerable<RedditCommentMeta> children)
+        public void AddChildren(IEnumerable<ApiCommentMeta> children)
         {
-            foreach (RedditCommentMeta? child in children)
+            foreach (ApiCommentMeta? child in children)
             {
                 if (!_blockConfiguration.BlockRules.IsAllowed(child.Data))
                 {
@@ -154,6 +151,11 @@ namespace Deaddit.MAUI.Components
                     continue;
                 }
 
+                if ((child.IsDeleted() || child.IsRemoved()) && !child.HasChildren())
+                {
+                    continue;
+                }
+
                 ContentView? childComponent = null;
 
                 switch (child.Kind)
@@ -161,6 +163,7 @@ namespace Deaddit.MAUI.Components
                     case ThingKind.Comment:
                         RedditCommentComponent ccomponent = FullView(child.Data, _post, _redditClient, _applicationTheme, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService);
                         ccomponent.AddChildren(child.GetReplies());
+                        ccomponent.OnDelete += this.OnCommentDelete;
                         childComponent = ccomponent;
                         break;
 
@@ -171,7 +174,7 @@ namespace Deaddit.MAUI.Components
                         break;
 
                     default:
-                        throw new UnhandledEnumException(child.Kind);
+                        throw new EnumNotImplementedException(child.Kind);
                 }
 
                 this.TryInitReplies();
@@ -179,33 +182,38 @@ namespace Deaddit.MAUI.Components
             }
         }
 
-        public void OnDoneClicked(object sender, EventArgs e)
+        private void OnCommentDelete(object? sender, OnDeleteClickedEventArgs e)
+        {
+            _replies.Children.Remove(e.Component);
+        }
+
+        public void OnDoneClicked(object? sender, EventArgs e)
         {
             // Handle Done click
         }
 
-        public void OnDownvoteClicked(object sender, EventArgs e)
+        public void OnDownvoteClicked(object? sender, EventArgs e)
         {
             if (_comment.Likes == UpvoteState.Downvote)
-            {       
+            {
                 _comment.Score++;
                 this.SetIndicatorState(UpvoteState.None);
                 _redditClient.SetUpvoteState(_comment, UpvoteState.None);
             }
             else
-            {        
+            {
                 _comment.Score--;
                 this.SetIndicatorState(UpvoteState.Downvote);
                 _redditClient.SetUpvoteState(_comment, UpvoteState.Downvote);
             }
         }
 
-        public void OnHideClicked(object sender, EventArgs e)
+        public void OnHideClicked(object? sender, EventArgs e)
         {
             // Handle Hide click
         }
 
-        public async void OnHyperLinkClicked(object sender, LinkEventArgs e)
+        public async void OnHyperLinkClicked(object? sender, LinkEventArgs e)
         {
             Ensure.NotNullOrWhiteSpace(e.Url);
 
@@ -214,7 +222,7 @@ namespace Deaddit.MAUI.Components
             await Navigation.OpenResource(resource, _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
         }
 
-        public async void OnMoreClicked(object sender, EventArgs e)
+        public async void OnMoreClicked(object? sender, EventArgs e)
         {
             if (!string.Equals(_redditClient.LoggedInUser, _comment.Author, StringComparison.OrdinalIgnoreCase))
             {
@@ -256,60 +264,35 @@ namespace Deaddit.MAUI.Components
                         await _redditClient.ToggleInboxReplies(_comment, !replyState);
                         _comment.SendReplies = !replyState;
                         break;
+
+                    case MyCommentMoreOptions.Delete:
+                        await _redditClient.Delete(_comment);
+                        OnDelete?.Invoke(this, new OnDeleteClickedEventArgs(_comment, this));
+                        break;
+
+                    default: throw new EnumNotImplementedException(postMoreOptions.Value);
                 }
             }
         }
 
-        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "<Pending>")]
-        public void OnMoreSelect(object? sender, string e)
-        {
-        }
-
-        public void OnParentClicked(object sender, EventArgs e)
+        public void OnParentClicked(object? sender, EventArgs e)
         {
             // Handle Parent click
         }
 
-        public void OnParentTapped(object sender, TappedEventArgs e)
+        public void OnParentTapped(object? sender, TappedEventArgs e)
         {
             _commentSelectionGroup.Toggle(this);
         }
 
-        public async void OnReplyClicked(object sender, EventArgs e)
+        public async void OnReplyClicked(object? sender, EventArgs e)
         {
             ReplyPage replyPage = new(_comment, _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
             replyPage.OnSubmitted += this.ReplyPage_OnSubmitted;
             await Navigation.PushAsync(replyPage);
         }
 
-        private void SetIndicatorState(UpvoteState state)
-        {
-            this.UpdateMetaData();
-
-            switch (state)
-            {
-                case UpvoteState.Upvote:
-                    _comment.Likes = UpvoteState.Upvote;
-                    voteIndicator.Text = "▲";
-                    voteIndicator.TextColor = _applicationTheme.UpvoteColor;
-                    voteIndicator.IsVisible = true;
-                    break;
-                case UpvoteState.Downvote:
-                    _comment.Likes = UpvoteState.Downvote;
-                    voteIndicator.Text = "▼";
-                    voteIndicator.TextColor = _applicationTheme.DownvoteColor;
-                    voteIndicator.IsVisible = true;
-                    break;
-                default:
-                    _comment.Likes = UpvoteState.None;
-                    voteIndicator.Text = string.Empty;
-                    voteIndicator.TextColor = _applicationTheme.TextColor;
-                    voteIndicator.IsVisible = false;
-                    break;
-            }
-        }
-
-        public void OnUpvoteClicked(object sender, EventArgs e)
+        public void OnUpvoteClicked(object? sender, EventArgs e)
         {
             if (_comment.Likes == UpvoteState.Upvote)
             {
@@ -345,14 +328,8 @@ namespace Deaddit.MAUI.Components
             commentBody.BackgroundColor = _applicationTheme.HighlightColor;
 
             int indexOfComment = commentContainer.Children.IndexOf(commentBody);
-            if (indexOfComment == commentContainer.Children.Count - 1)
-            {
-                commentContainer.Children.Add(_bottomBar);
-            }
-            else
-            {
-                commentContainer.Children.Insert(indexOfComment + 1, _bottomBar);
-            }
+
+            commentContainer.Children.InsertAfter(commentBody, _bottomBar);
         }
 
         void ISelectionGroupItem.Unselect()
@@ -369,20 +346,43 @@ namespace Deaddit.MAUI.Components
         {
         }
 
-        private async Task LoadDataAsync(ApiComment comment)
+        private async Task ContinueThread(ApiComment comment)
         {
-            List<RedditCommentMeta> response = await _redditClient.MoreComments(_post, comment).ToList();
+            PostPage redditPostPage = new(_post, comment, _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
+
+            await redditPostPage.TryLoad();
+
+            await Navigation.PushAsync(redditPostPage);
+        }
+
+        private async Task LoadMoreCommentsAsync(ApiComment comment)
+        {
+            List<ApiCommentMeta> response = await _redditClient.MoreComments(_post, comment).ToList();
 
             this.AddChildren(response);
         }
 
         private async void MoreCommentsClick(object? sender, ApiComment e)
         {
-            MoreCommentsComponent mcomponent = sender as MoreCommentsComponent;
+            MoreCommentsComponent? mcomponent = sender as MoreCommentsComponent;
 
-            await DataService.LoadAsync(_replies, async () => await this.LoadDataAsync(e), _applicationTheme.HighlightColor);
+            if (e.ChildNames.NotNullAny())
+            {
+                await DataService.LoadAsync(_replies, async () => await this.LoadMoreCommentsAsync(e), _applicationTheme.HighlightColor);
 
-            _replies.Remove(mcomponent);
+                _replies.Remove(mcomponent);
+            }
+            else
+            {
+                if (e.Parent is ApiComment parentComment)
+                {
+                    await this.ContinueThread(parentComment);
+                }
+                else
+                {
+                    throw new ArgumentException("For some reason the more comment parent wasn't a proper comment");
+                }
+            }
         }
 
         private async Task NewBlockRule(BlockRule blockRule)
@@ -394,7 +394,7 @@ namespace Deaddit.MAUI.Components
             await Navigation.PushAsync(objectEditorPage);
         }
 
-        private async void OnShareClicked(object sender, EventArgs e)
+        private async void OnShareClicked(object? sender, EventArgs e)
         {
             await Share.Default.RequestAsync(new ShareTextRequest
             {
@@ -408,9 +408,38 @@ namespace Deaddit.MAUI.Components
             Ensure.NotNull(e.NewComment.Data, "New comment data");
 
             RedditCommentComponent redditCommentComponent = FullView(e.NewComment.Data, _post, _redditClient, _applicationTheme, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService);
-
+            redditCommentComponent.OnDelete += this.OnCommentDelete;
             this.TryInitReplies();
             _replies.Children.Insert(0, redditCommentComponent);
+        }
+
+        private void SetIndicatorState(UpvoteState state)
+        {
+            this.UpdateMetaData();
+
+            switch (state)
+            {
+                case UpvoteState.Upvote:
+                    _comment.Likes = UpvoteState.Upvote;
+                    voteIndicator.Text = "▲";
+                    voteIndicator.TextColor = _applicationTheme.UpvoteColor;
+                    voteIndicator.IsVisible = true;
+                    break;
+
+                case UpvoteState.Downvote:
+                    _comment.Likes = UpvoteState.Downvote;
+                    voteIndicator.Text = "▼";
+                    voteIndicator.TextColor = _applicationTheme.DownvoteColor;
+                    voteIndicator.IsVisible = true;
+                    break;
+
+                default:
+                    _comment.Likes = UpvoteState.None;
+                    voteIndicator.Text = string.Empty;
+                    voteIndicator.TextColor = _applicationTheme.TextColor;
+                    voteIndicator.IsVisible = false;
+                    break;
+            }
         }
 
         private void TryInitReplies()
@@ -420,13 +449,18 @@ namespace Deaddit.MAUI.Components
                 _replies = new VerticalStackLayout()
                 {
                     VerticalOptions = LayoutOptions.Fill,
-                    Margin = new Thickness(10, 0, 0, 0),
-                    BackgroundColor = _applicationTheme.TextColor,
-                    Padding = new Thickness(2, 0, 0, 0)
+                    Margin = new Thickness(15, 0, 20, 0),
+                    BackgroundColor = _applicationTheme.TertiaryColor,
+                    Padding = new Thickness(1, 0, 0, 0)
                 };
 
                 commentContainer.Add(_replies);
             }
+        }
+
+        private void UpdateMetaData()
+        {
+            metaDataLabel.Text = $"{_comment.Score} points {_comment.CreatedUtc.Elapsed()}";
         }
     }
 }

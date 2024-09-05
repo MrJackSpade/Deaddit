@@ -62,24 +62,18 @@ namespace Deaddit.MAUI.Components
             };
         }
 
-        public async void GoButton_Click(object sender, EventArgs e)
+        public async void OnSettingsClick(object? sender, EventArgs e)
         {
-            SubRedditPage subredditPage = new(_subscription.SubReddit, _subscription.Sort, _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
-            await Navigation.PushAsync(subredditPage);
-            await subredditPage.TryLoad();
+            _selectionGroup.Toggle(this);
+
         }
 
-        public void OnGoClicked(object sender, EventArgs e)
-        {
-            // Handle the Save button click
-        }
-
-        public void OnRemoveClick(object sender, EventArgs e)
+        public void OnRemoveClick(object? sender, EventArgs e)
         {
             OnRemove.Invoke(this, new SubRedditSubscriptionRemoveEventArgs(_subscription, this));
         }
 
-        public void OnRemoveClicked(object sender, EventArgs e)
+        public void OnRemoveClicked(object? sender, EventArgs e)
         {
             // Handle the Share button click
         }
@@ -98,9 +92,11 @@ namespace Deaddit.MAUI.Components
             actionButtonsStack.IsVisible = false;
         }
 
-        private void OnParentTapped(object sender, TappedEventArgs e)
+        private async void OnParentTapped(object? sender, TappedEventArgs e)
         {
-            _selectionGroup.Toggle(this);
+            SubRedditPage subredditPage = new(_subscription.SubReddit, _subscription.Sort, _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
+            await Navigation.PushAsync(subredditPage);
+            await subredditPage.TryLoad();
         }
     }
 }

@@ -8,17 +8,18 @@ namespace Deaddit.Reddit.Interfaces
     {
         public string LoggedInUser { get; }
 
-        Task<ApiSubReddit> About(string subreddit);
+        Task<ApiSubReddit> About(SubRedditName subreddit);
 
-        Task<RedditCommentMeta> Comment(ApiThing replyTo, string comment);
+        Task<ApiCommentMeta> Comment(ApiThing replyTo, string comment);
 
-        IAsyncEnumerable<RedditCommentMeta> Comments(ApiPost thing, string commentId);
+        IAsyncEnumerable<ApiCommentMeta> Comments(ApiPost thing, ApiComment? focus);
+        Task Delete(ApiThing thing);
+
+        IAsyncEnumerable<ApiPost> GetPosts(SubRedditName subreddit, ApiPostSort sort = ApiPostSort.Hot, string? after = null, Region region = Region.GLOBAL);
 
         Task<Stream> GetStream(string url);
 
-        IAsyncEnumerable<RedditCommentMeta> MoreComments(ApiPost thing, ApiComment comment);
-
-        IAsyncEnumerable<ApiPost> GetPosts(string subreddit, string sort = "hot", string? after = null, Region region = Region.GLOBAL);
+        IAsyncEnumerable<ApiCommentMeta> MoreComments(ApiPost thing, ApiComment comment);
 
         Task SetUpvoteState(ApiThing thing, UpvoteState state);
 

@@ -7,7 +7,7 @@ namespace Deaddit.Reddit.Models.Api
     public class MoreCommentsData
     {
         [JsonPropertyName("things")]
-        public List<RedditCommentMeta> Things { get; init; } = [];
+        public List<ApiCommentMeta> Things { get; init; } = [];
     }
 
     public class MoreCommentsResponse

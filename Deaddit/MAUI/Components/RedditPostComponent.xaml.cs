@@ -132,7 +132,7 @@ namespace Deaddit.MAUI.Components
             await postPage.TryLoad();
         }
 
-        public void OnDownvoteClicked(object sender, EventArgs e)
+        public void OnDownvoteClicked(object? sender, EventArgs e)
         {
             if (_post.Likes == UpvoteState.Downvote)
             {
@@ -200,7 +200,7 @@ namespace Deaddit.MAUI.Components
                     break;
 
                 case PostMoreOptions.ViewSubreddit:
-                    SubRedditPage page = new(_post.SubReddit, "hot", _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
+                    SubRedditPage page = new(_post.SubReddit, ApiPostSort.Hot, _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
                     await Navigation.PushAsync(page);
                     await page.TryLoad();
                     break;
@@ -227,7 +227,7 @@ namespace Deaddit.MAUI.Components
 
                     break;
 
-                default: throw new UnhandledEnumException(postMoreOptions.Value);
+                default: throw new EnumNotImplementedException(postMoreOptions.Value);
             }
         }
 
@@ -306,14 +306,22 @@ namespace Deaddit.MAUI.Components
 
         private void InitActionButtons()
         {
-            // Initialize the HorizontalStackLayout (actionButtonsStack)
-            _actionButtonsStack = new()
+            // Initialize the Grid (actionButtonsGrid)
+            Grid actionButtonsGrid = new()
             {
                 HorizontalOptions = LayoutOptions.FillAndExpand,
                 VerticalOptions = LayoutOptions.Start,
                 Margin = new Thickness(0),
                 Padding = new Thickness(0),
-                Spacing = 0
+                ColumnDefinitions =
+                {
+                    new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) },
+                    new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) },
+                    new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) },
+                    new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) },
+                    new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }
+                },
+                BackgroundColor = _applicationTheme.HighlightColor
             };
 
             // Initialize the Share button
@@ -361,16 +369,15 @@ namespace Deaddit.MAUI.Components
             };
             commentsButton.Clicked += this.OnCommentsClicked;
 
-            // Add buttons to the HorizontalStackLayout
-            _actionButtonsStack.Children.Add(shareButton);
-            _actionButtonsStack.Children.Add(saveButton);
-            _actionButtonsStack.Children.Add(hideButton);
-            _actionButtonsStack.Children.Add(moreButton);
-            _actionButtonsStack.Children.Add(commentsButton);
-            _actionButtonsStack.BackgroundColor = _applicationTheme.HighlightColor;
+            // Add buttons to the Grid, specifying the column for each button
+            actionButtonsGrid.Add(shareButton, 0, 0);    // Add to column 0
+            actionButtonsGrid.Add(saveButton, 1, 0);     // Add to column 1
+            actionButtonsGrid.Add(hideButton, 2, 0);     // Add to column 2
+            actionButtonsGrid.Add(moreButton, 3, 0);     // Add to column 3
+            actionButtonsGrid.Add(commentsButton, 4, 0); // Add to column 4
 
-            // Add the HorizontalStackLayout to the page's layout (replace YourLayout with your actual layout)
-            mainStack.Children.Add(_actionButtonsStack);
+            // Add the Grid to the main stack
+            mainStack.Children.Add(actionButtonsGrid);
         }
 
         private async Task NewBlockRule(BlockRule blockRule)
@@ -382,7 +389,7 @@ namespace Deaddit.MAUI.Components
             await Navigation.PushAsync(objectEditorPage);
         }
 
-        private void OnParentTapped(object sender, TappedEventArgs e)
+        private void OnParentTapped(object? sender, TappedEventArgs e)
         {
             _selectionGroup.Toggle(this);
         }

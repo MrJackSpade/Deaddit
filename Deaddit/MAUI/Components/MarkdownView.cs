@@ -104,7 +104,7 @@ namespace Deaddit.MAUI.Components
             _imageCache = null;
         }
 
-        public delegate void HyperLinkClicked(object sender, LinkEventArgs e);
+        public delegate void HyperLinkClicked(object? sender, LinkEventArgs e);
 
         public event HyperLinkClicked? OnHyperLinkClicked;
 

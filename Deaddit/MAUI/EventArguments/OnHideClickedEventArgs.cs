@@ -3,10 +3,10 @@ using Deaddit.Reddit.Models.Api;
 
 namespace Deaddit.MAUI.EventArguments
 {
-    public class OnHideClickedEventArgs(ApiPost post, RedditPostComponent component) : EventArgs
+    public class OnHideClickedEventArgs(ApiThing thing, ContentView component) : EventArgs
     {
-        public RedditPostComponent Component { get; set; } = component;
+        public ContentView Component { get; set; } = component;
 
-        public ApiPost Post { get; set; } = post;
+        public ApiThing Thing { get; set; } = thing;
     }
 }
