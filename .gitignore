@@ -3,3 +3,8 @@ Deaddit.Tests/bin/
 Deaddit.Tests/obj/
 Deaddit/bin/
 Deaddit/obj/
+Deaddit/Release/obj/
+Deaddit/Release/bin/Deaddit/release_net8.0-android/Deaddit.dll
+Deaddit/Release/bin/Deaddit/release_net8.0-android/Deaddit.pdb
+Deaddit/Release/bin/Deaddit/release_net8.0-android/Deaddit.runtimeconfig.json
+Deaddit/Release/bin/Deaddit/release_net8.0-android/Deaddit.xml
