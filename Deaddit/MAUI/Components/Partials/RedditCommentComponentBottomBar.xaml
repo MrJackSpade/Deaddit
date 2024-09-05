@@ -8,10 +8,10 @@
     <Grid
             BackgroundColor="{Binding HighlightColor}"
             ColumnDefinitions="*,*,*,*,*">
-        <Button Grid.Column="0" Text="▲" Clicked="OnUpvoteClicked" BackgroundColor="Transparent" TextColor="{Binding UpvoteButtonColor}" HorizontalOptions="FillAndExpand" />
-        <Button Grid.Column="1" Text="▼" Clicked="OnDownvoteClicked" BackgroundColor="Transparent" TextColor="{Binding DownvoteButtonColor}" HorizontalOptions="FillAndExpand" />
-        <Button Grid.Column="2" Text="&#x22EF;" Clicked="OnMoreClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
-        <Button Grid.Column="3" Text="&#8278;" Clicked="OnShareClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
-        <Button Grid.Column="4" Text="&#8617;" Clicked="OnReplyClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
+        <Button x:Name="upvoteButton" Grid.Column="0" Text="▲" Clicked="OnUpvoteClicked" BackgroundColor="Transparent" TextColor="{Binding UpvoteButtonColor}" HorizontalOptions="FillAndExpand" />
+        <Button x:Name="downvoteButton" Grid.Column="1" Text="▼" Clicked="OnDownvoteClicked" BackgroundColor="Transparent" TextColor="{Binding DownvoteButtonColor}" HorizontalOptions="FillAndExpand" />
+        <Button x:Name="moreButton" Grid.Column="2" Text="&#x22EF;" Clicked="OnMoreClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
+        <Button x:Name="shareButton" Grid.Column="3" Text="&#8278;" Clicked="OnShareClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
+        <Button x:Name="replyButton" Grid.Column="4" Text="&#8617;" Clicked="OnReplyClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
     </Grid>
 </ContentView>

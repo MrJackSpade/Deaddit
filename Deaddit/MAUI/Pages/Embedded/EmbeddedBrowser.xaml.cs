@@ -10,6 +10,12 @@ namespace Deaddit
         {
             this.InitializeComponent();
 
+            //Embedding a browser in a MAUI app will not allow http requests, so we need to change the url to https
+            if (url.StartsWith("http://"))
+            {
+                url = url.Replace("http://", "https://");
+            }
+
             _applicationTheme = applicationTheme;
             navigationBar.BackgroundColor = _applicationTheme.PrimaryColor;
             webView.Source = new Uri(url);

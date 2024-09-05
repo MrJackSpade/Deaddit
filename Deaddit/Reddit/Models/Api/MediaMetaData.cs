@@ -17,10 +17,10 @@ namespace Deaddit.Reddit.Models.Api
         public string? M { get; init; }
 
         [JsonPropertyName("p")]
-        public List<ImageLocation> P { get; init; } = [];
+        public List<ImageLocation> Previews { get; init; } = [];
 
         [JsonPropertyName("s")]
-        public ImageLocation? S { get; init; }
+        public ImageLocation? Source { get; init; }
 
         [JsonPropertyName("status")]
         public string? Status { get; init; }

@@ -1,4 +1,5 @@
 using Deaddit.Configurations.Models;
+using System.Text;
 
 namespace Deaddit
 {
@@ -13,45 +14,66 @@ namespace Deaddit
                 <title>%URL%</title>
                 <style>
                     html, body {
-                        height: 100vh;
-                        width: 100vw;
                         margin: 0;
                         padding: 0;
+                    }
+
+                    body.small {
+                        background-color: %BACKGROUND_COLOR%;
                         display: flex;
                         justify-content: center;
                         align-items: center;
-                        background-color: %BACKGROUND_COLOR%;
+                        flex-direction: column;
                     }
-                    img.small {
+
+                    body.small img {
                         max-width: 100%;
                         max-height: 100%;
                         object-fit: contain;
+                        margin: auto;
+                    }
+                    body.large img {
+                        width: auto;
+                        height: auto;
+                        max-width: none;
+                        max-height: none;
+                        margin: auto;
                     }
                 </style>
             </head>
-            <body>
-                <img id="image" src="%URL%" class="small">
+            <body class="small" id="body">
+                %IMAGES%
                 <script>
-                    const img = document.getElementById('image');
-
+                    const img = document.getElementById('body');
+                    const body = document.getElementById('body');
+            
                     img.addEventListener('dblclick', () => {
-                        img.classList.toggle('small');
+                        body.classList.toggle('small');
+                        body.classList.toggle('large'); // Toggle between small and large for zooming
                     });
                 </script>
             </body>
             </html>
+            
             """;
 
         private readonly ApplicationTheme _applicationTheme;
 
-        public EmbeddedImage(string url, ApplicationTheme applicationTheme)
+        public EmbeddedImage(ApplicationTheme applicationTheme, params string[] urls)
         {
             this.InitializeComponent();
             _applicationTheme = applicationTheme;
             navigationBar.BackgroundColor = _applicationTheme.PrimaryColor;
 
-            string Html = TEMPLATE.Replace("%URL%", url)
-                                  .Replace("%BACKGROUND_COLOR%", applicationTheme.SecondaryColor.ToHex());
+            StringBuilder images = new();
+
+            foreach (string s in urls)
+            {
+                images.Append($"<img src='{s}' alt='Image' />");
+            }
+
+            string Html = TEMPLATE.Replace("%IMAGES%", images.ToString())
+                              .Replace("%BACKGROUND_COLOR%", applicationTheme.SecondaryColor.ToHex());
 
             webView.Source = new HtmlWebViewSource() { Html = Html };
         }

@@ -36,6 +36,8 @@ namespace Deaddit.MAUI.Pages
 
         private readonly IVisitTracker _visitTracker;
 
+        private Thread? _loadThread = null;
+
         private string _sort;
 
         public SubRedditPage(string subreddit, string sort, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
@@ -67,12 +69,20 @@ namespace Deaddit.MAUI.Pages
             settingsButton.TextColor = applicationTheme.TextColor;
             menuButton.TextColor = applicationTheme.TextColor;
 
+            subredditLabel.TextColor = applicationTheme.TextColor;
+            subredditLabel.Text = subreddit;
+
             hotButton.TextColor = applicationTheme.TextColor;
             controversialButton.TextColor = applicationTheme.TextColor;
             newButton.TextColor = applicationTheme.TextColor;
             risingButton.TextColor = applicationTheme.TextColor;
             topButton.TextColor = applicationTheme.TextColor;
+            menuButton.TextColor = applicationTheme.TextColor;
+            reloadButton.TextColor = applicationTheme.TextColor;
+            infoButton.TextColor = applicationTheme.TextColor;
         }
+
+        private bool WindowInLoadRange => scrollView.ScrollY >= scrollView.ContentSize.Height - scrollView.Height - navigationBar.Height;
 
         public async void OnInfoClicked(object sender, EventArgs e)
         {
@@ -99,12 +109,23 @@ namespace Deaddit.MAUI.Pages
 
         public async void ScrollView_Scrolled(object sender, ScrolledEventArgs e)
         {
-            if (scrollView.ScrollY >= scrollView.ContentSize.Height - scrollView.Height - navigationBar.Height)
+            if (_loadSemaphore.Wait(0))
             {
-                if (_loadSemaphore.Wait(0))
+                if (WindowInLoadRange)
                 {
-                    await this.TryLoad();
+                    //_loadThread = new(async () =>
+                    //{
+                        await this.TryLoad();
 
+                        _loadThread = null;
+
+                        _loadSemaphore.Release();
+                    //});
+
+                    //_loadThread.Start();
+                }
+                else
+                {
                     _loadSemaphore.Release();
                 }
             }
@@ -148,7 +169,8 @@ namespace Deaddit.MAUI.Pages
                     try
                     {
                         mainStack.Add(redditPostComponent);
-                    } catch(System.MissingMethodException mme) when (mme.Message.Contains("Microsoft.Maui.Controls.Handlers.Compatibility.FrameRenderer"))
+                    }
+                    catch (System.MissingMethodException mme) when (mme.Message.Contains("Microsoft.Maui.Controls.Handlers.Compatibility.FrameRenderer"))
                     {
                         Debug.WriteLine("FrameRenderer Missing Method Exception");
                     }

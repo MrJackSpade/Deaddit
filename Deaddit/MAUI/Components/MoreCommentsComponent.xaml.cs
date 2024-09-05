@@ -22,8 +22,17 @@ namespace Deaddit.MAUI.Components
 
         public event EventHandler<ApiComment>? OnClick;
 
+        private static bool _clicked;
+
         public async void OnParentTapped(object sender, EventArgs e)
         {
+            if (_clicked)
+            {
+                return;
+            }
+
+            _clicked = true;
+
             OnClick?.Invoke(this, _comment);
         }
     }

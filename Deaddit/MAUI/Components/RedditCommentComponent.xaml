@@ -10,10 +10,7 @@
         </ResourceDictionary>
     </ContentView.Resources>
 
-    <VerticalStackLayout
-            x:Name="commentContainer"
-            Margin="2,0,0,0"
-            Padding="0,10,0,0">
+    <VerticalStackLayout x:Name="commentContainer">
         <VerticalStackLayout.GestureRecognizers>
             <TapGestureRecognizer Tapped="OnParentTapped" />
         </VerticalStackLayout.GestureRecognizers>
@@ -28,6 +25,7 @@
                     VerticalOptions="EndAndExpand"
                     HorizontalOptions="Start"
                     Margin="5,0,0,0"
+                    IsVisible="False"
                     FontAttributes="Bold"
                     TextColor="{Binding VoteIndicatorTextColor}" />
 
@@ -52,7 +50,7 @@
         <!-- Content Text -->
         <Label
                 x:Name="contentLabel"
-                Padding="15,4,4,4"></Label>
+                Padding="10,4,4,4"></Label>
 
     </VerticalStackLayout>
 </ContentView>

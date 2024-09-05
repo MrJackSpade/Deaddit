@@ -1,5 +1,4 @@
 using Deaddit.Configurations.Models;
-using Deaddit.MAUI.Components.ComponentModels;
 using Deaddit.Reddit.Models.Api;
 
 namespace Deaddit.MAUI.Components.Partials
@@ -8,8 +7,15 @@ namespace Deaddit.MAUI.Components.Partials
     {
         public RedditCommentComponentTopBar(ApiComment comment, ApplicationTheme applicationTheme)
         {
-            BindingContext = new RedditCommentComponentViewModel(comment, applicationTheme);
+            BackgroundColor = applicationTheme.HighlightColor;
+
             this.InitializeComponent();
+
+            doneButton.TextColor = applicationTheme.TextColor;
+            hideButton.TextColor = applicationTheme.TextColor;
+            rootButton.TextColor = applicationTheme.TextColor;
+            parentButton.TextColor = applicationTheme.TextColor;
+
         }
 
         public event EventHandler? DoneClicked;
