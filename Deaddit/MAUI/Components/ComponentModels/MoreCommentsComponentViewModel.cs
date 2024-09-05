@@ -5,7 +5,7 @@ namespace Deaddit.MAUI.Components.ComponentModels
 {
     internal class MoreCommentsComponentViewModel : BaseViewModel
     {
-        public MoreCommentsComponentViewModel(string viewText, ApplicationTheme applicationTheme)
+        public MoreCommentsComponentViewModel(string viewText, ApplicationStyling applicationTheme)
         {
             TertiaryColor = applicationTheme.TertiaryColor;
             SecondaryColor = applicationTheme.SecondaryColor;

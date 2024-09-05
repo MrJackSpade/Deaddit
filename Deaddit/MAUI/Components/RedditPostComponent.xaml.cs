@@ -13,13 +13,14 @@ using Deaddit.Reddit.Models;
 using Deaddit.Reddit.Models.Api;
 using Deaddit.Reddit.Models.Options;
 using Deaddit.Utils;
-using System.Web;
 
 namespace Deaddit.MAUI.Components
 {
     public partial class RedditPostComponent : ContentView, ISelectionGroupItem
     {
-        private readonly ApplicationTheme _applicationTheme;
+        private readonly ApplicationHacks _applicationHacks;
+
+        private readonly ApplicationStyling _applicationTheme;
 
         private readonly BlockConfiguration _blockConfiguration;
 
@@ -39,21 +40,20 @@ namespace Deaddit.MAUI.Components
 
         private HorizontalStackLayout _actionButtonsStack;
 
-        private RedditPostComponent(ApiPost post, bool isPreview, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        private RedditPostComponent(ApiPost post, bool isPreview, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             _configurationService = configurationService;
             _applicationTheme = applicationTheme;
             _blockConfiguration = blockConfiguration;
             _redditClient = redditClient;
             _selectionGroup = selectionTracker;
+            _applicationHacks = applicationHacks;
             _visitTracker = visitTracker;
             _post = post;
             _isPreview = isPreview;
             _configurationService = configurationService;
 
             SelectEnabled = isPreview;
-
-            bool bodyVisible = !isPreview && !string.IsNullOrWhiteSpace(post.Body);
 
             BindingContext = _postViewModel = new RedditPostComponentViewModel(post, applicationTheme);
             this.InitializeComponent();
@@ -68,7 +68,7 @@ namespace Deaddit.MAUI.Components
             thumbnailImage.WidthRequest = applicationTheme.ThumbnailSize;
             thumbnailImage.Source = post.TryGetPreview();
 
-            titleLabel.Text = HttpUtility.HtmlDecode(post.Title);
+            titleLabel.Text = applicationHacks.CleanTitle(post.Title);
             titleLabel.TextColor = applicationTheme.TextColor;
 
             if (_post.LinkFlairBackgroundColor is not null)
@@ -79,7 +79,7 @@ namespace Deaddit.MAUI.Components
             linkFlairBorder.BackgroundColor = _applicationTheme.PrimaryColor;
             linkFlairBorder.IsVisible = !string.IsNullOrWhiteSpace(_post.LinkFlairText);
 
-            linkFlairLabel.Text = HttpUtility.HtmlDecode(_post.LinkFlairText);
+            linkFlairLabel.Text = applicationHacks.CleanFlair(_post.LinkFlairText);
             linkFlairLabel.BackgroundColor = _applicationTheme.PrimaryColor;
             linkFlairLabel.FontSize = _applicationTheme.FontSize * 0.75;
 
@@ -107,15 +107,15 @@ namespace Deaddit.MAUI.Components
 
         public bool SelectEnabled { get; private set; }
 
-        public static RedditPostComponent ListView(ApiPost post, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public static RedditPostComponent ListView(ApiPost post, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
-            RedditPostComponent toReturn = new(post, true, redditClient, applicationTheme, visitTracker, selectionTracker, blockConfiguration, configurationService);
+            RedditPostComponent toReturn = new(post, true, redditClient, applicationTheme, applicationHacks, visitTracker, selectionTracker, blockConfiguration, configurationService);
             return toReturn;
         }
 
-        public static RedditPostComponent PostView(ApiPost post, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public static RedditPostComponent PostView(ApiPost post, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
-            RedditPostComponent toReturn = new(post, false, redditClient, applicationTheme, visitTracker, selectionTracker, blockConfiguration, configurationService);
+            RedditPostComponent toReturn = new(post, false, redditClient, applicationTheme, applicationHacks, visitTracker, selectionTracker, blockConfiguration, configurationService);
             return toReturn;
         }
 
@@ -127,7 +127,7 @@ namespace Deaddit.MAUI.Components
                 _visitTracker.Visit(_post);
             }
 
-            PostPage postPage = new(_post, _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
+            PostPage postPage = new(_post, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _blockConfiguration, _configurationService);
             await Navigation.PushAsync(postPage);
             await postPage.TryLoad();
         }
@@ -200,7 +200,7 @@ namespace Deaddit.MAUI.Components
                     break;
 
                 case PostMoreOptions.ViewSubreddit:
-                    SubRedditPage page = new(_post.SubReddit, ApiPostSort.Hot, _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
+                    SubRedditPage page = new(_post.SubReddit, ApiPostSort.Hot, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _blockConfiguration, _configurationService);
                     await Navigation.PushAsync(page);
                     await page.TryLoad();
                     break;
@@ -253,7 +253,7 @@ namespace Deaddit.MAUI.Components
                 _visitTracker.Visit(_post);
             }
 
-            await Navigation.OpenPost(_post, _redditClient, _applicationTheme, _visitTracker, _blockConfiguration, _configurationService);
+            await Navigation.OpenPost(_post, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _blockConfiguration, _configurationService);
         }
 
         public void OnUpvoteClicked(object? sender, EventArgs e)

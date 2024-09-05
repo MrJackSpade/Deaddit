@@ -9,7 +9,6 @@ using Deaddit.Reddit;
 using Deaddit.Reddit.Interfaces;
 using Deaddit.Services;
 using Microsoft.Extensions.Logging;
-using ApplicationTheme = Deaddit.Configurations.Models.ApplicationTheme;
 
 namespace Deaddit
 {
@@ -28,9 +27,10 @@ namespace Deaddit
                 return new RedditClient(ApplicationTheme, jsonClient, httpClient);
             });
 
-            builder.Services.AddConfiguration<ApplicationTheme>();
+            builder.Services.AddConfiguration<ApplicationStyling>();
             builder.Services.AddConfiguration<RedditCredentials>();
             builder.Services.AddConfiguration<BlockConfiguration>();
+            builder.Services.AddConfiguration<ApplicationHacks>();
 
             builder.Services.AddTransient<IJsonClient, JsonClient>();
             builder.Services.AddSingleton<IVisitTracker, PreferencesVisitTracker>();

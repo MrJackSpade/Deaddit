@@ -2,7 +2,6 @@
 using Deaddit.Reddit.Models;
 using Deaddit.Reddit.Models.Api;
 using Deaddit.Utils;
-using System.Web;
 
 namespace Deaddit.Reddit.Extensions
 {
@@ -17,7 +16,7 @@ namespace Deaddit.Reddit.Extensions
 
             if (post.IsGallery == true)
             {
-                List<string> imageUrls = post.MediaMetaData.Values.Select(m => HttpUtility.HtmlDecode(m.Source.Url ?? m.Source.Gif)).ToList();
+                List<string> imageUrls = post.MediaMetaData.Values.Select(m => m.Source.Url ?? m.Source.Gif).ToList();
 
                 return new PostTarget(PostTargetKind.Image, imageUrls.ToArray());
             }
@@ -41,7 +40,7 @@ namespace Deaddit.Reddit.Extensions
         {
             if (redditPost?.Thumbnail?.Contains("://") ?? false)
             {
-                return HttpUtility.HtmlDecode(redditPost?.Thumbnail);
+                return redditPost?.Thumbnail;
             }
 
             if (redditPost?.Preview?.Images is null ||
@@ -50,7 +49,7 @@ namespace Deaddit.Reddit.Extensions
                 return null;
             }
 
-            return HttpUtility.HtmlDecode(redditPost.Preview.Images[0].Source?.Url);
+            return redditPost.Preview.Images[0].Source?.Url;
         }
     }
 }

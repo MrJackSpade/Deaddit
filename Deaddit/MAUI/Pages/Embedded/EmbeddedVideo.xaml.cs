@@ -4,9 +4,9 @@ namespace Deaddit
 {
     public partial class EmbeddedVideo : ContentPage
     {
-        private readonly ApplicationTheme _applicationTheme;
+        private readonly ApplicationStyling _applicationTheme;
 
-        public EmbeddedVideo(string url, ApplicationTheme applicationTheme)
+        public EmbeddedVideo(string url, ApplicationStyling applicationTheme)
         {
             _applicationTheme = applicationTheme;
             this.InitializeComponent();

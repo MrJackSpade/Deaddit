@@ -7,17 +7,17 @@ namespace Deaddit.MAUI.Components
 {
     public partial class MoreCommentsComponent : ContentView
     {
-        private readonly ApplicationTheme _applicationTheme;
+        private readonly ApplicationStyling _applicationTheme;
 
         private readonly ApiComment _comment;
 
         private readonly MoreCommentsComponentViewModel _commentViewModel;
 
-        private bool _clicked;
-
         private readonly bool _singleClick;
 
-        public MoreCommentsComponent(ApiComment comment, ApplicationTheme applicationTheme)
+        private bool _clicked;
+
+        public MoreCommentsComponent(ApiComment comment, ApplicationStyling applicationTheme)
         {
             bool isContinueThread = !comment.ChildNames.NotNullAny();
             _singleClick = !isContinueThread;

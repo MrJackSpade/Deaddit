@@ -1,11 +1,4 @@
-﻿using Org.BouncyCastle.Bcpg;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Deaddit.Utils.Extensions
+﻿namespace Deaddit.Utils.Extensions
 {
     internal static class IListExtensions
     {
@@ -37,9 +30,7 @@ namespace Deaddit.Utils.Extensions
                 throw new ArgumentException("Element does not exist in target");
             }
 
-
             source.Insert(elementIndex, toInsert);
-
         }
     }
 }

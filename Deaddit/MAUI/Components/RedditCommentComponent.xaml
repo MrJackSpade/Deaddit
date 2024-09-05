@@ -4,14 +4,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Deaddit.MAUI.Components.RedditCommentComponent"
              xmlns:converters="clr-namespace:Deaddit.MAUI.Converters"
-             >
+             HorizontalOptions="FillAndExpand">
     <ContentView.Resources>
         <ResourceDictionary>
             <converters:MultiplyConverter x:Key="MultiplyConverter" />
         </ResourceDictionary>
     </ContentView.Resources>
 
-    <VerticalStackLayout x:Name="commentContainer" Padding="0, 0, 0, 10">
+    <VerticalStackLayout
+        x:Name="commentContainer"
+        HorizontalOptions="FillAndExpand">
         <VerticalStackLayout.GestureRecognizers>
             <TapGestureRecognizer Tapped="OnParentTapped" />
         </VerticalStackLayout.GestureRecognizers>
@@ -53,6 +55,6 @@
         <!-- Content Text -->
         <Label
                 x:Name="contentLabel"
-                Padding="10,4,4,20"></Label>
+                Padding="10,4,0, 10"></Label>
     </VerticalStackLayout>
 </ContentView>

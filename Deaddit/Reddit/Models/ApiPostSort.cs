@@ -5,7 +5,7 @@ namespace Deaddit.Reddit.Models
     public enum ApiPostSort
     {
         [EnumMember(Value = null)]
-        Undefined = 0, 
+        Undefined = 0,
 
         [EnumMember(Value = "hot")]
         Hot = 1,

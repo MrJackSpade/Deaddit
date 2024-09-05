@@ -2,7 +2,7 @@
 
 namespace Deaddit.Configurations.Models
 {
-    public class ApplicationTheme
+    public class ApplicationStyling
     {
         [EditorDisplay(Name = "Distinguished Color", Order = 4)]
         public Color DistinguishedColor { get; set; } = Color.Parse("#287F24");

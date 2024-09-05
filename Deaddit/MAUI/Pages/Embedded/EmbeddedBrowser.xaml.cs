@@ -4,9 +4,9 @@ namespace Deaddit
 {
     public partial class EmbeddedBrowser : ContentPage
     {
-        private readonly ApplicationTheme _applicationTheme;
+        private readonly ApplicationStyling _applicationTheme;
 
-        public EmbeddedBrowser(string url, ApplicationTheme applicationTheme)
+        public EmbeddedBrowser(string url, ApplicationStyling applicationTheme)
         {
             this.InitializeComponent();
 

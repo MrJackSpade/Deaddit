@@ -1,6 +1,5 @@
 ﻿using Deaddit.Exceptions;
 using System.Text.RegularExpressions;
-using System.Web;
 
 namespace Deaddit.Utils
 {
@@ -45,12 +44,10 @@ namespace Deaddit.Utils
                 return true;
             }
 
-            if(matchType == StringMatchType.Regex)
+            if (matchType == StringMatchType.Regex)
             {
                 ruleValue = ruleValue.Trim('/');
             }
-
-            checkValue = HttpUtility.HtmlDecode(checkValue);
 
             return matchType switch
             {

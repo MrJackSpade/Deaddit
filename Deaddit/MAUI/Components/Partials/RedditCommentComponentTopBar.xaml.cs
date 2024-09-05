@@ -5,7 +5,7 @@ namespace Deaddit.MAUI.Components.Partials
 {
     public partial class RedditCommentComponentTopBar : ContentView
     {
-        public RedditCommentComponentTopBar(ApiComment comment, ApplicationTheme applicationTheme)
+        public RedditCommentComponentTopBar(ApiComment comment, ApplicationStyling applicationTheme)
         {
             BackgroundColor = applicationTheme.HighlightColor;
 

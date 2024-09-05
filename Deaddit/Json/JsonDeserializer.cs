@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using System.Web;
 
 namespace Deaddit.Json
 {
@@ -63,7 +64,7 @@ namespace Deaddit.Json
             }
             else if (targetType == typeof(string))
             {
-                return property?.ToString();
+                return HttpUtility.HtmlDecode(property?.ToString());
             }
             else if (targetType.IsEnum)
             {

@@ -16,7 +16,9 @@ namespace Deaddit.MAUI.Pages
 {
     public partial class SubRedditPage : ContentPage
     {
-        private readonly ApplicationTheme _applicationTheme;
+        private readonly ApplicationHacks _applicationHacks;
+
+        private readonly ApplicationStyling _applicationTheme;
 
         private readonly BlockConfiguration _blockConfiguration;
 
@@ -43,7 +45,7 @@ namespace Deaddit.MAUI.Pages
 
         private ApiPostSort _sort;
 
-        public SubRedditPage(SubRedditName subreddit, ApiPostSort sort, IRedditClient redditClient, ApplicationTheme applicationTheme, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public SubRedditPage(SubRedditName subreddit, ApiPostSort sort, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
@@ -53,6 +55,7 @@ namespace Deaddit.MAUI.Pages
             _subreddit = subreddit;
             _sort = sort;
             _redditClient = redditClient;
+            _applicationHacks = applicationHacks;
             _applicationTheme = applicationTheme;
 
             _selectionGroup = new SelectionGroup();
@@ -166,7 +169,7 @@ namespace Deaddit.MAUI.Pages
 
                 foreach (ApiPost post in posts)
                 {
-                    RedditPostComponent redditPostComponent = RedditPostComponent.ListView(post, _redditClient, _applicationTheme, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService);
+                    RedditPostComponent redditPostComponent = RedditPostComponent.ListView(post, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService);
 
                     redditPostComponent.BlockAdded += this.RedditPostComponent_OnBlockAdded;
                     redditPostComponent.HideClicked += this.RedditPostComponent_HideClicked;

@@ -4,7 +4,7 @@ namespace Deaddit.MAUI.Pages.Models
 {
     internal class ReplyPageViewModel : BaseViewModel
     {
-        public ReplyPageViewModel(ApplicationTheme applicationTheme)
+        public ReplyPageViewModel(ApplicationStyling applicationTheme)
         {
             SecondaryColor = applicationTheme.SecondaryColor;
             TextColor = applicationTheme.TextColor;
