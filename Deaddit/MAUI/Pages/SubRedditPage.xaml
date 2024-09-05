@@ -5,7 +5,7 @@
     <Grid RowDefinitions="auto, *, auto">
         <!-- Navigation Bar -->
         <Grid Padding="0"
-              ColumnDefinitions="auto, *, auto, auto, auto"
+              ColumnDefinitions="auto, auto, *, auto, auto"
               Row="0"
               x:Name="navigationBar">
             <!-- Left Hamburger Button -->
@@ -16,25 +16,24 @@
                     VerticalOptions="Center"
                     HorizontalOptions="Start"
                     Clicked="OnMenuClicked" />
-            <Label x:Name="subredditLabel"
-                   HorizontalTextAlignment="Center"
-                   VerticalTextAlignment="Center"
-                   Grid.Column="1"></Label>
-            <Button Text="ⓘ"
-                    x:Name="infoButton"
-                    Grid.Column="2"
-                    VerticalOptions="Center"
-                    HorizontalOptions="End"
-                    Background="Transparent"
-                    Clicked="OnInfoClicked" />
-            <!-- Right Reload Button -->
             <Button Text="⟳"
                     x:Name="reloadButton"
-                    Grid.Column="3"
+                    Grid.Column="1"
                     VerticalOptions="Center"
                     HorizontalOptions="End"
                     Background="Transparent"
                     Clicked="OnReloadClicked" />
+            <Label x:Name="subredditLabel"
+                   HorizontalTextAlignment="Center"
+                   VerticalTextAlignment="Center"
+                   Grid.Column="2"></Label>
+            <Button Text="ⓘ"
+                    x:Name="infoButton"
+                    Grid.Column="3"
+                    VerticalOptions="Center"
+                    HorizontalOptions="End"
+                    Background="Transparent"
+                    Clicked="OnInfoClicked" />
             <!-- Right Gear Button -->
             <Button Text="&#x2699;"
                     x:Name="settingsButton"
@@ -50,37 +49,41 @@
             Grid.Row="1"
             Scrolled="ScrollView_Scrolled">
             <VerticalStackLayout
-                x:Name="mainStack"
-                Padding="0,0"
-                Spacing="0">
-                <HorizontalStackLayout
-                    BackgroundColor="{Binding SecondaryColor}">
+    x:Name="mainStack"
+    Padding="0"
+    Spacing="0">
+                <Grid BackgroundColor="{Binding SecondaryColor}" ColumnDefinitions="*,*,*,*,*">
                     <Button
-                        Text="Hot"
-                        x:Name="hotButton"
-                        BackgroundColor="Transparent"
-                        Clicked="OnHotClicked" />
+                    Text="Hot"
+                    x:Name="hotButton"
+                    Grid.Column="0"
+                    BackgroundColor="Transparent"
+                    Clicked="OnHotClicked" />
                     <Button
-                        Text="New"
-                        x:Name="newButton"
-                        BackgroundColor="Transparent"
-                        Clicked="OnNewClicked" />
+                    Text="New"
+                    x:Name="newButton"
+                    Grid.Column="1"
+                    BackgroundColor="Transparent"
+                    Clicked="OnNewClicked" />
                     <Button
-                        Text="Rising"
-                        x:Name="risingButton"
-                        BackgroundColor="Transparent"
-                        Clicked="OnRisingClicked" />
+                    Text="Rising"
+                    x:Name="risingButton"
+                    Grid.Column="2"
+                    BackgroundColor="Transparent"
+                    Clicked="OnRisingClicked" />
                     <Button
-                        Text="Controversial"
-                        x:Name="controversialButton"
-                        BackgroundColor="Transparent"
-                        Clicked="OnControversialClicked" />
+                    Text="Controversial"
+                    x:Name="controversialButton"
+                    Grid.Column="3"
+                    BackgroundColor="Transparent"
+                    Clicked="OnControversialClicked" />
                     <Button
-                        Text="Top"
-                        x:Name="topButton"
-                        BackgroundColor="Transparent"
-                        Clicked="OnTopClicked" />
-                </HorizontalStackLayout>
+                    Text="Top"
+                    x:Name="topButton"
+                    Grid.Column="4"
+                    BackgroundColor="Transparent"
+                    Clicked="OnTopClicked" />
+                </Grid>
             </VerticalStackLayout>
         </ScrollView>
     </Grid>

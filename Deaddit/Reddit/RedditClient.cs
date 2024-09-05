@@ -6,6 +6,7 @@ using Deaddit.Reddit.Interfaces;
 using Deaddit.Reddit.Models;
 using Deaddit.Reddit.Models.Api;
 using Deaddit.Utils;
+using Deaddit.Utils.Extensions;
 using System.Text;
 using System.Text.Json;
 
@@ -35,22 +36,12 @@ namespace Deaddit.Reddit
 
         public string? LoggedInUser { get; private set; }
 
-        public async Task<ApiSubReddit> About(string subreddit)
+        public async Task<ApiSubReddit> About(SubRedditName subreddit)
         {
-            var stopwatch = new System.Diagnostics.Stopwatch();
+            System.Diagnostics.Stopwatch stopwatch = new();
             stopwatch.Start();
 
-            if (!subreddit.Contains('/'))
-            {
-                subreddit = $"/r/{subreddit}";
-            }
-
-            if (!subreddit.StartsWith('/'))
-            {
-                subreddit = $"/{subreddit}";
-            }
-
-            SubRedditAboutResponse response = await _jsonClient.Get<SubRedditAboutResponse>($"{API_ROOT}{subreddit}/about");
+            SubRedditAboutResponse response = await _jsonClient.Get<SubRedditAboutResponse>($"{API_ROOT}{subreddit.RootedName}/about");
 
             stopwatch.Stop();
             System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in About method: {stopwatch.ElapsedMilliseconds}ms");
@@ -58,11 +49,11 @@ namespace Deaddit.Reddit
             return response.Data;
         }
 
-        public async Task<RedditCommentMeta> Comment(ApiThing thing, string comment)
+        public async Task<ApiCommentMeta> Comment(ApiThing thing, string comment)
         {
             await this.EnsureAuthenticated();
 
-            var stopwatch = new System.Diagnostics.Stopwatch();
+            System.Diagnostics.Stopwatch stopwatch = new();
             stopwatch.Start();
 
             string fullUrl = $"{API_ROOT}/api/comment";
@@ -80,7 +71,7 @@ namespace Deaddit.Reddit
 
             if (response.Json.Errors.Count > 0)
             {
-                List<Exception> exceptions = new();
+                List<Exception> exceptions = [];
 
                 foreach (string error in response.Json.Errors)
                 {
@@ -96,16 +87,18 @@ namespace Deaddit.Reddit
             return response.Json.Data.Things.Single();
         }
 
-        public async IAsyncEnumerable<RedditCommentMeta> Comments(ApiPost parent, string comment)
+        public async IAsyncEnumerable<ApiCommentMeta> Comments(ApiPost parent, ApiComment? focusComment)
         {
-            var stopwatch = new System.Diagnostics.Stopwatch();
+            System.Diagnostics.Stopwatch stopwatch = new();
             stopwatch.Start();
+
+            ApiThing responseParent = (ApiThing)focusComment ?? parent;
 
             string fullUrl = $"{API_ROOT}/comments/{parent.Id}";
 
-            if (!string.IsNullOrWhiteSpace(comment))
+            if (!string.IsNullOrWhiteSpace(focusComment?.Id))
             {
-                fullUrl += $"?comment={comment}";
+                fullUrl += $"?comment={focusComment?.Id}";
             }
 
             List<CommentReadResponse> response = await _jsonClient.Get<List<CommentReadResponse>>(fullUrl);
@@ -114,9 +107,9 @@ namespace Deaddit.Reddit
             {
                 if (commentReadResponse.Data?.Children != null)
                 {
-                    foreach (RedditCommentMeta child in commentReadResponse.Data.Children)
+                    foreach (ApiCommentMeta child in commentReadResponse.Data.Children)
                     {
-                        SetParent(parent, child);
+                        SetParent(responseParent, child);
                     }
                 }
             }
@@ -125,7 +118,7 @@ namespace Deaddit.Reddit
             {
                 if (commentReadResponse.Data?.Children != null)
                 {
-                    foreach (RedditCommentMeta child in commentReadResponse.Data.Children)
+                    foreach (ApiCommentMeta child in commentReadResponse.Data.Children)
                     {
                         if (child.Data.Id != parent.Id)
                         {
@@ -139,22 +132,17 @@ namespace Deaddit.Reddit
             System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in Comments method: {stopwatch.ElapsedMilliseconds}ms");
         }
 
-        public async IAsyncEnumerable<ApiPost> GetPosts(string subreddit, string? sort = null, string? after = null, Models.Region region = Models.Region.GLOBAL)
+        public async IAsyncEnumerable<ApiPost> GetPosts(SubRedditName subreddit, ApiPostSort sort = ApiPostSort.Undefined, string? after = null, Models.Region region = Models.Region.GLOBAL)
         {
             //Returns HTML if not authenticated
             await this.EnsureAuthenticated();
 
-            var stopwatch = new System.Diagnostics.Stopwatch();
+            System.Diagnostics.Stopwatch stopwatch = new();
             stopwatch.Start();
 
-            if (subreddit.Length > 0 && subreddit[0] != '/')
-            {
-                subreddit = $"/{subreddit}";
-            }
+            string sortString = GetSortString(sort);
 
-            sort = FixSort(sort);
-
-            string fullUrl = $"{API_ROOT}{subreddit}{sort}?after={after}&g={region}";
+            string fullUrl = $"{API_ROOT}{subreddit.RootedName}{sortString}?after={after}&g={region}";
 
             do
             {
@@ -163,12 +151,19 @@ namespace Deaddit.Reddit
                 stopwatch.Stop();
                 System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in GetPosts method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
 
-                foreach (RedditPostMeta redditPostMeta in posts.Meta.Children)
+                if(!posts.Meta.Children.NotNullAny())
+                {
+                    yield break;
+                }
+
+                foreach (ApiPostMeta redditPostMeta in posts.Meta.Children)
                 {
                     yield return redditPostMeta.RedditPost;
 
-                    after = redditPostMeta.RedditPost.Id;
+                    after = redditPostMeta.RedditPost.Name;
                 }
+
+                fullUrl = $"{API_ROOT}{subreddit.RootedName}{sortString}?after={after}&g={region}";
             } while (true);
         }
 
@@ -179,10 +174,10 @@ namespace Deaddit.Reddit
             return await _httpClient.GetStreamAsync(url);
         }
 
-        public async IAsyncEnumerable<RedditCommentMeta> MoreComments(ApiPost post, ApiComment moreItem)
+        public async IAsyncEnumerable<ApiCommentMeta> MoreComments(ApiPost post, ApiComment moreItem)
         {
             // Exclude authentication or other setup time if necessary
-            var stopwatch = new System.Diagnostics.Stopwatch();
+            System.Diagnostics.Stopwatch stopwatch = new();
             stopwatch.Start();
 
             // Ensure the required properties are not null or empty
@@ -203,23 +198,23 @@ namespace Deaddit.Reddit
             // Use the modified Post method to send the form data
             MoreCommentsResponse response = await _jsonClient.Post<MoreCommentsResponse>(fullUrl, formValues);
 
-            List<RedditCommentMeta> things = response.Json.Data.Things;
+            List<ApiCommentMeta> things = response.Json.Data.Things;
 
-            Dictionary<string, RedditCommentMeta> tree = [];
+            Dictionary<string, ApiCommentMeta> tree = [];
 
-            foreach (RedditCommentMeta redditCommentMeta in things)
+            foreach (ApiCommentMeta redditCommentMeta in things)
             {
                 tree.Add(redditCommentMeta.Data.Name, redditCommentMeta);
             }
 
-            foreach (RedditCommentMeta redditCommentMeta in things.ToList())
+            foreach (ApiCommentMeta redditCommentMeta in things.ToList())
             {
                 if (redditCommentMeta.Data?.ParentId is null)
                 {
                     continue;
                 }
 
-                if (tree.TryGetValue(redditCommentMeta.Data.ParentId, out RedditCommentMeta? parent))
+                if (tree.TryGetValue(redditCommentMeta.Data.ParentId, out ApiCommentMeta? parent))
                 {
                     parent.AddReply(redditCommentMeta);
                     things.Remove(redditCommentMeta);
@@ -229,7 +224,7 @@ namespace Deaddit.Reddit
             stopwatch.Stop();
             System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in MoreComments method: {stopwatch.ElapsedMilliseconds}ms");
 
-            foreach (RedditCommentMeta redditCommentMeta in things)
+            foreach (ApiCommentMeta redditCommentMeta in things)
             {
                 if (moreItem.Parent is null)
                 {
@@ -247,7 +242,7 @@ namespace Deaddit.Reddit
             // Exclude authentication time
             await this.EnsureAuthenticated();
 
-            var stopwatch = new System.Diagnostics.Stopwatch();
+            System.Diagnostics.Stopwatch stopwatch = new();
             stopwatch.Start();
 
             int stateInt = 0;
@@ -279,7 +274,7 @@ namespace Deaddit.Reddit
         {
             await this.EnsureAuthenticated();
 
-            var stopwatch = new System.Diagnostics.Stopwatch();
+            System.Diagnostics.Stopwatch stopwatch = new();
             stopwatch.Start();
 
             string url = $"{API_ROOT}/api/sendreplies";
@@ -301,7 +296,7 @@ namespace Deaddit.Reddit
         {
             await this.EnsureAuthenticated();
 
-            var stopwatch = new System.Diagnostics.Stopwatch();
+            System.Diagnostics.Stopwatch stopwatch = new();
             stopwatch.Start();
 
             string url = $"{API_ROOT}/api/subscribe";
@@ -323,7 +318,7 @@ namespace Deaddit.Reddit
         {
             await this.EnsureAuthenticated();
 
-            var stopwatch = new System.Diagnostics.Stopwatch();
+            System.Diagnostics.Stopwatch stopwatch = new();
             stopwatch.Start();
 
             string url = !visible ? $"{API_ROOT}/api/hide" : $"{API_ROOT}/api/unhide";
@@ -340,24 +335,49 @@ namespace Deaddit.Reddit
             System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in ToggleVisibility method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
         }
 
-        private static string FixSort(string? sort)
+        public async Task Delete(ApiThing thing)
         {
-            if (string.IsNullOrWhiteSpace(sort))
+            await this.EnsureAuthenticated();
+
+            System.Diagnostics.Stopwatch stopwatch = new();
+            stopwatch.Start();
+
+            string url =$"{API_ROOT}/api/del";
+
+            // Prepare the form values as a dictionary
+            Dictionary<string, string> formValues = new()
             {
-                sort = "hot";
-            }
+                { "id", thing.Name }
+            };
 
-            if (sort.Length > 0 && sort[0] != '/')
-            {
-                sort = $"/{sort}";
-            }
+            await _jsonClient.Post(url, formValues);
 
-            sort = sort.ToLower();
+            stopwatch.Stop();
 
-            return sort;
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in Delete method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
         }
 
-        private static void SetParent(ApiThing parent, RedditCommentMeta comment)
+        private static string GetSortString(ApiPostSort sort)
+        {
+            string sortString = sort.ToString();
+
+            if (sort == ApiPostSort.Undefined)
+            {
+                sortString = "hot";
+            } else
+            {
+                sortString = sort.ToString().ToLower();
+            }
+
+            if (sortString.Length > 0 && sortString[0] != '/')
+            {
+                sortString = $"/{sortString}";
+            }
+
+            return sortString;
+        }
+
+        private static void SetParent(ApiThing parent, ApiCommentMeta comment)
         {
             comment.Data.Parent = parent;
 
@@ -371,7 +391,7 @@ namespace Deaddit.Reddit
                 return;
             }
 
-            foreach (RedditCommentMeta child in comment.Data.Replies.Data.Children)
+            foreach (ApiCommentMeta child in comment.Data.Replies.Data.Children)
             {
                 SetParent(comment.Data, child);
             }

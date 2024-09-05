@@ -2,9 +2,9 @@
 
 namespace Deaddit.MAUI.EventArguments
 {
-    public class ReplySubmittedEventArgs(ApiThing replyTo, RedditCommentMeta newComment) : EventArgs
+    public class ReplySubmittedEventArgs(ApiThing replyTo, ApiCommentMeta newComment) : EventArgs
     {
-        public RedditCommentMeta NewComment { get; private set; } = newComment;
+        public ApiCommentMeta NewComment { get; private set; } = newComment;
 
         public ApiThing ReplyTo { get; private set; } = replyTo;
     }

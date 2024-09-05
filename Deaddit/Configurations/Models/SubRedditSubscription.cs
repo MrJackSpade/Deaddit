@@ -1,4 +1,6 @@
-﻿namespace Deaddit.Configurations.Models
+﻿using Deaddit.Reddit.Models;
+
+namespace Deaddit.Configurations.Models
 {
     public class LandingPageConfiguration
     {
@@ -11,7 +13,7 @@
         {
         }
 
-        public SubRedditSubscription(string displayString, string subReddit, string sort)
+        public SubRedditSubscription(string displayString, string subReddit, ApiPostSort sort)
         {
             Sort = sort;
             DisplayString = displayString;
@@ -20,7 +22,7 @@
 
         public string? DisplayString { get; set; }
 
-        public string? Sort { get; set; } = "Hot";
+        public ApiPostSort Sort { get; set; } = ApiPostSort.Hot;
 
         public string? SubReddit { get; set; }
     }

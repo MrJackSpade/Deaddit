@@ -5,7 +5,7 @@ namespace Deaddit.Reddit.Models.Api
 {
     // Root myDeserializedClass = JsonSerializer.Deserialize<List<Root>>(myJsonResponse);
 
-    public class RedditCommentMeta
+    public class ApiCommentMeta
     {
         [NotNull]
         [JsonPropertyName("data")]

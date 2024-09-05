@@ -15,7 +15,6 @@ namespace Deaddit.MAUI.Components.Partials
             hideButton.TextColor = applicationTheme.TextColor;
             rootButton.TextColor = applicationTheme.TextColor;
             parentButton.TextColor = applicationTheme.TextColor;
-
         }
 
         public event EventHandler? DoneClicked;
@@ -24,17 +23,17 @@ namespace Deaddit.MAUI.Components.Partials
 
         public event EventHandler? ParentClicked;
 
-        public void OnDoneClicked(object sender, EventArgs e)
+        public void OnDoneClicked(object? sender, EventArgs e)
         {
             DoneClicked?.Invoke(this, e);
         }
 
-        public void OnHideClicked(object sender, EventArgs e)
+        public void OnHideClicked(object? sender, EventArgs e)
         {
             HideClicked?.Invoke(this, e);
         }
 
-        public void OnParentClicked(object sender, EventArgs e)
+        public void OnParentClicked(object? sender, EventArgs e)
         {
             ParentClicked?.Invoke(this, e);
         }

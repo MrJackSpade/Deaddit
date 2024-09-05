@@ -10,7 +10,7 @@ namespace Deaddit.MAUI.Pages
 
         public event EventHandler<string>? OnSelect;
 
-        private void OnCancelClicked(object sender, EventArgs e)
+        private void OnCancelClicked(object? sender, EventArgs e)
         {
             Navigation.PopAsync();
         }

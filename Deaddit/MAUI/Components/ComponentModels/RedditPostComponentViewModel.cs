@@ -1,12 +1,8 @@
 ﻿using Deaddit.Configurations.Models;
-using Deaddit.Extensions;
 using Deaddit.MAUI.Extensions;
 using Deaddit.MAUI.Interfaces;
 using Deaddit.MAUI.Pages.Models;
-using Deaddit.Reddit.Extensions;
 using Deaddit.Reddit.Models.Api;
-using Deaddit.Utils;
-using System.Web;
 
 namespace Deaddit.MAUI.Components.ComponentModels
 {

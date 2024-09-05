@@ -1,6 +1,7 @@
 ﻿using Deaddit.Configurations.Interfaces;
 using Deaddit.Json.Converters;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Deaddit.Configurations.Services
 {
@@ -13,6 +14,7 @@ namespace Deaddit.Configurations.Services
             _options = new JsonSerializerOptions();
 
             _options.Converters.Add(new ColorJsonConverter());
+            _options.Converters.Add(new JsonStringEnumConverter());
         }
 
         public T Read<T>(string name) where T : class

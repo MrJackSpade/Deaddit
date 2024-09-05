@@ -51,7 +51,7 @@ namespace Deaddit.Extensions
                     break;
 
                 default:
-                    throw new UnhandledEnumException(resource.Kind);
+                    throw new EnumNotImplementedException(resource.Kind);
             }
         }
     }

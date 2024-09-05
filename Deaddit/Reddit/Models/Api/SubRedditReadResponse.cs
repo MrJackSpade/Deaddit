@@ -10,6 +10,6 @@ namespace Deaddit.Reddit.Models.Api
 
         [NotNull]
         [JsonPropertyName("data")]
-        public ReadMetaData<RedditPostMeta> Meta { get; init; }
+        public ReadMetaData<ApiPostMeta> Meta { get; init; }
     }
 }

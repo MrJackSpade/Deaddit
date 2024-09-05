@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace Deaddit.Reddit.Models.Api
 {
-    public class RedditPostMeta
+    public class ApiPostMeta
     {
         [JsonPropertyName("kind")]
         public ThingKind Kind { get; init; }
