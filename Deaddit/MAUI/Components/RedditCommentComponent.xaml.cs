@@ -190,11 +190,13 @@ namespace Deaddit.MAUI.Components
             {       
                 _comment.Score++;
                 this.SetIndicatorState(UpvoteState.None);
+                _redditClient.SetUpvoteState(_comment, UpvoteState.None);
             }
             else
             {        
                 _comment.Score--;
                 this.SetIndicatorState(UpvoteState.Downvote);
+                _redditClient.SetUpvoteState(_comment, UpvoteState.Downvote);
             }
         }
 
@@ -282,7 +284,6 @@ namespace Deaddit.MAUI.Components
 
         private void SetIndicatorState(UpvoteState state)
         {
-            _redditClient.SetUpvoteState(_comment, _comment.Likes);
             this.UpdateMetaData();
 
             switch (state)
@@ -314,11 +315,13 @@ namespace Deaddit.MAUI.Components
             {
                 _comment.Score--;
                 this.SetIndicatorState(UpvoteState.None);
+                _redditClient.SetUpvoteState(_comment, UpvoteState.None);
             }
             else
             {
                 _comment.Score++;
                 this.SetIndicatorState(UpvoteState.Upvote);
+                _redditClient.SetUpvoteState(_comment, UpvoteState.Upvote);
             }
         }
 

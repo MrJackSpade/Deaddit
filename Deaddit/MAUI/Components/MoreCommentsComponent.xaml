@@ -14,7 +14,7 @@
               Text="{Binding MoreText}"
               HorizontalOptions="FillAndExpand"
               Margin="0,2,0,0"
-              Padding="4,2,0,2"
+              Padding="8,4,0,4"
               FontSize="{Binding FontSize}"
               TextColor="{Binding TextColor}"
               BackgroundColor="{Binding PrimaryColor}" />
