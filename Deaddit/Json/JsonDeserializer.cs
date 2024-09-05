@@ -277,7 +277,7 @@ namespace Deaddit.Json
 
         private static object? ParseEnum(Type targetType, string? v)
         {
-            Dictionary<string, object> values = [];
+            Dictionary<string, object> values = new(StringComparer.OrdinalIgnoreCase);
 
             object? nullValue = null;
 
