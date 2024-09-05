@@ -13,29 +13,25 @@
                     Grid.Column="0"
                     x:Name="menuButton"
                     Background="Transparent"
-                    TextColor="{Binding TextColor}"
                     VerticalOptions="Center"
                     HorizontalOptions="Start"
                     Clicked="OnMenuClicked" />
-            <Label Text="{Binding SubReddit}"
+            <Label x:Name="subredditLabel"
                    HorizontalTextAlignment="Center"
                    VerticalTextAlignment="Center"
-                   Grid.Column="1"
-                   TextColor="{Binding TextColor}"></Label>
+                   Grid.Column="1"></Label>
             <Button Text="ⓘ"
                     x:Name="infoButton"
                     Grid.Column="2"
                     VerticalOptions="Center"
                     HorizontalOptions="End"
                     Background="Transparent"
-                    TextColor="{Binding TextColor}"
                     Clicked="OnInfoClicked" />
             <!-- Right Reload Button -->
             <Button Text="⟳"
                     x:Name="reloadButton"
                     Grid.Column="3"
                     VerticalOptions="Center"
-                    TextColor="{Binding TextColor}"
                     HorizontalOptions="End"
                     Background="Transparent"
                     Clicked="OnReloadClicked" />
@@ -46,7 +42,6 @@
                     VerticalOptions="Center"
                     HorizontalOptions="End"
                     Background="Transparent"
-                    TextColor="{Binding TextColor}"
                     Clicked="OnSettingsClicked" />
         </Grid>
         <!-- Main Content -->

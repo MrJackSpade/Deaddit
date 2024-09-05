@@ -8,9 +8,9 @@
     <Grid
             BackgroundColor="{Binding HighlightColor}"
             ColumnDefinitions="*,*,*,*">
-        <Button Grid.Column="0" Text="Done" Clicked="OnDoneClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
-        <Button Grid.Column="1" Text="Hide" Clicked="OnHideClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
-        <Button Grid.Column="2" Text="&#9650; Root" Clicked="OnParentClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
-        <Button Grid.Column="3" Text="&#9650; Parent" Clicked="OnParentClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
+        <Button x:Name="doneButton" Grid.Column="0" Text="Done" Clicked="OnDoneClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
+        <Button x:Name="hideButton" Grid.Column="1" Text="Hide" Clicked="OnHideClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
+        <Button x:Name="rootButton" Grid.Column="2" Text="&#9650; Root" Clicked="OnParentClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
+        <Button x:Name="parentButton" Grid.Column="3" Text="&#9650; Parent" Clicked="OnParentClicked" BackgroundColor="Transparent" TextColor="{Binding TextColor}" HorizontalOptions="FillAndExpand" />
     </Grid>
 </ContentView>

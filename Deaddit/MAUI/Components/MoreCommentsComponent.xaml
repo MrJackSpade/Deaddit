@@ -4,8 +4,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Deaddit.MAUI.Components.MoreCommentsComponent"
              BackgroundColor="{Binding SecondaryColor}"
-             HorizontalOptions="FillAndExpand"
-             Margin="2, 0 ,0 ,0">
+             HorizontalOptions="FillAndExpand">
 
     <ContentView.GestureRecognizers>
         <TapGestureRecognizer Tapped="OnParentTapped" />
@@ -15,6 +14,7 @@
               Text="{Binding MoreText}"
               HorizontalOptions="FillAndExpand"
               Margin="0,2,0,0"
+              Padding="4,2,0,2"
               FontSize="{Binding FontSize}"
               TextColor="{Binding TextColor}"
               BackgroundColor="{Binding PrimaryColor}" />

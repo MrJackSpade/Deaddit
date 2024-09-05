@@ -1,9 +1,9 @@
 ﻿namespace Deaddit.Reddit.Models
 {
-    public class PostTarget(PostTargetKind kind, string? uri)
+    public class PostTarget(PostTargetKind kind, params string[] uri)
     {
         public PostTargetKind Kind { get; set; } = kind;
 
-        public string? Uri { get; set; } = uri;
+        public string[] Uris { get; set; } = uri;
     }
 }

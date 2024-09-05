@@ -15,6 +15,13 @@ namespace Deaddit.Reddit.Extensions
                 return new PostTarget(PostTargetKind.Post, null);
             }
 
+            if (post.IsGallery == true)
+            {
+                List<string> imageUrls = post.MediaMetaData.Values.Select(m => HttpUtility.HtmlDecode(m.Source.Url ?? m.Source.Gif)).ToList();
+
+                return new PostTarget(PostTargetKind.Image, imageUrls.ToArray());
+            }
+
             if (post.Media is not null)
             {
                 if (post.Media.RedditVideo is null)

@@ -1,4 +1,4 @@
-using Deaddit.Configurations.Interfaces;
+﻿using Deaddit.Configurations.Interfaces;
 using Deaddit.Configurations.Models;
 using Deaddit.Exceptions;
 using Deaddit.Extensions;
@@ -30,8 +30,6 @@ namespace Deaddit.MAUI.Components
 
         private readonly SelectionGroup _commentSelectionGroup;
 
-        private readonly RedditCommentComponentViewModel _commentViewModel;
-
         private readonly IConfigurationService _configurationService;
 
         private readonly ApiPost _post;
@@ -55,7 +53,6 @@ namespace Deaddit.MAUI.Components
             _configurationService = configurationService;
             _commentSelectionGroup = selectionTracker;
 
-            BindingContext = _commentViewModel = new RedditCommentComponentViewModel(comment, applicationTheme);
             this.InitializeComponent();
 
             //--------- SPEED
@@ -109,7 +106,7 @@ namespace Deaddit.MAUI.Components
             metaDataLabel.TextColor = _applicationTheme.SubTextColor;
             metaDataLabel.FontSize = _applicationTheme.FontSize * 0.75;
 
-            voteIndicator.TextColor = _applicationTheme.TextColor;
+            this.SetIndicatorState(_comment.Likes);
 
             this.UpdateMetaData();
         }
@@ -190,19 +187,15 @@ namespace Deaddit.MAUI.Components
         public void OnDownvoteClicked(object sender, EventArgs e)
         {
             if (_comment.Likes == UpvoteState.Downvote)
-            {
-                _comment.Likes = UpvoteState.None;
+            {       
                 _comment.Score++;
+                this.SetIndicatorState(UpvoteState.None);
             }
             else
-            {
-                _comment.Likes = UpvoteState.Downvote;
+            {        
                 _comment.Score--;
+                this.SetIndicatorState(UpvoteState.Downvote);
             }
-
-            _commentViewModel.SetUpvoteState(_comment.Likes);
-            _redditClient.SetUpvoteState(_comment, _comment.Likes);
-            this.UpdateMetaData();
         }
 
         public void OnHideClicked(object sender, EventArgs e)
@@ -287,22 +280,46 @@ namespace Deaddit.MAUI.Components
             await Navigation.PushAsync(replyPage);
         }
 
+        private void SetIndicatorState(UpvoteState state)
+        {
+            _redditClient.SetUpvoteState(_comment, _comment.Likes);
+            this.UpdateMetaData();
+
+            switch (state)
+            {
+                case UpvoteState.Upvote:
+                    _comment.Likes = UpvoteState.Upvote;
+                    voteIndicator.Text = "▲";
+                    voteIndicator.TextColor = _applicationTheme.UpvoteColor;
+                    voteIndicator.IsVisible = true;
+                    break;
+                case UpvoteState.Downvote:
+                    _comment.Likes = UpvoteState.Downvote;
+                    voteIndicator.Text = "▼";
+                    voteIndicator.TextColor = _applicationTheme.DownvoteColor;
+                    voteIndicator.IsVisible = true;
+                    break;
+                default:
+                    _comment.Likes = UpvoteState.None;
+                    voteIndicator.Text = string.Empty;
+                    voteIndicator.TextColor = _applicationTheme.TextColor;
+                    voteIndicator.IsVisible = false;
+                    break;
+            }
+        }
+
         public void OnUpvoteClicked(object sender, EventArgs e)
         {
             if (_comment.Likes == UpvoteState.Upvote)
             {
-                _comment.Likes = UpvoteState.None;
                 _comment.Score--;
+                this.SetIndicatorState(UpvoteState.None);
             }
             else
             {
-                _comment.Likes = UpvoteState.Upvote;
                 _comment.Score++;
+                this.SetIndicatorState(UpvoteState.Upvote);
             }
-
-            _commentViewModel.SetUpvoteState(_comment.Likes);
-            _redditClient.SetUpvoteState(_comment, _comment.Likes);
-            this.UpdateMetaData();
         }
 
         void ISelectionGroupItem.Select()
@@ -400,8 +417,9 @@ namespace Deaddit.MAUI.Components
                 _replies = new VerticalStackLayout()
                 {
                     VerticalOptions = LayoutOptions.Fill,
-                    Margin = new Thickness(20, 0, 0, 0),
-                    BackgroundColor = _applicationTheme.TertiaryColor
+                    Margin = new Thickness(10, 0, 0, 0),
+                    BackgroundColor = _applicationTheme.TextColor,
+                    Padding = new Thickness(2, 0, 0, 0)
                 };
 
                 commentContainer.Add(_replies);

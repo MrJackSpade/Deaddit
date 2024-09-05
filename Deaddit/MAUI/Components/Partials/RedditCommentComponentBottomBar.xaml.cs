@@ -8,8 +8,14 @@ namespace Deaddit.MAUI.Components.Partials
     {
         public RedditCommentComponentBottomBar(ApiComment comment, ApplicationTheme applicationTheme)
         {
-            BindingContext = new RedditCommentComponentViewModel(comment, applicationTheme);
-            this.InitializeComponent();
+            this.InitializeComponent();      
+            
+            this.BackgroundColor = applicationTheme.HighlightColor;
+            downvoteButton.TextColor = applicationTheme.TextColor;
+            upvoteButton.TextColor = applicationTheme.TextColor;
+            moreButton.TextColor = applicationTheme.TextColor;
+            replyButton.TextColor = applicationTheme.TextColor;
+            shareButton.TextColor = applicationTheme.TextColor;
         }
 
         public event EventHandler? DownvoteClicked;

@@ -36,18 +36,18 @@ namespace Deaddit.Extensions
                     break;
 
                 case PostTargetKind.Url:
-                    Ensure.NotNullOrWhiteSpace(resource.Uri);
-                    await navigation.PushAsync(new EmbeddedBrowser(resource.Uri, applicationTheme));
+                    Ensure.NotNullOrEmpty(resource.Uris);
+                    await navigation.PushAsync(new EmbeddedBrowser(resource.Uris[0], applicationTheme));
                     break;
 
                 case PostTargetKind.Video:
-                    Ensure.NotNullOrWhiteSpace(resource.Uri);
-                    await navigation.PushAsync(new EmbeddedVideo(resource.Uri, applicationTheme));
+                    Ensure.NotNullOrEmpty(resource.Uris);
+                    await navigation.PushAsync(new EmbeddedVideo(resource.Uris[0], applicationTheme));
                     break;
 
                 case PostTargetKind.Image:
-                    Ensure.NotNullOrWhiteSpace(resource.Uri);
-                    await navigation.PushAsync(new EmbeddedImage(resource.Uri, applicationTheme));
+                    Ensure.NotNullOrEmpty(resource.Uris);
+                    await navigation.PushAsync(new EmbeddedImage(applicationTheme, resource.Uris));
                     break;
 
                 default:
