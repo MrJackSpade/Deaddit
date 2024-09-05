@@ -48,11 +48,17 @@
 
 	<ItemGroup>
 	  <AndroidResource Remove="Models\**" />
+	  <AndroidResource Remove="Release\**" />
 	  <Compile Remove="Models\**" />
+	  <Compile Remove="Release\**" />
 	  <EmbeddedResource Remove="Models\**" />
+	  <EmbeddedResource Remove="Release\**" />
 	  <MauiCss Remove="Models\**" />
+	  <MauiCss Remove="Release\**" />
 	  <MauiXaml Remove="Models\**" />
+	  <MauiXaml Remove="Release\**" />
 	  <None Remove="Models\**" />
+	  <None Remove="Release\**" />
 	</ItemGroup>
 
 	<ItemGroup>

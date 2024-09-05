@@ -22,7 +22,7 @@ namespace Deaddit.MAUI.Components
 
         public event EventHandler<ApiComment>? OnClick;
 
-        private static bool _clicked;
+        private bool _clicked;
 
         public async void OnParentTapped(object sender, EventArgs e)
         {
