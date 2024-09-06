@@ -1,0 +1,105 @@
+using Deaddit.Components.ComponentModels;
+using Deaddit.Core.Configurations.Interfaces;
+using Deaddit.Core.Configurations.Models;
+using Deaddit.Core.Interfaces;
+using Deaddit.Core.Reddit.Interfaces;
+using Deaddit.Core.Utils;
+using Deaddit.EventArguments;
+using Deaddit.Extensions;
+using Deaddit.Pages;
+
+namespace Deaddit.MAUI.Components
+{
+    public partial class SubRedditComponent : ContentView, ISelectionGroupItem
+    {
+        private readonly ApplicationHacks _applicationHacks;
+
+        private readonly ApplicationStyling _applicationTheme;
+
+        private readonly BlockConfiguration _blockConfiguration;
+
+        private readonly IConfigurationService _configurationService;
+
+        private readonly IRedditClient _redditClient;
+
+        private readonly SelectionGroup _selectionGroup;
+
+        private readonly SubRedditSubscription _subscription;
+
+        private readonly IVisitTracker _visitTracker;
+
+        private SubRedditComponent(SubRedditSubscription subscription, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        {
+            _redditClient = redditClient;
+            _applicationTheme = applicationTheme;
+            _configurationService = configurationService;
+            _blockConfiguration = blockConfiguration;
+            _selectionGroup = selectionTracker;
+            _applicationHacks = applicationHacks;
+            _subscription = subscription;
+            _visitTracker = visitTracker;
+
+            BindingContext = new SubRedditComponentViewModel(subscription.DisplayString, applicationTheme);
+            this.InitializeComponent();
+            _configurationService = configurationService;
+        }
+
+        public event EventHandler<SubRedditSubscriptionRemoveEventArgs>? OnRemove;
+
+        public bool Selected { get; private set; }
+
+        public bool SelectEnabled { get; private set; }
+
+        public static SubRedditComponent Fixed(SubRedditSubscription subscription, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        {
+            return new SubRedditComponent(subscription, redditClient, applicationTheme, applicationHacks, visitTracker, selectionTracker, blockConfiguration, configurationService)
+            {
+                SelectEnabled = false
+            };
+        }
+
+        public static SubRedditComponent Removable(SubRedditSubscription subscription, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        {
+            return new SubRedditComponent(subscription, redditClient, applicationTheme, applicationHacks, visitTracker, selectionTracker, blockConfiguration, configurationService)
+            {
+                SelectEnabled = true
+            };
+        }
+
+        public void OnRemoveClick(object? sender, EventArgs e)
+        {
+            OnRemove.Invoke(this, new SubRedditSubscriptionRemoveEventArgs(_subscription, this));
+        }
+
+        public void OnRemoveClicked(object? sender, EventArgs e)
+        {
+            // Handle the Share button click
+        }
+
+        public async void OnSettingsClick(object? sender, EventArgs e)
+        {
+            _selectionGroup.Toggle(this);
+        }
+
+        void ISelectionGroupItem.Select()
+        {
+            Selected = true;
+            BackgroundColor = _applicationTheme.HighlightColor.ToMauiColor();
+            actionButtonsStack.IsVisible = true;
+        }
+
+        void ISelectionGroupItem.Unselect()
+        {
+            Selected = false;
+            BackgroundColor = _applicationTheme.SecondaryColor.ToMauiColor();
+            actionButtonsStack.IsVisible = false;
+        }
+
+        private async void OnParentTapped(object? sender, TappedEventArgs e)
+        {
+            SubRedditPage subredditPage = new(_subscription.SubReddit, _subscription.Sort, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _blockConfiguration, _configurationService);
+            await Navigation.PushAsync(subredditPage);
+            await subredditPage.TryLoad();
+        }
+    }
+}

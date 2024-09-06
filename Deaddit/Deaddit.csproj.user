@@ -15,49 +15,49 @@
     <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
   </PropertyGroup>
   <ItemGroup>
-    <MauiXaml Update="MAUI\Components\MoreCommentsComponent.xaml">
+    <MauiXaml Update="Components\MoreCommentsComponent.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="MAUI\Components\Partials\RedditCommentComponentBottomBar.xaml">
+    <MauiXaml Update="Components\Partials\RedditCommentComponentBottomBar.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="MAUI\Components\Partials\RedditCommentComponentTopBar.xaml">
+    <MauiXaml Update="Components\Partials\RedditCommentComponentTopBar.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="MAUI\Pages\ObjectEditorPage.xaml">
+    <MauiXaml Update="Pages\ObjectEditorPage.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="MAUI\Components\SubRedditComponent.xaml">
+    <MauiXaml Update="Components\SubRedditComponent.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="MAUI\Pages\Embedded\EmbeddedImage.xaml">
+    <MauiXaml Update="Pages\Embedded\EmbeddedImage.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="MAUI\Pages\LandingPage.xaml">
+    <MauiXaml Update="Pages\LandingPage.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="MAUI\Pages\PostPage.xaml">
+    <MauiXaml Update="Pages\PostPage.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="MAUI\Components\RedditCommentComponent.xaml">
+    <MauiXaml Update="Components\RedditCommentComponent.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="MAUI\Components\RedditPostComponent.xaml">
+    <MauiXaml Update="Components\RedditPostComponent.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="MAUI\Pages\Embedded\EmbeddedVideo.xaml">
+    <MauiXaml Update="Pages\Embedded\EmbeddedVideo.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="MAUI\Pages\Embedded\EmbeddedBrowser.xaml">
+    <MauiXaml Update="Pages\Embedded\EmbeddedBrowser.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="MAUI\Pages\ReplyPage.xaml">
+    <MauiXaml Update="Pages\ReplyPage.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="MAUI\Pages\SelectPage.xaml">
+    <MauiXaml Update="Pages\SelectPage.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="MAUI\Pages\SubRedditAboutPage.xaml">
+    <MauiXaml Update="Pages\SubRedditAboutPage.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
   </ItemGroup>

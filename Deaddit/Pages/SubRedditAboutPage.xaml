@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:components="clr-namespace:Deaddit.Components"
+             x:Class="Deaddit.Pages.SubRedditAboutPage"
+             BackgroundColor="{Binding SecondaryColor}">
+    <VerticalStackLayout
+        VerticalOptions="FillAndExpand"
+        HorizontalOptions="FillAndExpand"
+        x:Name="mainStack">
+        <!-- Define the grid with three columns: auto for the thumbnail, star (*) for the title, auto for the vote stack -->
+        <Grid
+        x:Name="mainGrid"
+        ColumnDefinitions="Auto, *"
+        Margin="0"
+        Padding="0"
+        MinimumHeightRequest="{Binding MinHeight}"
+        BackgroundColor="{Binding SecondaryColor}">
+            <!-- Thumbnail Image -->
+            <ImageButton
+            x:Name="thumbnailImage"
+            Grid.Column="0"
+            Aspect="AspectFill"
+            Margin="0"
+            HeightRequest="{Binding MinHeight}"
+            WidthRequest="{Binding MinHeight}"
+            Source="{Binding Thumbnail}"
+            VerticalOptions="Start" />
+            <!-- Title and MetaData Stack -->
+            <VerticalStackLayout
+                x:Name="titleStack"
+                Grid.Column="1"
+                HorizontalOptions="FillAndExpand"
+                VerticalOptions="FillAndExpand"
+                Margin="0"
+                Padding="10,0,0,0">
+                <Label
+                    Text="{Binding Name}"
+                    HorizontalOptions="StartAndExpand"
+                    TextColor="{Binding TextColor}"
+                    LineBreakMode="WordWrap"
+                    VerticalOptions="Center" />
+
+                <Label
+                    Text="{Binding VisibleMetaData}"
+                    VerticalOptions="FillAndExpand"
+                    TextColor="{Binding SubTextColor}"
+                    FontSize="{Binding FontSize, Converter={StaticResource MultiplyConverter}, ConverterParameter=0.75}"
+                    Padding="0,0,0,0" />
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- New Row of Buttons -->
+        <HorizontalStackLayout
+            x:Name="actionButtonsStack"
+            HorizontalOptions="FillAndExpand"
+            VerticalOptions="Start"
+            BackgroundColor="{Binding HighlightColor}"
+            Margin="0"
+            Padding="0"
+            Spacing="0">
+            <!-- Initially hidden -->
+            <Button
+                Text="Back"
+                Clicked="OnBackClicked"
+                BackgroundColor="Transparent"
+                TextColor="{Binding TextColor}" />
+
+            <Button
+                Text="Rules"
+                Clicked="OnRulesClicked"
+                BackgroundColor="Transparent"
+                TextColor="{Binding TextColor}" />
+
+            <Button
+                Text="More"
+                Clicked="OnMoreClicked"
+                BackgroundColor="Transparent"
+                TextColor="{Binding TextColor}" />
+
+            <Button
+                Text="Subscribe"
+                x:Name="subscribeButton"
+                Clicked="OnSubscribeClicked"
+                BackgroundColor="Transparent"
+                TextColor="{Binding TextColor}" />
+        </HorizontalStackLayout>
+
+        <Border Stroke="{Binding TertiaryColor}"
+                IsVisible="{Binding PostBodyVisible}"
+                StrokeThickness="2"
+                StrokeShape="RoundRectangle 5,5,5,5"
+                Padding="10"
+                Margin="20"
+                BackgroundColor="{Binding PrimaryColor}"
+                HorizontalOptions="Center">
+            <components:MarkdownView
+            VerticalOptions="FillAndExpand"
+            HorizontalOptions="FillAndExpand"
+            Margin="20"
+            Padding="20"
+            OnHyperLinkClicked="OnHyperLinkClicked"
+            HyperlinkColor="{Binding HyperlinkColor}"
+            TextColor="{Binding TextColor}"
+            BackgroundColor="{Binding PrimaryColor}"
+            TextFontSize="{Binding FontSize}"
+            MarkdownText="{Binding Description}">
+            </components:MarkdownView>
+        </Border>
+    </VerticalStackLayout>
+</ContentPage>
