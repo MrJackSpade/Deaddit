@@ -48,18 +48,6 @@
                     LineBreakMode="WordWrap"
                     VerticalOptions="Center" />
 
-                <Border
-                    x:Name="linkFlairBorder"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 3,3,3,3"
-                    Margin="0,0,10,0"
-                    HorizontalOptions="Start">
-                    <Label
-                        x:Name="linkFlairLabel"
-                        HorizontalOptions="Fill"
-                        Margin="2" />
-                </Border>
-
                 <Label
                     x:Name="metaDataLabel"
                     VerticalOptions="FillAndExpand"
@@ -96,7 +84,11 @@
                     Padding="0"
                     HorizontalOptions="Center"
                     VerticalOptions="Center"
-                    TextColor="{Binding UpvoteButtonColor}" />
+                    TextColor="{Binding UpvoteButtonColor}">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnUpvoteClicked" />
+                        </Label.GestureRecognizers>
+                    </Label>
 
                     <!-- Score Label -->
                     <Label
@@ -112,26 +104,12 @@
                     Padding="0"
                     HorizontalOptions="Center"
                     VerticalOptions="Center"
-                    TextColor="{Binding DownvoteButtonColor}" />
+                    TextColor="{Binding DownvoteButtonColor}">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnDownvoteClicked" />
+                        </Label.GestureRecognizers>
+                    </Label>
                 </StackLayout>
-
-                <!-- Transparent Button to intercept clicks on the top half -->
-                <ImageButton
-                x:Name="UpvoteButton"
-                BackgroundColor="Transparent"
-                HorizontalOptions="Fill"
-                VerticalOptions="Start"
-                HeightRequest="{Binding VoteHeight}"
-                Clicked="OnUpvoteClicked" />
-
-                <!-- Transparent Button to intercept clicks on the bottom half -->
-                <ImageButton
-                x:Name="DownvoteButton"
-                BackgroundColor="Transparent"
-                HorizontalOptions="Fill"
-                VerticalOptions="End"
-                HeightRequest="{Binding VoteHeight}"
-                Clicked="OnDownvoteClicked" />
             </Grid>
         </Grid>
     </VerticalStackLayout>

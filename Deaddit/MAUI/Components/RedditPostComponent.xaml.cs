@@ -13,6 +13,8 @@ using Deaddit.Reddit.Models;
 using Deaddit.Reddit.Models.Api;
 using Deaddit.Reddit.Models.Options;
 using Deaddit.Utils;
+using Deaddit.Utils.Extensions;
+using Microsoft.Maui.Controls.Shapes;
 
 namespace Deaddit.MAUI.Components
 {
@@ -38,7 +40,7 @@ namespace Deaddit.MAUI.Components
 
         private readonly IVisitTracker _visitTracker;
 
-        private HorizontalStackLayout _actionButtonsStack;
+        private Grid _actionButtonsGrid;
 
         private RedditPostComponent(ApiPost post, bool isPreview, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
@@ -71,19 +73,40 @@ namespace Deaddit.MAUI.Components
             titleLabel.Text = applicationHacks.CleanTitle(post.Title);
             titleLabel.TextColor = applicationTheme.TextColor;
 
-            if (_post.LinkFlairBackgroundColor is not null)
+            string cleanedLinkFlair = applicationHacks.CleanFlair(_post.LinkFlairText);
+
+            if (!string.IsNullOrWhiteSpace(cleanedLinkFlair))
             {
-                linkFlairBorder.Stroke = _post.LinkFlairBackgroundColor;
+                // Create the label
+                var linkFlairLabel = new Label
+                {
+                    HorizontalOptions = LayoutOptions.Fill,
+                    Margin = new Thickness(2),
+                    Text = applicationHacks.CleanFlair(_post.LinkFlairText),
+                    BackgroundColor = _applicationTheme.PrimaryColor,
+                    FontSize = _applicationTheme.FontSize * 0.75,
+                    TextColor = _post.LinkFlairBackgroundColor ?? _applicationTheme.TextColor
+                };
+
+                // Create the border
+                var linkFlairBorder = new Border
+                {
+                    StrokeThickness = 1,
+                    StrokeShape = new RoundRectangle { CornerRadius = new CornerRadius(3) },
+                    Margin = new Thickness(0, 0, 10, 0),
+                    HorizontalOptions = LayoutOptions.Start,
+                    BackgroundColor = _applicationTheme.PrimaryColor,
+                    IsVisible = !string.IsNullOrWhiteSpace(_post.LinkFlairText),
+                    Content = linkFlairLabel // Add the label inside the border
+                };
+
+                if (_post.LinkFlairBackgroundColor is not null)
+                {
+                    linkFlairBorder.Stroke = _post.LinkFlairBackgroundColor;
+                }
+
+                titleStack.InsertAfter(titleLabel, linkFlairBorder);
             }
-
-            linkFlairBorder.BackgroundColor = _applicationTheme.PrimaryColor;
-            linkFlairBorder.IsVisible = !string.IsNullOrWhiteSpace(_post.LinkFlairText);
-
-            linkFlairLabel.Text = applicationHacks.CleanFlair(_post.LinkFlairText);
-            linkFlairLabel.BackgroundColor = _applicationTheme.PrimaryColor;
-            linkFlairLabel.FontSize = _applicationTheme.FontSize * 0.75;
-
-            linkFlairLabel.TextColor = _post.LinkFlairBackgroundColor ?? _applicationTheme.TextColor;
 
             metaDataLabel.Text = $"{_post.NumComments} comments {_post.SubReddit}";
             metaDataLabel.FontSize = _applicationTheme.FontSize * 0.75;
@@ -138,6 +161,10 @@ namespace Deaddit.MAUI.Components
             {
                 _post.Likes = UpvoteState.None;
                 _postViewModel.TryAdjustScore(1);
+            } else if (_post.Likes == UpvoteState.Upvote)
+            {
+                _post.Likes = UpvoteState.Downvote;
+                _postViewModel.TryAdjustScore(-2);
             }
             else
             {
@@ -263,6 +290,11 @@ namespace Deaddit.MAUI.Components
                 _post.Likes = UpvoteState.None;
                 _postViewModel.TryAdjustScore(-1);
             }
+            else if (_post.Likes == UpvoteState.Downvote)
+            {
+                _post.Likes = UpvoteState.Upvote;
+                _postViewModel.TryAdjustScore(2);
+            }
             else
             {
                 _post.Likes = UpvoteState.Upvote;
@@ -288,8 +320,8 @@ namespace Deaddit.MAUI.Components
             BackgroundColor = _applicationTheme.SecondaryColor;
             mainGrid.BackgroundColor = _applicationTheme.SecondaryColor;
             timeUserLabel.IsVisible = false;
-            mainStack.Children.Remove(_actionButtonsStack);
-            _actionButtonsStack = null;
+            mainStack.Children.Remove(_actionButtonsGrid);
+            _actionButtonsGrid = null;
         }
 
         private void BlockRuleOnSave(object? sender, MAUI.EventArguments.ObjectEditorSaveEventArgs e)
@@ -307,7 +339,7 @@ namespace Deaddit.MAUI.Components
         private void InitActionButtons()
         {
             // Initialize the Grid (actionButtonsGrid)
-            Grid actionButtonsGrid = new()
+            _actionButtonsGrid = new()
             {
                 HorizontalOptions = LayoutOptions.FillAndExpand,
                 VerticalOptions = LayoutOptions.Start,
@@ -370,14 +402,14 @@ namespace Deaddit.MAUI.Components
             commentsButton.Clicked += this.OnCommentsClicked;
 
             // Add buttons to the Grid, specifying the column for each button
-            actionButtonsGrid.Add(shareButton, 0, 0);    // Add to column 0
-            actionButtonsGrid.Add(saveButton, 1, 0);     // Add to column 1
-            actionButtonsGrid.Add(hideButton, 2, 0);     // Add to column 2
-            actionButtonsGrid.Add(moreButton, 3, 0);     // Add to column 3
-            actionButtonsGrid.Add(commentsButton, 4, 0); // Add to column 4
+            _actionButtonsGrid.Add(shareButton, 0, 0);    // Add to column 0
+            _actionButtonsGrid.Add(saveButton, 1, 0);     // Add to column 1
+            _actionButtonsGrid.Add(hideButton, 2, 0);     // Add to column 2
+            _actionButtonsGrid.Add(moreButton, 3, 0);     // Add to column 3
+            _actionButtonsGrid.Add(commentsButton, 4, 0); // Add to column 4
 
             // Add the Grid to the main stack
-            mainStack.Children.Add(actionButtonsGrid);
+            mainStack.Children.Add(_actionButtonsGrid);
         }
 
         private async Task NewBlockRule(BlockRule blockRule)
