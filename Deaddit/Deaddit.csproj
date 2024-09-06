@@ -71,94 +71,98 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Update="MAUI\Components\MoreCommentsComponent.xaml.cs">
+	  <Compile Update="Components\MoreCommentsComponent.xaml.cs">
 	    <DependentUpon>MoreCommentsComponent.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="MAUI\Components\Partials\RedditCommentComponentBottomBar.xaml.cs">
+	  <Compile Update="Components\Partials\RedditCommentComponentBottomBar.xaml.cs">
 	    <DependentUpon>RedditCommentComponentBottomBar.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="MAUI\Components\Partials\RedditCommentComponentTopBar.xaml.cs">
+	  <Compile Update="Components\Partials\RedditCommentComponentTopBar.xaml.cs">
 	    <DependentUpon>RedditCommentComponentTopBar.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="MAUI\Pages\ObjectEditorPage.xaml.cs">
+	  <Compile Update="Pages\ObjectEditorPage.xaml.cs">
 	    <DependentUpon>ObjectEditorPage.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="MAUI\Components\SubRedditComponent.xaml.cs">
+	  <Compile Update="Components\SubRedditComponent.xaml.cs">
 	    <DependentUpon>SubRedditComponent.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="MAUI\Pages\Embedded\EmbeddedImage.xaml.cs">
+	  <Compile Update="Pages\Embedded\EmbeddedImage.xaml.cs">
 	    <DependentUpon>EmbeddedImage.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="MAUI\Pages\PostPage.xaml.cs">
+	  <Compile Update="Pages\PostPage.xaml.cs">
 	    <DependentUpon>PostPage.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="MAUI\Pages\Embedded\EmbeddedVideo.xaml.cs">
+	  <Compile Update="Pages\Embedded\EmbeddedVideo.xaml.cs">
 	    <DependentUpon>EmbeddedVideo.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="MAUI\Pages\Embedded\EmbeddedVideo.xaml.cs">
+	  <Compile Update="Pages\Embedded\EmbeddedVideo.xaml.cs">
 	    <DependentUpon>EmbeddedVideo.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="MAUI\Pages\SubRedditAboutPage.xaml.cs">
+	  <Compile Update="Pages\SubRedditAboutPage.xaml.cs">
 	    <DependentUpon>SubRedditAboutPage.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="MAUI\Pages\SubRedditAboutPage.xaml.cs">
+	  <Compile Update="Pages\SubRedditAboutPage.xaml.cs">
 	    <DependentUpon>SubRedditAboutPage.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="MAUI\Pages\SubRedditPage.xaml.cs">
+	  <Compile Update="Pages\SubRedditPage.xaml.cs">
 	    <DependentUpon>SubRedditPage.xaml</DependentUpon>
 	  </Compile>
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="MAUI\Components\MoreCommentsComponent.xaml">
+	  <MauiXaml Update="Components\MoreCommentsComponent.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="MAUI\Components\Partials\RedditCommentComponentBottomBar.xaml">
+	  <MauiXaml Update="Components\Partials\RedditCommentComponentBottomBar.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="MAUI\Components\Partials\RedditCommentComponentTopBar.xaml">
+	  <MauiXaml Update="Components\Partials\RedditCommentComponentTopBar.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="MAUI\Pages\ObjectEditorPage.xaml">
+	  <MauiXaml Update="Pages\ObjectEditorPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="MAUI\Components\SubRedditComponent.xaml">
+	  <MauiXaml Update="Components\SubRedditComponent.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="MAUI\Pages\Embedded\EmbeddedImage.xaml">
+	  <MauiXaml Update="Pages\Embedded\EmbeddedImage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="MAUI\Pages\LandingPage.xaml">
+	  <MauiXaml Update="Pages\LandingPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="MAUI\Pages\PostPage.xaml">
+	  <MauiXaml Update="Pages\PostPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="MAUI\Components\RedditCommentComponent.xaml">
+	  <MauiXaml Update="Components\RedditCommentComponent.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="MAUI\Components\RedditPostComponent.xaml">
+	  <MauiXaml Update="Components\RedditPostComponent.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="MAUI\Pages\Embedded\EmbeddedVideo.xaml">
+	  <MauiXaml Update="Pages\Embedded\EmbeddedVideo.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="MAUI\Pages\Embedded\EmbeddedBrowser.xaml">
+	  <MauiXaml Update="Pages\Embedded\EmbeddedBrowser.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="MAUI\Pages\ReplyPage.xaml">
+	  <MauiXaml Update="Pages\ReplyPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="MAUI\Pages\SelectPage.xaml">
+	  <MauiXaml Update="Pages\SelectPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="MAUI\Pages\SubRedditAboutPage.xaml">
+	  <MauiXaml Update="Pages\SubRedditAboutPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="MAUI\Pages\Interfaces\" />
+	  <Folder Include="Pages\Interfaces\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Deaddit.Core\Deaddit.Core.csproj" />
 	</ItemGroup>
 
 </Project>

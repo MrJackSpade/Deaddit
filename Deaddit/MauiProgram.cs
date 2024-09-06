@@ -1,13 +1,14 @@
 ﻿using CommunityToolkit.Maui;
-using Deaddit.Configurations.Interfaces;
-using Deaddit.Configurations.Models;
 using Deaddit.Configurations.Services;
 using Deaddit.Configurations.Services.Extensions;
-using Deaddit.Interfaces;
-using Deaddit.MAUI.Pages;
-using Deaddit.Reddit;
-using Deaddit.Reddit.Interfaces;
-using Deaddit.Services;
+using Deaddit.Core.Configurations.Interfaces;
+using Deaddit.Core.Configurations.Models;
+using Deaddit.Core.Interfaces;
+using Deaddit.Core.Reddit;
+using Deaddit.Core.Reddit.Interfaces;
+using Deaddit.Core.Utils;
+using Deaddit.Pages;
+using Deaddit.Utils;
 using Microsoft.Extensions.Logging;
 
 namespace Deaddit

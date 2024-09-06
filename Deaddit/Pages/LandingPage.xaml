@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Deaddit.Pages.LandingPage"
+             BackgroundColor="{Binding TertiaryColor}">
+    <VerticalStackLayout
+        x:Name="mainStack">
+        <Grid Padding="0"
+              Row="0"
+              x:Name="navigationBar"
+              BackgroundColor="{Binding PrimaryColor}">
+
+            <Button Text="&#x2699;"
+                    x:Name="menuButton"
+                    Background="Transparent"
+                    TextColor="{Binding TextColor}"
+                    VerticalOptions="Center"
+                    HorizontalOptions="Start"
+                    Clicked="OnMenuClicked" />
+
+            <!-- Right Gear Button -->
+            <Button Text="&#10133;"
+                    x:Name="settingsButton"
+                    VerticalOptions="Center"
+                    TextColor="{Binding TextColor}"
+                    HorizontalOptions="End"
+                    Background="Transparent"
+                    Clicked="OnAddClicked" />
+        </Grid>
+    </VerticalStackLayout>
+</ContentPage>

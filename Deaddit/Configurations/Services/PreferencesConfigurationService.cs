@@ -1,11 +1,11 @@
-﻿using Deaddit.Configurations.Interfaces;
+﻿using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Json.Converters;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Deaddit.Configurations.Services
 {
-    internal class PreferencesConfigurationService : IConfigurationService
+    public class PreferencesConfigurationService : IConfigurationService
     {
         private readonly JsonSerializerOptions _options;
 
