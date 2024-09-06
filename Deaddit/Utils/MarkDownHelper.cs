@@ -89,10 +89,9 @@ namespace Deaddit.Utils
 
         public static bool IsCodeBlock(string line, out bool isSingleLineCodeBlock)
         {
-            string trimmedLine = line.Trim();
-            isSingleLineCodeBlock = trimmedLine.Count(x => x == '`') >= 6 && trimmedLine.EndsWith("```", StringComparison.Ordinal);
+            isSingleLineCodeBlock = true;
 
-            return trimmedLine.StartsWith("```", StringComparison.Ordinal);
+            return line.StartsWith("    ");
         }
 
         public static bool IsHeadline(string line, out int level)
@@ -129,8 +128,13 @@ namespace Deaddit.Utils
             return trimmedLine.StartsWith("![");
         }
 
-        public static bool IsMarkDown(string input)
+        public static bool IsMarkDown(string? input)
         {
+            if(input is null)
+            {
+                return false;              
+            }
+
             string[] lines = Regex.Split(input, @"\r\n?|\n", RegexOptions.Compiled);
 
             lines = lines.Where(line => !string.IsNullOrEmpty(line)).ToArray();

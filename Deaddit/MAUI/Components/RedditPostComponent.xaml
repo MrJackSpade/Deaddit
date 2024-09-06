@@ -4,14 +4,7 @@
              x:Class="Deaddit.MAUI.Components.RedditPostComponent"
              HorizontalOptions="FillAndExpand"
              VerticalOptions="FillAndExpand"
-             xmlns:components="clr-namespace:Deaddit.MAUI.Components"
-             xmlns:converters="clr-namespace:Deaddit.MAUI.Converters">
-
-    <ContentView.Resources>
-        <ResourceDictionary>
-            <converters:MultiplyConverter x:Key="MultiplyConverter" />
-        </ResourceDictionary>
-    </ContentView.Resources>
+             xmlns:components="clr-namespace:Deaddit.MAUI.Components">
     <VerticalStackLayout VerticalOptions="StartAndExpand" x:Name="mainStack">
         <!-- Define the grid with three columns: auto for the thumbnail, star (*) for the title, auto for the vote stack -->
         <Grid
@@ -61,30 +54,22 @@
 
             <!-- Vote Stack -->
             <Grid
-            x:Name="voteStack"
-            Grid.Column="2"
-            WidthRequest="50"
-            VerticalOptions="Center">
-
-                <!-- StackLayout for the vote buttons and score -->
-                <StackLayout
-                Orientation="Vertical"
-                MinimumHeightRequest="{Binding MinHeight}"
+                x:Name="voteStack"
                 WidthRequest="50"
-                VerticalOptions="Center"
-                Padding="0"
-                Margin="0"
-                Spacing="0">
+                Grid.Column="2"
+                RowDefinitions="auto, auto, *"
+                VerticalOptions="Start">
 
-                    <!-- Upvote Button -->
+                <!-- Upvote Button -->
                     <Label
                     Text="▲"
                     BackgroundColor="Transparent"
                     Margin="0"
                     Padding="0"
+                    Grid.Row="0"
                     HorizontalOptions="Center"
-                    VerticalOptions="Center"
-                    TextColor="{Binding UpvoteButtonColor}">
+                    VerticalOptions="Start"
+                    x:Name="upvoteButton">
                         <Label.GestureRecognizers>
                             <TapGestureRecognizer Tapped="OnUpvoteClicked" />
                         </Label.GestureRecognizers>
@@ -92,24 +77,26 @@
 
                     <!-- Score Label -->
                     <Label
-                    Text="{Binding Score}"
-                    HorizontalTextAlignment="Center"
-                    TextColor="{Binding VoteIndicatorTextColor}" />
+                    Grid.Row="1"
+                    x:Name="scoreLabel"
+                    VerticalTextAlignment="Center"
+                    HorizontalTextAlignment="Center" />
 
                     <!-- Downvote Button -->
                     <Label
                     Text="▼"
+                    Grid.Row="2"
                     BackgroundColor="Transparent"
                     Margin="0"
                     Padding="0"
+                    VerticalTextAlignment="Start"
                     HorizontalOptions="Center"
-                    VerticalOptions="Center"
-                    TextColor="{Binding DownvoteButtonColor}">
+                    VerticalOptions="Start"
+                    x:Name="downvoteButton">
                         <Label.GestureRecognizers>
                             <TapGestureRecognizer Tapped="OnDownvoteClicked" />
                         </Label.GestureRecognizers>
                     </Label>
-                </StackLayout>
             </Grid>
         </Grid>
     </VerticalStackLayout>

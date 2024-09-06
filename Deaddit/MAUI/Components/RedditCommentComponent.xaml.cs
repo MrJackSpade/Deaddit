@@ -40,11 +40,11 @@ namespace Deaddit.MAUI.Components
 
         private readonly VisualElement commentBody;
 
-        private RedditCommentComponentBottomBar _bottomBar;
+        private RedditCommentComponentBottomBar? _bottomBar;
 
-        private VerticalStackLayout _replies;
+        private VerticalStackLayout? _replies;
 
-        private RedditCommentComponentTopBar _topBar;
+        private RedditCommentComponentTopBar? _topBar;
 
         private RedditCommentComponent(ApiComment comment, ApiPost post, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
@@ -116,7 +116,7 @@ namespace Deaddit.MAUI.Components
             this.UpdateMetaData();
         }
 
-        public event EventHandler<OnDeleteClickedEventArgs> OnDelete;
+        public event EventHandler<OnDeleteClickedEventArgs>? OnDelete;
 
         public bool SelectEnabled { get; private set; }
 
@@ -197,6 +197,12 @@ namespace Deaddit.MAUI.Components
                 _comment.Score++;
                 this.SetIndicatorState(UpvoteState.None);
                 _redditClient.SetUpvoteState(_comment, UpvoteState.None);
+            }
+            else if (_comment.Likes == UpvoteState.Upvote)
+            {
+                _comment.Score -= 2;
+                this.SetIndicatorState(UpvoteState.Downvote);
+                _redditClient.SetUpvoteState(_comment, UpvoteState.Downvote);
             }
             else
             {
@@ -297,6 +303,11 @@ namespace Deaddit.MAUI.Components
                 _comment.Score--;
                 this.SetIndicatorState(UpvoteState.None);
                 _redditClient.SetUpvoteState(_comment, UpvoteState.None);
+            } else if (_comment.Likes == UpvoteState.Downvote)
+            {
+                _comment.Score += 2;
+                this.SetIndicatorState(UpvoteState.Upvote);
+                _redditClient.SetUpvoteState(_comment, UpvoteState.Upvote);
             }
             else
             {

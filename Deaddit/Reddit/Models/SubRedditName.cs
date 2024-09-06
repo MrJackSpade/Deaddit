@@ -12,6 +12,7 @@ namespace Deaddit.Reddit.Models
             {
                 DisplayName = "Home";
                 RootedName = "";
+                return;
             }
 
             name = name.Trim('/');

@@ -3,7 +3,6 @@ using Deaddit.Configurations.Models;
 using Deaddit.Exceptions;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
-using Deaddit.MAUI.Components.ComponentModels;
 using Deaddit.MAUI.EventArguments;
 using Deaddit.MAUI.Extensions;
 using Deaddit.MAUI.Pages;
@@ -32,8 +31,6 @@ namespace Deaddit.MAUI.Components
 
         private readonly ApiPost _post;
 
-        private readonly RedditPostComponentViewModel _postViewModel;
-
         private readonly IRedditClient _redditClient;
 
         private readonly SelectionGroup _selectionGroup;
@@ -53,73 +50,14 @@ namespace Deaddit.MAUI.Components
             _visitTracker = visitTracker;
             _post = post;
             _isPreview = isPreview;
-            _configurationService = configurationService;
 
-            SelectEnabled = isPreview;
-
-            BindingContext = _postViewModel = new RedditPostComponentViewModel(post, applicationTheme);
-            this.InitializeComponent();
-            timeUserLabel.IsVisible = !isPreview;
-
-            Opacity = isPreview && visitTracker.HasVisited(post) ? applicationTheme.VisitedOpacity : 1;
-
-            mainGrid.MinimumHeightRequest = applicationTheme.ThumbnailSize;
-            mainGrid.BackgroundColor = applicationTheme.SecondaryColor;
-
-            thumbnailImage.HeightRequest = applicationTheme.ThumbnailSize;
-            thumbnailImage.WidthRequest = applicationTheme.ThumbnailSize;
-            thumbnailImage.Source = post.TryGetPreview();
-
-            titleLabel.Text = applicationHacks.CleanTitle(post.Title);
-            titleLabel.TextColor = applicationTheme.TextColor;
-
-            string cleanedLinkFlair = applicationHacks.CleanFlair(_post.LinkFlairText);
-
-            if (!string.IsNullOrWhiteSpace(cleanedLinkFlair))
-            {
-                // Create the label
-                var linkFlairLabel = new Label
-                {
-                    HorizontalOptions = LayoutOptions.Fill,
-                    Margin = new Thickness(2),
-                    Text = applicationHacks.CleanFlair(_post.LinkFlairText),
-                    BackgroundColor = _applicationTheme.PrimaryColor,
-                    FontSize = _applicationTheme.FontSize * 0.75,
-                    TextColor = _post.LinkFlairBackgroundColor ?? _applicationTheme.TextColor
-                };
-
-                // Create the border
-                var linkFlairBorder = new Border
-                {
-                    StrokeThickness = 1,
-                    StrokeShape = new RoundRectangle { CornerRadius = new CornerRadius(3) },
-                    Margin = new Thickness(0, 0, 10, 0),
-                    HorizontalOptions = LayoutOptions.Start,
-                    BackgroundColor = _applicationTheme.PrimaryColor,
-                    IsVisible = !string.IsNullOrWhiteSpace(_post.LinkFlairText),
-                    Content = linkFlairLabel // Add the label inside the border
-                };
-
-                if (_post.LinkFlairBackgroundColor is not null)
-                {
-                    linkFlairBorder.Stroke = _post.LinkFlairBackgroundColor;
-                }
-
-                titleStack.InsertAfter(titleLabel, linkFlairBorder);
-            }
-
-            metaDataLabel.Text = $"{_post.NumComments} comments {_post.SubReddit}";
-            metaDataLabel.FontSize = _applicationTheme.FontSize * 0.75;
-            metaDataLabel.TextColor = _applicationTheme.SubTextColor;
-
-            if (!_post.IsSelf && Uri.TryCreate(_post.Url, UriKind.Absolute, out Uri result))
-            {
-                metaDataLabel.Text += $" ({result.Host})";
-            }
-
-            timeUserLabel.Text = $"{_post.CreatedUtc.Elapsed()} by {_post.Author}";
-            timeUserLabel.FontSize = _applicationTheme.FontSize * 0.75;
-            timeUserLabel.TextColor = _applicationTheme.SubTextColor;
+            this.InitializePostComponent(isPreview);
+            this.SetImageThumbnail(post, applicationTheme);
+            this.SetTitleLabel(post, applicationHacks, applicationTheme);
+            this.SetLinkFlair(post, applicationHacks, applicationTheme);
+            this.SetMetaDataLabel(post, applicationTheme);
+            this.SetTimeUserLabel(post, isPreview, applicationTheme);
+            this.SetVoteStack(post, applicationTheme);
         }
 
         public event EventHandler<BlockRule>? BlockAdded;
@@ -160,19 +98,20 @@ namespace Deaddit.MAUI.Components
             if (_post.Likes == UpvoteState.Downvote)
             {
                 _post.Likes = UpvoteState.None;
-                _postViewModel.TryAdjustScore(1);
-            } else if (_post.Likes == UpvoteState.Upvote)
+                _post.Score++;
+            }
+            else if (_post.Likes == UpvoteState.Upvote)
             {
                 _post.Likes = UpvoteState.Downvote;
-                _postViewModel.TryAdjustScore(-2);
+                _post.Score -= 2;
             }
             else
             {
                 _post.Likes = UpvoteState.Downvote;
-                _postViewModel.TryAdjustScore(-1);
+                _post.Score--;
             }
 
-            _postViewModel.SetUpvoteState(_post.Likes);
+            this.UpdateScoreIndicator();
             _redditClient.SetUpvoteState(_post, _post.Likes);
         }
 
@@ -288,20 +227,20 @@ namespace Deaddit.MAUI.Components
             if (_post.Likes == UpvoteState.Upvote)
             {
                 _post.Likes = UpvoteState.None;
-                _postViewModel.TryAdjustScore(-1);
+                _post.Score--;
             }
             else if (_post.Likes == UpvoteState.Downvote)
             {
                 _post.Likes = UpvoteState.Upvote;
-                _postViewModel.TryAdjustScore(2);
+                _post.Score += 2;
             }
             else
             {
                 _post.Likes = UpvoteState.Upvote;
-                _postViewModel.TryAdjustScore(1);
+                _post.Score++;
             }
 
-            _postViewModel.SetUpvoteState(_post.Likes);
+            this.UpdateScoreIndicator();
             _redditClient.SetUpvoteState(_post, _post.Likes);
         }
 
@@ -412,6 +351,18 @@ namespace Deaddit.MAUI.Components
             mainStack.Children.Add(_actionButtonsGrid);
         }
 
+        private void InitializePostComponent(bool isPreview)
+        {
+            SelectEnabled = isPreview;
+            this.InitializeComponent();
+            timeUserLabel.IsVisible = !isPreview;
+
+            Opacity = isPreview && _visitTracker.HasVisited(_post) ? _applicationTheme.VisitedOpacity : 1;
+
+            mainGrid.MinimumHeightRequest = _applicationTheme.ThumbnailSize;
+            mainGrid.BackgroundColor = _applicationTheme.SecondaryColor;
+        }
+
         private async Task NewBlockRule(BlockRule blockRule)
         {
             ObjectEditorPage objectEditorPage = new(blockRule, _applicationTheme);
@@ -424,6 +375,98 @@ namespace Deaddit.MAUI.Components
         private void OnParentTapped(object? sender, TappedEventArgs e)
         {
             _selectionGroup.Toggle(this);
+        }
+
+        private void SetImageThumbnail(ApiPost post, ApplicationStyling applicationTheme)
+        {
+            thumbnailImage.HeightRequest = applicationTheme.ThumbnailSize;
+            thumbnailImage.WidthRequest = applicationTheme.ThumbnailSize;
+
+            string imageUrl = post.TryGetPreview();
+            if (Uri.TryCreate(imageUrl, UriKind.Absolute, out Uri? imageUri))
+            {
+                thumbnailImage.Source = StreamImageSource.FromStream(async (c) => await ImageHelper.ResizeAndCropImageFromUrlAsync(imageUrl, _applicationTheme.ThumbnailSize));
+            }
+        }
+
+        private void SetLinkFlair(ApiPost post, ApplicationHacks applicationHacks, ApplicationStyling applicationTheme)
+        {
+            string cleanedLinkFlair = applicationHacks.CleanFlair(post.LinkFlairText);
+
+            if (!string.IsNullOrWhiteSpace(cleanedLinkFlair))
+            {
+                Label linkFlairLabel = new()
+                {
+                    HorizontalOptions = LayoutOptions.Fill,
+                    Margin = new Thickness(2),
+                    Text = cleanedLinkFlair,
+                    BackgroundColor = applicationTheme.PrimaryColor,
+                    FontSize = applicationTheme.FontSize * 0.75,
+                    TextColor = post.LinkFlairBackgroundColor ?? applicationTheme.TextColor
+                };
+
+                Border linkFlairBorder = new()
+                {
+                    StrokeThickness = 1,
+                    StrokeShape = new RoundRectangle { CornerRadius = new CornerRadius(3) },
+                    Margin = new Thickness(0, 0, 10, 0),
+                    HorizontalOptions = LayoutOptions.Start,
+                    BackgroundColor = applicationTheme.PrimaryColor,
+                    IsVisible = !string.IsNullOrWhiteSpace(post.LinkFlairText),
+                    Content = linkFlairLabel
+                };
+
+                if (post.LinkFlairBackgroundColor is not null)
+                {
+                    linkFlairBorder.Stroke = post.LinkFlairBackgroundColor;
+                }
+
+                titleStack.InsertAfter(titleLabel, linkFlairBorder);
+            }
+        }
+
+        private void SetMetaDataLabel(ApiPost post, ApplicationStyling applicationTheme)
+        {
+            metaDataLabel.Text = $"{post.NumComments} comments {post.SubReddit}";
+            metaDataLabel.FontSize = applicationTheme.FontSize * 0.75;
+            metaDataLabel.TextColor = applicationTheme.SubTextColor;
+
+            if (!post.IsSelf && Uri.TryCreate(post.Url, UriKind.Absolute, out Uri result))
+            {
+                metaDataLabel.Text += $" ({result.Host})";
+            }
+        }
+
+        private void SetTimeUserLabel(ApiPost post, bool isPreview, ApplicationStyling applicationTheme)
+        {
+            timeUserLabel.Text = $"{post.CreatedUtc.Elapsed()} by {post.Author}";
+            timeUserLabel.FontSize = applicationTheme.FontSize * 0.75;
+            timeUserLabel.TextColor = applicationTheme.SubTextColor;
+        }
+
+        private void SetTitleLabel(ApiPost post, ApplicationHacks applicationHacks, ApplicationStyling applicationTheme)
+        {
+            titleLabel.Text = applicationHacks.CleanTitle(post.Title);
+            titleLabel.TextColor = applicationTheme.TextColor;
+        }
+
+        private void SetVoteStack(ApiPost post, ApplicationStyling applicationTheme)
+        {
+            voteStack.HeightRequest = applicationTheme.ThumbnailSize;
+            this.UpdateScoreIndicator();
+        }
+
+        private void UpdateScoreIndicator()
+        {
+            scoreLabel.Text = _post.Score.ToString();
+            scoreLabel.TextColor = _post.Likes switch
+            {
+                UpvoteState.Upvote => _applicationTheme.UpvoteColor,
+                UpvoteState.Downvote => _applicationTheme.DownvoteColor,
+                _ => _applicationTheme.TextColor
+            };
+            downvoteButton.TextColor = _post.Likes == UpvoteState.Downvote ? _applicationTheme.DownvoteColor : _applicationTheme.TextColor;
+            upvoteButton.TextColor = _post.Likes == UpvoteState.Upvote ? _applicationTheme.UpvoteColor : _applicationTheme.TextColor;
         }
     }
 }
