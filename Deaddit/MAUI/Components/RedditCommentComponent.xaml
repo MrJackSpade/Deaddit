@@ -36,7 +36,8 @@
             <Label
                     x:Name="authorLabel"
                     Grid.Column="1"
-                    VerticalOptions="Center"
+                    VerticalTextAlignment="End"
+                    VerticalOptions="FillAndExpand"
                     HorizontalOptions="Start"
                     LineHeight="1"
                     Margin="5,0,0,0"
@@ -45,9 +46,10 @@
             <!-- Meta Data -->
             <Label
                     Grid.Column="3"
-                    Padding="10,0,0,0"
+                    Padding="10,0,3,0"
+                    VerticalTextAlignment="End"
                     LineHeight="1"
-                    VerticalOptions="Center"
+                    VerticalOptions="FillAndExpand"
                     x:Name="metaDataLabel"
                     HorizontalOptions="End"></Label>
         </Grid>

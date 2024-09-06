@@ -1,5 +1,6 @@
 ﻿using Deaddit.Configurations.Models;
 using Deaddit.Exceptions;
+using Deaddit.Utils;
 
 namespace Deaddit.Extensions
 {
@@ -72,14 +73,14 @@ namespace Deaddit.Extensions
         private static string RemoveEmojis(string input)
         {
             // Unicode ranges for most emojis
-            System.Text.RegularExpressions.Regex emojiRegex = new(@"[\uD83C-\uDBFF\uDC00-\uDFFF]+");
+            System.Text.RegularExpressions.Regex emojiRegex = EmojiRegex.EMOJI_REGEXP;
             return emojiRegex.Replace(input, string.Empty).Trim();
         }
 
         private static string StripTags(string flair)
         {
             // Regular expression to match alphanumeric strings (and underscores) between colons
-            return System.Text.RegularExpressions.Regex.Replace(flair, @":\w+:", string.Empty).Trim();
+            return System.Text.RegularExpressions.Regex.Replace(flair, @":[a-zA-Z0-9\-_]*:", string.Empty).Trim();
         }
     }
 }
