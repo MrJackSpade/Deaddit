@@ -386,7 +386,9 @@ namespace Deaddit.MAUI.Components
                 TextColor = CodeBlockTextColor,
                 BackgroundColor = Colors.Transparent
             };
+
             contentLabel = content;
+
             return new Frame
             {
                 Padding = new Thickness(10),
@@ -608,7 +610,7 @@ namespace Deaddit.MAUI.Components
                 FontFamily = BlockQuoteFontFace,
                 HorizontalOptions = LayoutOptions.Fill,
                 VerticalOptions = LayoutOptions.Center,
-                Padding = new Thickness(5)
+                Padding = new Thickness(5,0,0,0)
             };
 
             Grid blockQuoteGrid = new()
@@ -617,7 +619,7 @@ namespace Deaddit.MAUI.Components
                 ColumnSpacing = 0,
                 ColumnDefinitions =
                 {
-                    new ColumnDefinition { Width = 5 },
+                    new ColumnDefinition { Width = 2 },
                     new ColumnDefinition { Width = GridLength.Star }
                 }
             };

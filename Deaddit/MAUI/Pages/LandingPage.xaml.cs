@@ -6,6 +6,7 @@ using Deaddit.MAUI.Pages.Models;
 using Deaddit.Reddit.Interfaces;
 using Deaddit.Reddit.Models;
 using Deaddit.Utils;
+using System.Reflection;
 
 namespace Deaddit.MAUI.Pages
 {
@@ -106,6 +107,7 @@ namespace Deaddit.MAUI.Pages
 
         private void EditorPage_OnSave(object? sender, ObjectEditorSaveEventArgs e)
         {
+            _configurationService.Write(_appConfiguration.ApplicationHacks);
             _configurationService.Write(_appConfiguration.Credentials);
             _configurationService.Write(_appConfiguration.BlockConfiguration);
             _configurationService.Write(_appConfiguration.Styling);

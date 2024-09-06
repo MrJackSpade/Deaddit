@@ -49,9 +49,9 @@
             Grid.Row="1"
             Scrolled="ScrollView_Scrolled">
             <VerticalStackLayout
-    x:Name="mainStack"
-    Padding="0"
-    Spacing="0">
+                x:Name="mainStack"
+                Padding="0"
+                Spacing="0">
                 <Grid BackgroundColor="{Binding SecondaryColor}" ColumnDefinitions="*,*,*,*,*">
                     <Button
                     Text="Hot"

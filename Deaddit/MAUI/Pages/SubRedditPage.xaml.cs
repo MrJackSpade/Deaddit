@@ -34,6 +34,8 @@ namespace Deaddit.MAUI.Pages
 
         private readonly IRedditClient _redditClient;
 
+        private readonly SemaphoreSlim _reloadSemaphore = new(1);
+
         private readonly SelectionGroup _selectionGroup;
 
         private readonly SubRedditName _subreddit;
@@ -99,7 +101,11 @@ namespace Deaddit.MAUI.Pages
 
         public async void OnReloadClicked(object? sender, EventArgs e)
         {
-            await this.Reload();
+            if (_reloadSemaphore.Wait(0))
+            {
+                await this.Reload();
+                _reloadSemaphore.Release();
+            }
         }
 
         public async void OnSettingsClicked(object? sender, EventArgs e)
