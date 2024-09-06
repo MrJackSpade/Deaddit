@@ -3,6 +3,7 @@ using Deaddit.Configurations.Models;
 using Deaddit.Extensions;
 using Deaddit.MAUI.Components;
 using Deaddit.MAUI.EventArguments;
+using Deaddit.MAUI.Extensions;
 using Deaddit.MAUI.Pages.Models;
 using Deaddit.Reddit.Interfaces;
 using Deaddit.Reddit.Models;
@@ -10,7 +11,6 @@ using Deaddit.Reddit.Models.Api;
 using Deaddit.Services;
 using Deaddit.Utils;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Deaddit.MAUI.Pages
 {
@@ -30,7 +30,7 @@ namespace Deaddit.MAUI.Pages
         /// Prevents more than one active loading/scrolling thread, because for some reason
         /// Monitor.Enter on a lock allows more than one thread to pass through.
         /// </summary>
-        private readonly SemaphoreSlim _loadSemaphore = new(1);
+        private readonly SemaphoreSlim _scrollSemaphore = new(1);
 
         private readonly IRedditClient _redditClient;
 
@@ -41,9 +41,6 @@ namespace Deaddit.MAUI.Pages
         private readonly SubRedditName _subreddit;
 
         private readonly IVisitTracker _visitTracker;
-
-        [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members")]
-        private Thread? _loadThread = null;
 
         private ApiPostSort _sort;
 
@@ -114,27 +111,101 @@ namespace Deaddit.MAUI.Pages
             await this.TryLoad();
         }
 
+        double _lastScroll;
+
+        public async Task ScrollDown(ScrolledEventArgs e)
+        {
+
+            int lastIndex = mainStack.Children.Count - 1;
+
+            if (WindowInLoadRange)
+            {
+                await this.TryLoad();
+            }
+            else if (Math.Abs(_lastRefresh - e.ScrollY) < _applicationTheme.ThumbnailSize)
+            {
+                return;
+            }
+
+            _lastRefresh = e.ScrollY;
+
+            List<RedditPostComponent> children = [.. mainStack.Children.OfType<RedditPostComponent>()];
+
+            for (int i = lastIndex - 1; i >= 0; i--)
+            {
+                RedditPostComponent child = children[i];
+
+                ViewPosition viewPosition = scrollView.Position(child, scrollView.Height);
+
+                switch (viewPosition)
+                {
+                    case ViewPosition.Above:
+                        if (!child.Deinitialize())
+                        {
+                            return;
+                        }
+
+                        break;
+                    case ViewPosition.Below:
+                    case ViewPosition.Unknown:
+                        continue;
+                    case ViewPosition.Within:
+                        child.Initialize();
+                        break;
+                }
+            }
+        }
+
+        private double _lastRefresh;
+
+        public void ScrollUp(ScrolledEventArgs e)
+        {
+            if (Math.Abs(_lastRefresh - e.ScrollY) < _applicationTheme.ThumbnailSize)
+            {
+                return;
+            }
+
+            _lastRefresh = e.ScrollY;
+
+            List<RedditPostComponent> children = [.. mainStack.Children.OfType<RedditPostComponent>()];
+
+            for (int i = children.Count - 1; i >= 0; i--)
+            {
+                RedditPostComponent child = children[i];
+
+                ViewPosition position = scrollView.Position(child, scrollView.Height);
+
+                switch (position)
+                {
+                    case ViewPosition.Above:
+                        return;
+                    case ViewPosition.Below:
+                        child.Deinitialize();
+                        break;
+                    case ViewPosition.Within:
+                        child.Initialize();
+                        break;
+                }
+            }
+        }
+
         public async void ScrollView_Scrolled(object? sender, ScrolledEventArgs e)
         {
-            if (_loadSemaphore.Wait(0))
+            if (_scrollSemaphore.Wait(0))
             {
-                if (WindowInLoadRange)
+
+                if (e.ScrollY < _lastScroll)
                 {
-                    //_loadThread = new(async () =>
-                    //{
-                    await this.TryLoad();
-
-                    _loadThread = null;
-
-                    _loadSemaphore.Release();
-                    //});
-
-                    //_loadThread.Start();
+                    this.ScrollUp(e);
                 }
                 else
                 {
-                    _loadSemaphore.Release();
+                    await this.ScrollDown(e);
                 }
+
+                _lastScroll = e.ScrollY;
+
+                _scrollSemaphore.Release();
             }
         }
 

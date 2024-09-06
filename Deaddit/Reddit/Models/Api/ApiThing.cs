@@ -135,7 +135,7 @@ namespace Deaddit.Reddit.Models.Api
         public string? Permalink { get; init; }
 
         [JsonPropertyName("removal_reason")]
-        public object? RemovalReason { get; init; }
+        public RemovalReason RemovalReason { get; init; }
 
         [JsonPropertyName("report_reasons")]
         public List<string> ReportReasons { get; init; } = [];
