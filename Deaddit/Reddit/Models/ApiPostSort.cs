@@ -23,6 +23,9 @@ namespace Deaddit.Reddit.Models
         Controversial = 5,
 
         [EnumMember(Value = "confidence")]
-        Confidence = 6
+        Confidence = 6,
+
+        [EnumMember(Value = "qa")]
+        Qa = 6
     }
 }

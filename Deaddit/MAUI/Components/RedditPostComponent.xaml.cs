@@ -1,4 +1,4 @@
-using Deaddit.Configurations.Interfaces;
+﻿using Deaddit.Configurations.Interfaces;
 using Deaddit.Configurations.Models;
 using Deaddit.Exceptions;
 using Deaddit.Extensions;
@@ -39,6 +39,30 @@ namespace Deaddit.MAUI.Components
 
         private Grid _actionButtonsGrid;
 
+        private Stream? _cachedImageStream;
+
+        private Label downvoteButton;
+
+        private Grid mainGrid;
+
+        private VerticalStackLayout mainStack;
+
+        private Label metaDataLabel;
+
+        private Label scoreLabel;
+
+        private ImageButton thumbnailImage;
+
+        private Label timeUserLabel;
+
+        private Label titleLabel;
+
+        private VerticalStackLayout titleStack;
+
+        private Label upvoteButton;
+
+        private Grid voteStack;
+
         private RedditPostComponent(ApiPost post, bool isPreview, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             _configurationService = configurationService;
@@ -51,18 +75,14 @@ namespace Deaddit.MAUI.Components
             _post = post;
             _isPreview = isPreview;
 
-            this.InitializePostComponent(isPreview);
-            this.SetImageThumbnail(post, applicationTheme);
-            this.SetTitleLabel(post, applicationHacks, applicationTheme);
-            this.SetLinkFlair(post, applicationHacks, applicationTheme);
-            this.SetMetaDataLabel(post, applicationTheme);
-            this.SetTimeUserLabel(post, isPreview, applicationTheme);
-            this.SetVoteStack(post, applicationTheme);
+            this.Initialize();
         }
 
         public event EventHandler<BlockRule>? BlockAdded;
 
         public event EventHandler<OnHideClickedEventArgs>? HideClicked;
+
+        public bool IsInitialized { get; private set; }
 
         public bool Selected { get; private set; }
 
@@ -78,6 +98,44 @@ namespace Deaddit.MAUI.Components
         {
             RedditPostComponent toReturn = new(post, false, redditClient, applicationTheme, applicationHacks, visitTracker, selectionTracker, blockConfiguration, configurationService);
             return toReturn;
+        }
+
+        public bool Deinitialize()
+        {
+            if (!IsInitialized)
+            {
+                return false;
+            }
+
+            HeightRequest = Height;
+
+            IsInitialized = false;
+
+            Content = null;
+
+            return true;
+        }
+
+        public bool Initialize()
+        {
+            if (IsInitialized)
+            {
+                return false;
+            }
+
+            IsInitialized = true;
+
+            this.InitializePostComponent(_isPreview);
+            this.SetImageThumbnail(_post, _applicationTheme);
+            this.SetTitleLabel(_post, _applicationHacks, _applicationTheme);
+            this.SetLinkFlair(_post, _applicationHacks, _applicationTheme);
+            this.SetMetaDataLabel(_post, _applicationTheme);
+            this.SetTimeUserLabel(_post, _isPreview, _applicationTheme);
+            this.SetVoteStack(_post, _applicationTheme);
+
+            HeightRequest = -1;
+
+            return true;
         }
 
         public async void OnCommentsClicked(object? sender, EventArgs e)
@@ -275,6 +333,28 @@ namespace Deaddit.MAUI.Components
             }
         }
 
+        private async Task<Stream> GetImageStream(CancellationToken c)
+        {
+            if (_cachedImageStream is null)
+            {
+                string? imageUrl = _post.TryGetPreview();
+                if (Uri.TryCreate(imageUrl, UriKind.Absolute, out Uri? imageUri))
+                {
+                    Stream rawStream = await ImageHelper.ResizeAndCropImageFromUrlAsync(imageUrl, _applicationTheme.ThumbnailSize);
+
+                    _cachedImageStream = new PersistentStream(rawStream);
+                }
+            }
+
+            if (_cachedImageStream is null)
+            {
+                return null;
+            }
+
+            _cachedImageStream.Seek(0, SeekOrigin.Begin);
+            return _cachedImageStream;
+        }
+
         private void InitActionButtons()
         {
             // Initialize the Grid (actionButtonsGrid)
@@ -354,11 +434,135 @@ namespace Deaddit.MAUI.Components
         private void InitializePostComponent(bool isPreview)
         {
             SelectEnabled = isPreview;
-            this.InitializeComponent();
+
+            mainStack = new()
+            {
+                VerticalOptions = LayoutOptions.StartAndExpand
+            };
+
+            mainGrid = new()
+            {
+                ColumnDefinitions =
+                [
+                    new ColumnDefinition { Width = new GridLength(0, GridUnitType.Auto) },
+                    new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) },
+                    new ColumnDefinition { Width = new GridLength(0, GridUnitType.Auto) }
+                ],
+                Margin = new Thickness(0),
+                Padding = new Thickness(0)
+            };
+
+            // Thumbnail Image
+            thumbnailImage = new()
+            {
+                Aspect = Aspect.AspectFill,
+                Margin = new Thickness(0),
+                VerticalOptions = LayoutOptions.Start
+            };
+            thumbnailImage.Clicked += this.OnThumbnailImageClicked;
+            mainGrid.Children.Add(thumbnailImage);
+            Grid.SetColumn(thumbnailImage, 0);
+
+            // Title and MetaData Stack
+            titleStack = new()
+            {
+                HorizontalOptions = LayoutOptions.FillAndExpand,
+                VerticalOptions = LayoutOptions.FillAndExpand,
+                Margin = new Thickness(0),
+                Padding = new Thickness(8, 3, 3, 3)
+            };
+
+            TapGestureRecognizer titleTap = new();
+            titleTap.Tapped += this.OnParentTapped;
+            titleStack.GestureRecognizers.Add(titleTap);
+
+            titleLabel = new()
+            {
+                HorizontalOptions = LayoutOptions.StartAndExpand,
+                LineBreakMode = LineBreakMode.WordWrap,
+                VerticalOptions = LayoutOptions.Center
+            };
+            titleStack.Children.Add(titleLabel);
+
+            metaDataLabel = new()
+            {
+                VerticalOptions = LayoutOptions.FillAndExpand,
+                Padding = new Thickness(0, 0, 0, 0)
+            };
+            titleStack.Children.Add(metaDataLabel);
+
+            timeUserLabel = new()
+            {
+                IsVisible = false,
+                VerticalOptions = LayoutOptions.FillAndExpand,
+                Padding = new Thickness(0, 0, 0, 0)
+            };
+            titleStack.Children.Add(timeUserLabel);
+
+            mainGrid.Children.Add(titleStack);
+            Grid.SetColumn(titleStack, 1);
+
+            // Vote Stack
+            voteStack = new()
+            {
+                WidthRequest = 50,
+                RowDefinitions =
+                [
+                    new RowDefinition { Height = new GridLength(0, GridUnitType.Auto) },
+                    new RowDefinition { Height = new GridLength(0, GridUnitType.Auto) },
+                    new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }
+                ],
+                VerticalOptions = LayoutOptions.Start
+            };
+
+            upvoteButton = new()
+            {
+                Text = "▲",
+                BackgroundColor = Colors.Transparent,
+                Margin = new Thickness(0),
+                Padding = new Thickness(0),
+                HorizontalOptions = LayoutOptions.Center,
+                VerticalOptions = LayoutOptions.Start
+            };
+
+            TapGestureRecognizer upvoteTap = new();
+            upvoteTap.Tapped += this.OnUpvoteClicked;
+            upvoteButton.GestureRecognizers.Add(upvoteTap);
+            voteStack.Children.Add(upvoteButton);
+            Grid.SetRow(upvoteButton, 0);
+
+            scoreLabel = new()
+            {
+                VerticalTextAlignment = TextAlignment.Center,
+                HorizontalTextAlignment = TextAlignment.Center
+            };
+            voteStack.Children.Add(scoreLabel);
+            Grid.SetRow(scoreLabel, 1);
+
+            downvoteButton = new()
+            {
+                Text = "▼",
+                BackgroundColor = Colors.Transparent,
+                Margin = new Thickness(0),
+                Padding = new Thickness(0),
+                VerticalTextAlignment = TextAlignment.Start,
+                HorizontalOptions = LayoutOptions.Center,
+                VerticalOptions = LayoutOptions.Start
+            };
+            TapGestureRecognizer downvoteTap = new();
+            downvoteTap.Tapped += this.OnDownvoteClicked;
+            downvoteButton.GestureRecognizers.Add(downvoteTap);
+            voteStack.Children.Add(downvoteButton);
+            Grid.SetRow(downvoteButton, 2);
+
+            mainGrid.Children.Add(voteStack);
+            Grid.SetColumn(voteStack, 2);
+
+            mainStack.Children.Add(mainGrid);
+            Content = mainStack;
+
             timeUserLabel.IsVisible = !isPreview;
-
             Opacity = isPreview && _visitTracker.HasVisited(_post) ? _applicationTheme.VisitedOpacity : 1;
-
             mainGrid.MinimumHeightRequest = _applicationTheme.ThumbnailSize;
             mainGrid.BackgroundColor = _applicationTheme.SecondaryColor;
         }
@@ -382,11 +586,7 @@ namespace Deaddit.MAUI.Components
             thumbnailImage.HeightRequest = applicationTheme.ThumbnailSize;
             thumbnailImage.WidthRequest = applicationTheme.ThumbnailSize;
 
-            string imageUrl = post.TryGetPreview();
-            if (Uri.TryCreate(imageUrl, UriKind.Absolute, out Uri? imageUri))
-            {
-                thumbnailImage.Source = StreamImageSource.FromStream(async (c) => await ImageHelper.ResizeAndCropImageFromUrlAsync(imageUrl, _applicationTheme.ThumbnailSize));
-            }
+            thumbnailImage.Source = ImageSource.FromStream(this.GetImageStream);
         }
 
         private void SetLinkFlair(ApiPost post, ApplicationHacks applicationHacks, ApplicationStyling applicationTheme)
