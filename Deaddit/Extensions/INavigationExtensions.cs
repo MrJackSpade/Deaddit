@@ -33,8 +33,6 @@ namespace Deaddit.Extensions
                     }
 
                     PostPage postPage = await appNavigator.OpenPost(post);
-                    await navigation.PushAsync(postPage);
-                    await postPage.TryLoad();
                     break;
 
                 case PostTargetKind.Url:

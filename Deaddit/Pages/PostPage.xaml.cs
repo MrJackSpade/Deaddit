@@ -96,7 +96,8 @@ namespace Deaddit.Pages
 
         public async void OnReplyClicked(object? sender, EventArgs e)
         {
-            await _appNavigator.OpenReplyPage(_post);
+            ReplyPage replyPage = await _appNavigator.OpenReplyPage(_post);
+            replyPage.OnSubmitted += this.ReplyPage_OnSubmitted;
         }
 
         public void OnSaveClicked(object? sender, EventArgs e)
