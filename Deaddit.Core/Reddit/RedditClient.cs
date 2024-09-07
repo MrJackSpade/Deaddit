@@ -172,10 +172,10 @@ namespace Deaddit.Core.Reddit
 
             string root = UrlStandardizer.Standardize(subreddit.RootedName);
 
-            string fullUrl = $"{API_ROOT}{root}{sortString}?after={after}&g={region}";
-
             do
             {
+                string fullUrl = $"{API_ROOT}{root}{sortString}?after={after}&g={region}";
+
                 ApiThingCollection posts = await _jsonClient.Get<ApiThingCollection>(fullUrl);
 
                 stopwatch.Stop();
@@ -192,8 +192,6 @@ namespace Deaddit.Core.Reddit
 
                     after = redditPostMeta.Name;
                 }
-
-                fullUrl = $"{API_ROOT}{subreddit.RootedName}{sortString}?after={after}&g={region}";
             } while (true);
         }
 
