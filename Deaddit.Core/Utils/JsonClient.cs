@@ -18,7 +18,13 @@ namespace Deaddit.Core.Utils
 
         public async Task<T> Get<T>(string url) where T : class
         {
-            string response = await Retry(() => _httpClient.GetStringAsync(url));
+            string response = await Retry(async () =>
+            {
+                var httpResponse = await _httpClient.GetAsync(url);
+                string responseBody = await httpResponse.Content.ReadAsStringAsync();
+                httpResponse.EnsureSuccessStatusCode();
+                return responseBody;
+            });
 
             return JsonDeserializer.Deserialize<T>(response);
         }
