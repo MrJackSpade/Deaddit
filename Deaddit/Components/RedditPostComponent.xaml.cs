@@ -12,8 +12,10 @@ using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Extensions;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
+using Deaddit.Interfaces;
 using Deaddit.Pages;
 using Microsoft.Maui.Controls.Shapes;
+using System.Xml.Linq;
 
 namespace Deaddit.MAUI.Components
 {
@@ -23,11 +25,13 @@ namespace Deaddit.MAUI.Components
 
         private readonly ApplicationStyling _applicationTheme;
 
+        private readonly IAppNavigator _appNavigator;
+
         private readonly BlockConfiguration _blockConfiguration;
 
         private readonly IConfigurationService _configurationService;
 
-        private readonly bool _isPreview;
+        private readonly bool _isListView;
 
         private readonly ApiPost _post;
 
@@ -63,7 +67,7 @@ namespace Deaddit.MAUI.Components
 
         private Grid voteStack;
 
-        private RedditPostComponent(ApiPost post, bool isPreview, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public RedditPostComponent(ApiPost post, bool isListView, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             _configurationService = configurationService;
             _applicationTheme = applicationTheme;
@@ -73,14 +77,15 @@ namespace Deaddit.MAUI.Components
             _applicationHacks = applicationHacks;
             _visitTracker = visitTracker;
             _post = post;
-            _isPreview = isPreview;
+            _appNavigator = appNavigator;
+            _isListView = isListView;
 
-            this.InitializePostComponent(_isPreview);
+            this.InitializePostComponent(_isListView);
             this.SetImageThumbnail(_post, _applicationTheme);
             this.SetTitleLabel(_post, _applicationHacks, _applicationTheme);
             this.SetLinkFlair(_post, _applicationHacks, _applicationTheme);
             this.SetMetaDataLabel(_post, _applicationTheme);
-            this.SetTimeUserLabel(_post, _isPreview, _applicationTheme);
+            this.SetTimeUserLabel(_post, _isListView, _applicationTheme);
             this.SetVoteStack(_post, _applicationTheme);
 
             this.Initialize();
@@ -95,18 +100,6 @@ namespace Deaddit.MAUI.Components
         public bool Selected { get; private set; }
 
         public bool SelectEnabled { get; private set; }
-
-        public static RedditPostComponent ListView(ApiPost post, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
-        {
-            RedditPostComponent toReturn = new(post, true, redditClient, applicationTheme, applicationHacks, visitTracker, selectionTracker, blockConfiguration, configurationService);
-            return toReturn;
-        }
-
-        public static RedditPostComponent PostView(ApiPost post, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
-        {
-            RedditPostComponent toReturn = new(post, false, redditClient, applicationTheme, applicationHacks, visitTracker, selectionTracker, blockConfiguration, configurationService);
-            return toReturn;
-        }
 
         public bool Deinitialize()
         {
@@ -142,15 +135,13 @@ namespace Deaddit.MAUI.Components
 
         public async void OnCommentsClicked(object? sender, EventArgs e)
         {
-            if (_post.IsSelf && _isPreview)
+            if (_post.IsSelf && _isListView)
             {
                 Opacity = _applicationTheme.VisitedOpacity;
                 _visitTracker.Visit(_post);
             }
 
-            PostPage postPage = new(_post, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _blockConfiguration, _configurationService);
-            await Navigation.PushAsync(postPage);
-            await postPage.TryLoad();
+            await _appNavigator.OpenPost(_post);
         }
 
         public void OnDownvoteClicked(object? sender, EventArgs e)
@@ -206,6 +197,10 @@ namespace Deaddit.MAUI.Components
 
             switch (postMoreOptions.Value)
             {
+                case PostMoreOptions.ViewAuthor:
+                    await _appNavigator.OpenUser(_post.Author);
+                    break;
+
                 case PostMoreOptions.BlockFlair:
                     await this.NewBlockRule(new BlockRule()
                     {
@@ -226,9 +221,7 @@ namespace Deaddit.MAUI.Components
                     break;
 
                 case PostMoreOptions.ViewSubreddit:
-                    SubRedditPage page = new(_post.SubReddit, ApiPostSort.Hot, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _blockConfiguration, _configurationService);
-                    await Navigation.PushAsync(page);
-                    await page.TryLoad();
+                    await _appNavigator.OpenSubReddit(_post.SubReddit, ApiPostSort.Hot);
                     break;
 
                 case PostMoreOptions.BlockAuthor:
@@ -290,13 +283,14 @@ namespace Deaddit.MAUI.Components
 
         public async void OnThumbnailImageClicked(object? sender, EventArgs e)
         {
-            if (_isPreview)
+            if (_isListView)
             {
-                Opacity = _applicationTheme.VisitedOpacity;
+                _selectionGroup.Select(this);
+                this.RemoveActionButtons();
                 _visitTracker.Visit(_post);
             }
 
-            await Navigation.OpenPost(_post, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _blockConfiguration, _configurationService);
+            await Navigation.OpenPost(_post, _appNavigator);
         }
 
         public void OnUpvoteClicked(object? sender, EventArgs e)
@@ -336,8 +330,16 @@ namespace Deaddit.MAUI.Components
             BackgroundColor = _applicationTheme.SecondaryColor.ToMauiColor();
             mainGrid.BackgroundColor = _applicationTheme.SecondaryColor.ToMauiColor();
             timeUserLabel.IsVisible = false;
-            mainStack.Children.Remove(_actionButtonsGrid);
-            _actionButtonsGrid = null;
+            this.RemoveActionButtons();
+        }
+
+        private void RemoveActionButtons()
+        {
+            if (_actionButtonsGrid is not null)
+            {
+                mainStack.Children.Remove(_actionButtonsGrid);
+                _actionButtonsGrid = null;
+            }
         }
 
         private void BlockRuleOnSave(object? sender, Deaddit.EventArguments.ObjectEditorSaveEventArgs e)
@@ -357,7 +359,7 @@ namespace Deaddit.MAUI.Components
             if (_cachedImageStream is null)
             {
                 string? imageUrl = _post.TryGetPreview();
-                if (Uri.TryCreate(imageUrl, UriKind.Absolute, out Uri? imageUri))
+                if (Uri.TryCreate(imageUrl, UriKind.Absolute, out _))
                 {
                     _cachedImageStream = await ImageHelper.ResizeAndCropImageFromUrlAsync(imageUrl, _applicationTheme.ThumbnailSize);
                 }
@@ -586,11 +588,9 @@ namespace Deaddit.MAUI.Components
 
         private async Task NewBlockRule(BlockRule blockRule)
         {
-            ObjectEditorPage objectEditorPage = new(blockRule, _applicationTheme);
+            ObjectEditorPage objectEditorPage = await _appNavigator.OpenObjectEditor(blockRule);
 
             objectEditorPage.OnSave += this.BlockRuleOnSave;
-
-            await Navigation.PushAsync(objectEditorPage);
         }
 
         private void OnParentTapped(object? sender, TappedEventArgs e)

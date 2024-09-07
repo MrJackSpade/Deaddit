@@ -52,37 +52,8 @@
                 x:Name="mainStack"
                 Padding="0"
                 Spacing="0">
-                <Grid BackgroundColor="{Binding SecondaryColor}" ColumnDefinitions="*,*,*,*,*">
-                    <Button
-                    Text="Hot"
-                    x:Name="hotButton"
-                    Grid.Column="0"
-                    BackgroundColor="Transparent"
-                    Clicked="OnHotClicked" />
-                    <Button
-                    Text="New"
-                    x:Name="newButton"
-                    Grid.Column="1"
-                    BackgroundColor="Transparent"
-                    Clicked="OnNewClicked" />
-                    <Button
-                    Text="Rising"
-                    x:Name="risingButton"
-                    Grid.Column="2"
-                    BackgroundColor="Transparent"
-                    Clicked="OnRisingClicked" />
-                    <Button
-                    Text="Controversial"
-                    x:Name="controversialButton"
-                    Grid.Column="3"
-                    BackgroundColor="Transparent"
-                    Clicked="OnControversialClicked" />
-                    <Button
-                    Text="Top"
-                    x:Name="topButton"
-                    Grid.Column="4"
-                    BackgroundColor="Transparent"
-                    Clicked="OnTopClicked" />
+                <Grid x:Name="sortButtons" BackgroundColor="{Binding SecondaryColor}">
+
                 </Grid>
             </VerticalStackLayout>
         </ScrollView>

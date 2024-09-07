@@ -5,12 +5,14 @@ namespace Deaddit.Core.Utils
 {
     public static class Ensure
     {
-        public static void NotNull([NotNull] object? v, [CallerArgumentExpression(nameof(v))] string propertyName = "")
+        public static T NotNull<T>([NotNull] T? v, [CallerArgumentExpression(nameof(v))] string propertyName = "")
         {
             if (v is null)
             {
                 throw new ArgumentNullException($"{propertyName} can not be null");
             }
+
+            return v;
         }
 
         public static void NotNullOrEmpty<T>([NotNull] IList<T>? v, [CallerArgumentExpression(nameof(v))] string propertyName = "")

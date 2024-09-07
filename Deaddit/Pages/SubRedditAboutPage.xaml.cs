@@ -6,6 +6,7 @@ using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.Extensions;
+using Deaddit.Interfaces;
 using Deaddit.Pages.Models;
 using Deaddit.Utils;
 
@@ -15,6 +16,8 @@ namespace Deaddit.Pages
     {
         private readonly ApplicationStyling _applicationTheme;
 
+        private readonly IAppNavigator _appNavigator;
+
         private readonly IRedditClient _redditClient;
 
         private readonly SubRedditAboutPageModel _subRedditAboutPageModel;
@@ -23,10 +26,11 @@ namespace Deaddit.Pages
 
         private ApiSubReddit? _apiSubReddit;
 
-        public SubRedditAboutPage(SubRedditName subredditName, IRedditClient redditClient, ApplicationStyling applicationTheme)
+        public SubRedditAboutPage(SubRedditName subredditName, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
+            _appNavigator = appNavigator;
             _applicationTheme = applicationTheme;
             _redditClient = redditClient;
             _subredditName = subredditName;
@@ -72,7 +76,7 @@ namespace Deaddit.Pages
 
             PostItems resource = RedditPostExtensions.Resolve(e.Url);
 
-            await Navigation.OpenResource(resource, _redditClient, _applicationTheme, null, null, null, null);
+            await Navigation.OpenResource(resource, _appNavigator);
         }
 
         private void OnMoreClicked(object? sender, object e)

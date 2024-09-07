@@ -1,12 +1,15 @@
 .vs/
 Deaddit.Tests/bin/
 Deaddit.Tests/obj/
-Deaddit/bin/
-Deaddit/obj/
 Deaddit.Core/bin/
 Deaddit.Core/obj/
+Deaddit/bin/
+Deaddit/obj/
 Release/obj/
+Release/bin/Deaddit.Core/
 Release/bin/Deaddit/release_net8.0-android/Deaddit.dll
 Release/bin/Deaddit/release_net8.0-android/Deaddit.pdb
+Release/bin/Deaddit/release_net8.0-android/Deaddit.Core.dll
+Release/bin/Deaddit/release_net8.0-android/Deaddit.Core.pdb
 Release/bin/Deaddit/release_net8.0-android/Deaddit.runtimeconfig.json
 Release/bin/Deaddit/release_net8.0-android/Deaddit.xml

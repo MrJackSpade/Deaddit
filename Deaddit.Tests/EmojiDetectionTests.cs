@@ -8,7 +8,7 @@ namespace Deaddit.Tests
         [TestMethod]
         public void TestBasicEmojis()
         {
-            string[] validEmojis = { "😀", "🙂", "😍", "🤔", "👍", "🎉" };
+            string[] validEmojis = ["😀", "🙂", "😍", "🤔", "👍", "🎉"];
             foreach (string emoji in validEmojis)
             {
                 Assert.IsTrue(EmojiDetector.IsMatch(emoji), $"Emoji {emoji} should be detected");
@@ -18,7 +18,7 @@ namespace Deaddit.Tests
         [TestMethod]
         public void TestComplexEmojis()
         {
-            string[] complexEmojis = { "👨‍👩‍👧‍👦", "🏳️‍🌈", "👩🏽‍🚀", "🧑🏻‍🤝‍🧑🏿" };
+            string[] complexEmojis = ["👨‍👩‍👧‍👦", "🏳️‍🌈", "👩🏽‍🚀", "🧑🏻‍🤝‍🧑🏿"];
             foreach (string emoji in complexEmojis)
             {
                 Assert.IsTrue(EmojiDetector.IsMatch(emoji), $"Complex emoji {emoji} should be detected");
@@ -37,7 +37,7 @@ namespace Deaddit.Tests
         [TestMethod]
         public void TestEmojiVariations()
         {
-            string[] emojiVariations = { "👍🏻", "👍🏼", "👍🏽", "👍🏾", "👍🏿" };
+            string[] emojiVariations = ["👍🏻", "👍🏼", "👍🏽", "👍🏾", "👍🏿"];
             foreach (string emoji in emojiVariations)
             {
                 Assert.IsTrue(EmojiDetector.IsMatch(emoji), $"Emoji variation '{emoji}' should be detected");
@@ -47,13 +47,13 @@ namespace Deaddit.Tests
         [TestMethod]
         public void TestMixedTextAndEmoji()
         {
-            string[] mixedTexts = {
+            string[] mixedTexts = [
                 "Hello 👋 World!",
                 "こんにちは😊",
                 "مرحبا🌟",
                 "Привет🎉мир",
                 "你好👨‍👩‍👧‍👦世界"
-            };
+            ];
             foreach (string text in mixedTexts)
             {
                 Assert.IsTrue(EmojiDetector.IsMatch(text), $"Mixed text '{text}' should contain detected emoji");
@@ -63,7 +63,7 @@ namespace Deaddit.Tests
         [TestMethod]
         public void TestNonEmojiAscii()
         {
-            string[] asciiChars = { ":-)", ":D", "<3", "^_^", ":P", ":|" };
+            string[] asciiChars = [":-)", ":D", "<3", "^_^", ":P", ":|"];
             foreach (string ascii in asciiChars)
             {
                 Assert.IsFalse(EmojiDetector.IsMatch(ascii), $"ASCII emoticon '{ascii}' should not be detected as emoji");
@@ -73,13 +73,13 @@ namespace Deaddit.Tests
         [TestMethod]
         public void TestNonEnglishText()
         {
-            string[] nonEnglishTexts = {
+            string[] nonEnglishTexts = [
                 "こんにちは", // Japanese
                 "مرحبا", // Arabic
                 "你好", // Chinese
                 "Привет", // Russian (Cyrillic)
                 "Γειά σου" // Greek
-            };
+            ];
             foreach (string text in nonEnglishTexts)
             {
                 Assert.IsFalse(EmojiDetector.IsMatch(text), $"Non-English text '{text}' should not be detected as emoji");

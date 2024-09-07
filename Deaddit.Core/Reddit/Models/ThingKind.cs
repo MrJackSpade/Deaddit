@@ -26,6 +26,9 @@ namespace Deaddit.Core.Reddit.Models
         More,
 
         [EnumMember(Value = "Listing")]
-        Listing
+        Listing,
+
+        [EnumMember(Value = "LabeledMulti")]
+        Multi
     }
 }

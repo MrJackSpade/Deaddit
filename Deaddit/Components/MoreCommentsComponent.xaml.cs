@@ -7,11 +7,7 @@ namespace Deaddit.MAUI.Components
 {
     public partial class MoreCommentsComponent : ContentView
     {
-        private readonly ApplicationStyling _applicationTheme;
-
         private readonly ApiMore _comment;
-
-        private readonly MoreCommentsComponentViewModel _commentViewModel;
 
         private readonly bool _singleClick;
 
@@ -23,9 +19,8 @@ namespace Deaddit.MAUI.Components
             _singleClick = !isContinueThread;
             string display = !isContinueThread ? $"More {comment.Count}" : "Continue Thread";
 
-            _applicationTheme = applicationTheme;
             _comment = comment;
-            BindingContext = _commentViewModel = new MoreCommentsComponentViewModel(display, applicationTheme);
+            BindingContext = new MoreCommentsComponentViewModel(display, applicationTheme);
             this.InitializeComponent();
         }
 

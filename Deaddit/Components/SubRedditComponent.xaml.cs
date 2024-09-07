@@ -1,47 +1,33 @@
 using Deaddit.Components.ComponentModels;
-using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
-using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Utils;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
-using Deaddit.Pages;
+using Deaddit.Interfaces;
 
 namespace Deaddit.MAUI.Components
 {
     public partial class SubRedditComponent : ContentView, ISelectionGroupItem
     {
-        private readonly ApplicationHacks _applicationHacks;
-
         private readonly ApplicationStyling _applicationTheme;
 
-        private readonly BlockConfiguration _blockConfiguration;
-
-        private readonly IConfigurationService _configurationService;
-
-        private readonly IRedditClient _redditClient;
+        private readonly IAppNavigator _appNavigator;
 
         private readonly SelectionGroup _selectionGroup;
 
         private readonly SubRedditSubscription _subscription;
 
-        private readonly IVisitTracker _visitTracker;
-
-        private SubRedditComponent(SubRedditSubscription subscription, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public SubRedditComponent(SubRedditSubscription subscription, bool removable, IAppNavigator appNavigator, ApplicationStyling applicationTheme, SelectionGroup selectionTracker)
         {
-            _redditClient = redditClient;
+            SelectEnabled = removable;
+            _appNavigator = appNavigator;
             _applicationTheme = applicationTheme;
-            _configurationService = configurationService;
-            _blockConfiguration = blockConfiguration;
             _selectionGroup = selectionTracker;
-            _applicationHacks = applicationHacks;
             _subscription = subscription;
-            _visitTracker = visitTracker;
 
             BindingContext = new SubRedditComponentViewModel(subscription.DisplayString, applicationTheme);
             this.InitializeComponent();
-            _configurationService = configurationService;
         }
 
         public event EventHandler<SubRedditSubscriptionRemoveEventArgs>? OnRemove;
@@ -49,22 +35,6 @@ namespace Deaddit.MAUI.Components
         public bool Selected { get; private set; }
 
         public bool SelectEnabled { get; private set; }
-
-        public static SubRedditComponent Fixed(SubRedditSubscription subscription, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
-        {
-            return new SubRedditComponent(subscription, redditClient, applicationTheme, applicationHacks, visitTracker, selectionTracker, blockConfiguration, configurationService)
-            {
-                SelectEnabled = false
-            };
-        }
-
-        public static SubRedditComponent Removable(SubRedditSubscription subscription, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
-        {
-            return new SubRedditComponent(subscription, redditClient, applicationTheme, applicationHacks, visitTracker, selectionTracker, blockConfiguration, configurationService)
-            {
-                SelectEnabled = true
-            };
-        }
 
         public void OnRemoveClick(object? sender, EventArgs e)
         {
@@ -97,9 +67,7 @@ namespace Deaddit.MAUI.Components
 
         private async void OnParentTapped(object? sender, TappedEventArgs e)
         {
-            SubRedditPage subredditPage = new(_subscription.SubReddit, _subscription.Sort, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _blockConfiguration, _configurationService);
-            await Navigation.PushAsync(subredditPage);
-            await subredditPage.TryLoad();
+            await _appNavigator.OpenSubReddit(_subscription.SubReddit, _subscription.Sort);
         }
     }
 }

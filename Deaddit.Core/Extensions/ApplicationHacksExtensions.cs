@@ -4,6 +4,7 @@ using Deaddit.Core.Utils;
 
 namespace Deaddit.Core.Extensions
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "SYSLIB1045:Convert to 'GeneratedRegexAttribute'.", Justification = "<Pending>")]
     public static class ApplicationHacksExtensions
     {
         public static string? CleanBody(this ApplicationHacks hacks, string? body)

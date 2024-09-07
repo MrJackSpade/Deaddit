@@ -62,12 +62,9 @@ namespace Deaddit
 
         private readonly ApplicationStyling _applicationTheme;
 
-        private readonly PostItems _items;
-
         public EmbeddedImage(ApplicationStyling applicationTheme, PostItems items)
         {
             this.InitializeComponent();
-            _items = items;
             _applicationTheme = applicationTheme;
             navigationBar.BackgroundColor = _applicationTheme.PrimaryColor.ToMauiColor();
 

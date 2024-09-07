@@ -8,6 +8,7 @@ using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
+using Deaddit.Interfaces;
 using Deaddit.MAUI.Components;
 using Deaddit.Pages.Models;
 using Microsoft.Maui.Controls.Shapes;
@@ -16,20 +17,17 @@ namespace Deaddit.Pages
 {
     public partial class ReplyPage : ContentPage
     {
-        private readonly ApplicationHacks _applicationHacks;
-
-        private readonly ApplicationStyling _applicationTheme;
+        private readonly IAppNavigator _appNavigator;
 
         private readonly IRedditClient _redditClient;
 
         private readonly ApiThing _replyTo;
 
-        public ReplyPage(ApiThing replyTo, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public ReplyPage(ApiThing replyTo, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             _redditClient = redditClient;
             _replyTo = replyTo;
-            _applicationTheme = applicationTheme;
-            _applicationHacks = applicationHacks;
+            _appNavigator = appNavigator;
 
             BindingContext = new ReplyPageViewModel(applicationTheme);
             this.InitializeComponent();
@@ -40,13 +38,13 @@ namespace Deaddit.Pages
             {
                 if (toRender is ApiComment rc)
                 {
-                    RedditCommentComponent redditCommentComponent = RedditCommentComponent.Preview(rc, null, redditClient, applicationTheme, applicationHacks, visitTracker, unused, blockConfiguration, configurationService);
+                    RedditCommentComponent redditCommentComponent = _appNavigator.CreateCommentComponent(rc, null, unused);
 
                     commentStack.Children.Insert(0, redditCommentComponent);
                 }
                 else if (toRender is ApiPost post)
                 {
-                    RedditPostComponent redditPostComponent = RedditPostComponent.PostView(post, redditClient, applicationTheme, applicationHacks, visitTracker, unused, blockConfiguration, configurationService);
+                    RedditPostComponent redditPostComponent = _appNavigator.CreatePostComponent(post, null);
 
                     if (!string.IsNullOrWhiteSpace(post.Body))
                     {
@@ -119,7 +117,7 @@ namespace Deaddit.Pages
             Ensure.NotNullOrWhiteSpace(e.Url);
             PostItems resource = RedditPostExtensions.Resolve(e.Url);
 
-            await Navigation.OpenResource(resource, _redditClient, _applicationTheme, _applicationHacks, null, null, null);
+            await Navigation.OpenResource(resource, _appNavigator);
         }
     }
 }

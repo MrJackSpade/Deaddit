@@ -2,6 +2,7 @@
 
 namespace Deaddit.Core.Utils
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "SYSLIB1045:Convert to 'GeneratedRegexAttribute'.", Justification = "<Pending>")]
     public static class MarkDownHelper
     {
         public const string MARKDOWN_PATTERN = @"(>!.*?!<|\*\*\*.*?\*\*\*|~~.*?~~|\*\*.*?\*\*|__.*?__|_.*?_|`.*?`|\[.*?\]\(.*?\)|\*.*?\*)";

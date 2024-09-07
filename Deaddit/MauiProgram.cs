@@ -7,6 +7,7 @@ using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Utils;
+using Deaddit.Interfaces;
 using Deaddit.Pages;
 using Deaddit.Utils;
 using Microsoft.Extensions.Logging;
@@ -32,7 +33,7 @@ namespace Deaddit
             builder.Services.AddConfiguration<RedditCredentials>();
             builder.Services.AddConfiguration<BlockConfiguration>();
             builder.Services.AddConfiguration<ApplicationHacks>();
-
+            builder.Services.AddSingleton<IAppNavigator, AppNavigator>();
             builder.Services.AddTransient<IJsonClient, JsonClient>();
             builder.Services.AddSingleton<IVisitTracker, PreferencesVisitTracker>();
             builder.Services.AddTransient<IConfigurationService, PreferencesConfigurationService>();

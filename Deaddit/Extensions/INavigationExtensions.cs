@@ -1,40 +1,27 @@
-﻿using Deaddit.Core.Configurations.Interfaces;
-using Deaddit.Core.Configurations.Models;
-using Deaddit.Core.Exceptions;
+﻿using Deaddit.Core.Exceptions;
 using Deaddit.Core.Reddit.Extensions;
-using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
+using Deaddit.Interfaces;
 using Deaddit.Pages;
 
 namespace Deaddit.Extensions
 {
     public static class INavigationExtensions
     {
+        [Obsolete("remove this")]
         public static async Task OpenPost(this INavigation navigation,
                                           ApiPost post,
-                                          IRedditClient redditClient,
-                                          ApplicationStyling applicationTheme,
-                                          ApplicationHacks applicationHacks,
-                                          IVisitTracker visitTracker,
-                                          BlockConfiguration blockConfiguration,
-                                          IConfigurationService configurationService)
+                                          IAppNavigator appNavigator)
         {
             PostItems? resource = post.GetPostItems();
 
-            await navigation.OpenResource(resource, redditClient, applicationTheme, applicationHacks, visitTracker, blockConfiguration, configurationService, post);
+            await navigation.OpenResource(resource, appNavigator, post);
         }
 
-        public static async Task OpenResource(this INavigation navigation,
-                                              PostItems resource,
-                                              IRedditClient redditClient,
-                                              ApplicationStyling applicationTheme,
-                                              ApplicationHacks applicationHacks,
-                                              IVisitTracker visitTracker,
-                                              BlockConfiguration blockConfiguration,
-                                              IConfigurationService configurationService,
-                                              ApiPost? post = null)
+        [Obsolete("remove this")]
+        public static async Task OpenResource(this INavigation navigation, PostItems resource, IAppNavigator appNavigator, ApiPost? post = null)
         {
             //This needs to be handled differently. There's too many dependencies.
             switch (resource.Kind)
@@ -45,24 +32,24 @@ namespace Deaddit.Extensions
                         throw new NotImplementedException();
                     }
 
-                    PostPage postPage = new(post, redditClient, applicationTheme, applicationHacks, visitTracker, blockConfiguration, configurationService);
+                    PostPage postPage = await appNavigator.OpenPost(post);
                     await navigation.PushAsync(postPage);
                     await postPage.TryLoad();
                     break;
 
                 case PostTargetKind.Url:
                     Ensure.NotNullOrEmpty(resource.Items);
-                    await navigation.PushAsync(new EmbeddedBrowser(resource, applicationTheme));
+                    await appNavigator.OpenBrowser(resource);
                     break;
 
                 case PostTargetKind.Video:
                     Ensure.NotNullOrEmpty(resource.Items);
-                    await navigation.PushAsync(new EmbeddedVideo(resource, applicationTheme));
+                    await appNavigator.OpenVideo(resource);
                     break;
 
                 case PostTargetKind.Image:
                     Ensure.NotNullOrEmpty(resource.Items);
-                    await navigation.PushAsync(new EmbeddedImage(applicationTheme, resource));
+                    await appNavigator.OpenImage(resource);
                     break;
 
                 default:
