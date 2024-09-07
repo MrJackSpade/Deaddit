@@ -71,23 +71,25 @@ namespace Deaddit.Utils
             HashSet<string> visited = _visited[thing.SubRedditId];
             List<Visit> visits = _visits[thing.SubRedditId];
 
-            visited.Add(thing.Name);
-
-            visits.Add(new Visit()
+            if (visited.Add(thing.Name))
             {
-                Date = DateTime.Now,
-                Name = thing.Name
-            });
 
-            StringBuilder visitedString = new();
+                visits.Add(new Visit()
+                {
+                    Date = DateTime.Now,
+                    Name = thing.Name
+                });
 
-            foreach (Visit visit in visits)
-            {
-                string visitString = Serialize(visit);
-                visitedString.Append(visitString);
+                StringBuilder visitedString = new();
+
+                foreach (Visit visit in visits)
+                {
+                    string visitString = Serialize(visit);
+                    visitedString.Append(visitString);
+                }
+
+                Preferences.Set($"{nameof(PreferencesVisitTracker)}_{thing.SubRedditId}", visitedString.ToString());
             }
-
-            Preferences.Set($"{nameof(PreferencesVisitTracker)}_{thing.SubRedditId}", visitedString.ToString());
         }
 
         private static string Serialize(Visit visit)
