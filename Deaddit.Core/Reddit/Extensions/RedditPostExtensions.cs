@@ -19,7 +19,13 @@ namespace Deaddit.Core.Reddit.Extensions
 
                 int i = 0;
 
-                foreach (string imageUrl in post.MediaMetaData.Values.Select(m => m.Source.Url ?? m.Source.Gif))
+                List<string> galleryItems = post.GalleryData.Items.Select(g => g.MediaId).ToList();
+
+                Dictionary<string, MediaMetaData>? mediaMeta = post.MediaMetaData;
+
+                List<MediaMetaData> sortedMedia = mediaMeta.Values.OrderBy(v => galleryItems.IndexOf(v.Id)).ToList();
+
+                foreach (string imageUrl in sortedMedia.Select(m => m.Source.Url ?? m.Source.Gif))
                 {
                     items.Add(new PostItem()
                     {

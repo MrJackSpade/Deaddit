@@ -30,19 +30,10 @@ namespace Deaddit.Core.Reddit.Models
             {
                 RootedName = "/r/" + name;
             }
-            else
-            {
-                RootedName = "/" + name;
-            }
 
-            if (RootedName.StartsWith("/u/"))
+            if (name.Count(c => c == '/') == 1)
             {
-                RootedName = "/user/" + RootedName[3..];
-            }
-
-            if (RootedName.StartsWith("u/"))
-            {
-                RootedName = "/user/" + RootedName[2..];
+                RootedName = $"/{name}";
             }
         }
 

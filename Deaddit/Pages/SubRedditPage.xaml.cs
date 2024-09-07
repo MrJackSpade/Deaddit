@@ -7,6 +7,7 @@ using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
+using Deaddit.Interfaces;
 using Deaddit.MAUI.Components;
 using Deaddit.Pages.Models;
 using Deaddit.Utils;
@@ -16,13 +17,11 @@ namespace Deaddit.Pages
 {
     public partial class SubRedditPage : ContentPage
     {
-        private readonly ApplicationHacks _applicationHacks;
-
         private readonly ApplicationStyling _applicationTheme;
 
-        private readonly BlockConfiguration _blockConfiguration;
+        private readonly IAppNavigator _appNavigator;
 
-        private readonly IConfigurationService _configurationService;
+        private readonly BlockConfiguration _blockConfiguration;
 
         private readonly List<LoadedThing> _loadedPosts = [];
 
@@ -40,26 +39,21 @@ namespace Deaddit.Pages
 
         private readonly SubRedditName _subreddit;
 
-        private readonly IVisitTracker _visitTracker;
-
         private double _lastRefresh;
 
         private double _lastScroll;
 
-        private ApiPostSort _sort;
+        private Enum _sort;
 
-        public SubRedditPage(SubRedditName subreddit, ApiPostSort sort, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public SubRedditPage(SubRedditName subreddit, Enum sort, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             NavigationPage.SetHasNavigationBar(this, false);
-
-            _visitTracker = visitTracker;
-            _configurationService = configurationService;
-            _blockConfiguration = blockConfiguration;
-            _subreddit = subreddit;
-            _sort = sort;
-            _redditClient = redditClient;
-            _applicationHacks = applicationHacks;
-            _applicationTheme = applicationTheme;
+            _appNavigator = appNavigator;
+            _blockConfiguration = Ensure.NotNull(blockConfiguration);
+            _subreddit = Ensure.NotNull(subreddit);
+            _sort = Ensure.NotNull(sort);
+            _redditClient = Ensure.NotNull(redditClient);
+            _applicationTheme = Ensure.NotNull(applicationTheme);
 
             _selectionGroup = new SelectionGroup();
 
@@ -76,23 +70,60 @@ namespace Deaddit.Pages
             subredditLabel.TextColor = applicationTheme.TextColor.ToMauiColor();
             subredditLabel.Text = subreddit.DisplayName;
 
-            hotButton.TextColor = applicationTheme.TextColor.ToMauiColor();
-            controversialButton.TextColor = applicationTheme.TextColor.ToMauiColor();
-            newButton.TextColor = applicationTheme.TextColor.ToMauiColor();
-            risingButton.TextColor = applicationTheme.TextColor.ToMauiColor();
-            topButton.TextColor = applicationTheme.TextColor.ToMauiColor();
             menuButton.TextColor = applicationTheme.TextColor.ToMauiColor();
             reloadButton.TextColor = applicationTheme.TextColor.ToMauiColor();
             infoButton.TextColor = applicationTheme.TextColor.ToMauiColor();
+
+            this.InitSortButtons(sort);
+        }
+
+        private void InitSortButtons(Enum sort)
+        {
+            sortButtons.Children.Clear();
+            sortButtons.ColumnDefinitions.Clear();
+
+            var values = Enum.GetValues(sort.GetType());
+            int columnCount = values.Length;
+
+            // Define columns
+            for (int i = 0; i < columnCount; i++)
+            {
+                sortButtons.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            }
+
+            int column = 0;
+            foreach (Enum sortValue in values)
+            {
+                if(Convert.ToInt32(sortValue) == 0)
+                {
+                    continue;
+                }
+
+                var button = new Button
+                {
+                    Text = sortValue.ToString(),
+                    BackgroundColor = Colors.Transparent,
+                    TextColor = Colors.White,
+                    FontSize = 14
+                };
+
+                button.Clicked += async (sender, e) =>
+                {
+                    _sort = sortValue;
+                    await this.Reload();
+                };
+
+                sortButtons.Children.Add(button);
+                Grid.SetColumn(button, column);
+                column++;
+            }
         }
 
         private bool WindowInLoadRange => scrollView.ScrollY >= scrollView.ContentSize.Height - scrollView.Height - navigationBar.Height;
 
         public async void OnInfoClicked(object? sender, EventArgs e)
         {
-            SubRedditAboutPage page = new(_subreddit, _redditClient, _applicationTheme);
-            await page.TryLoad();
-            await Navigation.PushAsync(page);
+            await _appNavigator.OpenSubRedditAbout(_subreddit);
         }
 
         public async void OnMenuClicked(object? sender, EventArgs e)
@@ -251,8 +282,7 @@ namespace Deaddit.Pages
 
                     if (apiThing is ApiPost post)
                     {
-
-                        RedditPostComponent redditPostComponent = RedditPostComponent.ListView(post, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService);
+                        RedditPostComponent redditPostComponent = _appNavigator.CreatePostComponent(post, _selectionGroup);
 
                         redditPostComponent.BlockAdded += this.RedditPostComponent_OnBlockAdded;
                         redditPostComponent.HideClicked += this.RedditPostComponent_HideClicked;
@@ -260,13 +290,9 @@ namespace Deaddit.Pages
                         view = redditPostComponent;
                     }
 
-                    if(apiThing is ApiComment comment)
+                    if (apiThing is ApiComment comment)
                     {
-
-                        RedditCommentComponent redditCommentComponent = RedditCommentComponent.Preview(comment, null, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, new SelectionGroup(), _blockConfiguration, _configurationService);
-
-                        view = redditCommentComponent;
-
+                        view = _appNavigator.CreateCommentComponent(comment, null, _selectionGroup);
                     }
 
                     if (view is not null)
@@ -288,36 +314,6 @@ namespace Deaddit.Pages
                     }
                 }
             }, _applicationTheme.HighlightColor.ToMauiColor());
-        }
-
-        private async void OnControversialClicked(object? sender, EventArgs e)
-        {
-            _sort = ApiPostSort.Controversial;
-            await this.Reload();
-        }
-
-        private async void OnHotClicked(object? sender, EventArgs e)
-        {
-            _sort = ApiPostSort.Hot;
-            await this.Reload();
-        }
-
-        private async void OnNewClicked(object? sender, EventArgs e)
-        {
-            _sort = ApiPostSort.New;
-            await this.Reload();
-        }
-
-        private async void OnRisingClicked(object? sender, EventArgs e)
-        {
-            _sort = ApiPostSort.Rising;
-            await this.Reload();
-        }
-
-        private async void OnTopClicked(object? sender, EventArgs e)
-        {
-            _sort = ApiPostSort.Top;
-            await this.Reload();
         }
 
         private void RedditPostComponent_HideClicked(object? sender, OnHideClickedEventArgs e)

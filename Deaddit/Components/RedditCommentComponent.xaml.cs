@@ -13,6 +13,7 @@ using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Extensions;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
+using Deaddit.Interfaces;
 using Deaddit.MAUI.Components.Partials;
 using Deaddit.Pages;
 using Deaddit.Utils;
@@ -21,9 +22,9 @@ namespace Deaddit.MAUI.Components
 {
     public partial class RedditCommentComponent : ContentView, ISelectionGroupItem
     {
-        private readonly ApplicationHacks _applicationHacks;
-
         private readonly ApplicationStyling _applicationTheme;
+
+        private readonly IAppNavigator _appNavigator;
 
         private readonly BlockConfiguration _blockConfiguration;
 
@@ -31,13 +32,9 @@ namespace Deaddit.MAUI.Components
 
         private readonly SelectionGroup _commentSelectionGroup;
 
-        private readonly IConfigurationService _configurationService;
-
         private readonly ApiPost _post;
 
         private readonly IRedditClient _redditClient;
-
-        private readonly IVisitTracker _visitTracker;
 
         private readonly VisualElement commentBody;
 
@@ -47,16 +44,15 @@ namespace Deaddit.MAUI.Components
 
         private RedditCommentComponentTopBar? _topBar;
 
-        private RedditCommentComponent(ApiComment comment, ApiPost post, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public RedditCommentComponent(ApiComment comment, ApiPost post, bool selectEnabled, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
+            SelectEnabled = selectEnabled;
             _applicationTheme = applicationTheme;
             _blockConfiguration = blockConfiguration;
             _redditClient = redditClient;
             _post = post;
-            _applicationHacks = applicationHacks;
+            _appNavigator = appNavigator;
             _comment = comment;
-            _visitTracker = visitTracker;
-            _configurationService = configurationService;
             _commentSelectionGroup = selectionTracker;
 
             this.InitializeComponent();
@@ -121,26 +117,6 @@ namespace Deaddit.MAUI.Components
 
         public bool SelectEnabled { get; private set; }
 
-        public static RedditCommentComponent FullView(ApiComment comment, ApiPost post, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
-        {
-            RedditCommentComponent toReturn = new(comment, post, redditClient, applicationTheme, applicationHacks, visitTracker, selectionTracker, blockConfiguration, configurationService)
-            {
-                SelectEnabled = true
-            };
-
-            return toReturn;
-        }
-
-        public static RedditCommentComponent Preview(ApiComment comment, ApiPost post, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
-        {
-            RedditCommentComponent toReturn = new(comment, post, redditClient, applicationTheme, applicationHacks, visitTracker, selectionTracker, blockConfiguration, configurationService)
-            {
-                SelectEnabled = false
-            };
-
-            return toReturn;
-        }
-
         public void AddChildren(IEnumerable<ApiThing> children)
         {
             foreach (ApiThing? child in children)
@@ -164,14 +140,14 @@ namespace Deaddit.MAUI.Components
 
                 if (child is ApiComment comment)
                 {
-                    RedditCommentComponent ccomponent = RedditCommentComponent.FullView(comment, _post, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService);
-                    ccomponent.AddChildren(comment.GetReplies());
-                    ccomponent.OnDelete += this.OnCommentDelete;
-                    childComponent = ccomponent;
+                    RedditCommentComponent commentComponent = _appNavigator.CreateCommentComponent(comment, _post, _commentSelectionGroup);
+                    commentComponent.AddChildren(comment.GetReplies());
+                    commentComponent.OnDelete += this.OnCommentDelete;
+                    childComponent = commentComponent;
                 }
                 else if (child is ApiMore more)
                 {
-                    MoreCommentsComponent mcomponent = new(more, _applicationTheme);
+                    MoreCommentsComponent mcomponent = _appNavigator.CreateMoreCommentsComponent(more);
                     mcomponent.OnClick += this.MoreCommentsClick;
                     childComponent = mcomponent;
                 }
@@ -223,7 +199,7 @@ namespace Deaddit.MAUI.Components
 
             PostItems resource = RedditPostExtensions.Resolve(e.Url);
 
-            await Navigation.OpenResource(resource, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _blockConfiguration, _configurationService);
+            await Navigation.OpenResource(resource, _appNavigator);
         }
 
         public async void OnMoreClicked(object? sender, EventArgs e)
@@ -246,6 +222,10 @@ namespace Deaddit.MAUI.Components
                             BlockType = BlockType.Post,
                             RuleName = $"/u/{_post.Author}"
                         });
+                        break;
+
+                    case CommentMoreOptions.ViewAuthor:
+                        await _appNavigator.OpenUser(_comment.Author);
                         break;
                 }
             }
@@ -291,9 +271,8 @@ namespace Deaddit.MAUI.Components
 
         public async void OnReplyClicked(object? sender, EventArgs e)
         {
-            ReplyPage replyPage = new(_comment, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _blockConfiguration, _configurationService);
+            ReplyPage replyPage = await _appNavigator.OpenReplyPage(_comment);
             replyPage.OnSubmitted += this.ReplyPage_OnSubmitted;
-            await Navigation.PushAsync(replyPage);
         }
 
         public void OnUpvoteClicked(object? sender, EventArgs e)
@@ -358,11 +337,7 @@ namespace Deaddit.MAUI.Components
 
         private async Task ContinueThread(ApiComment comment)
         {
-            PostPage redditPostPage = new(_post, comment, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _blockConfiguration, _configurationService);
-
-            await redditPostPage.TryLoad();
-
-            await Navigation.PushAsync(redditPostPage);
+            await _appNavigator.OpenPost(_post, comment);
         }
 
         private async Task LoadMoreCommentsAsync(ApiMore comment)
@@ -397,11 +372,9 @@ namespace Deaddit.MAUI.Components
 
         private async Task NewBlockRule(BlockRule blockRule)
         {
-            ObjectEditorPage objectEditorPage = new(blockRule, _applicationTheme);
+            ObjectEditorPage objectEditorPage = await _appNavigator.OpenObjectEditor(blockRule);
 
             objectEditorPage.OnSave += this.BlockRuleOnSave;
-
-            await Navigation.PushAsync(objectEditorPage);
         }
 
         private void OnCommentDelete(object? sender, OnDeleteClickedEventArgs e)
@@ -422,7 +395,7 @@ namespace Deaddit.MAUI.Components
         {
             Ensure.NotNull(e.NewComment, "New comment data");
 
-            RedditCommentComponent redditCommentComponent = FullView(e.NewComment, _post, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService);
+            RedditCommentComponent redditCommentComponent = _appNavigator.CreateCommentComponent(e.NewComment, _post, _commentSelectionGroup);
             redditCommentComponent.OnDelete += this.OnCommentDelete;
             this.TryInitReplies();
             _replies.Children.Insert(0, redditCommentComponent);

@@ -5,7 +5,9 @@ namespace Deaddit.Core.Reddit.Interfaces
 {
     public interface IRedditClient
     {
-        public string LoggedInUser { get; }
+        bool CanLogIn { get; }
+
+        public string? LoggedInUser { get; }
 
         Task<ApiSubReddit> About(SubRedditName subreddit);
 
@@ -15,11 +17,13 @@ namespace Deaddit.Core.Reddit.Interfaces
 
         Task Delete(ApiThing thing);
 
-        IAsyncEnumerable<ApiThing> GetPosts(SubRedditName subreddit, ApiPostSort sort = ApiPostSort.Hot, string? after = null, Region region = Region.GLOBAL);
+        IAsyncEnumerable<ApiThing> GetPosts<T>(SubRedditName subreddit, T sort, string? after = null, Region region = Region.GLOBAL) where T : Enum;
 
         Task<Stream> GetStream(string url);
 
         IAsyncEnumerable<ApiThing> MoreComments(ApiPost thing, ApiMore comment);
+
+        IAsyncEnumerable<ApiMulti> Multis();
 
         Task SetUpvoteState(ApiThing thing, UpvoteState state);
 

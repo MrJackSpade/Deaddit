@@ -2,6 +2,7 @@
 
 namespace Deaddit.Core.Utils
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "SYSLIB1045:Convert to 'GeneratedRegexAttribute'.", Justification = "<Pending>")]
     public static class EmojiDetector
     {
         public static bool IsMatch(string str)

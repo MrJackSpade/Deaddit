@@ -3,10 +3,15 @@ using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
+using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
+using Deaddit.Core.Utils.Extensions;
 using Deaddit.EventArguments;
+using Deaddit.Extensions;
+using Deaddit.Interfaces;
 using Deaddit.MAUI.Components;
 using Deaddit.Pages.Models;
+using Deaddit.Utils;
 
 namespace Deaddit.Pages
 {
@@ -14,11 +19,7 @@ namespace Deaddit.Pages
     {
         private readonly EditorConfiguration _appConfiguration;
 
-        private readonly ApplicationHacks _applicationHacks;
-
-        private readonly ApplicationStyling _applicationTheme;
-
-        private readonly BlockConfiguration _blockConfiguration;
+        private readonly IAppNavigator _appNavigator;
 
         private readonly LandingPageConfiguration _configuration;
 
@@ -26,15 +27,14 @@ namespace Deaddit.Pages
 
         private readonly IRedditClient _redditClient;
 
-        private readonly SelectionGroup _selectionGroup;
+        private readonly SelectionGroup _selectionGroup = new();
 
-        private readonly IVisitTracker _visitTracker;
-
-        public LandingPage(ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, IRedditClient redditClient, RedditCredentials RedditCredentials, IConfigurationService configurationService, BlockConfiguration blockConfiguration)
+        public LandingPage(IAppNavigator appNavigator, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IRedditClient redditClient, RedditCredentials RedditCredentials, IConfigurationService configurationService, BlockConfiguration blockConfiguration)
         {
             //https://www.reddit.com/r/redditdev/comments/8pbx43/get_multireddit_listing/
             NavigationPage.SetHasNavigationBar(this, false);
 
+            _appNavigator = appNavigator;
             _redditClient = redditClient;
 
             _appConfiguration = new EditorConfiguration()
@@ -47,24 +47,22 @@ namespace Deaddit.Pages
 
             _configuration = configurationService.Read<LandingPageConfiguration>();
             _configurationService = configurationService;
-            _visitTracker = visitTracker;
-            _blockConfiguration = blockConfiguration;
-            _applicationTheme = applicationTheme;
-            _selectionGroup = new SelectionGroup();
 
             BindingContext = new LandingPageViewModel(applicationTheme);
             this.InitializeComponent();
 
-            mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("All", "r/all", ApiPostSort.Hot), redditClient, applicationTheme, applicationHacks, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService));
-            mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("Home", "", ApiPostSort.Hot), redditClient, applicationTheme, applicationHacks, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService));
-            mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("Saved", "u/me/saved", ApiPostSort.Undefined), redditClient, applicationTheme, applicationHacks, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService));
+            mainStack.Add(_appNavigator.CreateSubRedditComponent(new SubRedditSubscription("All", "r/all", ApiPostSort.Hot), null));
+            mainStack.Add(_appNavigator.CreateSubRedditComponent(new SubRedditSubscription("Home", "", ApiPostSort.Hot), null));
+            mainStack.Add(_appNavigator.CreateSubRedditComponent(new SubRedditSubscription("Saved", "u/me/saved", ApiPostSort.Undefined), null));
 
             foreach (SubRedditSubscription subscription in _configuration.Subscriptions)
             {
-                SubRedditComponent subRedditComponent = SubRedditComponent.Removable(subscription, redditClient, applicationTheme, applicationHacks, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService);
+                SubRedditComponent subRedditComponent = _appNavigator.CreateSubRedditComponent(subscription, _selectionGroup);
                 subRedditComponent.OnRemove += this.SubRedditComponent_OnRemove;
                 mainStack.Add(subRedditComponent);
             }
+
+            DataService.LoadAsync(mainStack, this.LoadMultis, applicationTheme.HighlightColor.ToMauiColor());
         }
 
         public async void OnAddClicked(object? sender, EventArgs e)
@@ -92,18 +90,16 @@ namespace Deaddit.Pages
 
             _configurationService.Write(_configuration);
 
-            SubRedditComponent subRedditComponent = SubRedditComponent.Removable(newSubscription, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService);
+            SubRedditComponent subRedditComponent = _appNavigator.CreateSubRedditComponent(newSubscription, _selectionGroup);
             subRedditComponent.OnRemove += this.SubRedditComponent_OnRemove;
             mainStack.Add(subRedditComponent);
         }
 
-        public void OnMenuClicked(object? sender, EventArgs e)
+        public async void OnMenuClicked(object? sender, EventArgs e)
         {
-            ObjectEditorPage editorPage = new(_appConfiguration, _applicationTheme);
+            ObjectEditorPage editorPage = await _appNavigator.OpenObjectEditor(_appConfiguration);
 
             editorPage.OnSave += this.EditorPage_OnSave;
-
-            Navigation.PushAsync(editorPage);
         }
 
         private void EditorPage_OnSave(object? sender, ObjectEditorSaveEventArgs e)
@@ -112,6 +108,26 @@ namespace Deaddit.Pages
             _configurationService.Write(_appConfiguration.Credentials);
             _configurationService.Write(_appConfiguration.BlockConfiguration);
             _configurationService.Write(_appConfiguration.Styling);
+        }
+
+        private async Task LoadMultis()
+        {
+            if (_redditClient.CanLogIn)
+            {
+                await foreach (ApiMulti multi in _redditClient.Multis())
+                {
+                    if (!multi.Subreddits.NotNullAny())
+                    {
+                        continue;
+                    }
+
+                    mainStack.Add(_appNavigator.CreateSubRedditComponent(
+                                                    new SubRedditSubscription($"m/{multi.DisplayName}",
+                                                                              $"m/{multi.Name}",
+                                                                              ApiPostSort.Undefined),
+                                                _selectionGroup));
+                }
+            }
         }
 
         private void SubRedditComponent_OnRemove(object? sender, SubRedditSubscriptionRemoveEventArgs e)

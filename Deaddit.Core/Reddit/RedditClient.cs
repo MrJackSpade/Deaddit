@@ -7,6 +7,7 @@ using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Extensions;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Text.Json;
 
@@ -34,7 +35,11 @@ namespace Deaddit.Core.Reddit
             _jsonClient.SetDefaultHeader("User-Agent", "Deaddit");
         }
 
+        public bool CanLogIn => _redditCredentials.Valid;
+
         public string? LoggedInUser { get; private set; }
+
+        private RedditUrlStandardizer UrlStandardizer => new(LoggedInUser);
 
         public async Task<ApiSubReddit> About(SubRedditName subreddit)
         {
@@ -154,7 +159,7 @@ namespace Deaddit.Core.Reddit
             System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in Delete method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
         }
 
-        public async IAsyncEnumerable<ApiThing> GetPosts(SubRedditName subreddit, ApiPostSort sort = ApiPostSort.Undefined, string? after = null, Models.Region region = Models.Region.GLOBAL)
+        public async IAsyncEnumerable<ApiThing> GetPosts<T>(SubRedditName subreddit, T sort, string? after = null, Models.Region region = Models.Region.GLOBAL) where T : Enum
         {
             //Returns HTML if not authenticated
             await this.EnsureAuthenticated();
@@ -165,14 +170,7 @@ namespace Deaddit.Core.Reddit
 
             string sortString = GetSortString(sort);
 
-            string root = subreddit.RootedName;
-
-            //Weird hack but this is how the website works too so
-            //I dont feel bad about it.
-            if (root.StartsWith("/user/me/"))
-            {
-                root = $"/user/{_redditCredentials.UserName}/" + root[9..];
-            }
+            string root = UrlStandardizer.Standardize(subreddit.RootedName);
 
             string fullUrl = $"{API_ROOT}{root}{sortString}?after={after}&g={region}";
 
@@ -230,7 +228,7 @@ namespace Deaddit.Core.Reddit
             // Use the modified Post method to send the form data
             MoreCommentsResponse response = await _jsonClient.Post<MoreCommentsResponse>(fullUrl, formValues);
 
-            List<ApiThing> things = response.Json.Data.Things.ToList();
+            List<ApiThing> things = [.. response.Json.Data.Things];
 
             Dictionary<string, ApiComment> tree = [];
 
@@ -269,6 +267,20 @@ namespace Deaddit.Core.Reddit
                 SetParent(moreItem.Parent, redditCommentMeta);
 
                 yield return redditCommentMeta;
+            }
+        }
+
+        public async IAsyncEnumerable<ApiMulti> Multis()
+        {
+            await this.EnsureAuthenticated();
+
+            string url = $"{API_ROOT}/api/multi/mine";
+
+            List<ApiMultiMeta> response = await _jsonClient.Get<List<ApiMultiMeta>>(url);
+
+            foreach (ApiMultiMeta multi in response)
+            {
+                yield return multi.Data;
             }
         }
 
@@ -370,11 +382,11 @@ namespace Deaddit.Core.Reddit
             System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in ToggleVisibility method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
         }
 
-        private static string GetSortString(ApiPostSort sort)
+        private static string GetSortString<T>(T sort) where T : Enum
         {
-            string sortString = sort.ToString();
+            string sortString;
 
-            if (sort == ApiPostSort.Undefined)
+            if (sort.GetAttribute<EnumMemberAttribute>() is EnumMemberAttribute ema && string.IsNullOrWhiteSpace(ema.Value))
             {
                 return string.Empty;
             }

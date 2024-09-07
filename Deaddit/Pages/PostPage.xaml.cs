@@ -1,5 +1,4 @@
 using Deaddit.Components;
-using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Extensions;
 using Deaddit.Core.Reddit.Extensions;
@@ -10,6 +9,7 @@ using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Extensions;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
+using Deaddit.Interfaces;
 using Deaddit.MAUI.Components;
 using Deaddit.Utils;
 using System.Diagnostics;
@@ -18,9 +18,9 @@ namespace Deaddit.Pages
 {
     public partial class PostPage : ContentPage
     {
-        private readonly ApplicationHacks _applicationHacks;
-
         private readonly ApplicationStyling _applicationTheme;
+
+        private readonly IAppNavigator _appNavigator;
 
         private readonly BlockConfiguration _blockConfiguration;
 
@@ -28,47 +28,25 @@ namespace Deaddit.Pages
 
         private readonly SelectionGroup _commentSelectionGroup;
 
-        private readonly IConfigurationService _configurationService;
-
         private readonly ApiPost _post;
 
         private readonly IRedditClient _redditClient;
 
-        private readonly IVisitTracker _visitTracker;
-
-        public PostPage(ApiPost post,
-                        IRedditClient redditClient,
-                        ApplicationStyling applicationTheme,
-                        ApplicationHacks applicationHacks,
-                        IVisitTracker visitTracker,
-                        BlockConfiguration blockConfiguration,
-                        IConfigurationService configurationService) : this(post,
-                                                                           null,
-                                                                           redditClient,
-                                                                           applicationTheme,
-                                                                           applicationHacks,
-                                                                           visitTracker,
-                                                                           blockConfiguration,
-                                                                           configurationService)
-        {
-        }
-
-        public PostPage(ApiPost post, ApiComment? focus, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public PostPage(ApiPost post, ApiComment? focus, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, BlockConfiguration blockConfiguration)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
+            _appNavigator = appNavigator;
             _commentFocus = focus;
             _commentSelectionGroup = new SelectionGroup();
-            _configurationService = configurationService;
             _post = post;
-            _visitTracker = visitTracker;
-            _applicationHacks = applicationHacks;
             _blockConfiguration = blockConfiguration;
             _applicationTheme = applicationTheme;
             _redditClient = redditClient;
 
             this.InitializeComponent();
-            RedditPostComponent redditPostComponent = RedditPostComponent.PostView(post, redditClient, applicationTheme, applicationHacks, visitTracker, new SelectionGroup(), _blockConfiguration, _configurationService);
+
+            RedditPostComponent redditPostComponent = _appNavigator.CreatePostComponent(post, null);
 
             BackgroundColor = _applicationTheme.SecondaryColor.ToMauiColor();
 
@@ -109,7 +87,7 @@ namespace Deaddit.Pages
 
             PostItems resource = RedditPostExtensions.Resolve(e.Url);
 
-            await Navigation.OpenResource(resource, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _blockConfiguration, _configurationService);
+            await Navigation.OpenResource(resource, _appNavigator);
         }
 
         public void OnMoreOptionsClicked(object? sender, EventArgs e)
@@ -118,9 +96,7 @@ namespace Deaddit.Pages
 
         public async void OnReplyClicked(object? sender, EventArgs e)
         {
-            ReplyPage replyPage = new(_post, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _blockConfiguration, _configurationService);
-            replyPage.OnSubmitted += this.ReplyPage_OnSubmitted;
-            await Navigation.PushAsync(replyPage);
+            await _appNavigator.OpenReplyPage(_post);
         }
 
         public void OnSaveClicked(object? sender, EventArgs e)
@@ -159,7 +135,7 @@ namespace Deaddit.Pages
 
                 if (child is ApiComment comment)
                 {
-                    RedditCommentComponent ccomponent = RedditCommentComponent.FullView(comment, _post, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService);
+                    RedditCommentComponent ccomponent = _appNavigator.CreateCommentComponent(comment, _post, _commentSelectionGroup);
                     ccomponent.AddChildren(comment.GetReplies());
                     ccomponent.OnDelete += this.OnCommentDelete;
                     //outer most comment padded only.
@@ -168,7 +144,7 @@ namespace Deaddit.Pages
                 }
                 else if (child is ApiMore more)
                 {
-                    MoreCommentsComponent mcomponent = new(more, _applicationTheme);
+                    MoreCommentsComponent mcomponent = _appNavigator.CreateMoreCommentsComponent(more);
                     mcomponent.OnClick += this.MoreCommentsClick;
                     childComponent = mcomponent;
                 }
@@ -229,7 +205,7 @@ namespace Deaddit.Pages
         {
             Ensure.NotNull(e.NewComment, "New Comment Data");
 
-            RedditCommentComponent redditCommentComponent = RedditCommentComponent.FullView(e.NewComment, _post, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService);
+            RedditCommentComponent redditCommentComponent = _appNavigator.CreateCommentComponent(e.NewComment, _post, _commentSelectionGroup);
 
             redditCommentComponent.OnDelete += this.OnCommentDelete;
 

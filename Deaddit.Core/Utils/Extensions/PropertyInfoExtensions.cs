@@ -7,7 +7,7 @@ namespace Deaddit.Core.Utils.Extensions
     {
         public static bool HasCustomAttribute<T>(this PropertyInfo propertyInfo) where T : Attribute
         {
-            return propertyInfo.GetCustomAttributes(typeof(T), true).Any();
+            return propertyInfo.GetCustomAttributes(typeof(T), true).Length != 0;
         }
 
         public static bool IsRequired(this PropertyInfo propertyInfo)
