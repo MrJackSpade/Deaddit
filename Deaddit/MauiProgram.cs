@@ -42,6 +42,7 @@ namespace Deaddit
 
             builder
                 .UseMauiApp<App>()
+                .UseMauiCommunityToolkit()
                 .UseMauiCommunityToolkitMediaElement()
                 .ConfigureFonts(fonts =>
                 {

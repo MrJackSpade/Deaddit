@@ -30,7 +30,7 @@
 
             <!-- Save Button -->
             <Button
-                Text=""
+                Text="💾"
                 Grid.Column="2"
                 HorizontalOptions="End"
                 Clicked="OnSaveClicked"

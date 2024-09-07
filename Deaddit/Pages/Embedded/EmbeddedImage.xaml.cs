@@ -1,6 +1,7 @@
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Extensions;
+using Deaddit.Utils;
 using System.Text;
 
 namespace Deaddit
@@ -60,12 +61,16 @@ namespace Deaddit
 
             """;
 
+        private readonly PostItems _postItems;
+
         private readonly ApplicationStyling _applicationTheme;
 
         public EmbeddedImage(ApplicationStyling applicationTheme, PostItems items)
         {
             this.InitializeComponent();
             _applicationTheme = applicationTheme;
+            _postItems = items;
+
             navigationBar.BackgroundColor = _applicationTheme.PrimaryColor.ToMauiColor();
 
             StringBuilder images = new();
@@ -87,9 +92,9 @@ namespace Deaddit
             Navigation.PopAsync();
         }
 
-        private void OnSaveClicked(object? sender, EventArgs e)
+        private async void OnSaveClicked(object? sender, EventArgs e)
         {
-            // Logic to save current state or media
+            await FileStorage.Save(_postItems);
         }
     }
 }
