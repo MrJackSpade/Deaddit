@@ -1,6 +1,5 @@
 ﻿using Deaddit.Core.Json.Attributes;
 using Deaddit.Core.Utils;
-using System.Drawing;
 using System.Text.Json.Serialization;
 
 namespace Deaddit.Core.Reddit.Models.Api

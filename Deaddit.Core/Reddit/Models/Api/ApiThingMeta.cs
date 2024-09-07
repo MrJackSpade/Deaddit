@@ -5,11 +5,11 @@ namespace Deaddit.Core.Reddit.Models.Api
 {
     // Root myDeserializedClass = JsonSerializer.Deserialize<List<Root>>(myJsonResponse);
 
-    public class ApiCommentMeta
+    public class ApiThingMeta
     {
         [NotNull]
         [JsonPropertyName("data")]
-        public ApiComment Data { get; init; }
+        public ApiThing Data { get; init; }
 
         [JsonPropertyName("kind")]
         public ThingKind Kind { get; init; }

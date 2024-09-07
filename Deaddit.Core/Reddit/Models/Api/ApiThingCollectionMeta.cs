@@ -3,13 +3,13 @@ using System.Text.Json.Serialization;
 
 namespace Deaddit.Core.Reddit.Models.Api
 {
-    public class SubRedditReadResponse
+    public class ApiThingCollectionMeta
     {
-        [JsonPropertyName("kind")]
-        public ThingKind Kind { get; init; }
-
         [NotNull]
         [JsonPropertyName("data")]
-        public ReadMetaData<ApiPostMeta> Meta { get; init; }
+        public ApiThingCollection Data { get; init; }
+
+        [JsonPropertyName("kind")]
+        public ThingKind Kind { get; init; }
     }
 }

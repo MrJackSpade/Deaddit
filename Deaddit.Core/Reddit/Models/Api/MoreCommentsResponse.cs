@@ -3,11 +3,10 @@ using System.Text.Json.Serialization;
 
 namespace Deaddit.Core.Reddit.Models.Api
 {
-    // Root myDeserializedClass = JsonSerializer.Deserialize<Root>(myJsonResponse);
     public class MoreCommentsData
     {
         [JsonPropertyName("things")]
-        public List<ApiCommentMeta> Things { get; init; } = [];
+        public List<ApiThing> Things { get; init; } = [];
     }
 
     public class MoreCommentsResponse

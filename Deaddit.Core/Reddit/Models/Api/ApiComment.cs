@@ -16,9 +16,6 @@ namespace Deaddit.Core.Reddit.Models.Api
         [JsonPropertyName("before")]
         public string? Before { get; init; }
 
-        [JsonPropertyName("children")]
-        public List<string> ChildNames { get; init; } = [];
-
         [JsonPropertyName("collapsed")]
         public bool? Collapsed { get; init; }
 
@@ -36,9 +33,6 @@ namespace Deaddit.Core.Reddit.Models.Api
 
         [JsonPropertyName("controversiality")]
         public int? Controversiality { get; init; }
-
-        [JsonPropertyName("count")]
-        public int? Count { get; init; }
 
         [JsonPropertyName("depth")]
         public int? Depth { get; init; }
@@ -62,7 +56,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public string? ParentId { get; init; }
 
         [JsonPropertyName("replies")]
-        public CommentReadResponse? Replies { get; set; }
+        public ApiThingCollection? Replies { get; set; }
 
         [JsonPropertyName("score_hidden")]
         public bool? ScoreHidden { get; init; }

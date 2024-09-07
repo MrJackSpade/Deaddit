@@ -1,13 +1,17 @@
-﻿using Deaddit.Core.Extensions;
+﻿using Deaddit.Core.Exceptions;
+using Deaddit.Core.Extensions;
 using Deaddit.Core.Json.Attributes;
 using Deaddit.Core.Json.Exceptions;
 using Deaddit.Core.Reddit.Models;
+using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Extensions;
 using System.Collections;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Web;
@@ -103,6 +107,14 @@ namespace Deaddit.Core.Json
             {
                 return ParseDecimal(property.ToString());
             }
+            else if (targetType == typeof(ApiThing))
+            {
+                return ParseRedditThing(property);
+            }
+            else if (targetType == typeof(ApiThingCollection))
+            {
+                return ParseRedditThingCollection(property);
+            }
             else if (Nullable.GetUnderlyingType(targetType) is Type nullableType)
             {
                 if (property is null)
@@ -126,6 +138,69 @@ namespace Deaddit.Core.Json
             }
 
             throw new Exception("Unhandled Property Type");
+        }
+
+        private static ApiThingCollection? ParseRedditThingCollection(JsonNode? property)
+        {
+            if(property is null)
+            {
+                return null;
+            }
+
+            if (property is JsonValue jv && jv.ToString() == string.Empty)
+            {
+                return null;
+            }
+
+            JsonObject dataProperty = property["data"] as JsonObject;
+
+            JsonNode kindProperty = property["kind"];
+
+            JsonArray childrenProperty = dataProperty["children"] as JsonArray;
+
+            dataProperty.Remove("children");
+
+            ThingKind kind = (ThingKind)ParseEnum(typeof(ThingKind), kindProperty?.ToString());
+
+            ApiThingCollection collection = DeserializeObject(dataProperty, typeof(ApiThingCollection)) as ApiThingCollection;
+
+            if (childrenProperty is not null)
+            {
+                foreach (JsonObject jo in childrenProperty)
+                {
+                    ApiThing thing = ParseRedditThing(jo);
+                    collection.Children.Add(thing);
+                }
+            }
+
+            return collection;
+        }
+
+        private static ApiThing? ParseRedditThing(JsonNode? property)
+        {
+            if(property is null)
+            {
+                return null;
+            }
+
+            JsonNode kindProperty = property["kind"];
+
+            ThingKind kind = (ThingKind)ParseEnum(typeof(ThingKind), kindProperty?.ToString());
+
+            JsonNode data = property["data"];
+
+            switch (kind)
+            {
+                case ThingKind.Comment:
+                    return (ApiComment)DeserializeObject(data, typeof(ApiComment));
+                case ThingKind.Subreddit:
+                    return (ApiSubReddit)DeserializeObject(data, typeof(ApiSubReddit));
+                case ThingKind.More:
+                    return (ApiMore)DeserializeObject(data, typeof(ApiMore));
+                case ThingKind.Link:
+                    return (ApiPost)DeserializeObject(data, typeof(ApiPost));
+                default: throw new EnumNotImplementedException(kind);
+            }
         }
 
         private static object? DeserializeObject(JsonNode? node, Type type)
@@ -237,7 +312,7 @@ namespace Deaddit.Core.Json
 
             if (v == "transparent")
             {
-                return new DynamicColor(0,0,0,0);
+                return new DynamicColor(0, 0, 0, 0);
             }
 
             throw new MissingConversionException($"No color mapping for value {v}");

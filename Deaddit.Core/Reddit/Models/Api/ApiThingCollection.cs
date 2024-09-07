@@ -3,7 +3,7 @@
 namespace Deaddit.Core.Reddit.Models.Api
 {
     // Root myDeserializedClass = JsonSerializer.Deserialize<Root>(myJsonResponse);
-    public class ReadMetaData<T>
+    public class ApiThingCollection
     {
         [JsonPropertyName("after")]
         public string? After { get; init; }
@@ -12,7 +12,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public string? Before { get; init; }
 
         [JsonPropertyName("children")]
-        public List<T> Children { get; init; } = [];
+        public List<ApiThing> Children { get; init; } = [];
 
         [JsonPropertyName("dist")]
         public int? Dist { get; init; }

@@ -9,7 +9,7 @@ namespace Deaddit.MAUI.Components
     {
         private readonly ApplicationStyling _applicationTheme;
 
-        private readonly ApiComment _comment;
+        private readonly ApiMore _comment;
 
         private readonly MoreCommentsComponentViewModel _commentViewModel;
 
@@ -17,7 +17,7 @@ namespace Deaddit.MAUI.Components
 
         private bool _clicked;
 
-        public MoreCommentsComponent(ApiComment comment, ApplicationStyling applicationTheme)
+        public MoreCommentsComponent(ApiMore comment, ApplicationStyling applicationTheme)
         {
             bool isContinueThread = !comment.ChildNames.NotNullAny();
             _singleClick = !isContinueThread;
@@ -29,7 +29,7 @@ namespace Deaddit.MAUI.Components
             this.InitializeComponent();
         }
 
-        public event EventHandler<ApiComment>? OnClick;
+        public event EventHandler<ApiMore>? OnClick;
 
         public async void OnParentTapped(object? sender, EventArgs e)
         {

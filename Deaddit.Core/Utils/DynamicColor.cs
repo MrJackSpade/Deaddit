@@ -2,23 +2,13 @@
 {
     public class DynamicColor(int red, int green, int blue, int alpha)
     {
-        public int Red { get; set; } = red;
-
-        public int Green { get; set; } = green;
+        public int Alpha { get; set; } = alpha;
 
         public int Blue { get; set; } = blue;
 
-        public int Alpha { get; set; } = alpha;
+        public int Green { get; set; } = green;
 
-        public string ToHex()
-        {
-            return $"#{Red:X2}{Green:X2}{Blue:X2}";
-        }
-
-        public string ToArgbHex()
-        {
-            return $"#{Alpha:X2}{Red:X2}{Green:X2}{Blue:X2}";
-        }
+        public int Red { get; set; } = red;
 
         public static DynamicColor Parse(string str)
         {
@@ -43,6 +33,16 @@
             {
                 throw new ArgumentException("Invalid color string format. Must be either 6 or 8 characters long (excluding '#').");
             }
+        }
+
+        public string ToArgbHex()
+        {
+            return $"#{Alpha:X2}{Red:X2}{Green:X2}{Blue:X2}";
+        }
+
+        public string ToHex()
+        {
+            return $"#{Red:X2}{Green:X2}{Blue:X2}";
         }
 
         internal static bool TryParse(string v, out DynamicColor longValue)

@@ -9,9 +9,9 @@ namespace Deaddit.Tests
         public void TestBasicEmojis()
         {
             string[] validEmojis = { "😀", "🙂", "😍", "🤔", "👍", "🎉" };
-            foreach (var emoji in validEmojis)
+            foreach (string emoji in validEmojis)
             {
-                Assert.IsTrue(EmojiDetector.IsMatch(emoji) , $"Emoji {emoji} should be detected");
+                Assert.IsTrue(EmojiDetector.IsMatch(emoji), $"Emoji {emoji} should be detected");
             }
         }
 
@@ -19,7 +19,7 @@ namespace Deaddit.Tests
         public void TestComplexEmojis()
         {
             string[] complexEmojis = { "👨‍👩‍👧‍👦", "🏳️‍🌈", "👩🏽‍🚀", "🧑🏻‍🤝‍🧑🏿" };
-            foreach (var emoji in complexEmojis)
+            foreach (string emoji in complexEmojis)
             {
                 Assert.IsTrue(EmojiDetector.IsMatch(emoji), $"Complex emoji {emoji} should be detected");
             }
@@ -38,7 +38,7 @@ namespace Deaddit.Tests
         public void TestEmojiVariations()
         {
             string[] emojiVariations = { "👍🏻", "👍🏼", "👍🏽", "👍🏾", "👍🏿" };
-            foreach (var emoji in emojiVariations)
+            foreach (string emoji in emojiVariations)
             {
                 Assert.IsTrue(EmojiDetector.IsMatch(emoji), $"Emoji variation '{emoji}' should be detected");
             }
@@ -54,7 +54,7 @@ namespace Deaddit.Tests
                 "Привет🎉мир",
                 "你好👨‍👩‍👧‍👦世界"
             };
-            foreach (var text in mixedTexts)
+            foreach (string text in mixedTexts)
             {
                 Assert.IsTrue(EmojiDetector.IsMatch(text), $"Mixed text '{text}' should contain detected emoji");
             }
@@ -64,7 +64,7 @@ namespace Deaddit.Tests
         public void TestNonEmojiAscii()
         {
             string[] asciiChars = { ":-)", ":D", "<3", "^_^", ":P", ":|" };
-            foreach (var ascii in asciiChars)
+            foreach (string ascii in asciiChars)
             {
                 Assert.IsFalse(EmojiDetector.IsMatch(ascii), $"ASCII emoticon '{ascii}' should not be detected as emoji");
             }
@@ -80,7 +80,7 @@ namespace Deaddit.Tests
                 "Привет", // Russian (Cyrillic)
                 "Γειά σου" // Greek
             };
-            foreach (var text in nonEnglishTexts)
+            foreach (string text in nonEnglishTexts)
             {
                 Assert.IsFalse(EmojiDetector.IsMatch(text), $"Non-English text '{text}' should not be detected as emoji");
             }

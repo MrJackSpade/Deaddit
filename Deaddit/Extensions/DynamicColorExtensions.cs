@@ -6,7 +6,7 @@ namespace Deaddit.Extensions
     {
         public static Color ToMauiColor(this DynamicColor dynamicColor)
         {
-            if(dynamicColor is null)
+            if (dynamicColor is null)
             {
                 return null;
             }

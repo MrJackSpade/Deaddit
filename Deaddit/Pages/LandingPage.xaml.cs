@@ -57,6 +57,7 @@ namespace Deaddit.Pages
 
             mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("All", "r/all", ApiPostSort.Hot), redditClient, applicationTheme, applicationHacks, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService));
             mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("Home", "", ApiPostSort.Hot), redditClient, applicationTheme, applicationHacks, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService));
+            mainStack.Add(SubRedditComponent.Fixed(new SubRedditSubscription("Saved", "u/me/saved", ApiPostSort.Undefined), redditClient, applicationTheme, applicationHacks, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService));
 
             foreach (SubRedditSubscription subscription in _configuration.Subscriptions)
             {
