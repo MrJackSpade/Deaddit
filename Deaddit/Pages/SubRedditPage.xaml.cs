@@ -24,7 +24,7 @@ namespace Deaddit.Pages
 
         private readonly IConfigurationService _configurationService;
 
-        private readonly List<LoadedPost> _loadedPosts = [];
+        private readonly List<LoadedThing> _loadedPosts = [];
 
         private readonly IRedditClient _redditClient;
 
@@ -117,7 +117,7 @@ namespace Deaddit.Pages
 
         public async Task ScrollDown(ScrolledEventArgs e)
         {
-            int lastIndex = mainStack.Children.Count - 1;
+            int lastIndex = mainStack.Children.OfType<RedditPostComponent>().Count() - 1;
 
             if (WindowInLoadRange)
             {
@@ -214,29 +214,29 @@ namespace Deaddit.Pages
         {
             await DataService.LoadAsync(mainStack, async () =>
             {
-                List<ApiPost> posts = [];
+                List<ApiThing> posts = [];
 
                 string? after = _loadedPosts.LastOrDefault()?.Post.Name;
 
                 HashSet<string> loadedNames = _loadedPosts.Select(_loadedPosts => _loadedPosts.Post.Name).ToHashSet();
 
-                await foreach (ApiPost post in _redditClient.GetPosts(after: after, subreddit: _subreddit, sort: _sort))
+                await foreach (ApiThing thing in _redditClient.GetPosts(after: after, subreddit: _subreddit, sort: _sort))
                 {
-                    after = post.Name;
+                    after = thing.Name;
 
-                    if (!_blockConfiguration.BlockRules.IsAllowed(post))
+                    if (!_blockConfiguration.BlockRules.IsAllowed(thing))
                     {
                         continue;
                     }
 
-                    if (post.Hidden)
+                    if (thing is ApiPost post && post.Hidden)
                     {
                         continue;
                     }
 
-                    if (loadedNames.Add(post.Name))
+                    if (loadedNames.Add(thing.Name))
                     {
-                        posts.Add(post);
+                        posts.Add(thing);
                     }
 
                     if (posts.Count >= 25)
@@ -245,27 +245,47 @@ namespace Deaddit.Pages
                     }
                 }
 
-                foreach (ApiPost post in posts)
+                foreach (ApiThing apiThing in posts)
                 {
-                    RedditPostComponent redditPostComponent = RedditPostComponent.ListView(post, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService);
+                    ContentView? view = null;
 
-                    redditPostComponent.BlockAdded += this.RedditPostComponent_OnBlockAdded;
-                    redditPostComponent.HideClicked += this.RedditPostComponent_HideClicked;
-
-                    try
+                    if (apiThing is ApiPost post)
                     {
-                        mainStack.Add(redditPostComponent);
+
+                        RedditPostComponent redditPostComponent = RedditPostComponent.ListView(post, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _selectionGroup, _blockConfiguration, _configurationService);
+
+                        redditPostComponent.BlockAdded += this.RedditPostComponent_OnBlockAdded;
+                        redditPostComponent.HideClicked += this.RedditPostComponent_HideClicked;
+
+                        view = redditPostComponent;
                     }
-                    catch (System.MissingMethodException mme) when (mme.Message.Contains("Microsoft.Maui.Controls.Handlers.Compatibility.FrameRenderer"))
+
+                    if(apiThing is ApiComment comment)
                     {
-                        Debug.WriteLine("FrameRenderer Missing Method Exception");
+
+                        RedditCommentComponent redditCommentComponent = RedditCommentComponent.Preview(comment, null, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, new SelectionGroup(), _blockConfiguration, _configurationService);
+
+                        view = redditCommentComponent;
+
                     }
 
-                    _loadedPosts.Add(new LoadedPost()
+                    if (view is not null)
                     {
-                        Post = post,
-                        PostComponent = redditPostComponent
-                    });
+                        try
+                        {
+                            mainStack.Add(view);
+                        }
+                        catch (System.MissingMethodException mme) when (mme.Message.Contains("Microsoft.Maui.Controls.Handlers.Compatibility.FrameRenderer"))
+                        {
+                            Debug.WriteLine("FrameRenderer Missing Method Exception");
+                        }
+
+                        _loadedPosts.Add(new LoadedThing()
+                        {
+                            Post = apiThing,
+                            PostComponent = view
+                        });
+                    }
                 }
             }, _applicationTheme.HighlightColor.ToMauiColor());
         }
@@ -307,7 +327,7 @@ namespace Deaddit.Pages
 
         private void RedditPostComponent_OnBlockAdded(object? sender, BlockRule e)
         {
-            foreach (LoadedPost loadedPost in _loadedPosts.ToList())
+            foreach (LoadedThing loadedPost in _loadedPosts.ToList())
             {
                 if (!e.IsAllowed(loadedPost.Post))
                 {
@@ -329,9 +349,9 @@ namespace Deaddit.Pages
             await this.TryLoad();
         }
 
-        private class LoadedPost
+        private class LoadedThing
         {
-            public ApiPost Post { get; set; }
+            public ApiThing Post { get; set; }
 
             public VisualElement PostComponent { get; set; }
         }
