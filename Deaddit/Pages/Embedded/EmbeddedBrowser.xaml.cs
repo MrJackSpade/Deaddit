@@ -1,4 +1,5 @@
 using Deaddit.Core.Configurations.Models;
+using Deaddit.Core.Reddit.Models;
 using Deaddit.Extensions;
 
 namespace Deaddit
@@ -7,9 +8,13 @@ namespace Deaddit
     {
         private readonly ApplicationStyling _applicationTheme;
 
-        public EmbeddedBrowser(string url, ApplicationStyling applicationTheme)
+        public EmbeddedBrowser(PostItems items, ApplicationStyling applicationTheme)
         {
             this.InitializeComponent();
+
+            PostItem item = items.Items.Single();
+
+            string url = item.LaunchUrl;
 
             //Embedding a browser in a MAUI app will not allow http requests, so we need to change the url to https
             if (url.StartsWith("http://"))

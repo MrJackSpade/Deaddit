@@ -1,54 +1,42 @@
-﻿using Deaddit.Core.Reddit.Models;
-using Deaddit.Core.Reddit.Models.Api;
+﻿using Deaddit.Core.Reddit.Models.Api;
 
 namespace Deaddit.Core.Reddit.Extensions
 {
     public static class RedditCommentExtensions
     {
-        public static void AddReply(this ApiCommentMeta redditCommentMeta, ApiCommentMeta child)
+        public static void AddReply(this ApiComment redditCommentMeta, ApiThing child)
         {
-            if (redditCommentMeta.Data.Replies is null)
-            {
-                redditCommentMeta.Data.Replies = new CommentReadResponse() { Data = new ReadMetaData<ApiCommentMeta>() };
-            }
+            redditCommentMeta.Replies ??= new ApiThingCollection();
 
-            if (redditCommentMeta.Data.Replies.Data is null)
-            {
-                redditCommentMeta.Data.Replies.Data = new();
-            }
-
-            redditCommentMeta.Data.Replies.Data.Children.Add(child);
+            redditCommentMeta.Replies.Children.Add(child);
         }
 
-        public static IEnumerable<ApiCommentMeta> GetReplies(this ApiCommentMeta redditComment, ThingKind thingKind = ThingKind.Comment)
+        public static IEnumerable<ApiThing> GetReplies(this ApiComment redditComment)
         {
-            if (redditComment?.Data?.Replies?.Data?.Children is null)
+            if (redditComment?.Replies?.Children is null)
             {
                 yield break;
             }
 
-            foreach (ApiCommentMeta comment in redditComment.Data.Replies.Data.Children)
+            foreach (ApiThing comment in redditComment.Replies.Children)
             {
-                if ((comment.Kind == thingKind || comment.Kind == ThingKind.More) && comment.Data is not null)
-                {
-                    yield return comment;
-                }
+                yield return comment;
             }
         }
 
-        public static bool HasChildren(this ApiCommentMeta redditCommentMeta)
+        public static bool HasChildren(this ApiComment redditCommentMeta)
         {
-            return redditCommentMeta.Data.Replies?.Data?.Children?.Count > 0 || redditCommentMeta.Kind == ThingKind.More;
+            return redditCommentMeta.Replies?.Children?.Count > 0;
         }
 
-        public static bool IsDeleted(this ApiCommentMeta redditCommentMeta)
+        public static bool IsDeleted(this ApiThing redditCommentMeta)
         {
-            return redditCommentMeta.Data.Author == "[deleted]";
+            return redditCommentMeta.Author == "[deleted]";
         }
 
-        public static bool IsRemoved(this ApiCommentMeta redditCommentMeta)
+        public static bool IsRemoved(this ApiThing redditCommentMeta)
         {
-            return redditCommentMeta.Data.Author == "[removed]";
+            return redditCommentMeta.Author == "[removed]";
         }
     }
 }

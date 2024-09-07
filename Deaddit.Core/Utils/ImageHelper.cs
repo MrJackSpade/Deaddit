@@ -2,7 +2,6 @@
 
 namespace Deaddit.Core.Utils
 {
-
     public static class ImageHelper
     {
         public static async Task<Stream> ResizeAndCropImageFromUrlAsync(string imageUrl, int size)

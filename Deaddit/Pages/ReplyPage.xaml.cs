@@ -1,6 +1,7 @@
 using Deaddit.Components;
 using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
+using Deaddit.Core.Reddit.Extensions;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
@@ -106,7 +107,7 @@ namespace Deaddit.Pages
         {
             string commentBody = textEditor.Text;
 
-            ApiCommentMeta meta = await _redditClient.Comment(_replyTo, commentBody);
+            ApiComment meta = await _redditClient.Comment(_replyTo, commentBody);
 
             OnSubmitted?.Invoke(this, new ReplySubmittedEventArgs(_replyTo, meta));
 
@@ -116,7 +117,7 @@ namespace Deaddit.Pages
         private async void OnHyperLinkClicked(object? sender, LinkEventArgs e)
         {
             Ensure.NotNullOrWhiteSpace(e.Url);
-            PostTarget resource = UrlHandler.Resolve(e.Url);
+            PostItems resource = RedditPostExtensions.Resolve(e.Url);
 
             await Navigation.OpenResource(resource, _redditClient, _applicationTheme, _applicationHacks, null, null, null);
         }

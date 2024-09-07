@@ -9,17 +9,17 @@ namespace Deaddit.Core.Reddit.Interfaces
 
         Task<ApiSubReddit> About(SubRedditName subreddit);
 
-        Task<ApiCommentMeta> Comment(ApiThing replyTo, string comment);
+        Task<ApiComment> Comment(ApiThing replyTo, string comment);
 
-        IAsyncEnumerable<ApiCommentMeta> Comments(ApiPost thing, ApiComment? focus);
+        IAsyncEnumerable<ApiThing> Comments(ApiPost thing, ApiComment? focus);
 
         Task Delete(ApiThing thing);
 
-        IAsyncEnumerable<ApiPost> GetPosts(SubRedditName subreddit, ApiPostSort sort = ApiPostSort.Hot, string? after = null, Region region = Region.GLOBAL);
+        IAsyncEnumerable<ApiThing> GetPosts(SubRedditName subreddit, ApiPostSort sort = ApiPostSort.Hot, string? after = null, Region region = Region.GLOBAL);
 
         Task<Stream> GetStream(string url);
 
-        IAsyncEnumerable<ApiCommentMeta> MoreComments(ApiPost thing, ApiComment comment);
+        IAsyncEnumerable<ApiThing> MoreComments(ApiPost thing, ApiMore comment);
 
         Task SetUpvoteState(ApiThing thing, UpvoteState state);
 

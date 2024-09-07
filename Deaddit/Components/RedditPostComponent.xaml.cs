@@ -14,8 +14,6 @@ using Deaddit.EventArguments;
 using Deaddit.Extensions;
 using Deaddit.Pages;
 using Microsoft.Maui.Controls.Shapes;
-using System.Net;
-using Path = System.IO.Path;
 
 namespace Deaddit.MAUI.Components
 {
@@ -266,15 +264,16 @@ namespace Deaddit.MAUI.Components
 
         public async void OnShareClicked(object? sender, EventArgs e)
         {
-            PostTarget target = _post.GetPostTarget();
+            PostItems target = _post.GetPostItems();
 
             switch (target.Kind)
             {
                 case PostTargetKind.Video:
                 case PostTargetKind.Image:
                 case PostTargetKind.Audio:
-                    await Share.Default.ShareFiles(_post.Title, target.ShareUrls);
+                    await Share.Default.ShareFiles(_post.Title, target);
                     break;
+
                 case PostTargetKind.Undefined:
                 case PostTargetKind.Post:
                 case PostTargetKind.Url:
@@ -284,10 +283,9 @@ namespace Deaddit.MAUI.Components
                         Text = _post.Title
                     });
                     break;
+
                 default: throw new EnumNotImplementedException(target.Kind);
             }
-
-
         }
 
         public async void OnThumbnailImageClicked(object? sender, EventArgs e)

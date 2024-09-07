@@ -141,44 +141,43 @@ namespace Deaddit.MAUI.Components
             return toReturn;
         }
 
-        public void AddChildren(IEnumerable<ApiCommentMeta> children)
+        public void AddChildren(IEnumerable<ApiThing> children)
         {
-            foreach (ApiCommentMeta? child in children)
+            foreach (ApiThing? child in children)
             {
-                if (!_blockConfiguration.BlockRules.IsAllowed(child.Data))
+                if (!_blockConfiguration.BlockRules.IsAllowed(child))
                 {
                     continue;
                 }
 
-                if (child.Data.Id == _post.Id)
+                if (child.Id == _post.Id)
                 {
                     continue;
                 }
 
-                if ((child.IsDeleted() || child.IsRemoved()) && !child.HasChildren())
+                if (child.IsDeleted() || child.IsRemoved())
                 {
                     continue;
                 }
 
                 ContentView? childComponent = null;
 
-                switch (child.Kind)
+                if (child is ApiComment comment)
                 {
-                    case ThingKind.Comment:
-                        RedditCommentComponent ccomponent = FullView(child.Data, _post, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService);
-                        ccomponent.AddChildren(child.GetReplies());
-                        ccomponent.OnDelete += this.OnCommentDelete;
-                        childComponent = ccomponent;
-                        break;
-
-                    case ThingKind.More:
-                        MoreCommentsComponent mcomponent = new(child.Data, _applicationTheme);
-                        mcomponent.OnClick += this.MoreCommentsClick;
-                        childComponent = mcomponent;
-                        break;
-
-                    default:
-                        throw new EnumNotImplementedException(child.Kind);
+                    RedditCommentComponent ccomponent = RedditCommentComponent.FullView(comment, _post, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService);
+                    ccomponent.AddChildren(comment.GetReplies());
+                    ccomponent.OnDelete += this.OnCommentDelete;
+                    childComponent = ccomponent;
+                }
+                else if (child is ApiMore more)
+                {
+                    MoreCommentsComponent mcomponent = new(more, _applicationTheme);
+                    mcomponent.OnClick += this.MoreCommentsClick;
+                    childComponent = mcomponent;
+                }
+                else
+                {
+                    throw new NotImplementedException();
                 }
 
                 this.TryInitReplies();
@@ -222,7 +221,7 @@ namespace Deaddit.MAUI.Components
         {
             Ensure.NotNullOrWhiteSpace(e.Url);
 
-            PostTarget resource = UrlHandler.Resolve(e.Url);
+            PostItems resource = RedditPostExtensions.Resolve(e.Url);
 
             await Navigation.OpenResource(resource, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _blockConfiguration, _configurationService);
         }
@@ -366,14 +365,14 @@ namespace Deaddit.MAUI.Components
             await Navigation.PushAsync(redditPostPage);
         }
 
-        private async Task LoadMoreCommentsAsync(ApiComment comment)
+        private async Task LoadMoreCommentsAsync(ApiMore comment)
         {
-            List<ApiCommentMeta> response = await _redditClient.MoreComments(_post, comment).ToList();
+            List<ApiThing> response = await _redditClient.MoreComments(_post, comment).ToList();
 
             this.AddChildren(response);
         }
 
-        private async void MoreCommentsClick(object? sender, ApiComment e)
+        private async void MoreCommentsClick(object? sender, ApiMore e)
         {
             MoreCommentsComponent? mcomponent = sender as MoreCommentsComponent;
 
@@ -421,9 +420,9 @@ namespace Deaddit.MAUI.Components
 
         private void ReplyPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
         {
-            Ensure.NotNull(e.NewComment.Data, "New comment data");
+            Ensure.NotNull(e.NewComment, "New comment data");
 
-            RedditCommentComponent redditCommentComponent = FullView(e.NewComment.Data, _post, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService);
+            RedditCommentComponent redditCommentComponent = FullView(e.NewComment, _post, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _commentSelectionGroup, _blockConfiguration, _configurationService);
             redditCommentComponent.OnDelete += this.OnCommentDelete;
             this.TryInitReplies();
             _replies.Children.Insert(0, redditCommentComponent);

@@ -1,4 +1,5 @@
 using Deaddit.Core.Configurations.Models;
+using Deaddit.Core.Reddit.Models;
 using Deaddit.Extensions;
 using System.Text;
 
@@ -61,17 +62,20 @@ namespace Deaddit
 
         private readonly ApplicationStyling _applicationTheme;
 
-        public EmbeddedImage(ApplicationStyling applicationTheme, params string[] urls)
+        private readonly PostItems _items;
+
+        public EmbeddedImage(ApplicationStyling applicationTheme, PostItems items)
         {
             this.InitializeComponent();
+            _items = items;
             _applicationTheme = applicationTheme;
             navigationBar.BackgroundColor = _applicationTheme.PrimaryColor.ToMauiColor();
 
             StringBuilder images = new();
 
-            foreach (string s in urls)
+            foreach (PostItem s in items)
             {
-                images.Append($"<img src='{s}' alt='Image' />");
+                images.Append($"<img src='{s.LaunchUrl}' alt='Image' />");
             }
 
             string Html = TEMPLATE.Replace("%IMAGES%", images.ToString())

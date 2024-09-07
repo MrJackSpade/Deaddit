@@ -26,21 +26,25 @@ namespace Deaddit.Pages
 
         private readonly List<LoadedPost> _loadedPosts = [];
 
+        private readonly IRedditClient _redditClient;
+
+        private readonly SemaphoreSlim _reloadSemaphore = new(1);
+
         /// <summary>
         /// Prevents more than one active loading/scrolling thread, because for some reason
         /// Monitor.Enter on a lock allows more than one thread to pass through.
         /// </summary>
         private readonly SemaphoreSlim _scrollSemaphore = new(1);
 
-        private readonly IRedditClient _redditClient;
-
-        private readonly SemaphoreSlim _reloadSemaphore = new(1);
-
         private readonly SelectionGroup _selectionGroup;
 
         private readonly SubRedditName _subreddit;
 
         private readonly IVisitTracker _visitTracker;
+
+        private double _lastRefresh;
+
+        private double _lastScroll;
 
         private ApiPostSort _sort;
 
@@ -111,11 +115,8 @@ namespace Deaddit.Pages
             await this.TryLoad();
         }
 
-        private double _lastScroll;
-
         public async Task ScrollDown(ScrolledEventArgs e)
         {
-
             int lastIndex = mainStack.Children.Count - 1;
 
             if (WindowInLoadRange)
@@ -146,6 +147,7 @@ namespace Deaddit.Pages
                         }
 
                         break;
+
                     case ViewPosition.Below:
                     case ViewPosition.Unknown:
                         continue;
@@ -155,8 +157,6 @@ namespace Deaddit.Pages
                 }
             }
         }
-
-        private double _lastRefresh;
 
         public void ScrollUp(ScrolledEventArgs e)
         {
@@ -179,9 +179,11 @@ namespace Deaddit.Pages
                 {
                     case ViewPosition.Above:
                         return;
+
                     case ViewPosition.Below:
                         child.Deinitialize();
                         break;
+
                     case ViewPosition.Within:
                         child.Initialize();
                         break;
@@ -193,7 +195,6 @@ namespace Deaddit.Pages
         {
             if (_scrollSemaphore.Wait(0))
             {
-
                 if (e.ScrollY < _lastScroll)
                 {
                     this.ScrollUp(e);

@@ -34,6 +34,16 @@ namespace Deaddit.Core.Reddit.Models
             {
                 RootedName = "/" + name;
             }
+
+            if (RootedName.StartsWith("/u/"))
+            {
+                RootedName = "/user/" + RootedName[3..];
+            }
+
+            if (RootedName.StartsWith("u/"))
+            {
+                RootedName = "/user/" + RootedName[2..];
+            }
         }
 
         public string DisplayName { get; set; }

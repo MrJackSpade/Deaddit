@@ -3,6 +3,8 @@ Deaddit.Tests/bin/
 Deaddit.Tests/obj/
 Deaddit/bin/
 Deaddit/obj/
+Deaddit.Core/bin/
+Deaddit.Core/obj/
 Release/obj/
 Release/bin/Deaddit/release_net8.0-android/Deaddit.dll
 Release/bin/Deaddit/release_net8.0-android/Deaddit.pdb

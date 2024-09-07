@@ -2,7 +2,6 @@
 
 namespace Deaddit.Core.Configurations.Models
 {
-
     public class ApplicationHacks
     {
         [EditorDisplay(Name = "Comment Emoji Handling", Order = 3)]

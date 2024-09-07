@@ -1,10 +1,39 @@
-﻿using Deaddit.Core.Reddit.Models;
-using MimeKit;
+﻿using MimeKit;
 
 namespace Deaddit.Core.Utils
 {
     public static class UrlHandler
     {
+        public static string GetExtension(string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName))
+            {
+                return string.Empty;
+            }
+
+            if (fileName.Contains('?'))
+            {
+                fileName = fileName[..fileName.LastIndexOf('?')];
+            }
+
+            return Path.GetExtension(fileName);
+        }
+
+        public static string GetFileName(string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName))
+            {
+                return string.Empty;
+            }
+
+            if (fileName.Contains('?'))
+            {
+                fileName = fileName[..fileName.LastIndexOf('?')];
+            }
+
+            return Path.GetFileName(fileName);
+        }
+
         public static string GetMimeTypeFromUri(Uri uri)
         {
             // Strip the parameters from the URI if they exist
@@ -22,27 +51,6 @@ namespace Deaddit.Core.Utils
             string mimeType = MimeTypes.GetMimeType(fileExtension);
 
             return mimeType ?? "application/octet-stream"; // Return a generic MIME type if not found
-        }
-
-        public static PostTarget Resolve(string url)
-        {
-            string mimeType = GetMimeTypeFromUri(new Uri(url));
-
-            // Switch based on the type
-            if (mimeType.StartsWith("image/"))
-            {
-                return new PostTarget(PostTargetKind.Image, url);
-            }
-            else if (mimeType.StartsWith("audio/"))
-            {
-                return new PostTarget(PostTargetKind.Audio, url);
-            }
-            else if (mimeType.StartsWith("video/"))
-            {
-                return new PostTarget(PostTargetKind.Video, url);
-            }
-
-            return new PostTarget(PostTargetKind.Url, url);
         }
     }
 }

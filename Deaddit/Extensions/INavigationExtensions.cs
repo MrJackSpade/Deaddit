@@ -21,13 +21,13 @@ namespace Deaddit.Extensions
                                           BlockConfiguration blockConfiguration,
                                           IConfigurationService configurationService)
         {
-            PostTarget? resource = post.GetPostTarget();
+            PostItems? resource = post.GetPostItems();
 
             await navigation.OpenResource(resource, redditClient, applicationTheme, applicationHacks, visitTracker, blockConfiguration, configurationService, post);
         }
 
         public static async Task OpenResource(this INavigation navigation,
-                                              PostTarget resource,
+                                              PostItems resource,
                                               IRedditClient redditClient,
                                               ApplicationStyling applicationTheme,
                                               ApplicationHacks applicationHacks,
@@ -51,18 +51,18 @@ namespace Deaddit.Extensions
                     break;
 
                 case PostTargetKind.Url:
-                    Ensure.NotNullOrEmpty(resource.LaunchUrls);
-                    await navigation.PushAsync(new EmbeddedBrowser(resource.LaunchUrls[0], applicationTheme));
+                    Ensure.NotNullOrEmpty(resource.Items);
+                    await navigation.PushAsync(new EmbeddedBrowser(resource, applicationTheme));
                     break;
 
                 case PostTargetKind.Video:
-                    Ensure.NotNullOrEmpty(resource.LaunchUrls);
-                    await navigation.PushAsync(new EmbeddedVideo(resource.LaunchUrls[0], applicationTheme));
+                    Ensure.NotNullOrEmpty(resource.Items);
+                    await navigation.PushAsync(new EmbeddedVideo(resource, applicationTheme));
                     break;
 
                 case PostTargetKind.Image:
-                    Ensure.NotNullOrEmpty(resource.LaunchUrls);
-                    await navigation.PushAsync(new EmbeddedImage(applicationTheme, resource.LaunchUrls));
+                    Ensure.NotNullOrEmpty(resource.Items);
+                    await navigation.PushAsync(new EmbeddedImage(applicationTheme, resource));
                     break;
 
                 default:
