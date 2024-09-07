@@ -287,7 +287,6 @@ namespace Deaddit.MAUI.Components
             {
                 Opacity = _applicationTheme.VisitedOpacity;
                 _selectionGroup.Select(this);
-                this.RemoveActionButtons();
                 _visitTracker.Visit(_post);
             }
 
