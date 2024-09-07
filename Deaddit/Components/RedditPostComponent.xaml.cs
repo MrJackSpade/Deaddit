@@ -285,6 +285,7 @@ namespace Deaddit.MAUI.Components
         {
             if (_isListView)
             {
+                Opacity = _applicationTheme.VisitedOpacity;
                 _selectionGroup.Select(this);
                 this.RemoveActionButtons();
                 _visitTracker.Visit(_post);
