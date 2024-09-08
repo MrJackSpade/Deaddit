@@ -16,8 +16,8 @@ namespace Deaddit.Core.Extensions
 
             return hacks.CommentEmojiHandling switch
             {
-                EmojiHandling.None => body,
-                EmojiHandling.Strip => RemoveEmojis(body),
+                OptionalStrip.None => body,
+                OptionalStrip.Strip => RemoveEmojis(body),
                 _ => throw new EnumNotImplementedException(hacks.CommentEmojiHandling),
             };
         }
@@ -45,10 +45,17 @@ namespace Deaddit.Core.Extensions
                 return null;
             }
 
+            title = title.Trim();
+
+            if(hacks.TitleNewlines == OptionalStrip.Strip)
+            {
+                title = title.Replace("\n", " ").Replace("\r", " ");
+            }
+
             return hacks.CommentEmojiHandling switch
             {
-                EmojiHandling.None => title,
-                EmojiHandling.Strip => RemoveEmojis(title).Replace("  ", " "),
+                OptionalStrip.None => title,
+                OptionalStrip.Strip => RemoveEmojis(title).Replace("  ", " "),
                 _ => throw new EnumNotImplementedException(hacks.CommentEmojiHandling),
             };
         }

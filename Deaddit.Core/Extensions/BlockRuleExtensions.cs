@@ -1,4 +1,5 @@
 ﻿using Deaddit.Core.Configurations.Models;
+using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
 
@@ -6,13 +7,39 @@ namespace Deaddit.Core.Extensions
 {
     public static class BlockRuleExtensions
     {
-        public static bool IsAllowed(this IEnumerable<BlockRule> blockRules, ApiThing thing)
+        public static bool RequiresUserData(this BlockConfiguration blockConfiguration)
         {
-            foreach (BlockRule br in blockRules)
+            return blockConfiguration.MinAccountAgeDays > 0 || blockConfiguration.MinCommentKarma > 0 || blockConfiguration.MaxLinkKarma > 0;
+        }
+
+        public static bool IsAllowed(this BlockConfiguration blockConfiguration, ApiThing thing, Dictionary<string, PartialUser>? userData = null)
+        {
+            foreach (BlockRule br in blockConfiguration.BlockRules)
             {
                 if (!br.IsAllowed(thing))
                 {
                     return false;
+                }
+
+                if(userData != null && userData.TryGetValue(thing.AuthorFullName, out PartialUser user))
+                {
+                    if (blockConfiguration.MinAccountAgeDays > 0)
+                    {
+                        if ((DateTime.UtcNow - user.CreatedUtc).TotalDays < blockConfiguration.MinAccountAgeDays)
+                        {
+                            return false;
+                        }
+                    }
+
+                    if(blockConfiguration.MinCommentKarma > 0 && blockConfiguration.MinCommentKarma > user.CommentKarma)
+                    {
+                        return false;
+                    }
+
+                    if (blockConfiguration.MaxLinkKarma > 0 && blockConfiguration.MaxLinkKarma < user.LinkKarma)
+                    {
+                        return false;
+                    }
                 }
             }
 

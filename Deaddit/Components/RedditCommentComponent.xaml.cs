@@ -124,7 +124,7 @@ namespace Deaddit.MAUI.Components
         {
             foreach (ApiThing? child in children)
             {
-                if (!_blockConfiguration.BlockRules.IsAllowed(child))
+                if (!_blockConfiguration.IsAllowed(child))
                 {
                     continue;
                 }
@@ -230,6 +230,14 @@ namespace Deaddit.MAUI.Components
                     case CommentMoreOptions.ViewAuthor:
                         Ensure.NotNull(_comment.Author);
                         await _appNavigator.OpenUser(_comment.Author);
+                        break;
+
+                    case CommentMoreOptions.CopyRaw:
+                        await Clipboard.SetTextAsync(_comment.Body);
+                        break;
+
+                    case CommentMoreOptions.CopyPermalink:
+                        await Clipboard.SetTextAsync(_comment.Permalink);
                         break;
                 }
             }
@@ -454,7 +462,13 @@ namespace Deaddit.MAUI.Components
 
         private void UpdateMetaData()
         {
-            metaDataLabel.Text = $"{_comment.Score} points {_comment.CreatedUtc.Elapsed()}";
+            if (!_comment.ScoreHidden == true)
+            {
+                metaDataLabel.Text = $"{_comment.Score} points {_comment.CreatedUtc.Elapsed()}";
+            } else
+            {
+                metaDataLabel.Text = _comment.CreatedUtc.Elapsed();
+            }
         }
     }
 }

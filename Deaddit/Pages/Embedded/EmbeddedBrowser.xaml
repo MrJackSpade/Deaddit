@@ -13,25 +13,21 @@
             x:Name="navigationBar"
             Grid.Row="0"
             HorizontalOptions="FillAndExpand"
+            ColumnDefinitions="*, auto, auto"
             VerticalOptions="Center">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-
-            <!-- Back Button -->
+            
             <Button
-                Text=""
-                Grid.Column="0"
+                Text="&#8278;"
+                Grid.Column="1"
+                x:Name="shareButton"
                 HorizontalOptions="Start"
-                Clicked="OnBackClicked"
+                Clicked="OnShareClicked"
                 BackgroundColor="Transparent" />
 
-            <!-- Save Button -->
             <Button
                 Text="💾"
                 Grid.Column="2"
+                x:Name="saveButton"
                 HorizontalOptions="End"
                 Clicked="OnSaveClicked"
                 BackgroundColor="Transparent" />

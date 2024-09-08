@@ -159,6 +159,23 @@ namespace Deaddit.Core.Reddit
             System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in Delete method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
         }
 
+        public async Task<Dictionary<string, PartialUser>> GetUserData(IEnumerable<string> usernames)
+        {
+            await this.EnsureAuthenticated();
+
+            System.Diagnostics.Stopwatch stopwatch = new();
+            stopwatch.Start();
+
+            string url = $"{API_ROOT}/api/user_data_by_account_ids?ids={string.Join(",", usernames)}";
+
+            Dictionary<string, PartialUser> response = await _jsonClient.Get<Dictionary<string, PartialUser>>(url);
+
+            stopwatch.Stop();
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in GetUserData method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+
+            return response;
+        }
+
         public async IAsyncEnumerable<ApiThing> GetPosts<T>(SubRedditName subreddit, T sort, string? after = null, Models.Region region = Models.Region.GLOBAL) where T : Enum
         {
             //Returns HTML if not authenticated

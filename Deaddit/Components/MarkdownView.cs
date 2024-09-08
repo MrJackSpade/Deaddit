@@ -407,19 +407,44 @@ namespace Deaddit.Components
 
             foreach (string part in parts)
             {
+
                 if (string.IsNullOrEmpty(part))
                 {
                     continue;
+                }      
+                
+                string trimmed = part;
+
+                Span span = new()
+                {
+                    TextColor = textColor,
+                    FontFamily = TextFontFace,
+                    Text = trimmed
+                };
+
+                if (part.TryTrim("~~", out trimmed))
+                {
+                    span.Text = trimmed;
+                    span.TextDecorations |= TextDecorations.Strikethrough;
                 }
 
-                Span span = new();
+                if (part.TryTrim("**", out trimmed))
+                {
+                    span.Text = trimmed;
+                    span.FontAttributes |= FontAttributes.Bold;
+                }
+                
+                if (part.TryTrim("*", out trimmed))
+                {
+                    span.Text = trimmed;
+                    span.FontAttributes |= FontAttributes.Italic;
+                }
 
-                if (part.TryTrim(">!", "!<", out string? trimmed))
+                if (part.TryTrim(">!", "!<", out trimmed))
                 {
                     span.Text = trimmed;
                     span.BackgroundColor = textColor;
                     span.FontFamily = CodeBlockFontFace;
-                    span.TextColor = textColor;
 
                     TapGestureRecognizer linkTapGestureRecognizer = new();
                     linkTapGestureRecognizer.Tapped += (_, _) => span.BackgroundColor = new Color(0, 0, 0, 0);
@@ -432,48 +457,6 @@ namespace Deaddit.Components
                     span.FontFamily = CodeBlockFontFace;
                     span.TextColor = CodeBlockTextColor;
                 }
-                else if (part.TryTrim("__", out trimmed))
-                {
-                    span.Text = trimmed;
-                    span.FontAttributes = FontAttributes.Bold;
-                    span.TextColor = textColor;
-                    span.FontFamily = TextFontFace;
-                }
-                else if (part.TryTrim('_', out trimmed))
-                {
-                    span.Text = trimmed;
-                    span.FontAttributes = FontAttributes.Italic;
-                    span.TextColor = textColor;
-                    span.FontFamily = TextFontFace;
-                }
-                else if (part.TryTrim("~~", out trimmed))
-                {
-                    span.Text = trimmed;
-                    span.TextDecorations = TextDecorations.Strikethrough;
-                    span.TextColor = textColor;
-                    span.FontFamily = TextFontFace;
-                }
-                else if (part.TryTrim("***", out trimmed))
-                {
-                    span.Text = trimmed;
-                    span.FontAttributes = FontAttributes.Bold | FontAttributes.Italic;
-                    span.TextColor = textColor;
-                    span.FontFamily = TextFontFace;
-                }
-                else if (part.TryTrim("**", out trimmed))
-                {
-                    span.Text = trimmed;
-                    span.FontAttributes = FontAttributes.Bold;
-                    span.TextColor = textColor;
-                    span.FontFamily = TextFontFace;
-                }
-                else if (part.TryTrim("*", out trimmed))
-                {
-                    span.Text = trimmed;
-                    span.FontAttributes = FontAttributes.Italic;
-                    span.TextColor = textColor;
-                    span.FontFamily = TextFontFace;
-                }
                 else if (part.StartsWith('[') && part.Contains("](")) // Link detection
                 {
                     string linkText = part.Split("](")[0] + "]";
@@ -482,17 +465,10 @@ namespace Deaddit.Components
                     span.Text = linkText[1..^1];
                     span.TextColor = HyperlinkColor;
                     span.TextDecorations = TextDecorations.Underline;
-                    span.FontFamily = TextFontFace;
 
                     TapGestureRecognizer linkTapGestureRecognizer = new();
                     linkTapGestureRecognizer.Tapped += (_, _) => this.TriggerHyperLinkClicked(linkUrl[1..^1]);
                     span.GestureRecognizers.Add(linkTapGestureRecognizer);
-                }
-                else
-                {
-                    span.Text = part;
-                    span.TextColor = textColor;
-                    span.FontFamily = TextFontFace;
                 }
 
                 span.FontSize = TextFontSize;

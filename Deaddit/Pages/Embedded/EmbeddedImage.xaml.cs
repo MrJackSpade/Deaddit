@@ -72,6 +72,8 @@ namespace Deaddit
             _postItems = items;
 
             navigationBar.BackgroundColor = _applicationTheme.PrimaryColor.ToMauiColor();
+            saveButton.TextColor = applicationTheme.TextColor.ToMauiColor();
+            shareButton.TextColor = applicationTheme.TextColor.ToMauiColor();
 
             StringBuilder images = new();
 
@@ -95,6 +97,11 @@ namespace Deaddit
         private async void OnSaveClicked(object? sender, EventArgs e)
         {
             await FileStorage.Save(_postItems);
+        }
+
+        public async void OnShareClicked(object? sender, EventArgs e)
+        {
+            await Share.Default.ShareFiles("", _postItems);
         }
     }
 }

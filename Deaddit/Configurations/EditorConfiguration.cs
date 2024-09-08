@@ -1,4 +1,4 @@
-﻿using Deaddit.Attributes;
+﻿using Deaddit.Core.Attributes;
 using Deaddit.Core.Configurations.Models;
 
 namespace Deaddit.Configurations
