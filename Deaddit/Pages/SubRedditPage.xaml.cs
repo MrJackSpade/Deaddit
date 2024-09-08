@@ -4,6 +4,7 @@ using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
+using Deaddit.Core.Utils.Extensions;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
@@ -38,15 +39,19 @@ namespace Deaddit.Pages
 
         private readonly SubRedditName _subreddit;
 
+        private readonly ApplicationHacks _applicationHacks;
+
         private double _lastRefresh;
 
         private double _lastScroll;
 
         private Enum _sort;
 
-        public SubRedditPage(SubRedditName subreddit, Enum sort, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, BlockConfiguration blockConfiguration)
+        public SubRedditPage(SubRedditName subreddit, Enum sort, ApplicationHacks applicationHacks, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, BlockConfiguration blockConfiguration)
         {
             NavigationPage.SetHasNavigationBar(this, false);
+
+            _applicationHacks = applicationHacks;
             _appNavigator = appNavigator;
             _blockConfiguration = Ensure.NotNull(blockConfiguration);
             _subreddit = Ensure.NotNull(subreddit);
@@ -144,8 +149,7 @@ namespace Deaddit.Pages
 
         public async void OnSettingsClicked(object? sender, EventArgs e)
         {
-            _loadedPosts.Clear();
-            await this.TryLoad();
+            await _appNavigator.OpenObjectEditor();
         }
 
         public async Task ScrollDown(ScrolledEventArgs e)
@@ -243,79 +247,93 @@ namespace Deaddit.Pages
             }
         }
 
+        private string? _after = null;
+
         public async Task TryLoad()
         {
+
             await DataService.LoadAsync(mainStack, async () =>
             {
                 List<ApiThing> posts = [];
 
-                string? after = _loadedPosts.LastOrDefault()?.Post.Name;
-
                 HashSet<string> loadedNames = _loadedPosts.Select(_loadedPosts => _loadedPosts.Post.Name).ToHashSet();
 
-                await foreach (ApiThing thing in _redditClient.GetPosts(after: after, subreddit: _subreddit, sort: _sort))
+                do
                 {
-                    after = thing.Name;
 
-                    if (!_blockConfiguration.BlockRules.IsAllowed(thing))
+                    List<ApiThing> newPosts = await _redditClient.GetPosts(after: _after,
+                                                                            subreddit: _subreddit,
+                                                                            sort: _sort,
+                                                                            region: _applicationHacks.DefaultRegion)
+                                                                           .Take(_applicationHacks.PageSize)
+                                                                           .ToList();
+                    Dictionary<string, PartialUser>? userData = null;
+
+                    if (_blockConfiguration.RequiresUserData())
                     {
-                        continue;
+                        userData = await _redditClient.GetUserData(newPosts.Select(p => p.AuthorFullName).Distinct());
                     }
 
-                    if (thing is ApiPost post && post.Hidden)
+                    foreach (ApiThing thing in newPosts)
                     {
-                        continue;
-                    }
+                        _after = thing.Name;
 
-                    if (loadedNames.Add(thing.Name))
-                    {
-                        posts.Add(thing);
-                    }
-
-                    if (posts.Count >= 25)
-                    {
-                        break;
-                    }
-                }
-
-                foreach (ApiThing apiThing in posts)
-                {
-                    ContentView? view = null;
-
-                    if (apiThing is ApiPost post)
-                    {
-                        RedditPostComponent redditPostComponent = _appNavigator.CreatePostComponent(post, _selectionGroup);
-
-                        redditPostComponent.BlockAdded += this.RedditPostComponent_OnBlockAdded;
-                        redditPostComponent.HideClicked += this.RedditPostComponent_HideClicked;
-
-                        view = redditPostComponent;
-                    }
-
-                    if (apiThing is ApiComment comment)
-                    {
-                        view = _appNavigator.CreateCommentComponent(comment, null, _selectionGroup);
-                    }
-
-                    if (view is not null)
-                    {
-                        try
+                        if (!_blockConfiguration.IsAllowed(thing, userData))
                         {
-                            mainStack.Add(view);
-                        }
-                        catch (System.MissingMethodException mme) when (mme.Message.Contains("Microsoft.Maui.Controls.Handlers.Compatibility.FrameRenderer"))
-                        {
-                            Debug.WriteLine("FrameRenderer Missing Method Exception");
+                            continue;
                         }
 
-                        _loadedPosts.Add(new LoadedThing()
+                        if (thing is ApiPost post && post.Hidden)
                         {
-                            Post = apiThing,
-                            PostComponent = view
-                        });
+                            continue;
+                        }
+
+                        if (loadedNames.Add(thing.Name))
+                        {
+                            posts.Add(thing);
+                        }
                     }
-                }
+
+                    foreach (ApiThing apiThing in newPosts)
+                    {
+                        ContentView? view = null;
+
+                        if (apiThing is ApiPost post)
+                        {
+                            RedditPostComponent redditPostComponent = _appNavigator.CreatePostComponent(post, _selectionGroup);
+
+                            redditPostComponent.BlockAdded += this.RedditPostComponent_OnBlockAdded;
+                            redditPostComponent.HideClicked += this.RedditPostComponent_HideClicked;
+
+                            view = redditPostComponent;
+                        }
+
+                        if (apiThing is ApiComment comment)
+                        {
+                            view = _appNavigator.CreateCommentComponent(comment, null, _selectionGroup);
+                        }
+
+                        if (view is not null)
+                        {
+                            try
+                            {
+                                mainStack.Add(view);
+                            }
+                            catch (System.MissingMethodException mme) when (mme.Message.Contains("Microsoft.Maui.Controls.Handlers.Compatibility.FrameRenderer"))
+                            {
+                                Debug.WriteLine("FrameRenderer Missing Method Exception");
+                            }
+
+                            _loadedPosts.Add(new LoadedThing()
+                            {
+                                Post = apiThing,
+                                PostComponent = view
+                            });
+                        }
+                    }
+                } while (posts.Count < _applicationHacks.PageSize);
             }, _applicationTheme.HighlightColor.ToMauiColor());
+
         }
 
         private void RedditPostComponent_HideClicked(object? sender, OnHideClickedEventArgs e)
@@ -338,6 +356,7 @@ namespace Deaddit.Pages
         private async Task Reload()
         {
             _loadedPosts.Clear();
+            _after = null;
 
             //Cheap Hack
             IView nav = mainStack.Children.First();
@@ -345,13 +364,6 @@ namespace Deaddit.Pages
             mainStack.Children.Add(nav);
 
             await this.TryLoad();
-        }
-
-        private class LoadedThing
-        {
-            public ApiThing Post { get; set; }
-
-            public VisualElement PostComponent { get; set; }
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Deaddit.Core.Configurations.Interfaces;
+﻿using Deaddit.Configurations;
+using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
@@ -16,11 +17,19 @@ namespace Deaddit.Utils
     /// that wonky fucking magic like this is the better option. Since components cant
     /// be reasonably unit tested to begin with, code cleanliness is actually better
     /// </summary>
-    public class AppNavigator(IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService) : IAppNavigator
+    public class AppNavigator(IRedditClient redditClient,
+                              RedditCredentials redditCredentials,
+                              ApplicationStyling applicationTheme,
+                              ApplicationHacks applicationHacks,
+                              IVisitTracker visitTracker,
+                              BlockConfiguration blockConfiguration,
+                              IConfigurationService configurationService) : IAppNavigator
     {
         private readonly ApplicationHacks _applicationHacks = Ensure.NotNull(applicationHacks);
 
         private readonly ApplicationStyling _applicationTheme = Ensure.NotNull(applicationTheme);
+
+        private readonly RedditCredentials _redditCredentials = Ensure.NotNull(redditCredentials);
 
         private readonly BlockConfiguration _blockConfiguration = Ensure.NotNull(blockConfiguration);
 
@@ -81,9 +90,32 @@ namespace Deaddit.Utils
             return page;
         }
 
+        public async Task OpenObjectEditor(Action onSave)
+        {
+            EditorConfiguration editorConfiguration = new()
+            {
+                BlockConfiguration = blockConfiguration,
+                Credentials = _redditCredentials,
+                Styling = applicationTheme,
+                ApplicationHacks = applicationHacks
+            };
+
+            ObjectEditorPage editorPage = await this.OpenObjectEditor(editorConfiguration);
+
+            editorPage.OnSave += (s, e) =>
+            {
+                _configurationService.Write(editorConfiguration.ApplicationHacks);
+                _configurationService.Write(editorConfiguration.Credentials);
+                _configurationService.Write(editorConfiguration.BlockConfiguration);
+                _configurationService.Write(editorConfiguration.Styling);
+            };
+
+            onSave?.Invoke();
+        }
+
         public async Task<PostPage> OpenPost(ApiPost post, ApiComment focus)
         {
-            PostPage postPage = new(post, focus, this, _redditClient, _applicationTheme, _applicationHacks, _blockConfiguration);
+            PostPage postPage = new(post, focus, this, _configurationService, _redditClient, _applicationTheme, _applicationHacks, _blockConfiguration);
             await Navigation.PushAsync(postPage);
             await postPage.TryLoad();
             return postPage;
@@ -103,7 +135,7 @@ namespace Deaddit.Utils
 
         public async Task<SubRedditPage> OpenSubReddit(SubRedditName subRedditName, ApiPostSort sort = ApiPostSort.Hot)
         {
-            SubRedditPage page = new(subRedditName, sort, this, _redditClient, _applicationTheme, _blockConfiguration);
+            SubRedditPage page = new(subRedditName, sort, _applicationHacks, this, _redditClient, _applicationTheme, _blockConfiguration);
             await Navigation.PushAsync(page);
             await page.TryLoad();
             return page;
@@ -111,7 +143,7 @@ namespace Deaddit.Utils
 
         public async Task<SubRedditPage> OpenUser(string username, UserProfileSort userProfileSort = UserProfileSort.New)
         {
-            SubRedditPage page = new(new SubRedditName($"u/{username}"), userProfileSort, this, _redditClient, _applicationTheme, _blockConfiguration);
+            SubRedditPage page = new(new SubRedditName($"u/{username}"), userProfileSort, _applicationHacks, this, _redditClient, _applicationTheme, _blockConfiguration);
             await Navigation.PushAsync(page);
             await page.TryLoad();
             return page;
@@ -130,6 +162,11 @@ namespace Deaddit.Utils
             EmbeddedVideo browser = new(resource, _applicationTheme);
             await Navigation.PushAsync(browser);
             return browser;
+        }
+
+        public async Task OpenObjectEditor()
+        {
+           await this.OpenObjectEditor(null);
         }
     }
 }

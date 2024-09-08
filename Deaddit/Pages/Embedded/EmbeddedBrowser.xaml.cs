@@ -23,19 +23,30 @@ namespace Deaddit
             }
 
             _applicationTheme = applicationTheme;
+            saveButton.TextColor = applicationTheme.TextColor.ToMauiColor();
+            shareButton.TextColor = applicationTheme.TextColor.ToMauiColor();
             navigationBar.BackgroundColor = _applicationTheme.PrimaryColor.ToMauiColor();
+            
             webView.Source = new Uri(url);
         }
 
-        private void OnBackClicked(object? sender, EventArgs e)
+        public void OnBackClicked(object? sender, EventArgs e)
         {
             // Logic to go back, for example:
             Navigation.PopAsync();
         }
 
-        private void OnSaveClicked(object? sender, EventArgs e)
+        public void OnSaveClicked(object? sender, EventArgs e)
         {
             // Logic to save current state or media
+        }
+
+        public void OnShareClicked(object? sender, EventArgs e)
+        {
+            Share.Default.RequestAsync(new ShareTextRequest
+            {
+                Uri = webView.Source.ToString()
+            });
         }
     }
 }

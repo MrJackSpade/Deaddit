@@ -17,8 +17,6 @@ namespace Deaddit.Pages
 {
     public partial class LandingPage : ContentPage
     {
-        private readonly EditorConfiguration _appConfiguration;
-
         private readonly IAppNavigator _appNavigator;
 
         private readonly LandingPageConfiguration _configuration;
@@ -37,15 +35,8 @@ namespace Deaddit.Pages
             _appNavigator = appNavigator;
             _redditClient = redditClient;
 
-            _appConfiguration = new EditorConfiguration()
-            {
-                BlockConfiguration = blockConfiguration,
-                Credentials = RedditCredentials,
-                Styling = applicationTheme,
-                ApplicationHacks = applicationHacks
-            };
-
             _configuration = configurationService.Read<LandingPageConfiguration>();
+
             _configurationService = configurationService;
 
             BindingContext = new LandingPageViewModel(applicationTheme);
@@ -97,17 +88,7 @@ namespace Deaddit.Pages
 
         public async void OnMenuClicked(object? sender, EventArgs e)
         {
-            ObjectEditorPage editorPage = await _appNavigator.OpenObjectEditor(_appConfiguration);
-
-            editorPage.OnSave += this.EditorPage_OnSave;
-        }
-
-        private void EditorPage_OnSave(object? sender, ObjectEditorSaveEventArgs e)
-        {
-            _configurationService.Write(_appConfiguration.ApplicationHacks);
-            _configurationService.Write(_appConfiguration.Credentials);
-            _configurationService.Write(_appConfiguration.BlockConfiguration);
-            _configurationService.Write(_appConfiguration.Styling);
+            await _appNavigator.OpenObjectEditor();
         }
 
         private async Task LoadMultis()

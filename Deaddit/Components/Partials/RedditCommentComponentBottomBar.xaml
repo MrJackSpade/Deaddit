@@ -2,8 +2,7 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:components="clr-namespace:Deaddit.MAUI.Components"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Deaddit.MAUI.Components.Partials.RedditCommentComponentBottomBar"
-             xmlns:converters="clr-namespace:Deaddit.MAUI.Converters">
+             x:Class="Deaddit.MAUI.Components.Partials.RedditCommentComponentBottomBar">
     <!-- Bottom Row with buttons -->
     <Grid
             BackgroundColor="{Binding HighlightColor}"

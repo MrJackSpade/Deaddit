@@ -159,6 +159,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Folder Include="Attributes\" />
 	  <Folder Include="Pages\Interfaces\" />
 	</ItemGroup>
 

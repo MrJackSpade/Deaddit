@@ -8,6 +8,12 @@ namespace Deaddit.Core.Reddit.Models.Options
         ViewAuthor,
 
         [EnumMember(Value = "Block Author")]
-        BlockAuthor
+        BlockAuthor,
+
+        [EnumMember(Value = "Copy Raw")]
+        CopyRaw,
+
+        [EnumMember(Value = "Copy Permalink")]
+        CopyPermalink
     }
 }

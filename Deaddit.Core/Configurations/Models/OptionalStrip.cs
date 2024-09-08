@@ -1,6 +1,6 @@
 ﻿namespace Deaddit.Core.Configurations.Models
 {
-    public enum EmojiHandling
+    public enum OptionalStrip
     {
         None,
 

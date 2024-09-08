@@ -20,7 +20,7 @@ namespace Deaddit.Core.Reddit.Interfaces
         IAsyncEnumerable<ApiThing> GetPosts<T>(SubRedditName subreddit, T sort, string? after = null, Region region = Region.GLOBAL) where T : Enum;
 
         Task<Stream> GetStream(string url);
-
+        Task<Dictionary<string, PartialUser>> GetUserData(IEnumerable<string> usernames);
         IAsyncEnumerable<ApiThing> MoreComments(ApiPost thing, ApiMore comment);
 
         IAsyncEnumerable<ApiMulti> Multis();

@@ -23,6 +23,10 @@ namespace Deaddit.Interfaces
 
         Task<ObjectEditorPage> OpenObjectEditor(object original);
 
+        Task OpenObjectEditor(Action onSave);
+
+        Task OpenObjectEditor();
+
         Task<PostPage> OpenPost(ApiPost post, ApiComment focus = null);
 
         Task<ReplyPage> OpenReplyPage(ApiThing replyTo);
