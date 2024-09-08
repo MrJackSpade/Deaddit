@@ -37,7 +37,7 @@ namespace Deaddit.Pages
 
         private readonly SelectionGroup _selectionGroup;
 
-        private readonly SubRedditName _subreddit;
+        private readonly ThingCollectionName _thingCollectionName;
 
         private readonly ApplicationHacks _applicationHacks;
 
@@ -47,14 +47,14 @@ namespace Deaddit.Pages
 
         private Enum _sort;
 
-        public SubRedditPage(SubRedditName subreddit, Enum sort, ApplicationHacks applicationHacks, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, BlockConfiguration blockConfiguration)
+        public SubRedditPage(ThingCollectionName subreddit, Enum sort, ApplicationHacks applicationHacks, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, BlockConfiguration blockConfiguration)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
-            _applicationHacks = applicationHacks;
-            _appNavigator = appNavigator;
+            _applicationHacks = Ensure.NotNull(applicationHacks);
+            _appNavigator = Ensure.NotNull(appNavigator);
             _blockConfiguration = Ensure.NotNull(blockConfiguration);
-            _subreddit = Ensure.NotNull(subreddit);
+            _thingCollectionName = Ensure.NotNull(subreddit);
             _sort = Ensure.NotNull(sort);
             _redditClient = Ensure.NotNull(redditClient);
             _applicationTheme = Ensure.NotNull(applicationTheme);
@@ -130,7 +130,7 @@ namespace Deaddit.Pages
 
         public async void OnInfoClicked(object? sender, EventArgs e)
         {
-            await _appNavigator.OpenSubRedditAbout(_subreddit);
+            await _appNavigator.OpenSubRedditAbout(_thingCollectionName);
         }
 
         public async void OnMenuClicked(object? sender, EventArgs e)
@@ -262,7 +262,7 @@ namespace Deaddit.Pages
                 {
 
                     List<ApiThing> newPosts = await _redditClient.GetPosts(after: _after,
-                                                                            subreddit: _subreddit,
+                                                                            subreddit: _thingCollectionName,
                                                                             sort: _sort,
                                                                             region: _applicationHacks.DefaultRegion)
                                                                            .Take(_applicationHacks.PageSize)
@@ -292,6 +292,19 @@ namespace Deaddit.Pages
 
                         if (thing is ApiPost post)
                         {
+                            if (!string.IsNullOrWhiteSpace(post.Category))
+                            {
+                                Debug.WriteLine(post.Category);
+                            }
+
+                            if (post.ContentCategories.NotNullAny())
+                            {
+                                foreach (string category in post.ContentCategories)
+                                {
+                                    Debug.WriteLine(category);
+                                }
+                            }
+
                             if(post.Hidden)
                             {
                                 continue;

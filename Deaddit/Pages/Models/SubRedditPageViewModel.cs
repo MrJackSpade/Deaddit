@@ -4,7 +4,7 @@ namespace Deaddit.Pages.Models
 {
     internal class SubRedditPageViewModel : BaseViewModel
     {
-        public SubRedditPageViewModel(SubRedditName subreddit)
+        public SubRedditPageViewModel(ThingCollectionName subreddit)
         {
             SubReddit = subreddit.DisplayName;
         }

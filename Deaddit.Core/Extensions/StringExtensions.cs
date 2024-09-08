@@ -11,21 +11,20 @@ namespace Deaddit.Core.Extensions
 
         public static bool TryTrim(this string str, char start, char end, [NotNullWhen(true)] out string? trimmed)
         {
+            trimmed = str;
+
             if (str.Length < 2)
             {
-                trimmed = null;
                 return false;
             }
 
             if (str[0] != start)
             {
-                trimmed = null;
                 return false;
             }
 
             if (str[^1] != end)
             {
-                trimmed = null;
                 return false;
             }
 
@@ -41,21 +40,20 @@ namespace Deaddit.Core.Extensions
 
         public static bool TryTrim(this string str, string start, string end, [NotNullWhen(true)] out string? trimmed)
         {
+            trimmed = str;
+
             if (str.Length < start.Length + end.Length)
             {
-                trimmed = null;
                 return false;
             }
 
             if (!str.StartsWith(start))
             {
-                trimmed = null;
                 return false;
             }
 
             if (!str.EndsWith(end))
             {
-                trimmed = null;
                 return false;
             }
 

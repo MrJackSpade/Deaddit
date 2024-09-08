@@ -89,14 +89,13 @@ namespace Deaddit.MAUI.Components
                     BlockQuoteBorderColor = _applicationTheme.TextColor.ToMauiColor(),
                     BlockQuoteBackgroundColor = _applicationTheme.SecondaryColor.ToMauiColor(),
                     BlockQuoteTextColor = _applicationTheme.TextColor.ToMauiColor(),
-                    Padding = new Thickness(15, 0, 0, 10)
+                    Padding = new Thickness(10, 4, 0, 10)
                 };
 
                 markdownView.OnHyperLinkClicked += this.OnHyperLinkClicked;
 
                 // Add to the layout
                 commentContainer.Children.Insert(markdownIndex, markdownView);
-                commentContainer.Padding = new Thickness(10, 4, 0, 10);
                 commentBody = markdownView;
             }
             else

@@ -2,9 +2,9 @@
 
 namespace Deaddit.Core.Reddit.Models
 {
-    public class SubRedditName
+    public class ThingCollectionName
     {
-        public SubRedditName(string name)
+        public ThingCollectionName(string name)
         {
             Ensure.NotNull(name);
 
@@ -12,6 +12,7 @@ namespace Deaddit.Core.Reddit.Models
             {
                 DisplayName = "Home";
                 RootedName = "";
+                Kind = ThingKind.Listing;
                 return;
             }
 
@@ -35,13 +36,29 @@ namespace Deaddit.Core.Reddit.Models
             {
                 RootedName = $"/{name}";
             }
+
+            if(RootedName.StartsWith("/m"))
+            {
+                Kind = ThingKind.Listing;
+            } else if (RootedName.StartsWith("/r"))
+            {
+                Kind = ThingKind.Subreddit;
+            } else if (RootedName.StartsWith("/u"))
+            {
+                Kind = ThingKind.Account;
+            } else
+            {
+                throw new NotImplementedException($"Can not determine listing kind for {RootedName}");
+            }
         }
 
-        public string DisplayName { get; set; }
+        public string DisplayName { get; private set; }
 
-        public string RootedName { get; set; }
+        public ThingKind Kind { get; private set; }
 
-        public static implicit operator SubRedditName(string name)
+        public string RootedName { get; private set; }
+
+        public static implicit operator ThingCollectionName(string name)
         {
             return new(name);
         }

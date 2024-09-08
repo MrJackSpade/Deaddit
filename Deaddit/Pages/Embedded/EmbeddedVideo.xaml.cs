@@ -2,6 +2,7 @@
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Extensions;
 using Deaddit.Utils;
+using System.Diagnostics;
 
 namespace Deaddit
 {
@@ -10,6 +11,22 @@ namespace Deaddit
         private readonly ApplicationStyling _applicationTheme;
 
         private readonly PostItems _postItems;
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+
+            try
+            {
+                mediaView.Stop();
+                mediaView.Dispose();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+            }
+        } 
+
         public EmbeddedVideo(PostItems items, ApplicationStyling applicationTheme)
         {
             _applicationTheme = applicationTheme;

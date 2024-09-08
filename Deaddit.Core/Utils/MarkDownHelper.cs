@@ -24,10 +24,14 @@ namespace Deaddit.Core.Utils
 
             markdown = EnableLinks(markdown);
 
+            markdown = markdown.Replace("\\_", "_");
+
             while (markdown.Contains("\n\n\n"))
             {
                 markdown = markdown.Replace("\n\n\n", "\n\n");
             }
+
+            markdown = Regex.Replace(markdown, @"\n\s*>\s*(?=\n)", " ");
 
             return markdown;
         }

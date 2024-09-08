@@ -9,7 +9,7 @@ namespace Deaddit.Core.Reddit.Interfaces
 
         public string? LoggedInUser { get; }
 
-        Task<ApiSubReddit> About(SubRedditName subreddit);
+        Task<ApiSubReddit> About(ThingCollectionName subreddit);
 
         Task<ApiComment> Comment(ApiThing replyTo, string comment);
 
@@ -17,7 +17,7 @@ namespace Deaddit.Core.Reddit.Interfaces
 
         Task Delete(ApiThing thing);
 
-        IAsyncEnumerable<ApiThing> GetPosts<T>(SubRedditName subreddit, T sort, string? after = null, Region region = Region.GLOBAL) where T : Enum;
+        IAsyncEnumerable<ApiThing> GetPosts<T>(ThingCollectionName subreddit, T sort, string? after = null, Region region = Region.GLOBAL) where T : Enum;
 
         Task<Stream> GetStream(string url);
         Task<Dictionary<string, PartialUser>> GetUserData(IEnumerable<string> usernames);

@@ -11,7 +11,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public bool AllowLiveComments { get; init; }
 
         [JsonPropertyName("category")]
-        public object? Category { get; init; }
+        public string? Category { get; init; }
 
         [JsonPropertyName("clicked")]
         public bool Clicked { get; init; }

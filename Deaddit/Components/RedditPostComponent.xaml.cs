@@ -80,7 +80,7 @@ namespace Deaddit.MAUI.Components
             _isListView = isListView;
 
             this.InitializePostComponent(_isListView);
-            this.SetImageThumbnail(_applicationTheme);
+            this.SetImageThumbnail(_post, _applicationTheme);
             this.SetTitleLabel(_post, _applicationHacks, _applicationTheme);
             this.SetLinkFlair(_post, _applicationHacks, _applicationTheme);
             this.SetMetaDataLabel(_post, _applicationTheme);
@@ -477,7 +477,7 @@ namespace Deaddit.MAUI.Components
                 Margin = new Thickness(0),
                 VerticalOptions = LayoutOptions.Start
             };
-            thumbnailImage.Clicked += this.OnThumbnailImageClicked;
+            
             mainGrid.Children.Add(thumbnailImage);
             Grid.SetColumn(thumbnailImage, 0);
 
@@ -597,10 +597,15 @@ namespace Deaddit.MAUI.Components
             _selectionGroup.Toggle(this);
         }
 
-        private void SetImageThumbnail(ApplicationStyling applicationTheme)
+        private void SetImageThumbnail(ApiPost post, ApplicationStyling applicationTheme)
         {
             thumbnailImage.HeightRequest = applicationTheme.ThumbnailSize;
             thumbnailImage.WidthRequest = applicationTheme.ThumbnailSize;
+
+            if (!post.IsSelf || this._isListView)
+            {
+                thumbnailImage.Clicked += this.OnThumbnailImageClicked;
+            }
 
             thumbnailImage.Source = ImageSource.FromStream(this.GetImageStream);
         }
@@ -663,7 +668,8 @@ namespace Deaddit.MAUI.Components
         private void SetTitleLabel(ApiPost post, ApplicationHacks applicationHacks, ApplicationStyling applicationTheme)
         {
             titleLabel.Text = applicationHacks.CleanTitle(post.Title);
-            titleLabel.TextColor = applicationTheme.TextColor.ToMauiColor();
+            titleLabel.TextColor = post.Distinguished == DistinguishedKind.Moderator ? applicationTheme.DistinguishedColor.ToMauiColor() :
+                                                                                       applicationTheme.TextColor.ToMauiColor();
         }
 
         private void SetVoteStack(ApplicationStyling applicationTheme)

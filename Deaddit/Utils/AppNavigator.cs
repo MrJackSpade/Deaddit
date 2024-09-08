@@ -130,10 +130,10 @@ namespace Deaddit.Utils
 
         public async Task<SubRedditPage> OpenSubReddit(string subRedditName, ApiPostSort sort = ApiPostSort.Hot)
         {
-            return await this.OpenSubReddit(new SubRedditName(subRedditName), sort);
+            return await this.OpenSubReddit(new ThingCollectionName(subRedditName), sort);
         }
 
-        public async Task<SubRedditPage> OpenSubReddit(SubRedditName subRedditName, ApiPostSort sort = ApiPostSort.Hot)
+        public async Task<SubRedditPage> OpenSubReddit(ThingCollectionName subRedditName, ApiPostSort sort = ApiPostSort.Hot)
         {
             SubRedditPage page = new(subRedditName, sort, _applicationHacks, this, _redditClient, _applicationTheme, _blockConfiguration);
             await Navigation.PushAsync(page);
@@ -143,13 +143,13 @@ namespace Deaddit.Utils
 
         public async Task<SubRedditPage> OpenUser(string username, UserProfileSort userProfileSort = UserProfileSort.New)
         {
-            SubRedditPage page = new(new SubRedditName($"u/{username}"), userProfileSort, _applicationHacks, this, _redditClient, _applicationTheme, _blockConfiguration);
+            SubRedditPage page = new(new ThingCollectionName($"u/{username}"), userProfileSort, _applicationHacks, this, _redditClient, _applicationTheme, _blockConfiguration);
             await Navigation.PushAsync(page);
             await page.TryLoad();
             return page;
         }
 
-        public async Task<SubRedditAboutPage> OpenSubRedditAbout(SubRedditName subredditName)
+        public async Task<SubRedditAboutPage> OpenSubRedditAbout(ThingCollectionName subredditName)
         {
             SubRedditAboutPage page = new(subredditName, this, _redditClient, _applicationTheme);
             await Navigation.PushAsync(page);
