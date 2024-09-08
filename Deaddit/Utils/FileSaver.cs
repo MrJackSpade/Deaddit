@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Maui.Storage;
 using Deaddit.Core.Reddit.Models;
-using System.Threading;
 
 namespace Deaddit.Utils
 {

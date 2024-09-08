@@ -11,7 +11,7 @@ namespace Deaddit.MAUI.Components.Partials
         {
             this.InitializeComponent();
 
-            if(comment.UnrepliableReason != UnrepliableReason.None)
+            if (comment.UnrepliableReason != UnrepliableReason.None)
             {
                 replyButton.IsVisible = false;
             }

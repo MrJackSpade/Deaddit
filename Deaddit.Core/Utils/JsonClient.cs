@@ -20,7 +20,7 @@ namespace Deaddit.Core.Utils
         {
             string response = await Retry(async () =>
             {
-                var httpResponse = await _httpClient.GetAsync(url);
+                HttpResponseMessage httpResponse = await _httpClient.GetAsync(url);
                 string responseBody = await httpResponse.Content.ReadAsStringAsync();
                 httpResponse.EnsureSuccessStatusCode();
                 return responseBody;

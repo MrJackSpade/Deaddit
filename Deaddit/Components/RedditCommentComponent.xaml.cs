@@ -1,5 +1,4 @@
 ﻿using Deaddit.Components;
-using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Exceptions;
 using Deaddit.Core.Extensions;

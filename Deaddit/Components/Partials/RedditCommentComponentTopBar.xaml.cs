@@ -1,5 +1,4 @@
 using Deaddit.Core.Configurations.Models;
-using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Extensions;
 
 namespace Deaddit.MAUI.Components.Partials

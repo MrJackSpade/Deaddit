@@ -4,7 +4,6 @@ using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.Interfaces;
-using Deaddit.Pages;
 
 namespace Deaddit.Extensions
 {

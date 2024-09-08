@@ -1,5 +1,4 @@
-﻿using Deaddit.Core.Configurations.Interfaces;
-using Deaddit.Core.Configurations.Models;
+﻿using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Extensions;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
@@ -83,7 +82,7 @@ namespace Deaddit.Pages
             sortButtons.ColumnDefinitions.Clear();
             List<Enum> values = [];
 
-            foreach(Enum e in  Enum.GetValues(sort.GetType()))
+            foreach (Enum e in Enum.GetValues(sort.GetType()))
             {
                 if (Convert.ToInt32(e) != 0)
                 {
@@ -102,7 +101,7 @@ namespace Deaddit.Pages
             int column = 0;
             foreach (Enum sortValue in values)
             {
-                var button = new Button
+                Button button = new()
                 {
                     Text = sortValue.ToString(),
                     BackgroundColor = Colors.Transparent,

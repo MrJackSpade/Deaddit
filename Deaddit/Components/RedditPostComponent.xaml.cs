@@ -15,7 +15,6 @@ using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.Pages;
 using Microsoft.Maui.Controls.Shapes;
-using System.Xml.Linq;
 
 namespace Deaddit.MAUI.Components
 {

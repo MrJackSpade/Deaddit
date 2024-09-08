@@ -1,5 +1,4 @@
 ﻿using Deaddit.Core.Reddit.Models;
-using System.Net;
 
 namespace Deaddit.Extensions
 {
@@ -27,7 +26,7 @@ namespace Deaddit.Extensions
             List<ShareFile> files = [];
             HttpClient client = new();
 
-            foreach (var uri in items)
+            foreach (PostItem uri in items)
             {
                 string file = Path.Combine(FileSystem.CacheDirectory, uri.FileName);
                 byte[] fileBytes = await client.GetByteArrayAsync(uri.DownloadUrl);
