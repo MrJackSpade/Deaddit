@@ -21,7 +21,7 @@
 
             <!-- Back Button -->
             <Button
-                Text="❌"
+                Text=""
                 Grid.Column="0"
                 HorizontalOptions="Start"
                 Clicked="OnBackClicked"

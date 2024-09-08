@@ -61,12 +61,6 @@
             Spacing="0">
             <!-- Initially hidden -->
             <Button
-                Text="Back"
-                Clicked="OnBackClicked"
-                BackgroundColor="Transparent"
-                TextColor="{Binding TextColor}" />
-
-            <Button
                 Text="Rules"
                 Clicked="OnRulesClicked"
                 BackgroundColor="Transparent"

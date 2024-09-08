@@ -45,7 +45,7 @@
             return $"#{Red:X2}{Green:X2}{Blue:X2}";
         }
 
-        internal static bool TryParse(string v, out DynamicColor longValue)
+        public static bool TryParse(string v, out DynamicColor longValue)
         {
             if (v.Trim('#').Length is 6 or 8)
             {

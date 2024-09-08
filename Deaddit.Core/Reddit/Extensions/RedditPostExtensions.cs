@@ -44,8 +44,8 @@ namespace Deaddit.Core.Reddit.Extensions
                 {
                     new PostItem()
                     {
-                        DownloadUrl = post.Media.RedditVideo.DashUrl,
-                        LaunchUrl = post.Media.RedditVideo.FallbackUrl,
+                        DownloadUrl = post.Media.RedditVideo.FallbackUrl,
+                        LaunchUrl = post.Media.RedditVideo.DashUrl,
                         FileName = $"{post.Id}{UrlHandler.GetExtension(post.Media.RedditVideo.FallbackUrl)}"
                     }
                 };

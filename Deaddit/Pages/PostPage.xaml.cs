@@ -62,7 +62,6 @@ namespace Deaddit.Pages
             postBody.BlockQuoteTextColor = _applicationTheme.TextColor.ToMauiColor();
             postBody.MarkdownText = MarkDownHelper.Clean(applicationHacks.CleanBody(post.Body));
 
-            backButton.TextColor = _applicationTheme.TextColor.ToMauiColor();
             shareButton.TextColor = _applicationTheme.TextColor.ToMauiColor();
             saveButton.TextColor = _applicationTheme.TextColor.ToMauiColor();
             moreButton.TextColor = _applicationTheme.TextColor.ToMauiColor();

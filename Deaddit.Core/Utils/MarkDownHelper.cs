@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using System.Web;
 
 namespace Deaddit.Core.Utils
 {
@@ -18,6 +19,8 @@ namespace Deaddit.Core.Utils
             {
                 return string.Empty;
             }
+
+            markdown = HttpUtility.HtmlDecode(markdown);
 
             markdown = EnableLinks(markdown);
 

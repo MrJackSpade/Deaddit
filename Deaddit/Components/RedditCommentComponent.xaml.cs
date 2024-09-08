@@ -36,7 +36,7 @@ namespace Deaddit.MAUI.Components
 
         private readonly IRedditClient _redditClient;
 
-        private readonly VisualElement commentBody;
+        private readonly View commentBody;
 
         private RedditCommentComponentBottomBar? _bottomBar;
 
@@ -83,6 +83,9 @@ namespace Deaddit.MAUI.Components
                     MarkdownText = MarkDownHelper.Clean(_comment.Body),
                     HyperlinkColor = _applicationTheme.HyperlinkColor.ToMauiColor(),
                     TextColor = _applicationTheme.TextColor.ToMauiColor(),
+                    H1Color = _applicationTheme.TextColor.ToMauiColor(),
+                    H2Color = _applicationTheme.TextColor.ToMauiColor(),
+                    H3Color = _applicationTheme.TextColor.ToMauiColor(),
                     TextFontSize = _applicationTheme.FontSize,
                     BlockQuoteBorderColor = _applicationTheme.TextColor.ToMauiColor(),
                     BlockQuoteBackgroundColor = _applicationTheme.SecondaryColor.ToMauiColor(),
@@ -94,7 +97,7 @@ namespace Deaddit.MAUI.Components
 
                 // Add to the layout
                 commentContainer.Children.Insert(markdownIndex, markdownView);
-
+                commentContainer.Padding = new Thickness(10, 4, 0, 10);
                 commentBody = markdownView;
             }
             else
@@ -102,6 +105,7 @@ namespace Deaddit.MAUI.Components
                 contentLabel.Text = MarkDownHelper.Clean(_comment.Body);
                 contentLabel.TextColor = _applicationTheme.TextColor.ToMauiColor();
                 contentLabel.FontSize = _applicationTheme.FontSize;
+                contentLabel.Padding = new Thickness(10, 4, 0, 10);
                 commentBody = contentLabel;
             }
 

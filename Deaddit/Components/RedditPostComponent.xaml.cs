@@ -433,7 +433,7 @@ namespace Deaddit.MAUI.Components
             // Initialize the Comments button
             Button commentsButton = new()
             {
-                Text = "Comments",
+                Text = "🗨",
                 BackgroundColor = Colors.Transparent,
                 TextColor = _applicationTheme.TextColor.ToMauiColor()
             };

@@ -50,7 +50,6 @@
         <!-- Content Text -->
         <Label
                 x:Name="contentLabel"
-                HorizontalOptions="FillAndExpand"
-                Padding="10,4,0,10"></Label>
+                HorizontalOptions="FillAndExpand"></Label>
     </VerticalStackLayout>
 </ContentView>
