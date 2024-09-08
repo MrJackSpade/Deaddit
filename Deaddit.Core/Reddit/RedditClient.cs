@@ -41,7 +41,7 @@ namespace Deaddit.Core.Reddit
 
         private RedditUrlStandardizer UrlStandardizer => new(LoggedInUser);
 
-        public async Task<ApiSubReddit> About(SubRedditName subreddit)
+        public async Task<ApiSubReddit> About(ThingCollectionName subreddit)
         {
             System.Diagnostics.Stopwatch stopwatch = new();
             stopwatch.Start();
@@ -176,7 +176,7 @@ namespace Deaddit.Core.Reddit
             return response;
         }
 
-        public async IAsyncEnumerable<ApiThing> GetPosts<T>(SubRedditName subreddit, T sort, string? after = null, Models.Region region = Models.Region.GLOBAL) where T : Enum
+        public async IAsyncEnumerable<ApiThing> GetPosts<T>(ThingCollectionName subreddit, T sort, string? after = null, Models.Region region = Models.Region.GLOBAL) where T : Enum
         {
             //Returns HTML if not authenticated
             await this.EnsureAuthenticated();

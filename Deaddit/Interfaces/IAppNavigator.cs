@@ -31,11 +31,11 @@ namespace Deaddit.Interfaces
 
         Task<ReplyPage> OpenReplyPage(ApiThing replyTo);
 
-        Task<SubRedditPage> OpenSubReddit(SubRedditName subRedditName, ApiPostSort sort = ApiPostSort.Hot);
+        Task<SubRedditPage> OpenSubReddit(ThingCollectionName subRedditName, ApiPostSort sort = ApiPostSort.Hot);
 
         Task<SubRedditPage> OpenSubReddit(string subRedditName, ApiPostSort sort = ApiPostSort.Hot);
 
-        Task<SubRedditAboutPage> OpenSubRedditAbout(SubRedditName subreddit);
+        Task<SubRedditAboutPage> OpenSubRedditAbout(ThingCollectionName subreddit);
 
         Task<SubRedditPage> OpenUser(string username, UserProfileSort userProfileSort = UserProfileSort.New);
 

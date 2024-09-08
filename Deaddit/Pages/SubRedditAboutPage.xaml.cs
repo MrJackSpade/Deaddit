@@ -22,11 +22,11 @@ namespace Deaddit.Pages
 
         private readonly SubRedditAboutPageModel _subRedditAboutPageModel;
 
-        private readonly SubRedditName _subredditName;
+        private readonly ThingCollectionName _subredditName;
 
         private ApiSubReddit? _apiSubReddit;
 
-        public SubRedditAboutPage(SubRedditName subredditName, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme)
+        public SubRedditAboutPage(ThingCollectionName subredditName, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
