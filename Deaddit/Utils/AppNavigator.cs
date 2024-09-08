@@ -77,9 +77,7 @@ namespace Deaddit.Utils
         public async Task<ObjectEditorPage> OpenObjectEditor(object original)
         {
             ObjectEditorPage page = new(original, applicationTheme);
-
             await Navigation.PushAsync(page);
-
             return page;
         }
 
