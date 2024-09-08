@@ -28,7 +28,7 @@ namespace Deaddit.Core.Extensions
 
             blocked &= BlockListHelper.TriggersOrSkip(rule.Author, thing.Author, DynamicMatchType(rule.Author));
 
-            blocked &= BlockListHelper.TriggersOrSkip(rule.Body, thing.Body, DynamicMatchType(rule.Body));
+            blocked &= BlockListHelper.TriggersOrSkip(rule.Body, thing.Body, DynamicMatchType(rule.Body), true);
 
             return !blocked;
         }
@@ -59,7 +59,7 @@ namespace Deaddit.Core.Extensions
 
             blocked &= BlockListHelper.TriggersOrSkip(rule.SubReddit, post.SubReddit, StringMatchType.String);
 
-            blocked &= BlockListHelper.TriggersOrSkip(rule.Title, post.Title, DynamicMatchType(rule.Title));
+            blocked &= BlockListHelper.TriggersOrSkip(rule.Title, post.Title, DynamicMatchType(rule.Title), true);
 
             return !blocked;
         }

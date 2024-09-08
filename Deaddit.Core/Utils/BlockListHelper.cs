@@ -32,7 +32,7 @@ namespace Deaddit.Core.Utils
             return checkValue;
         }
 
-        public static bool TriggersOrSkip(string? ruleValue, string? checkValue, StringMatchType matchType, StringComparison stringComparison = StringComparison.OrdinalIgnoreCase)
+        public static bool TriggersOrSkip(string? ruleValue, string? checkValue, StringMatchType matchType, bool partial = false, StringComparison stringComparison = StringComparison.OrdinalIgnoreCase)
         {
             if (string.IsNullOrWhiteSpace(ruleValue))
             {
@@ -51,7 +51,8 @@ namespace Deaddit.Core.Utils
 
             return matchType switch
             {
-                StringMatchType.String => string.Equals(ruleValue, checkValue, stringComparison),
+                StringMatchType.String => partial ? checkValue.Contains(ruleValue, stringComparison)
+                                                  : string.Equals(ruleValue, checkValue, stringComparison),
                 StringMatchType.Regex => stringComparison switch
                 {
                     StringComparison.OrdinalIgnoreCase => Regex.IsMatch(checkValue, ruleValue, RegexOptions.IgnoreCase),

@@ -81,9 +81,17 @@ namespace Deaddit.Pages
         {
             sortButtons.Children.Clear();
             sortButtons.ColumnDefinitions.Clear();
+            List<Enum> values = [];
 
-            var values = Enum.GetValues(sort.GetType());
-            int columnCount = values.Length;
+            foreach(Enum e in  Enum.GetValues(sort.GetType()))
+            {
+                if (Convert.ToInt32(e) != 0)
+                {
+                    values.Add(e);
+                }
+            }
+
+            int columnCount = values.Count;
 
             // Define columns
             for (int i = 0; i < columnCount; i++)
@@ -94,11 +102,6 @@ namespace Deaddit.Pages
             int column = 0;
             foreach (Enum sortValue in values)
             {
-                if(Convert.ToInt32(sortValue) == 0)
-                {
-                    continue;
-                }
-
                 var button = new Button
                 {
                     Text = sortValue.ToString(),

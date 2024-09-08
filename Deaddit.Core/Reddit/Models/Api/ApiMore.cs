@@ -9,5 +9,8 @@ namespace Deaddit.Core.Reddit.Models.Api
 
         [JsonPropertyName("count")]
         public int? Count { get; init; }
+
+        [JsonPropertyName("parent_id")]
+        public string? ParentId { get; init; }
     }
 }

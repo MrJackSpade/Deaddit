@@ -123,7 +123,7 @@ namespace Deaddit.Core.Reddit
             {
                 if (commentReadResponse?.Children != null)
                 {
-                    foreach (ApiComment child in commentReadResponse.Children.OfType<ApiComment>())
+                    foreach (ApiThing child in commentReadResponse.Children)
                     {
                         if (child.Id != parent.Id)
                         {
@@ -245,6 +245,20 @@ namespace Deaddit.Core.Reddit
                     }
 
                     if (tree.TryGetValue(apiComment.ParentId, out ApiComment? parent))
+                    {
+                        parent.AddReply(redditCommentMeta);
+                        things.Remove(redditCommentMeta);
+                    }
+                }
+
+                if(redditCommentMeta is ApiMore apiMore)
+                {
+                    if(apiMore?.ParentId is null)
+                    {
+                        continue;
+                    }
+
+                    if (tree.TryGetValue(apiMore.ParentId, out ApiComment? parent))
                     {
                         parent.AddReply(redditCommentMeta);
                         things.Remove(redditCommentMeta);

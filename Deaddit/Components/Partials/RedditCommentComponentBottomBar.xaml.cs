@@ -1,4 +1,5 @@
 using Deaddit.Core.Configurations.Models;
+using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Extensions;
 
@@ -9,6 +10,11 @@ namespace Deaddit.MAUI.Components.Partials
         public RedditCommentComponentBottomBar(ApiComment comment, ApplicationStyling applicationTheme)
         {
             this.InitializeComponent();
+
+            if(comment.UnrepliableReason != UnrepliableReason.None)
+            {
+                replyButton.IsVisible = false;
+            }
 
             BackgroundColor = applicationTheme.HighlightColor.ToMauiColor();
             downvoteButton.TextColor = applicationTheme.TextColor.ToMauiColor();

@@ -62,6 +62,6 @@ namespace Deaddit.Core.Reddit.Models.Api
         public bool? ScoreHidden { get; init; }
 
         [JsonPropertyName("unrepliable_reason")]
-        public object? UnrepliableReason { get; init; }
+        public UnrepliableReason UnrepliableReason { get; init; }
     }
 }

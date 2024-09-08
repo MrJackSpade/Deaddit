@@ -1,6 +1,7 @@
 using Deaddit.Attributes;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Extensions;
+using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.DeepCopy;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
@@ -264,9 +265,9 @@ namespace Deaddit.Pages
                 return toggle;
             }
 
-            if (propertyType == typeof(Color))
+            if (propertyType == typeof(DynamicColor))
             {
-                Color? stored = prop.GetValue(obj) as Color;
+                DynamicColor? stored = prop.GetValue(obj) as DynamicColor;
 
                 string? hex = stored?.ToHex();
 
@@ -274,7 +275,7 @@ namespace Deaddit.Pages
 
                 entry.TextChanged += (s, e) =>
                 {
-                    if (Color.TryParse(e.NewTextValue, out Color colorValue))
+                    if (DynamicColor.TryParse(e.NewTextValue, out DynamicColor colorValue))
                     {
                         prop.SetValue(obj, colorValue);
                     }
