@@ -254,7 +254,7 @@ namespace Deaddit.Pages
 
             await DataService.LoadAsync(mainStack, async () =>
             {
-                List<ApiThing> posts = [];
+                int newLoadedPostCount = 0;
 
                 HashSet<string> loadedNames = _loadedPosts.Select(_loadedPosts => _loadedPosts.Post.Name).ToHashSet();
 
@@ -283,23 +283,20 @@ namespace Deaddit.Pages
                             continue;
                         }
 
-                        if (thing is ApiPost post && post.Hidden)
+                        if(!loadedNames.Add(thing.Name))
                         {
                             continue;
                         }
 
-                        if (loadedNames.Add(thing.Name))
-                        {
-                            posts.Add(thing);
-                        }
-                    }
-
-                    foreach (ApiThing apiThing in newPosts)
-                    {
                         ContentView? view = null;
 
-                        if (apiThing is ApiPost post)
+                        if (thing is ApiPost post)
                         {
+                            if(post.Hidden)
+                            {
+                                continue;
+                            }
+
                             RedditPostComponent redditPostComponent = _appNavigator.CreatePostComponent(post, _selectionGroup);
 
                             redditPostComponent.BlockAdded += this.RedditPostComponent_OnBlockAdded;
@@ -308,7 +305,7 @@ namespace Deaddit.Pages
                             view = redditPostComponent;
                         }
 
-                        if (apiThing is ApiComment comment)
+                        if (thing is ApiComment comment)
                         {
                             view = _appNavigator.CreateCommentComponent(comment, null, _selectionGroup);
                         }
@@ -318,6 +315,7 @@ namespace Deaddit.Pages
                             try
                             {
                                 mainStack.Add(view);
+                                newLoadedPostCount++;
                             }
                             catch (System.MissingMethodException mme) when (mme.Message.Contains("Microsoft.Maui.Controls.Handlers.Compatibility.FrameRenderer"))
                             {
@@ -326,12 +324,12 @@ namespace Deaddit.Pages
 
                             _loadedPosts.Add(new LoadedThing()
                             {
-                                Post = apiThing,
+                                Post = thing,
                                 PostComponent = view
                             });
                         }
                     }
-                } while (posts.Count < _applicationHacks.PageSize);
+                } while (newLoadedPostCount < _applicationHacks.PageSize);
             }, _applicationTheme.HighlightColor.ToMauiColor());
 
         }
