@@ -251,9 +251,9 @@ namespace Deaddit.Core.Reddit
                     }
                 }
 
-                if(redditCommentMeta is ApiMore apiMore)
+                if (redditCommentMeta is ApiMore apiMore)
                 {
-                    if(apiMore?.ParentId is null)
+                    if (apiMore?.ParentId is null)
                     {
                         continue;
                     }
