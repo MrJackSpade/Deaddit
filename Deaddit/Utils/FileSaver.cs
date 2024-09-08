@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Maui.Storage;
 using Deaddit.Core.Reddit.Models;
+using System.Threading;
 
 namespace Deaddit.Utils
 {
@@ -16,7 +17,7 @@ namespace Deaddit.Utils
 
         public static async Task Save(PostItems items)
         {
-            List<(string fileName, Func<Task<Stream>> fileStream)> files = new();
+            List<(string fileName, Func<Task<Stream>> fileStream)> files = [];
 
             foreach (PostItem item in items)
             {

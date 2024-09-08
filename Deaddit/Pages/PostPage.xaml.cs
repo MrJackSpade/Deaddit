@@ -32,7 +32,7 @@ namespace Deaddit.Pages
 
         private readonly IRedditClient _redditClient;
 
-        public PostPage(ApiPost post, ApiComment? focus, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, BlockConfiguration blockConfiguration)
+        public PostPage(ApiPost post, ApiComment? focus, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 

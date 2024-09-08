@@ -44,7 +44,7 @@ namespace Deaddit.MAUI.Components
 
         private RedditCommentComponentTopBar? _topBar;
 
-        public RedditCommentComponent(ApiComment comment, ApiPost post, bool selectEnabled, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public RedditCommentComponent(ApiComment comment, ApiPost post, bool selectEnabled, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration)
         {
             SelectEnabled = selectEnabled;
             _applicationTheme = applicationTheme;
@@ -229,6 +229,7 @@ namespace Deaddit.MAUI.Components
                         break;
 
                     case CommentMoreOptions.ViewAuthor:
+                        Ensure.NotNull(_comment.Author);
                         await _appNavigator.OpenUser(_comment.Author);
                         break;
                 }
@@ -303,7 +304,7 @@ namespace Deaddit.MAUI.Components
 
         void ISelectionGroupItem.Select()
         {
-            _topBar = new RedditCommentComponentTopBar(_comment, _applicationTheme);
+            _topBar = new RedditCommentComponentTopBar(_applicationTheme);
             commentContainer.Children.Insert(0, _topBar);
 
             _bottomBar = new RedditCommentComponentBottomBar(_comment, _applicationTheme);

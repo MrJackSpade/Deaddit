@@ -103,7 +103,7 @@ namespace Deaddit.Pages
             this.GenerateEditor(_toEdit, mainStack);
         }
 
-        private View? CreateEditorForType(PropertyInfo prop, object obj, Layout parentLayout)
+        private View? CreateEditorForType(PropertyInfo prop, object obj)
         {
             Type propertyType = prop.PropertyType;
 
@@ -315,7 +315,7 @@ namespace Deaddit.Pages
 
                 parentLayout.Children.Add(label);
 
-                View editor = this.CreateEditorForType(prop, obj, parentLayout);
+                View? editor = this.CreateEditorForType(prop, obj);
 
                 if (editor != null)
                 {

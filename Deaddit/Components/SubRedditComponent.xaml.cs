@@ -46,7 +46,7 @@ namespace Deaddit.MAUI.Components
             // Handle the Share button click
         }
 
-        public async void OnSettingsClick(object? sender, EventArgs e)
+        public void OnSettingsClick(object? sender, EventArgs e)
         {
             _selectionGroup.Toggle(this);
         }

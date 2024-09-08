@@ -33,7 +33,7 @@ namespace Deaddit.Extensions
                 files.Add(new ShareFile(file));
             });
 
-            await Share.Default.RequestAsync(new ShareMultipleFilesRequest
+            await share.RequestAsync(new ShareMultipleFilesRequest
             {
                 Title = title,
                 Files = files

@@ -36,11 +36,11 @@ namespace Deaddit.Utils
         {
             if (selectionGroup is null)
             {
-                return new RedditCommentComponent(comment, post, false, this, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, selectionGroup ?? new SelectionGroup(), _blockConfiguration, _configurationService);
+                return new RedditCommentComponent(comment, post, false, this, _redditClient, _applicationTheme, selectionGroup ?? new SelectionGroup(), _blockConfiguration);
             }
             else
             {
-                return new RedditCommentComponent(comment, post, true, this, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, selectionGroup ?? new SelectionGroup(), _blockConfiguration, _configurationService);
+                return new RedditCommentComponent(comment, post, true, this, _redditClient, _applicationTheme, selectionGroup ?? new SelectionGroup(), _blockConfiguration);
             }
         }
 
@@ -55,7 +55,7 @@ namespace Deaddit.Utils
             return postComponent;
         }
 
-        public SubRedditComponent CreateSubRedditComponent(SubRedditSubscription subscription, SelectionGroup group)
+        public SubRedditComponent CreateSubRedditComponent(SubRedditSubscription subscription, SelectionGroup? group = null)
         {
             return new SubRedditComponent(subscription, group is not null, this, _applicationTheme, group ?? new SelectionGroup());
         }
@@ -85,7 +85,7 @@ namespace Deaddit.Utils
 
         public async Task<PostPage> OpenPost(ApiPost post, ApiComment focus)
         {
-            PostPage postPage = new(post, focus, this, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _blockConfiguration);
+            PostPage postPage = new(post, focus, this, _redditClient, _applicationTheme, _applicationHacks, _blockConfiguration);
             await Navigation.PushAsync(postPage);
             await postPage.TryLoad();
             return postPage;
@@ -93,7 +93,7 @@ namespace Deaddit.Utils
 
         public async Task<ReplyPage> OpenReplyPage(ApiThing comment)
         {
-            ReplyPage replyPage = new(comment, this, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _blockConfiguration, _configurationService);
+            ReplyPage replyPage = new(comment, this, _redditClient, _applicationTheme);
             await Navigation.PushAsync(replyPage);
             return replyPage;
         }
@@ -105,7 +105,7 @@ namespace Deaddit.Utils
 
         public async Task<SubRedditPage> OpenSubReddit(SubRedditName subRedditName, ApiPostSort sort = ApiPostSort.Hot)
         {
-            SubRedditPage page = new(subRedditName, sort, this, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _blockConfiguration, _configurationService);
+            SubRedditPage page = new(subRedditName, sort, this, _redditClient, _applicationTheme, _blockConfiguration);
             await Navigation.PushAsync(page);
             await page.TryLoad();
             return page;
@@ -113,7 +113,7 @@ namespace Deaddit.Utils
 
         public async Task<SubRedditPage> OpenUser(string username, UserProfileSort userProfileSort = UserProfileSort.New)
         {
-            SubRedditPage page = new(new SubRedditName($"u/{username}"), userProfileSort, this, _redditClient, _applicationTheme, _applicationHacks, _visitTracker, _blockConfiguration, _configurationService);
+            SubRedditPage page = new(new SubRedditName($"u/{username}"), userProfileSort, this, _redditClient, _applicationTheme, _blockConfiguration);
             await Navigation.PushAsync(page);
             await page.TryLoad();
             return page;

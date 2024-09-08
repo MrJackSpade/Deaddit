@@ -1,3 +1,10 @@
+# How to install
+Android APK file is available in the release folder. Download the APK file and install it on your Android device.
+
+Windows client can be built from scratch. Simply pull the code and build.
+
+IOS is not currently enabled as I don't have an IOS device to test on. If you have an IOS device and would like to test, please let me know and I will enable the IOS build.
+
 # How to Get Your Reddit API Credentials
 
 To use this custom Reddit client, you need to acquire the following credentials:
