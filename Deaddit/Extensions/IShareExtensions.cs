@@ -25,13 +25,15 @@ namespace Deaddit.Extensions
         public static async Task ShareFiles(this IShare share, string title, PostItems items)
         {
             List<ShareFile> files = [];
+            HttpClient client = new();
 
-            Parallel.ForEach(items, (uri) =>
+            foreach (var uri in items)
             {
                 string file = Path.Combine(FileSystem.CacheDirectory, uri.FileName);
-                new WebClient().DownloadFile(uri.DownloadUrl, file);
+                byte[] fileBytes = await client.GetByteArrayAsync(uri.DownloadUrl);
+                await File.WriteAllBytesAsync(file, fileBytes);
                 files.Add(new ShareFile(file));
-            });
+            }
 
             await share.RequestAsync(new ShareMultipleFilesRequest
             {
