@@ -26,7 +26,7 @@ namespace Deaddit.MAUI.Components
 
         public event EventHandler<ApiMore>? OnClick;
 
-        public async void OnParentTapped(object? sender, EventArgs e)
+        public void OnParentTapped(object? sender, EventArgs e)
         {
             if (_clicked && _singleClick)
             {

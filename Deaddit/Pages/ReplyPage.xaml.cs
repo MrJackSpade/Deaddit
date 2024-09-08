@@ -23,7 +23,7 @@ namespace Deaddit.Pages
 
         private readonly ApiThing _replyTo;
 
-        public ReplyPage(ApiThing replyTo, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public ReplyPage(ApiThing replyTo, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme)
         {
             _redditClient = redditClient;
             _replyTo = replyTo;

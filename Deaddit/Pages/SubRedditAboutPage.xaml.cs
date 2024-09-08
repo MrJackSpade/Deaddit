@@ -65,7 +65,9 @@ namespace Deaddit.Pages
             this.SetSubscribeButtonState(_apiSubReddit.UserIsSubscriber);
         }
 
-        private async void OnBackClicked(object? sender, object e)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
+
+        public async void OnBackClicked(object? sender, object e)
         {
             await Navigation.PopAsync();
         }
@@ -79,15 +81,20 @@ namespace Deaddit.Pages
             await Navigation.OpenResource(resource, _appNavigator);
         }
 
-        private void OnMoreClicked(object? sender, object e)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
+
+        public void OnMoreClicked(object? sender, object e)
         {
         }
 
-        private void OnRulesClicked(object? sender, object e)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
+        public void OnRulesClicked(object? sender, object e)
         {
         }
 
-        private async void OnSubscribeClicked(object? sender, object e)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
+
+        public async void OnSubscribeClicked(object? sender, object e)
         {
             await _redditClient.ToggleSubScription(_apiSubReddit, !_apiSubReddit.UserIsSubscriber);
             _apiSubReddit.UserIsSubscriber = !_apiSubReddit.UserIsSubscriber;

@@ -45,7 +45,7 @@ namespace Deaddit.Pages
 
         private Enum _sort;
 
-        public SubRedditPage(SubRedditName subreddit, Enum sort, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public SubRedditPage(SubRedditName subreddit, Enum sort, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, BlockConfiguration blockConfiguration)
         {
             NavigationPage.SetHasNavigationBar(this, false);
             _appNavigator = appNavigator;
@@ -57,7 +57,7 @@ namespace Deaddit.Pages
 
             _selectionGroup = new SelectionGroup();
 
-            BindingContext = new SubRedditPageViewModel(subreddit, applicationTheme);
+            BindingContext = new SubRedditPageViewModel(subreddit);
             this.InitializeComponent();
 
             mainStack.Spacing = 1;

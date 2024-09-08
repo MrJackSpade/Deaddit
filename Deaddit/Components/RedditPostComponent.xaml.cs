@@ -81,12 +81,12 @@ namespace Deaddit.MAUI.Components
             _isListView = isListView;
 
             this.InitializePostComponent(_isListView);
-            this.SetImageThumbnail(_post, _applicationTheme);
+            this.SetImageThumbnail(_applicationTheme);
             this.SetTitleLabel(_post, _applicationHacks, _applicationTheme);
             this.SetLinkFlair(_post, _applicationHacks, _applicationTheme);
             this.SetMetaDataLabel(_post, _applicationTheme);
-            this.SetTimeUserLabel(_post, _isListView, _applicationTheme);
-            this.SetVoteStack(_post, _applicationTheme);
+            this.SetTimeUserLabel(_post, _applicationTheme);
+            this.SetVoteStack(_applicationTheme);
 
             this.Initialize();
         }
@@ -598,7 +598,7 @@ namespace Deaddit.MAUI.Components
             _selectionGroup.Toggle(this);
         }
 
-        private void SetImageThumbnail(ApiPost post, ApplicationStyling applicationTheme)
+        private void SetImageThumbnail(ApplicationStyling applicationTheme)
         {
             thumbnailImage.HeightRequest = applicationTheme.ThumbnailSize;
             thumbnailImage.WidthRequest = applicationTheme.ThumbnailSize;
@@ -654,7 +654,7 @@ namespace Deaddit.MAUI.Components
             }
         }
 
-        private void SetTimeUserLabel(ApiPost post, bool isPreview, ApplicationStyling applicationTheme)
+        private void SetTimeUserLabel(ApiPost post, ApplicationStyling applicationTheme)
         {
             timeUserLabel.Text = $"{post.CreatedUtc.Elapsed()} by {post.Author}";
             timeUserLabel.FontSize = applicationTheme.FontSize * 0.75;
@@ -667,7 +667,7 @@ namespace Deaddit.MAUI.Components
             titleLabel.TextColor = applicationTheme.TextColor.ToMauiColor();
         }
 
-        private void SetVoteStack(ApiPost post, ApplicationStyling applicationTheme)
+        private void SetVoteStack(ApplicationStyling applicationTheme)
         {
             voteStack.HeightRequest = applicationTheme.ThumbnailSize;
             this.UpdateScoreIndicator();

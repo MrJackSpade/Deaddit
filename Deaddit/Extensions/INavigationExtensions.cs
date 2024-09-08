@@ -32,7 +32,7 @@ namespace Deaddit.Extensions
                         throw new NotImplementedException();
                     }
 
-                    PostPage postPage = await appNavigator.OpenPost(post);
+                    await appNavigator.OpenPost(post);
                     break;
 
                 case PostTargetKind.Url:

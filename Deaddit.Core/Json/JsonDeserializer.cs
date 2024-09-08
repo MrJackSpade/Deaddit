@@ -429,7 +429,7 @@ namespace Deaddit.Core.Json
 
             if (childrenProperty is not null)
             {
-                foreach (JsonObject jo in childrenProperty)
+                foreach (JsonObject jo in childrenProperty.Cast<JsonObject>())
                 {
                     ApiThing thing = ParseRedditThing(jo);
                     collection.Children.Add(thing);
