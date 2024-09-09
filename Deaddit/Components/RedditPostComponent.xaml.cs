@@ -127,8 +127,6 @@ namespace Deaddit.MAUI.Components
 
             Content = mainStack;
 
-            HeightRequest = -1;
-
             return true;
         }
 
@@ -320,6 +318,7 @@ namespace Deaddit.MAUI.Components
             BackgroundColor = _applicationTheme.HighlightColor.ToMauiColor();
             mainGrid.BackgroundColor = _applicationTheme.HighlightColor.ToMauiColor();
             timeUserLabel.IsVisible = true;
+            HeightRequest = -1;
             this.InitActionButtons();
         }
 
