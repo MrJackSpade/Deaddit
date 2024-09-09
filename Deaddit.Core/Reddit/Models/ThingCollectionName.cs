@@ -32,12 +32,12 @@ namespace Deaddit.Core.Reddit.Models
                 RootedName = "/r/" + name;
             }
 
-            if (name.Count(c => c == '/') == 1)
+            if (!name.StartsWith('/'))
             {
-                RootedName = $"/{name}";
+                RootedName = "/" + name;
             }
 
-            if(RootedName.StartsWith("/m"))
+            if (RootedName.StartsWith("/m"))
             {
                 Kind = ThingKind.Listing;
             } else if (RootedName.StartsWith("/r"))

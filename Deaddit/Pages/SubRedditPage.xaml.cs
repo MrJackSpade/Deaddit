@@ -210,7 +210,7 @@ namespace Deaddit.Pages
             {
                 RedditPostComponent child = children[i];
 
-                ViewPosition position = scrollView.Position(child, scrollView.Height);
+                ViewPosition position = scrollView.Position(child, _applicationTheme.ThumbnailSize * _applicationHacks.PageBuffer);
 
                 switch (position)
                 {
