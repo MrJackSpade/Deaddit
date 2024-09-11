@@ -464,7 +464,8 @@ namespace Deaddit.MAUI.Components
             if (!_comment.ScoreHidden == true)
             {
                 metaDataLabel.Text = $"{_comment.Score} points {_comment.CreatedUtc.Elapsed()}";
-            } else
+            }
+            else
             {
                 metaDataLabel.Text = _comment.CreatedUtc.Elapsed();
             }

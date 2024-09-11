@@ -29,23 +29,15 @@ namespace Deaddit.Pages
 
         private readonly SemaphoreSlim _reloadSemaphore = new(1);
 
-        /// <summary>
-        /// Prevents more than one active loading/scrolling thread, because for some reason
-        /// Monitor.Enter on a lock allows more than one thread to pass through.
-        /// </summary>
-        private readonly SemaphoreSlim _scrollSemaphore = new(1);
-
         private readonly SelectionGroup _selectionGroup;
 
         private readonly ThingCollectionName _thingCollectionName;
 
         private readonly ApplicationHacks _applicationHacks;
 
-        private double _lastRefresh;
-
-        private double _lastScroll;
-
         private Enum _sort;
+
+        private readonly Grid _sortButtons;
 
         public SubRedditPage(ThingCollectionName subreddit, Enum sort, ApplicationHacks applicationHacks, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, BlockConfiguration blockConfiguration)
         {
@@ -58,14 +50,17 @@ namespace Deaddit.Pages
             _sort = Ensure.NotNull(sort);
             _redditClient = Ensure.NotNull(redditClient);
             _applicationTheme = Ensure.NotNull(applicationTheme);
-
+            _sortButtons = [];
             _selectionGroup = new SelectionGroup();
 
             BindingContext = new SubRedditPageViewModel(subreddit);
+
             this.InitializeComponent();
 
-            mainStack.Spacing = 1;
-            mainStack.BackgroundColor = applicationTheme.SecondaryColor.ToMauiColor();
+            scrollView.Add(_sortButtons);
+            scrollView.Spacing = 1;
+            scrollView.BackgroundColor = applicationTheme.SecondaryColor.ToMauiColor();
+            scrollView.ScrolledDown = this.ScrollDown;
 
             navigationBar.BackgroundColor = applicationTheme.PrimaryColor.ToMauiColor();
             settingsButton.TextColor = applicationTheme.TextColor.ToMauiColor();
@@ -83,8 +78,8 @@ namespace Deaddit.Pages
 
         private void InitSortButtons(Enum sort)
         {
-            sortButtons.Children.Clear();
-            sortButtons.ColumnDefinitions.Clear();
+            _sortButtons.Children.Clear();
+            _sortButtons.ColumnDefinitions.Clear();
             List<Enum> values = [];
 
             foreach (Enum e in Enum.GetValues(sort.GetType()))
@@ -100,7 +95,7 @@ namespace Deaddit.Pages
             // Define columns
             for (int i = 0; i < columnCount; i++)
             {
-                sortButtons.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                _sortButtons.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             }
 
             int column = 0;
@@ -120,7 +115,7 @@ namespace Deaddit.Pages
                     await this.Reload();
                 };
 
-                sortButtons.Children.Add(button);
+                _sortButtons.Children.Add(button);
                 Grid.SetColumn(button, column);
                 column++;
             }
@@ -154,96 +149,9 @@ namespace Deaddit.Pages
 
         public async Task ScrollDown(ScrolledEventArgs e)
         {
-            int lastIndex = mainStack.Children.OfType<RedditPostComponent>().Count() - 1;
-
             if (WindowInLoadRange)
             {
                 await this.TryLoad();
-            }
-            else if (Math.Abs(_lastRefresh - e.ScrollY) < _applicationTheme.ThumbnailSize)
-            {
-                return;
-            }
-
-            _lastRefresh = e.ScrollY;
-
-            List<RedditPostComponent> children = [.. mainStack.Children.OfType<RedditPostComponent>()];
-
-            for (int i = lastIndex - 1; i >= 0; i--)
-            {
-                RedditPostComponent child = children[i];
-
-                ViewPosition viewPosition = scrollView.Position(child, scrollView.Height);
-
-                switch (viewPosition)
-                {
-                    case ViewPosition.Above:
-                        if (!child.Deinitialize())
-                        {
-                            return;
-                        }
-
-                        break;
-
-                    case ViewPosition.Below:
-                    case ViewPosition.Unknown:
-                        continue;
-                    case ViewPosition.Within:
-                        child.Initialize();
-                        break;
-                }
-            }
-        }
-
-        public void ScrollUp(ScrolledEventArgs e)
-        {
-            if (Math.Abs(_lastRefresh - e.ScrollY) < _applicationTheme.ThumbnailSize)
-            {
-                return;
-            }
-
-            _lastRefresh = e.ScrollY;
-
-            List<RedditPostComponent> children = [.. mainStack.Children.OfType<RedditPostComponent>()];
-
-            for (int i = children.Count - 1; i >= 0; i--)
-            {
-                RedditPostComponent child = children[i];
-
-                ViewPosition position = scrollView.Position(child, _applicationTheme.ThumbnailSize * _applicationHacks.PageBuffer);
-
-                switch (position)
-                {
-                    case ViewPosition.Above:
-                        return;
-
-                    case ViewPosition.Below:
-                        child.Deinitialize();
-                        break;
-
-                    case ViewPosition.Within:
-                        child.Initialize();
-                        break;
-                }
-            }
-        }
-
-        public async void ScrollView_Scrolled(object? sender, ScrolledEventArgs e)
-        {
-            if (_scrollSemaphore.Wait(0))
-            {
-                if (e.ScrollY < _lastScroll)
-                {
-                    this.ScrollUp(e);
-                }
-                else
-                {
-                    await this.ScrollDown(e);
-                }
-
-                _lastScroll = e.ScrollY;
-
-                _scrollSemaphore.Release();
             }
         }
 
@@ -252,7 +160,7 @@ namespace Deaddit.Pages
         public async Task TryLoad()
         {
 
-            await DataService.LoadAsync(mainStack, async () =>
+            await DataService.LoadAsync(scrollView.InnerStack, async () =>
             {
                 int newLoadedPostCount = 0;
 
@@ -283,7 +191,7 @@ namespace Deaddit.Pages
                             continue;
                         }
 
-                        if(!loadedNames.Add(thing.Name))
+                        if (!loadedNames.Add(thing.Name))
                         {
                             continue;
                         }
@@ -305,7 +213,7 @@ namespace Deaddit.Pages
                                 }
                             }
 
-                            if(post.Hidden)
+                            if (post.Hidden)
                             {
                                 continue;
                             }
@@ -327,7 +235,7 @@ namespace Deaddit.Pages
                         {
                             try
                             {
-                                mainStack.Add(view);
+                                scrollView.Add(view);
                                 newLoadedPostCount++;
                             }
                             catch (System.MissingMethodException mme) when (mme.Message.Contains("Microsoft.Maui.Controls.Handlers.Compatibility.FrameRenderer"))
@@ -349,7 +257,7 @@ namespace Deaddit.Pages
 
         private void RedditPostComponent_HideClicked(object? sender, OnHideClickedEventArgs e)
         {
-            mainStack.Remove(e.Component);
+            scrollView.Remove(e.Component);
         }
 
         private void RedditPostComponent_OnBlockAdded(object? sender, BlockRule e)
@@ -358,7 +266,7 @@ namespace Deaddit.Pages
             {
                 if (!e.IsAllowed(loadedPost.Post))
                 {
-                    mainStack.Remove(loadedPost.PostComponent);
+                    scrollView.Remove(loadedPost.PostComponent);
                     _loadedPosts.Remove(loadedPost);
                 }
             }
@@ -370,9 +278,8 @@ namespace Deaddit.Pages
             _after = null;
 
             //Cheap Hack
-            IView nav = mainStack.Children.First();
-            mainStack.Children.Clear();
-            mainStack.Children.Add(nav);
+            scrollView.Clear();
+            scrollView.Add(_sortButtons);
 
             await this.TryLoad();
         }

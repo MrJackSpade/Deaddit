@@ -173,11 +173,13 @@ namespace Deaddit.Core.Reddit
             {
                 Dictionary<string, UserPartial> response = await _jsonClient.Get<Dictionary<string, UserPartial>>(url);
                 return response;
-            }catch (HttpRequestException hre) when (hre.StatusCode == System.Net.HttpStatusCode.NotFound)
+            }
+            catch (HttpRequestException hre) when (hre.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 Debug.WriteLine($"User data not found ('{string.Join(",", usernames)}')");
-                return new Dictionary<string, UserPartial>();
-            } finally
+                return [];
+            }
+            finally
             {
                 stopwatch.Stop();
                 System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in GetUserData method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
