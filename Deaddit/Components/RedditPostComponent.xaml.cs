@@ -476,7 +476,7 @@ namespace Deaddit.MAUI.Components
                 Margin = new Thickness(0),
                 VerticalOptions = LayoutOptions.Start
             };
-            
+
             mainGrid.Children.Add(thumbnailImage);
             Grid.SetColumn(thumbnailImage, 0);
 
@@ -601,7 +601,7 @@ namespace Deaddit.MAUI.Components
             thumbnailImage.HeightRequest = applicationTheme.ThumbnailSize;
             thumbnailImage.WidthRequest = applicationTheme.ThumbnailSize;
 
-            if (!post.IsSelf || this._isListView)
+            if (!post.IsSelf || _isListView)
             {
                 thumbnailImage.Clicked += this.OnThumbnailImageClicked;
             }

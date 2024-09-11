@@ -14,7 +14,8 @@ namespace Deaddit.Core.Reddit.Models
                 RootedName = "";
                 Kind = ThingKind.Listing;
                 return;
-            } else
+            }
+            else
             {
                 DisplayName = name;
                 RootedName = name;
@@ -40,13 +41,16 @@ namespace Deaddit.Core.Reddit.Models
             if (RootedName.StartsWith("/m"))
             {
                 Kind = ThingKind.Listing;
-            } else if (RootedName.StartsWith("/r"))
+            }
+            else if (RootedName.StartsWith("/r"))
             {
                 Kind = ThingKind.Subreddit;
-            } else if (RootedName.StartsWith("/u"))
+            }
+            else if (RootedName.StartsWith("/u"))
             {
                 Kind = ThingKind.Account;
-            } else
+            }
+            else
             {
                 throw new NotImplementedException($"Can not determine listing kind for {RootedName}");
             }

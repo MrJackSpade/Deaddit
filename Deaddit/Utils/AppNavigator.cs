@@ -166,7 +166,7 @@ namespace Deaddit.Utils
 
         public async Task OpenObjectEditor()
         {
-           await this.OpenObjectEditor(null);
+            await this.OpenObjectEditor(null);
         }
     }
 }

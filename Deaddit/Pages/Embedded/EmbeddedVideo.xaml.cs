@@ -25,7 +25,7 @@ namespace Deaddit
             {
                 Debug.WriteLine(e);
             }
-        } 
+        }
 
         public EmbeddedVideo(PostItems items, ApplicationStyling applicationTheme)
         {

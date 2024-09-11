@@ -26,7 +26,7 @@ namespace Deaddit
             saveButton.TextColor = applicationTheme.TextColor.ToMauiColor();
             shareButton.TextColor = applicationTheme.TextColor.ToMauiColor();
             navigationBar.BackgroundColor = _applicationTheme.PrimaryColor.ToMauiColor();
-            
+
             webView.Source = new Uri(url);
         }
 
