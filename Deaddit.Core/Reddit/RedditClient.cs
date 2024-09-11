@@ -28,6 +28,33 @@ namespace Deaddit.Core.Reddit
 
         private OAuthToken? _oAuthToken;
 
+        private readonly SemaphoreSlim _semaphore = new(1, 1);
+
+        public int MinimumDelayMs { get; set; } = 500; // Default to 500ms
+
+        public DateTime LastFired { get; private set; } = DateTime.MinValue;
+
+        public async Task ThrottleAsync()
+        {
+            await _semaphore.WaitAsync();
+            try
+            {
+                TimeSpan elapsedSinceLastFire = DateTime.UtcNow - LastFired;
+                TimeSpan remainingDelay = TimeSpan.FromMilliseconds(MinimumDelayMs) - elapsedSinceLastFire;
+
+                if (remainingDelay > TimeSpan.Zero)
+                {
+                    await Task.Delay(remainingDelay);
+                }
+
+                LastFired = DateTime.UtcNow;
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
+        }
+
         public RedditClient(RedditCredentials redditCredentials, IJsonClient jsonClient, HttpClient httpClient)
         {
             _redditCredentials = redditCredentials;
@@ -44,6 +71,8 @@ namespace Deaddit.Core.Reddit
 
         public async Task<ApiSubReddit> About(ThingCollectionName subreddit)
         {
+            await this.ThrottleAsync();
+
             System.Diagnostics.Stopwatch stopwatch = new();
             stopwatch.Start();
 
@@ -58,6 +87,7 @@ namespace Deaddit.Core.Reddit
         public async Task<ApiComment> Comment(ApiThing thing, string comment)
         {
             await this.EnsureAuthenticated();
+            await this.ThrottleAsync();
 
             System.Diagnostics.Stopwatch stopwatch = new();
             stopwatch.Start();
@@ -95,6 +125,8 @@ namespace Deaddit.Core.Reddit
 
         public async IAsyncEnumerable<ApiThing> Comments(ApiPost parent, ApiComment? focusComment)
         {
+            await this.ThrottleAsync();
+
             System.Diagnostics.Stopwatch stopwatch = new();
             stopwatch.Start();
 
@@ -141,6 +173,7 @@ namespace Deaddit.Core.Reddit
         public async Task Delete(ApiThing thing)
         {
             await this.EnsureAuthenticated();
+            await this.ThrottleAsync();
 
             System.Diagnostics.Stopwatch stopwatch = new();
             stopwatch.Start();
@@ -163,6 +196,7 @@ namespace Deaddit.Core.Reddit
         public async Task<Dictionary<string, UserPartial>> GetUserData(IEnumerable<string> usernames)
         {
             await this.EnsureAuthenticated();
+            await this.ThrottleAsync();
 
             System.Diagnostics.Stopwatch stopwatch = new();
             stopwatch.Start();
@@ -173,11 +207,13 @@ namespace Deaddit.Core.Reddit
             {
                 Dictionary<string, UserPartial> response = await _jsonClient.Get<Dictionary<string, UserPartial>>(url);
                 return response;
-            }catch (HttpRequestException hre) when (hre.StatusCode == System.Net.HttpStatusCode.NotFound)
+            }
+            catch (HttpRequestException hre) when (hre.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 Debug.WriteLine($"User data not found ('{string.Join(",", usernames)}')");
-                return new Dictionary<string, UserPartial>();
-            } finally
+                return [];
+            }
+            finally
             {
                 stopwatch.Stop();
                 System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in GetUserData method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
@@ -188,6 +224,7 @@ namespace Deaddit.Core.Reddit
         {
             //Returns HTML if not authenticated
             await this.EnsureAuthenticated();
+            await this.ThrottleAsync();
 
             System.Diagnostics.Stopwatch stopwatch = new();
 
@@ -223,12 +260,15 @@ namespace Deaddit.Core.Reddit
         public async Task<Stream> GetStream(string url)
         {
             await this.EnsureAuthenticated();
+            await this.ThrottleAsync();
 
             return await _httpClient.GetStreamAsync(url);
         }
 
         public async IAsyncEnumerable<ApiThing> MoreComments(ApiPost post, ApiMore moreItem)
         {
+            await this.ThrottleAsync();
+
             // Exclude authentication or other setup time if necessary
             System.Diagnostics.Stopwatch stopwatch = new();
             stopwatch.Start();
@@ -310,6 +350,7 @@ namespace Deaddit.Core.Reddit
         public async IAsyncEnumerable<ApiMulti> Multis()
         {
             await this.EnsureAuthenticated();
+            await this.ThrottleAsync();
 
             string url = $"{API_ROOT}/api/multi/mine";
 
@@ -325,6 +366,7 @@ namespace Deaddit.Core.Reddit
         {
             // Exclude authentication time
             await this.EnsureAuthenticated();
+            await this.ThrottleAsync();
 
             System.Diagnostics.Stopwatch stopwatch = new();
             stopwatch.Start();
@@ -357,6 +399,7 @@ namespace Deaddit.Core.Reddit
         public async Task ToggleInboxReplies(ApiThing thing, bool enabled)
         {
             await this.EnsureAuthenticated();
+            await this.ThrottleAsync();
 
             System.Diagnostics.Stopwatch stopwatch = new();
             stopwatch.Start();
@@ -379,6 +422,7 @@ namespace Deaddit.Core.Reddit
         public async Task ToggleSubScription(ApiSubReddit thing, bool subscribed)
         {
             await this.EnsureAuthenticated();
+            await this.ThrottleAsync();
 
             System.Diagnostics.Stopwatch stopwatch = new();
             stopwatch.Start();
@@ -401,6 +445,7 @@ namespace Deaddit.Core.Reddit
         public async Task ToggleVisibility(ApiThing thing, bool visible)
         {
             await this.EnsureAuthenticated();
+            await this.ThrottleAsync();
 
             System.Diagnostics.Stopwatch stopwatch = new();
             stopwatch.Start();
