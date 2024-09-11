@@ -1,16 +1,7 @@
-﻿namespace Deaddit.Extensions
+﻿using Deaddit.Pages.Models;
+
+namespace Deaddit.Extensions
 {
-    internal enum ViewPosition
-    {
-        Above,
-
-        Within,
-
-        Below,
-
-        Unknown
-    }
-
     internal static class ScrollViewExtensions
     {
         public static ViewPosition Position(this ScrollView view, VisualElement element, double padding = 0)

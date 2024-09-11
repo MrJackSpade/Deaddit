@@ -1,12 +1,12 @@
+D:\Git\Deaddit\Deaddit.Core\bin\Debug\net8.0\Deaddit.Core.deps.json
+D:\Git\Deaddit\Deaddit.Core\bin\Debug\net8.0\Deaddit.Core.dll
+D:\Git\Deaddit\Deaddit.Core\bin\Debug\net8.0\Deaddit.Core.pdb
+D:\Git\Deaddit\Deaddit.Core\obj\Debug\net8.0\Deaddit.Core.csproj.AssemblyReference.cache
 D:\Git\Deaddit\Deaddit.Core\obj\Debug\net8.0\Deaddit.Core.GeneratedMSBuildEditorConfig.editorconfig
 D:\Git\Deaddit\Deaddit.Core\obj\Debug\net8.0\Deaddit.Core.AssemblyInfoInputs.cache
 D:\Git\Deaddit\Deaddit.Core\obj\Debug\net8.0\Deaddit.Core.AssemblyInfo.cs
 D:\Git\Deaddit\Deaddit.Core\obj\Debug\net8.0\Deaddit.Core.csproj.CoreCompileInputs.cache
 D:\Git\Deaddit\Deaddit.Core\obj\Debug\net8.0\Deaddit.Core.sourcelink.json
-D:\Git\Deaddit\Deaddit.Core\obj\Debug\net8.0\Deaddit.Core.csproj.AssemblyReference.cache
-D:\Git\Deaddit\Deaddit.Core\bin\Debug\net8.0\Deaddit.Core.deps.json
-D:\Git\Deaddit\Deaddit.Core\bin\Debug\net8.0\Deaddit.Core.dll
-D:\Git\Deaddit\Deaddit.Core\bin\Debug\net8.0\Deaddit.Core.pdb
 D:\Git\Deaddit\Deaddit.Core\obj\Debug\net8.0\Deaddit.Core.dll
 D:\Git\Deaddit\Deaddit.Core\obj\Debug\net8.0\refint\Deaddit.Core.dll
 D:\Git\Deaddit\Deaddit.Core\obj\Debug\net8.0\Deaddit.Core.pdb

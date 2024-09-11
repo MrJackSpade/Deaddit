@@ -1,8 +1,5 @@
-﻿using Deaddit.Core.Utils.Extensions;
-using Deaddit.Extensions;
-using Microsoft.Maui.Animations;
-using Org.BouncyCastle.Pqc.Crypto.Lms;
-using System.Diagnostics;
+﻿using Deaddit.Extensions;
+using Deaddit.Pages.Models;
 
 namespace Deaddit.Components
 {
@@ -21,6 +18,8 @@ namespace Deaddit.Components
         private double _lastRefresh;
 
         private double _lastScroll;
+
+        public int HeaderCount { get; set; }
 
         public OptimizedScrollView()
         {
@@ -41,13 +40,17 @@ namespace Deaddit.Components
             set => innerStack.Spacing = value;
         }
 
-        public void Add(VisualElement view)
+        public void Add(VisualElement view, bool isContent = true)
         {
             innerStack.Add(view);
-            content.Add(new RenderedElement(view)
+
+            if (isContent)
             {
-                IsRendered = true
-            });
+                content.Add(new RenderedElement(view)
+                {
+                    IsRendered = true
+                });
+            }
         }
 
         public void Clear()
@@ -58,29 +61,35 @@ namespace Deaddit.Components
 
         public async void OnScrolled(object? sender, ScrolledEventArgs e)
         {
-            if (_scrollSemaphore.Wait(0))
+
+            if (e.ScrollY < _lastScroll)
             {
-                if (e.ScrollY < _lastScroll)
+                if (_scrollSemaphore.Wait(0))
                 {
                     this.ScrollUp(e);
-                    if (ScrolledUp is not null)
-                    {
-                        await ScrolledUp.Invoke(e);
-                    }
+                    _scrollSemaphore.Release();
                 }
-                else
+
+                if (ScrolledUp is not null)
+                {
+                    await ScrolledUp.Invoke(e);
+                }
+            }
+            else
+            {
+                if (_scrollSemaphore.Wait(0))
                 {
                     this.ScrollDown(e);
-                    if (ScrolledDown is not null)
-                    {
-                        await ScrolledDown.Invoke(e);
-                    }
+                    _scrollSemaphore.Release();
                 }
 
-                _lastScroll = e.ScrollY;
-
-                _scrollSemaphore.Release();
+                if (ScrolledDown is not null)
+                {
+                    await ScrolledDown.Invoke(e);
+                }
             }
+
+            _lastScroll = e.ScrollY;
         }
 
         public void Remove(VisualElement toRemove)
@@ -97,11 +106,11 @@ namespace Deaddit.Components
                 {
                     if (this.Position(found.RenderedBounds, LoadBuffer) == ViewPosition.Above)
                     {
-                        this.innerStack.Padding = new Thickness(0, this.innerStack.Padding.Top - found.RenderedBounds.Height, 0, this.innerStack.Padding.Bottom);
+                        innerStack.Padding = new Thickness(0, innerStack.Padding.Top - found.RenderedBounds.Height, 0, innerStack.Padding.Bottom);
                     }
                     else
                     {
-                        this.innerStack.Padding = new Thickness(0, this.innerStack.Padding.Top, 0, this.innerStack.Padding.Bottom - found.RenderedBounds.Height);
+                        innerStack.Padding = new Thickness(0, innerStack.Padding.Top, 0, innerStack.Padding.Bottom - found.RenderedBounds.Height);
                     }
                 }
             }
@@ -130,8 +139,8 @@ namespace Deaddit.Components
                             child.FindBounds();
                             if (child.IsRendered)
                             {
-                                this.innerStack.Remove(child.Element);
-                                this.innerStack.Padding = new Thickness(0, this.innerStack.Padding.Top + child.RenderedBounds.Height, 0, this.innerStack.Padding.Bottom);
+                                innerStack.Remove(child.Element);
+                                innerStack.Padding = new Thickness(0, innerStack.Padding.Top + child.RenderedBounds.Height, 0, innerStack.Padding.Bottom);
                                 child.IsRendered = false;
                             }
 
@@ -143,8 +152,8 @@ namespace Deaddit.Components
                         case ViewPosition.Within:
                             if (!child.IsRendered)
                             {
-                                this.innerStack.Add(child.Element);
-                                this.innerStack.Padding = new Thickness(0, this.innerStack.Padding.Top, 0, this.innerStack.Padding.Bottom - child.RenderedBounds.Height);
+                                innerStack.Add(child.Element);
+                                innerStack.Padding = new Thickness(0, innerStack.Padding.Top, 0, innerStack.Padding.Bottom - child.RenderedBounds.Height);
                                 child.IsRendered = true;
                             }
 
@@ -190,8 +199,8 @@ namespace Deaddit.Components
                             if (child.IsRendered)
                             {
                                 child.FindBounds();
-                                this.innerStack.Padding = new Thickness(0, this.innerStack.Padding.Top, 0, this.innerStack.Padding.Bottom + child.RenderedBounds.Height);
-                                this.innerStack.Remove(child.Element);
+                                innerStack.Padding = new Thickness(0, innerStack.Padding.Top, 0, innerStack.Padding.Bottom + child.RenderedBounds.Height);
+                                innerStack.Remove(child.Element);
                                 child.IsRendered = false;
                             }
 
@@ -200,8 +209,8 @@ namespace Deaddit.Components
                         case ViewPosition.Within:
                             if (!child.IsRendered)
                             {
-                                this.innerStack.Insert(0, child.Element);
-                                this.innerStack.Padding = new Thickness(0, this.innerStack.Padding.Top - child.RenderedBounds.Height, 0, this.innerStack.Padding.Bottom);
+                                innerStack.Insert(HeaderCount, child.Element);
+                                innerStack.Padding = new Thickness(0, innerStack.Padding.Top - child.RenderedBounds.Height, 0, innerStack.Padding.Bottom);
                                 child.IsRendered = true;
                             }
 
