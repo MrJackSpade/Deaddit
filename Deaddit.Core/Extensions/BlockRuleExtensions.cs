@@ -12,7 +12,7 @@ namespace Deaddit.Core.Extensions
             return blockConfiguration.MinAccountAgeDays > 0 || blockConfiguration.MinCommentKarma > 0 || blockConfiguration.MaxLinkKarma > 0;
         }
 
-        public static bool IsAllowed(this BlockConfiguration blockConfiguration, ApiThing thing, Dictionary<string, PartialUser>? userData = null)
+        public static bool IsAllowed(this BlockConfiguration blockConfiguration, ApiThing thing, Dictionary<string, UserPartial>? userData = null)
         {
             foreach (BlockRule br in blockConfiguration.BlockRules)
             {
@@ -21,7 +21,7 @@ namespace Deaddit.Core.Extensions
                     return false;
                 }
 
-                if(userData != null && userData.TryGetValue(thing.AuthorFullName, out PartialUser user))
+                if(userData is not null && thing.AuthorFullName is not null && userData.TryGetValue(thing.AuthorFullName, out UserPartial user))
                 {
                     if (blockConfiguration.MinAccountAgeDays > 0)
                     {

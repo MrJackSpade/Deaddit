@@ -428,11 +428,25 @@ namespace Deaddit.Components
                     span.TextDecorations |= TextDecorations.Strikethrough;
                 }
 
+                if (trimmed.TryTrim("__", out trimmed))
+                {
+                    span.Text = trimmed;
+                    span.FontAttributes |= FontAttributes.Bold;
+                }
+
+
+                if (trimmed.TryTrim("_", out trimmed))
+                {
+                    span.Text = trimmed;
+                    span.FontAttributes |= FontAttributes.Italic;
+                }
+
                 if (trimmed.TryTrim("**", out trimmed))
                 {
                     span.Text = trimmed;
                     span.FontAttributes |= FontAttributes.Bold;
                 }
+
                 
                 if (trimmed.TryTrim("*", out trimmed))
                 {
@@ -709,11 +723,11 @@ namespace Deaddit.Components
             {
                 Margin = new Thickness(0, 0, 0, 0),
                 Padding = new Thickness(0, 0, 0, 0),
-                RowSpacing = 2,
-                ColumnSpacing = 0,
+                RowSpacing = 0,
+                ColumnSpacing = 2,
                 ColumnDefinitions =
             {
-                new ColumnDefinition { Width = 15 }, // For bullet points or ordered list numbers
+                new ColumnDefinition { Width = GridLength.Auto }, // For bullet points or ordered list numbers
                 new ColumnDefinition { Width = GridLength.Star } // For text
             }
             };

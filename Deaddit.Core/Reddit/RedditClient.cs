@@ -7,6 +7,7 @@ using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Extensions;
+using System.Diagnostics;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Text.Json;
@@ -159,7 +160,7 @@ namespace Deaddit.Core.Reddit
             System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in Delete method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
         }
 
-        public async Task<Dictionary<string, PartialUser>> GetUserData(IEnumerable<string> usernames)
+        public async Task<Dictionary<string, UserPartial>> GetUserData(IEnumerable<string> usernames)
         {
             await this.EnsureAuthenticated();
 
@@ -168,12 +169,19 @@ namespace Deaddit.Core.Reddit
 
             string url = $"{API_ROOT}/api/user_data_by_account_ids?ids={string.Join(",", usernames)}";
 
-            Dictionary<string, PartialUser> response = await _jsonClient.Get<Dictionary<string, PartialUser>>(url);
-
-            stopwatch.Stop();
-            System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in GetUserData method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
-
-            return response;
+            try
+            {
+                Dictionary<string, UserPartial> response = await _jsonClient.Get<Dictionary<string, UserPartial>>(url);
+                return response;
+            }catch (HttpRequestException hre) when (hre.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                Debug.WriteLine($"User data not found ('{string.Join(",", usernames)}')");
+                return new Dictionary<string, UserPartial>();
+            } finally
+            {
+                stopwatch.Stop();
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in GetUserData method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+            }
         }
 
         public async IAsyncEnumerable<ApiThing> GetPosts<T>(ThingCollectionName subreddit, T sort, string? after = null, Models.Region region = Models.Region.GLOBAL) where T : Enum

@@ -267,7 +267,7 @@ namespace Deaddit.Pages
                                                                             region: _applicationHacks.DefaultRegion)
                                                                            .Take(_applicationHacks.PageSize)
                                                                            .ToList();
-                    Dictionary<string, PartialUser>? userData = null;
+                    Dictionary<string, UserPartial>? userData = null;
 
                     if (_blockConfiguration.RequiresUserData())
                     {
