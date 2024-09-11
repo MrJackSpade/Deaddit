@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Deaddit.Core.Reddit.Models
 {
-    public class PartialUser
+    public class UserPartial
     {
         [JsonPropertyName("name")]
         public string? Name { get; set; }

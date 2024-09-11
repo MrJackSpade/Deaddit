@@ -14,27 +14,27 @@ namespace Deaddit.Core.Reddit.Models
                 RootedName = "";
                 Kind = ThingKind.Listing;
                 return;
-            }
-
-            name = name.Trim('/');
-
-            if (name.Contains('/'))
-            {
-                DisplayName = name[(name.LastIndexOf('/') + 1)..];
-            }
-            else
+            } else
             {
                 DisplayName = name;
+                RootedName = name;
             }
 
-            if (!name.Contains('/'))
+            RootedName = RootedName.Trim('/');
+
+            if (RootedName.Contains('/'))
             {
-                RootedName = "/r/" + name;
+                DisplayName = RootedName[(RootedName.LastIndexOf('/') + 1)..];
             }
 
-            if (!name.StartsWith('/'))
+            if (!RootedName.Contains('/'))
             {
-                RootedName = "/" + name;
+                RootedName = "/r/" + RootedName;
+            }
+
+            if (!RootedName.StartsWith('/'))
+            {
+                RootedName = "/" + RootedName;
             }
 
             if (RootedName.StartsWith("/m"))
