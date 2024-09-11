@@ -86,11 +86,24 @@ namespace Deaddit.Components
         public void Remove(VisualElement toRemove)
         {
             innerStack.Remove(toRemove);
+
             RenderedElement? found = content.FirstOrDefault(x => x.Element == toRemove);
 
             if (found is not null)
             {
                 content.Remove(found);
+
+                if (!found.IsRendered)
+                {
+                    if (this.Position(found.RenderedBounds, LoadBuffer) == ViewPosition.Above)
+                    {
+                        this.innerStack.Padding = new Thickness(0, this.innerStack.Padding.Top - found.RenderedBounds.Height, 0, this.innerStack.Padding.Bottom);
+                    }
+                    else
+                    {
+                        this.innerStack.Padding = new Thickness(0, this.innerStack.Padding.Top, 0, this.innerStack.Padding.Bottom - found.RenderedBounds.Height);
+                    }
+                }
             }
         }
 
@@ -118,7 +131,7 @@ namespace Deaddit.Components
                             if (child.IsRendered)
                             {
                                 this.innerStack.Remove(child.Element);
-                                this.innerStack.Padding = new Thickness(0, this.innerStack.Padding.Top + child.RenderedBounds.Height, 0, 0);
+                                this.innerStack.Padding = new Thickness(0, this.innerStack.Padding.Top + child.RenderedBounds.Height, 0, this.innerStack.Padding.Bottom);
                                 child.IsRendered = false;
                             }
 
@@ -131,6 +144,7 @@ namespace Deaddit.Components
                             if (!child.IsRendered)
                             {
                                 this.innerStack.Add(child.Element);
+                                this.innerStack.Padding = new Thickness(0, this.innerStack.Padding.Top, 0, this.innerStack.Padding.Bottom - child.RenderedBounds.Height);
                                 child.IsRendered = true;
                             }
 
@@ -173,13 +187,13 @@ namespace Deaddit.Components
                             return;
 
                         case ViewPosition.Below:
-                            //if (child.IsRendered)
-                            //{
-                            //    child.FindBounds();
-                            //    this.innerStack.Remove(child.Element);
-                            //    this.endPadding.HeightRequest += child.RenderedBounds.Height;
-                            //    child.IsRendered = false;
-                            //}
+                            if (child.IsRendered)
+                            {
+                                child.FindBounds();
+                                this.innerStack.Padding = new Thickness(0, this.innerStack.Padding.Top, 0, this.innerStack.Padding.Bottom + child.RenderedBounds.Height);
+                                this.innerStack.Remove(child.Element);
+                                child.IsRendered = false;
+                            }
 
                             break;
 
@@ -187,7 +201,7 @@ namespace Deaddit.Components
                             if (!child.IsRendered)
                             {
                                 this.innerStack.Insert(0, child.Element);
-                                this.innerStack.Padding = new Thickness(0, this.innerStack.Padding.Top - child.RenderedBounds.Height, 0, 0);
+                                this.innerStack.Padding = new Thickness(0, this.innerStack.Padding.Top - child.RenderedBounds.Height, 0, this.innerStack.Padding.Bottom);
                                 child.IsRendered = true;
                             }
 
