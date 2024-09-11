@@ -27,7 +27,7 @@ namespace Deaddit.Pages
 
         private readonly IRedditClient _redditClient;
 
-        private readonly SemaphoreSlim _reloadSemaphore = new(1);
+        private readonly SemaphoreSlim _loadsemaphore = new(1);
 
         private readonly SelectionGroup _selectionGroup;
 
@@ -57,10 +57,11 @@ namespace Deaddit.Pages
 
             this.InitializeComponent();
 
-            scrollView.Add(_sortButtons);
+            scrollView.Add(_sortButtons, false);
             scrollView.Spacing = 1;
             scrollView.BackgroundColor = applicationTheme.SecondaryColor.ToMauiColor();
             scrollView.ScrolledDown = this.ScrollDown;
+            scrollView.HeaderCount = 1;
 
             navigationBar.BackgroundColor = applicationTheme.PrimaryColor.ToMauiColor();
             settingsButton.TextColor = applicationTheme.TextColor.ToMauiColor();
@@ -135,10 +136,10 @@ namespace Deaddit.Pages
 
         public async void OnReloadClicked(object? sender, EventArgs e)
         {
-            if (_reloadSemaphore.Wait(0))
+            if (_loadsemaphore.Wait(0))
             {
                 await this.Reload();
-                _reloadSemaphore.Release();
+                _loadsemaphore.Release();
             }
         }
 
@@ -151,7 +152,10 @@ namespace Deaddit.Pages
         {
             if (WindowInLoadRange)
             {
-                await this.TryLoad();
+                if (_loadsemaphore.Wait(0))
+                {
+                    await this.TryLoad();
+                }
             }
         }
 
