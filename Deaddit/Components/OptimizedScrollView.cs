@@ -1,7 +1,4 @@
-﻿using Deaddit.Extensions;
-using Deaddit.Pages.Models;
-
-namespace Deaddit.Components
+﻿namespace Deaddit.Components
 {
     internal class OptimizedScrollView : ScrollView
     {
@@ -98,132 +95,55 @@ namespace Deaddit.Components
 
             RenderedElement? found = content.FirstOrDefault(x => x.Element == toRemove);
 
-            if (found is not null)
+            if (found != null)
             {
                 content.Remove(found);
-
-                if (!found.IsRendered)
-                {
-                    if (this.Position(found.RenderedBounds, LoadBuffer) == ViewPosition.Above)
-                    {
-                        innerStack.Padding = new Thickness(0, innerStack.Padding.Top - found.RenderedBounds.Height, 0, innerStack.Padding.Bottom);
-                    }
-                    else
-                    {
-                        innerStack.Padding = new Thickness(0, innerStack.Padding.Top, 0, innerStack.Padding.Bottom - found.RenderedBounds.Height);
-                    }
-                }
             }
         }
 
         private void ScrollDown(ScrolledEventArgs e)
         {
-            if (Math.Abs(_lastRefresh - e.ScrollY) < RefreshPeriod)
-            {
-                return;
-            }
+            _lastRefresh = e.ScrollY;
 
-            try
-            {
-                _lastRefresh = e.ScrollY;
+            this.RefreshView();
+        }
 
-                for (int i = 0; i < content.Count; i++)
+        private void RefreshView()
+        {
+            if (ScrollY < innerStack.Padding.Top)
+            {
+                foreach (VisualElement element in innerStack.OfType<VisualElement>().Where(v => !v.IsVisible).Reverse())
                 {
-                    RenderedElement child = content[i];
+                    element.IsVisible = true;
+                    innerStack.Padding = new Thickness(0, innerStack.Padding.Top - element.Height, 0, innerStack.Padding.Bottom);
 
-                    ViewPosition position = child.IsRendered ? this.Position(child.Element, LoadBuffer) : this.Position(child.RenderedBounds, LoadBuffer);
-
-                    switch (position)
+                    if (ScrollY >= innerStack.Padding.Top)
                     {
-                        case ViewPosition.Above:
-                            child.FindBounds();
-                            if (child.IsRendered)
-                            {
-                                innerStack.Remove(child.Element);
-                                innerStack.Padding = new Thickness(0, innerStack.Padding.Top + child.RenderedBounds.Height, 0, innerStack.Padding.Bottom);
-                                child.IsRendered = false;
-                            }
-
-                            break;
-
-                        case ViewPosition.Below:
-                            return;
-
-                        case ViewPosition.Within:
-                            if (!child.IsRendered)
-                            {
-                                innerStack.Add(child.Element);
-                                innerStack.Padding = new Thickness(0, innerStack.Padding.Top, 0, innerStack.Padding.Bottom - child.RenderedBounds.Height);
-                                child.IsRendered = true;
-                            }
-
-                            break;
+                        break;
                     }
                 }
-
-                return;
             }
-            finally
-            {
 
+            if (ScrollY > innerStack.Padding.Top)
+            {
+                foreach (VisualElement element in innerStack.OfType<VisualElement>().Where(v => v.IsVisible))
+                {
+                    if(element.Height > ScrollY - innerStack.Padding.Top)
+                    {
+                        return;
+                    }
+
+                    element.IsVisible = false;
+                    innerStack.Padding = new Thickness(0, innerStack.Padding.Top + element.Height, 0, innerStack.Padding.Bottom);
+                }
             }
         }
 
         private void ScrollUp(ScrolledEventArgs e)
         {
-            if (Math.Abs(_lastRefresh - e.ScrollY) < RefreshPeriod)
-            {
-                return;
-            }
+            _lastRefresh = e.ScrollY;
 
-            List<string> log = [];
-
-            try
-            {
-                _lastRefresh = e.ScrollY;
-
-                for (int i = content.Count - 1; i >= 0; i--)
-                {
-                    RenderedElement child = content[i];
-
-                    ViewPosition position = child.IsRendered ? this.Position(child.Element, LoadBuffer) : this.Position(child.RenderedBounds, LoadBuffer);
-
-                    log.Insert(0, $"{i}: {position}");
-
-                    switch (position)
-                    {
-                        case ViewPosition.Above:
-                            return;
-
-                        case ViewPosition.Below:
-                            if (child.IsRendered)
-                            {
-                                child.FindBounds();
-                                innerStack.Padding = new Thickness(0, innerStack.Padding.Top, 0, innerStack.Padding.Bottom + child.RenderedBounds.Height);
-                                innerStack.Remove(child.Element);
-                                child.IsRendered = false;
-                            }
-
-                            break;
-
-                        case ViewPosition.Within:
-                            if (!child.IsRendered)
-                            {
-                                innerStack.Insert(HeaderCount, child.Element);
-                                innerStack.Padding = new Thickness(0, innerStack.Padding.Top - child.RenderedBounds.Height, 0, innerStack.Padding.Bottom);
-                                child.IsRendered = true;
-                            }
-
-                            break;
-                    }
-                }
-            }
-            finally
-            {
-
-            }
-
-            return;
+            this.RefreshView();
         }
 
         private class RenderedElement(VisualElement element)
@@ -232,7 +152,11 @@ namespace Deaddit.Components
 
             public Rect RenderedBounds { get; set; }
 
-            public bool IsRendered { get; set; }
+            public bool IsRendered
+            {
+                get => Element.IsVisible;
+                set => Element.IsVisible = value;
+            }
 
             internal void FindBounds()
             {
