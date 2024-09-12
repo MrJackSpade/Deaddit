@@ -155,6 +155,7 @@ namespace Deaddit.Pages
                 if (_loadsemaphore.Wait(0))
                 {
                     await this.TryLoad();
+                    _loadsemaphore.Release();
                 }
             }
         }
