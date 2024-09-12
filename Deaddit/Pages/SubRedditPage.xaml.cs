@@ -258,6 +258,8 @@ namespace Deaddit.Pages
 
                 HashSet<string> loadedNames = _loadedPosts.Select(_loadedPosts => _loadedPosts.Post.Name).ToHashSet();
 
+                List<ContentView> newComponents = [];
+
                 do
                 {
 
@@ -327,7 +329,7 @@ namespace Deaddit.Pages
                         {
                             try
                             {
-                                mainStack.Add(view);
+                                newComponents.Add(view);
                                 newLoadedPostCount++;
                             }
                             catch (System.MissingMethodException mme) when (mme.Message.Contains("Microsoft.Maui.Controls.Handlers.Compatibility.FrameRenderer"))
@@ -343,8 +345,12 @@ namespace Deaddit.Pages
                         }
                     }
                 } while (newLoadedPostCount < _applicationHacks.PageSize);
-            }, _applicationTheme.HighlightColor.ToMauiColor());
 
+                foreach (ContentView component in newComponents)
+                {
+                    mainStack.Children.Add(component);
+                }
+            }, _applicationTheme.HighlightColor.ToMauiColor());
         }
 
         private void RedditPostComponent_HideClicked(object? sender, OnHideClickedEventArgs e)
