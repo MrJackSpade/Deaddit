@@ -53,6 +53,7 @@
         public void Clear()
         {
             innerStack.Clear();
+            innerStack.Padding = new Thickness(0);
             content.Clear();
         }
 
