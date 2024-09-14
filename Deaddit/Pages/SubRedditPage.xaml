@@ -1,8 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:components="clr-namespace:Deaddit.Components"
              x:Class="Deaddit.Pages.SubRedditPage">
-    <Grid RowDefinitions="auto, *, auto">
+    <Grid RowDefinitions="auto, *">
         <!-- Navigation Bar -->
         <Grid Padding="0"
               ColumnDefinitions="auto, auto, *, auto, auto"
@@ -44,18 +45,8 @@
                     Clicked="OnSettingsClicked" />
         </Grid>
         <!-- Main Content -->
-        <ScrollView
-            x:Name="scrollView"
-            Grid.Row="1"
-            Scrolled="ScrollView_Scrolled">
-            <VerticalStackLayout
-                x:Name="mainStack"
-                Padding="0"
-                Spacing="0">
-                <Grid x:Name="sortButtons" BackgroundColor="{Binding SecondaryColor}">
-
-                </Grid>
-            </VerticalStackLayout>
-        </ScrollView>
+        <components:OptimizedScrollView Grid.Row="1" x:Name="scrollView">
+            
+        </components:OptimizedScrollView>
     </Grid>
 </ContentPage>

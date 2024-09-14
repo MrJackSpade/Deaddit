@@ -10,7 +10,7 @@ namespace Deaddit.MAUI.Components
 {
     public partial class SubRedditComponent : ContentView, ISelectionGroupItem
     {
-        private readonly ApplicationStyling _applicationTheme;
+        private readonly ApplicationStyling _applicationStyling;
 
         private readonly IAppNavigator _appNavigator;
 
@@ -22,7 +22,7 @@ namespace Deaddit.MAUI.Components
         {
             SelectEnabled = removable;
             _appNavigator = appNavigator;
-            _applicationTheme = applicationTheme;
+            _applicationStyling = applicationTheme;
             _selectionGroup = selectionTracker;
             _subscription = subscription;
 
@@ -54,14 +54,14 @@ namespace Deaddit.MAUI.Components
         void ISelectionGroupItem.Select()
         {
             Selected = true;
-            BackgroundColor = _applicationTheme.HighlightColor.ToMauiColor();
+            BackgroundColor = _applicationStyling.HighlightColor.ToMauiColor();
             actionButtonsStack.IsVisible = true;
         }
 
         void ISelectionGroupItem.Unselect()
         {
             Selected = false;
-            BackgroundColor = _applicationTheme.SecondaryColor.ToMauiColor();
+            BackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
             actionButtonsStack.IsVisible = false;
         }
 

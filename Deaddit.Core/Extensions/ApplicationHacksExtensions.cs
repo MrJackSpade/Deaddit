@@ -47,7 +47,7 @@ namespace Deaddit.Core.Extensions
 
             title = title.Trim();
 
-            if(hacks.TitleNewlines == OptionalStrip.Strip)
+            if (hacks.TitleNewlines == OptionalStrip.Strip)
             {
                 title = title.Replace("\n", " ").Replace("\r", " ");
             }

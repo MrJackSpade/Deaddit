@@ -14,6 +14,9 @@ namespace Deaddit.Core.Reddit.Models.Options
         CopyRaw,
 
         [EnumMember(Value = "Copy Permalink")]
-        CopyPermalink
+        CopyPermalink,
+
+        [EnumMember(Value = "Save")]
+        Save
     }
 }

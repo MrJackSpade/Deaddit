@@ -34,6 +34,12 @@ namespace Deaddit.Core.Reddit.Models.Api
         [JsonPropertyName("hidden")]
         public bool Hidden { get; init; }
 
+        [JsonPropertyName("crosspost_parent_list")]
+        public List<ApiPost> CrossPostParentList { get; init; }
+
+        [JsonPropertyName("crosspost_parent")]
+        public string CrossPostParent { get; init; }
+
         [JsonPropertyName("hide_score")]
         public bool HideScore { get; init; }
 
@@ -92,7 +98,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public Media? Media { get; init; }
 
         [JsonPropertyName("media_embed")]
-        public MediaEmbed? MediaEmbed { get; init; }
+        public Media? MediaEmbed { get; init; }
 
         [JsonPropertyName("media_only")]
         public bool MediaOnly { get; init; }
@@ -128,10 +134,10 @@ namespace Deaddit.Core.Reddit.Models.Api
         public string? RemovedByCategory { get; init; }
 
         [JsonPropertyName("secure_media")]
-        public SecureMedia? SecureMedia { get; init; }
+        public Media? SecureMedia { get; init; }
 
         [JsonPropertyName("secure_media_embed")]
-        public SecureMediaEmbed? SecureMediaEmbed { get; init; }
+        public Media? SecureMediaEmbed { get; init; }
 
         [JsonPropertyName("spoiler")]
         public bool Spoiler { get; init; }

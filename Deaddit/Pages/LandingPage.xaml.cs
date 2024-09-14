@@ -1,4 +1,3 @@
-using Deaddit.Configurations;
 using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Reddit.Interfaces;

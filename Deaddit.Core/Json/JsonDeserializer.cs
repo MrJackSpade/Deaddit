@@ -206,7 +206,7 @@ namespace Deaddit.Core.Json
 
                 if (availableProperties.Count > 0)
                 {
-                    Debug.WriteLine($"[{type}] Unmapped properties found on object at path '{jsonObject.GetPath()}'; {string.Join(",", availableProperties)}");
+                    Debug.WriteLine($"[{type}] Unmapped properties found on object at path '{jsonObject.GetPath()} for type '{type}'; {string.Join(",", availableProperties)}");
                 }
             }
 

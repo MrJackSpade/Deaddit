@@ -6,7 +6,7 @@ namespace Deaddit
 {
     public partial class EmbeddedBrowser : ContentPage
     {
-        private readonly ApplicationStyling _applicationTheme;
+        private readonly ApplicationStyling _applicationStyling;
 
         public EmbeddedBrowser(PostItems items, ApplicationStyling applicationTheme)
         {
@@ -22,11 +22,11 @@ namespace Deaddit
                 url = url.Replace("http://", "https://");
             }
 
-            _applicationTheme = applicationTheme;
+            _applicationStyling = applicationTheme;
             saveButton.TextColor = applicationTheme.TextColor.ToMauiColor();
             shareButton.TextColor = applicationTheme.TextColor.ToMauiColor();
-            navigationBar.BackgroundColor = _applicationTheme.PrimaryColor.ToMauiColor();
-            
+            navigationBar.BackgroundColor = _applicationStyling.PrimaryColor.ToMauiColor();
+
             webView.Source = new Uri(url);
         }
 

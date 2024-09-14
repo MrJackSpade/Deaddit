@@ -16,6 +16,9 @@ namespace Deaddit.Core.Reddit.Models.Api
         [JsonPropertyName("m")]
         public string? M { get; init; }
 
+        [JsonPropertyName("o")]
+        public string? O { get; init; }
+
         [JsonPropertyName("p")]
         public List<ImageLocation> Previews { get; init; } = [];
 

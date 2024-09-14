@@ -15,7 +15,7 @@ namespace Deaddit.Pages
 {
     public partial class ObjectEditorPage : ContentPage
     {
-        private readonly ApplicationStyling _applicationTheme;
+        private readonly ApplicationStyling _applicationStyling;
 
         private readonly DeepCopyHelper _deepCopyHelper;
 
@@ -45,7 +45,7 @@ namespace Deaddit.Pages
             }
 
             _original = original;
-            _applicationTheme = applicationTheme;
+            _applicationStyling = applicationTheme;
             _topLevel = topLevel;
 
             BindingContext = new ObjectEditorPageViewModel(applicationTheme);
@@ -133,7 +133,7 @@ namespace Deaddit.Pages
                     Label itemLabel = new()
                     {
                         Text = item.ToString(),
-                        TextColor = _applicationTheme.TextColor.ToMauiColor(),
+                        TextColor = _applicationStyling.TextColor.ToMauiColor(),
                         VerticalOptions = LayoutOptions.Center
                     };
 
@@ -143,8 +143,8 @@ namespace Deaddit.Pages
                     Button editButton = new()
                     {
                         Text = "Edit",
-                        BackgroundColor = _applicationTheme.PrimaryColor.ToMauiColor(),
-                        TextColor = _applicationTheme.TextColor.ToMauiColor(),
+                        BackgroundColor = _applicationStyling.PrimaryColor.ToMauiColor(),
+                        TextColor = _applicationStyling.TextColor.ToMauiColor(),
                         Margin = new Thickness(10, 0, 0, 0),
                         VerticalOptions = LayoutOptions.Center
                     };
@@ -153,7 +153,7 @@ namespace Deaddit.Pages
 
                     editButton.Clicked += (s, e) =>
                     {
-                        ObjectEditorPage nestedEditor = new(item, false, _applicationTheme);
+                        ObjectEditorPage nestedEditor = new(item, false, _applicationStyling);
                         Navigation.PushAsync(nestedEditor);
                     };
 
@@ -181,13 +181,13 @@ namespace Deaddit.Pages
                 }
 
                 // Add "Add" button
-                Button addButton = new() { Text = "Add", BackgroundColor = _applicationTheme.PrimaryColor.ToMauiColor() };
+                Button addButton = new() { Text = "Add", BackgroundColor = _applicationStyling.PrimaryColor.ToMauiColor() };
 
                 addButton.Clicked += (s, e) =>
                 {
                     object newItem = Activator.CreateInstance(itemType)!;
                     propertyValue.Add(newItem);
-                    ObjectEditorPage nestedEditor = new(newItem, false, _applicationTheme);
+                    ObjectEditorPage nestedEditor = new(newItem, false, _applicationStyling);
                     Navigation.PushAsync(nestedEditor);
                 };
 
@@ -309,7 +309,7 @@ namespace Deaddit.Pages
                 Label label = new()
                 {
                     Text = labelText,
-                    TextColor = _applicationTheme.TextColor.ToMauiColor(),
+                    TextColor = _applicationStyling.TextColor.ToMauiColor(),
                     Margin = new Thickness(5)
                 };
 
@@ -321,14 +321,14 @@ namespace Deaddit.Pages
                 {
                     if (editor is InputView iv)
                     {
-                        iv.TextColor = _applicationTheme.TextColor.ToMauiColor();
-                        iv.BackgroundColor = _applicationTheme.TertiaryColor.ToMauiColor();
+                        iv.TextColor = _applicationStyling.TextColor.ToMauiColor();
+                        iv.BackgroundColor = _applicationStyling.TertiaryColor.ToMauiColor();
                     }
 
                     if (editor is Picker p)
                     {
-                        p.TextColor = _applicationTheme.TextColor.ToMauiColor();
-                        p.BackgroundColor = _applicationTheme.TertiaryColor.ToMauiColor();
+                        p.TextColor = _applicationStyling.TextColor.ToMauiColor();
+                        p.BackgroundColor = _applicationStyling.TertiaryColor.ToMauiColor();
                     }
 
                     editor.Margin = new Thickness(5);
@@ -341,8 +341,8 @@ namespace Deaddit.Pages
                     Button editButton = new()
                     {
                         Text = "Edit",
-                        BackgroundColor = _applicationTheme.PrimaryColor.ToMauiColor(),
-                        TextColor = _applicationTheme.TextColor.ToMauiColor()
+                        BackgroundColor = _applicationStyling.PrimaryColor.ToMauiColor(),
+                        TextColor = _applicationStyling.TextColor.ToMauiColor()
                     };
 
                     editButton.Clicked += (s, e) =>
@@ -350,7 +350,7 @@ namespace Deaddit.Pages
                         object? nestedObj = prop.GetValue(obj);
                         if (nestedObj != null)
                         {
-                            ObjectEditorPage nestedEditor = new(nestedObj, false, _applicationTheme);
+                            ObjectEditorPage nestedEditor = new(nestedObj, false, _applicationStyling);
                             Navigation.PushAsync(nestedEditor);
                         }
                     };

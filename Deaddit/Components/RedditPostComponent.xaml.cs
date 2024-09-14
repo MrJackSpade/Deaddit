@@ -22,7 +22,7 @@ namespace Deaddit.MAUI.Components
     {
         private readonly ApplicationHacks _applicationHacks;
 
-        private readonly ApplicationStyling _applicationTheme;
+        private readonly ApplicationStyling _applicationStyling;
 
         private readonly IAppNavigator _appNavigator;
 
@@ -52,6 +52,8 @@ namespace Deaddit.MAUI.Components
 
         private Label metaDataLabel;
 
+        private Button saveButton;
+
         private Label scoreLabel;
 
         private ImageButton thumbnailImage;
@@ -69,7 +71,7 @@ namespace Deaddit.MAUI.Components
         public RedditPostComponent(ApiPost post, bool isListView, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             _configurationService = configurationService;
-            _applicationTheme = applicationTheme;
+            _applicationStyling = applicationTheme;
             _blockConfiguration = blockConfiguration;
             _redditClient = redditClient;
             _selectionGroup = selectionTracker;
@@ -80,12 +82,12 @@ namespace Deaddit.MAUI.Components
             _isListView = isListView;
 
             this.InitializePostComponent(_isListView);
-            this.SetImageThumbnail(_post, _applicationTheme);
-            this.SetTitleLabel(_post, _applicationHacks, _applicationTheme);
-            this.SetLinkFlair(_post, _applicationHacks, _applicationTheme);
-            this.SetMetaDataLabel(_post, _applicationTheme);
-            this.SetTimeUserLabel(_post, _applicationTheme);
-            this.SetVoteStack(_applicationTheme);
+            this.SetImageThumbnail(_post, _applicationStyling);
+            this.SetTitleLabel(_post, _applicationHacks, _applicationStyling);
+            this.SetLinkFlair(_post, _applicationHacks, _applicationStyling);
+            this.SetMetaDataLabel(_post, _applicationStyling);
+            this.SetTimeUserLabel(_post, _applicationStyling);
+            this.SetVoteStack(_applicationStyling);
 
             this.Initialize();
         }
@@ -134,7 +136,7 @@ namespace Deaddit.MAUI.Components
         {
             if (_post.IsSelf && _isListView)
             {
-                Opacity = _applicationTheme.VisitedOpacity;
+                Opacity = _applicationStyling.VisitedOpacity;
                 _visitTracker.Visit(_post);
             }
 
@@ -247,9 +249,20 @@ namespace Deaddit.MAUI.Components
             }
         }
 
-        public void OnSaveClicked(object? sender, EventArgs e)
+        public async void OnSaveClicked(object? sender, EventArgs e)
         {
-            // Handle the Save button click
+            if (_post.Saved == true)
+            {
+                await _redditClient.ToggleSave(_post, false);
+                _post.Saved = false;
+                saveButton.Text = "Save";
+            }
+            else
+            {
+                await _redditClient.ToggleSave(_post, true);
+                _post.Saved = true;
+                saveButton.Text = "Unsave";
+            }
         }
 
         public async void OnShareClicked(object? sender, EventArgs e)
@@ -282,7 +295,7 @@ namespace Deaddit.MAUI.Components
         {
             if (_isListView)
             {
-                Opacity = _applicationTheme.VisitedOpacity;
+                Opacity = _applicationStyling.VisitedOpacity;
                 _selectionGroup.Select(this);
                 _visitTracker.Visit(_post);
             }
@@ -315,8 +328,8 @@ namespace Deaddit.MAUI.Components
         void ISelectionGroupItem.Select()
         {
             Selected = true;
-            BackgroundColor = _applicationTheme.HighlightColor.ToMauiColor();
-            mainGrid.BackgroundColor = _applicationTheme.HighlightColor.ToMauiColor();
+            BackgroundColor = _applicationStyling.HighlightColor.ToMauiColor();
+            mainGrid.BackgroundColor = _applicationStyling.HighlightColor.ToMauiColor();
             timeUserLabel.IsVisible = true;
             HeightRequest = -1;
             this.InitActionButtons();
@@ -325,19 +338,10 @@ namespace Deaddit.MAUI.Components
         void ISelectionGroupItem.Unselect()
         {
             Selected = false;
-            BackgroundColor = _applicationTheme.SecondaryColor.ToMauiColor();
-            mainGrid.BackgroundColor = _applicationTheme.SecondaryColor.ToMauiColor();
+            BackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
+            mainGrid.BackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
             timeUserLabel.IsVisible = false;
             this.RemoveActionButtons();
-        }
-
-        private void RemoveActionButtons()
-        {
-            if (_actionButtonsGrid is not null)
-            {
-                mainStack.Children.Remove(_actionButtonsGrid);
-                _actionButtonsGrid = null;
-            }
         }
 
         private void BlockRuleOnSave(object? sender, Deaddit.EventArguments.ObjectEditorSaveEventArgs e)
@@ -359,7 +363,7 @@ namespace Deaddit.MAUI.Components
                 string? imageUrl = _post.TryGetPreview();
                 if (Uri.TryCreate(imageUrl, UriKind.Absolute, out _))
                 {
-                    _cachedImageStream = await ImageHelper.ResizeAndCropImageFromUrlAsync(imageUrl, _applicationTheme.ThumbnailSize);
+                    _cachedImageStream = await ImageHelper.ResizeAndCropImageFromUrlAsync(imageUrl, _applicationStyling.ThumbnailSize);
                 }
             }
 
@@ -389,7 +393,7 @@ namespace Deaddit.MAUI.Components
                     new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) },
                     new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }
                 },
-                BackgroundColor = _applicationTheme.HighlightColor.ToMauiColor()
+                BackgroundColor = _applicationStyling.HighlightColor.ToMauiColor()
             };
 
             // Initialize the Share button
@@ -397,16 +401,16 @@ namespace Deaddit.MAUI.Components
             {
                 Text = "Share",
                 BackgroundColor = Colors.Transparent,
-                TextColor = _applicationTheme.TextColor.ToMauiColor()
+                TextColor = _applicationStyling.TextColor.ToMauiColor()
             };
             shareButton.Clicked += this.OnShareClicked;
 
             // Initialize the Save button
-            Button saveButton = new()
+            saveButton = new()
             {
-                Text = "Save",
+                Text = _post.Saved == true ? "Unsave" : "Save",
                 BackgroundColor = Colors.Transparent,
-                TextColor = _applicationTheme.TextColor.ToMauiColor()
+                TextColor = _applicationStyling.TextColor.ToMauiColor()
             };
             saveButton.Clicked += this.OnSaveClicked;
 
@@ -415,7 +419,7 @@ namespace Deaddit.MAUI.Components
             {
                 Text = "Hide",
                 BackgroundColor = Colors.Transparent,
-                TextColor = _applicationTheme.TextColor.ToMauiColor()
+                TextColor = _applicationStyling.TextColor.ToMauiColor()
             };
             hideButton.Clicked += this.OnHideClicked;
 
@@ -424,7 +428,7 @@ namespace Deaddit.MAUI.Components
             {
                 Text = "...",
                 BackgroundColor = Colors.Transparent,
-                TextColor = _applicationTheme.TextColor.ToMauiColor()
+                TextColor = _applicationStyling.TextColor.ToMauiColor()
             };
             moreButton.Clicked += this.OnMoreOptionsClicked;
 
@@ -433,7 +437,7 @@ namespace Deaddit.MAUI.Components
             {
                 Text = "🗨",
                 BackgroundColor = Colors.Transparent,
-                TextColor = _applicationTheme.TextColor.ToMauiColor()
+                TextColor = _applicationStyling.TextColor.ToMauiColor()
             };
             commentsButton.Clicked += this.OnCommentsClicked;
 
@@ -476,7 +480,7 @@ namespace Deaddit.MAUI.Components
                 Margin = new Thickness(0),
                 VerticalOptions = LayoutOptions.Start
             };
-            
+
             mainGrid.Children.Add(thumbnailImage);
             Grid.SetColumn(thumbnailImage, 0);
 
@@ -579,9 +583,9 @@ namespace Deaddit.MAUI.Components
             Content = mainStack;
 
             timeUserLabel.IsVisible = !isPreview;
-            Opacity = isPreview && _visitTracker.HasVisited(_post) ? _applicationTheme.VisitedOpacity : 1;
-            mainGrid.MinimumHeightRequest = _applicationTheme.ThumbnailSize;
-            mainGrid.BackgroundColor = _applicationTheme.SecondaryColor.ToMauiColor();
+            Opacity = isPreview && _visitTracker.HasVisited(_post) ? _applicationStyling.VisitedOpacity : 1;
+            mainGrid.MinimumHeightRequest = _applicationStyling.ThumbnailSize;
+            mainGrid.BackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
         }
 
         private async Task NewBlockRule(BlockRule blockRule)
@@ -596,12 +600,21 @@ namespace Deaddit.MAUI.Components
             _selectionGroup.Toggle(this);
         }
 
+        private void RemoveActionButtons()
+        {
+            if (_actionButtonsGrid is not null)
+            {
+                mainStack.Children.Remove(_actionButtonsGrid);
+                _actionButtonsGrid = null;
+            }
+        }
+
         private void SetImageThumbnail(ApiPost post, ApplicationStyling applicationTheme)
         {
             thumbnailImage.HeightRequest = applicationTheme.ThumbnailSize;
             thumbnailImage.WidthRequest = applicationTheme.ThumbnailSize;
 
-            if (!post.IsSelf || this._isListView)
+            if (!post.IsSelf || _isListView)
             {
                 thumbnailImage.Clicked += this.OnThumbnailImageClicked;
             }
@@ -667,7 +680,7 @@ namespace Deaddit.MAUI.Components
         private void SetTitleLabel(ApiPost post, ApplicationHacks applicationHacks, ApplicationStyling applicationTheme)
         {
             titleLabel.Text = applicationHacks.CleanTitle(post.Title);
-            titleLabel.TextColor = post.Distinguished == DistinguishedKind.Moderator ? applicationTheme.DistinguishedColor.ToMauiColor() :
+            titleLabel.TextColor = post.Distinguished == DistinguishedKind.Moderator ? applicationTheme.DistinguishedTitleColor.ToMauiColor() :
                                                                                        applicationTheme.TextColor.ToMauiColor();
         }
 
@@ -682,12 +695,12 @@ namespace Deaddit.MAUI.Components
             scoreLabel.Text = _post.Score.ToString();
             scoreLabel.TextColor = _post.Likes switch
             {
-                UpvoteState.Upvote => _applicationTheme.UpvoteColor.ToMauiColor(),
-                UpvoteState.Downvote => _applicationTheme.DownvoteColor.ToMauiColor(),
-                _ => _applicationTheme.TextColor.ToMauiColor()
+                UpvoteState.Upvote => _applicationStyling.UpvoteColor.ToMauiColor(),
+                UpvoteState.Downvote => _applicationStyling.DownvoteColor.ToMauiColor(),
+                _ => _applicationStyling.TextColor.ToMauiColor()
             };
-            downvoteButton.TextColor = _post.Likes == UpvoteState.Downvote ? _applicationTheme.DownvoteColor.ToMauiColor() : _applicationTheme.TextColor.ToMauiColor();
-            upvoteButton.TextColor = _post.Likes == UpvoteState.Upvote ? _applicationTheme.UpvoteColor.ToMauiColor() : _applicationTheme.TextColor.ToMauiColor();
+            downvoteButton.TextColor = _post.Likes == UpvoteState.Downvote ? _applicationStyling.DownvoteColor.ToMauiColor() : _applicationStyling.TextColor.ToMauiColor();
+            upvoteButton.TextColor = _post.Likes == UpvoteState.Upvote ? _applicationStyling.UpvoteColor.ToMauiColor() : _applicationStyling.TextColor.ToMauiColor();
         }
     }
 }

@@ -61,17 +61,17 @@ namespace Deaddit
 
             """;
 
-        private readonly PostItems _postItems;
+        private readonly ApplicationStyling _applicationStyling;
 
-        private readonly ApplicationStyling _applicationTheme;
+        private readonly PostItems _postItems;
 
         public EmbeddedImage(ApplicationStyling applicationTheme, PostItems items)
         {
             this.InitializeComponent();
-            _applicationTheme = applicationTheme;
+            _applicationStyling = applicationTheme;
             _postItems = items;
 
-            navigationBar.BackgroundColor = _applicationTheme.PrimaryColor.ToMauiColor();
+            navigationBar.BackgroundColor = _applicationStyling.PrimaryColor.ToMauiColor();
             saveButton.TextColor = applicationTheme.TextColor.ToMauiColor();
             shareButton.TextColor = applicationTheme.TextColor.ToMauiColor();
 
@@ -88,6 +88,11 @@ namespace Deaddit
             webView.Source = new HtmlWebViewSource() { Html = Html };
         }
 
+        public async void OnShareClicked(object? sender, EventArgs e)
+        {
+            await Share.Default.ShareFiles("", _postItems);
+        }
+
         private void OnBackClicked(object? sender, EventArgs e)
         {
             // Logic to go back, for example:
@@ -97,11 +102,6 @@ namespace Deaddit
         private async void OnSaveClicked(object? sender, EventArgs e)
         {
             await FileStorage.Save(_postItems);
-        }
-
-        public async void OnShareClicked(object? sender, EventArgs e)
-        {
-            await Share.Default.ShareFiles("", _postItems);
         }
     }
 }

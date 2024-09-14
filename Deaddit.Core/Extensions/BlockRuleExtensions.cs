@@ -21,7 +21,7 @@ namespace Deaddit.Core.Extensions
                     return false;
                 }
 
-                if(userData is not null && thing.AuthorFullName is not null && userData.TryGetValue(thing.AuthorFullName, out UserPartial user))
+                if (userData is not null && thing.AuthorFullName is not null && userData.TryGetValue(thing.AuthorFullName, out UserPartial user))
                 {
                     if (blockConfiguration.MinAccountAgeDays > 0)
                     {
@@ -31,12 +31,17 @@ namespace Deaddit.Core.Extensions
                         }
                     }
 
-                    if(blockConfiguration.MinCommentKarma > 0 && blockConfiguration.MinCommentKarma > user.CommentKarma)
+                    if (blockConfiguration.MinCommentKarma > 0 && blockConfiguration.MinCommentKarma > user.CommentKarma)
                     {
                         return false;
                     }
 
                     if (blockConfiguration.MaxLinkKarma > 0 && blockConfiguration.MaxLinkKarma < user.LinkKarma)
+                    {
+                        return false;
+                    }
+
+                    if(blockConfiguration.MaxLinkKarmaRatio > 0 && user.LinkKarma > 0 && (double)user.LinkKarma / user.CommentKarma > blockConfiguration.MaxLinkKarmaRatio)
                     {
                         return false;
                     }

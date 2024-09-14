@@ -17,7 +17,9 @@ namespace Deaddit.Pages
 {
     public partial class SubRedditPage : ContentPage
     {
-        private readonly ApplicationStyling _applicationTheme;
+        private readonly ApplicationHacks _applicationHacks;
+
+        private readonly ApplicationStyling _applicationStyling;
 
         private readonly IAppNavigator _appNavigator;
 
@@ -25,25 +27,17 @@ namespace Deaddit.Pages
 
         private readonly List<LoadedThing> _loadedPosts = [];
 
+        private readonly SemaphoreSlim _loadsemaphore = new(1);
+
         private readonly IRedditClient _redditClient;
-
-        private readonly SemaphoreSlim _reloadSemaphore = new(1);
-
-        /// <summary>
-        /// Prevents more than one active loading/scrolling thread, because for some reason
-        /// Monitor.Enter on a lock allows more than one thread to pass through.
-        /// </summary>
-        private readonly SemaphoreSlim _scrollSemaphore = new(1);
 
         private readonly SelectionGroup _selectionGroup;
 
+        private readonly Grid _sortButtons;
+
         private readonly ThingCollectionName _thingCollectionName;
 
-        private readonly ApplicationHacks _applicationHacks;
-
-        private double _lastRefresh;
-
-        private double _lastScroll;
+        private string? _after = null;
 
         private Enum _sort;
 
@@ -57,15 +51,19 @@ namespace Deaddit.Pages
             _thingCollectionName = Ensure.NotNull(subreddit);
             _sort = Ensure.NotNull(sort);
             _redditClient = Ensure.NotNull(redditClient);
-            _applicationTheme = Ensure.NotNull(applicationTheme);
-
+            _applicationStyling = Ensure.NotNull(applicationTheme);
+            _sortButtons = [];
             _selectionGroup = new SelectionGroup();
 
             BindingContext = new SubRedditPageViewModel(subreddit);
+
             this.InitializeComponent();
 
-            mainStack.Spacing = 1;
-            mainStack.BackgroundColor = applicationTheme.SecondaryColor.ToMauiColor();
+            scrollView.Add(_sortButtons, false);
+            scrollView.Spacing = 1;
+            scrollView.BackgroundColor = applicationTheme.SecondaryColor.ToMauiColor();
+            scrollView.ScrolledDown = this.ScrollDown;
+            scrollView.HeaderCount = 1;
 
             navigationBar.BackgroundColor = applicationTheme.PrimaryColor.ToMauiColor();
             settingsButton.TextColor = applicationTheme.TextColor.ToMauiColor();
@@ -81,10 +79,173 @@ namespace Deaddit.Pages
             this.InitSortButtons(sort);
         }
 
+        private bool WindowInLoadRange => scrollView.ScrollY >= scrollView.ContentSize.Height - scrollView.Height - navigationBar.Height;
+
+        public async void OnInfoClicked(object? sender, EventArgs e)
+        {
+            await _appNavigator.OpenSubRedditAbout(_thingCollectionName);
+        }
+
+        public async void OnMenuClicked(object? sender, EventArgs e)
+        {
+            await Navigation.PopAsync();
+        }
+
+        public async void OnReloadClicked(object? sender, EventArgs e)
+        {
+            if (_loadsemaphore.Wait(0))
+            {
+                await this.Reload();
+                _loadsemaphore.Release();
+            }
+        }
+
+        public async void OnSettingsClicked(object? sender, EventArgs e)
+        {
+            await _appNavigator.OpenObjectEditor();
+        }
+
+        public async Task ScrollDown(ScrolledEventArgs e)
+        {
+            if (WindowInLoadRange)
+            {
+                if (_loadsemaphore.Wait(0))
+                {
+                    await this.TryLoad();
+                    _loadsemaphore.Release();
+                }
+            }
+        }
+
+        public async Task TryLoad()
+        {
+            // Wrap the loading process in a DataService call, likely for UI updates or error handling
+            await DataService.LoadAsync(scrollView.InnerStack, async () =>
+            {
+                // Create a set of already loaded post names to avoid duplicates
+                HashSet<string> loadedNames = _loadedPosts.Select(_loadedPosts => _loadedPosts.Post.Name).ToHashSet();
+
+                List<ContentView> newComponents = [];
+
+                do
+                {
+                    // Fetch new posts from Reddit API
+                    List<ApiThing> newPosts = await _redditClient.GetPosts(after: _after,
+                                                                            subreddit: _thingCollectionName,
+                                                                            sort: _sort,
+                                                                            region: _applicationHacks.DefaultRegion)
+                                                                           .Take(_applicationHacks.PageSize)
+                                                                           .ToList();
+
+                    // Break if no new posts are fetched
+                    if (newPosts.Count == 0)
+                    {
+                        break;
+                    }
+
+                    Dictionary<string, UserPartial>? userData = null;
+
+                    // Fetch user data if required by block configuration
+                    if (_blockConfiguration.RequiresUserData() &&
+                       //Cheap hack. Don't pull user data if this is an account page because we don't filter
+                       //based on account, on account pages. That wouldn't make sense.
+                       _thingCollectionName.Kind != ThingKind.Account)
+                    {
+                        userData = await _redditClient.GetUserData(newPosts.Select(p => p.AuthorFullName).Distinct());
+                    }
+
+                    foreach (ApiThing thing in newPosts)
+                    {
+                        // Update the 'after' cursor for pagination
+                        _after = thing.Name;
+
+                        // Skip if not allowed by block configuration
+                        if (!_blockConfiguration.IsAllowed(thing, userData))
+                        {
+                            continue;
+                        }
+
+                        // Skip if already loaded
+                        if (!loadedNames.Add(thing.Name))
+                        {
+                            continue;
+                        }
+
+                        ContentView? view = null;
+
+                        // Handle ApiPost
+                        if (thing is ApiPost post)
+                        {
+                            // Debug logging for categories
+                            if (!string.IsNullOrWhiteSpace(post.Category))
+                            {
+                                Debug.WriteLine(post.Category);
+                            }
+
+                            if (post.ContentCategories.NotNullAny())
+                            {
+                                foreach (string category in post.ContentCategories)
+                                {
+                                    Debug.WriteLine(category);
+                                }
+                            }
+
+                            // Skip hidden posts
+                            if (post.Hidden)
+                            {
+                                continue;
+                            }
+
+                            // Create post component
+                            RedditPostComponent redditPostComponent = _appNavigator.CreatePostComponent(post, _selectionGroup);
+
+                            // Attach event handlers
+                            redditPostComponent.BlockAdded += this.RedditPostComponent_OnBlockAdded;
+                            redditPostComponent.HideClicked += this.RedditPostComponent_HideClicked;
+
+                            view = redditPostComponent;
+                        }
+
+                        // Handle ApiComment
+                        if (thing is ApiComment comment)
+                        {
+                            view = _appNavigator.CreateCommentComponent(comment, null, _selectionGroup);
+                        }
+
+                        // Add view to new components if created
+                        if (view is not null)
+                        {
+                            try
+                            {
+                                newComponents.Add(view);
+                            }
+                            catch (System.MissingMethodException mme) when (mme.Message.Contains("Microsoft.Maui.Controls.Handlers.Compatibility.FrameRenderer"))
+                            {
+                                Debug.WriteLine("FrameRenderer Missing Method Exception");
+                            }
+
+                            // Add to loaded posts
+                            _loadedPosts.Add(new LoadedThing()
+                            {
+                                Post = thing,
+                                PostComponent = view
+                            });
+                        }
+                    }
+                } while (newComponents.Count < _applicationHacks.PageSize);
+
+                // Add all new components to the scroll view
+                foreach (ContentView component in newComponents)
+                {
+                    scrollView.Add(component);
+                }
+            }, _applicationStyling.HighlightColor.ToMauiColor());
+        }
+
         private void InitSortButtons(Enum sort)
         {
-            sortButtons.Children.Clear();
-            sortButtons.ColumnDefinitions.Clear();
+            _sortButtons.Children.Clear();
+            _sortButtons.ColumnDefinitions.Clear();
             List<Enum> values = [];
 
             foreach (Enum e in Enum.GetValues(sort.GetType()))
@@ -100,7 +261,7 @@ namespace Deaddit.Pages
             // Define columns
             for (int i = 0; i < columnCount; i++)
             {
-                sortButtons.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                _sortButtons.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             }
 
             int column = 0;
@@ -120,242 +281,15 @@ namespace Deaddit.Pages
                     await this.Reload();
                 };
 
-                sortButtons.Children.Add(button);
+                _sortButtons.Children.Add(button);
                 Grid.SetColumn(button, column);
                 column++;
             }
         }
 
-        private bool WindowInLoadRange => scrollView.ScrollY >= scrollView.ContentSize.Height - scrollView.Height - navigationBar.Height;
-
-        public async void OnInfoClicked(object? sender, EventArgs e)
-        {
-            await _appNavigator.OpenSubRedditAbout(_thingCollectionName);
-        }
-
-        public async void OnMenuClicked(object? sender, EventArgs e)
-        {
-            await Navigation.PopAsync();
-        }
-
-        public async void OnReloadClicked(object? sender, EventArgs e)
-        {
-            if (_reloadSemaphore.Wait(0))
-            {
-                await this.Reload();
-                _reloadSemaphore.Release();
-            }
-        }
-
-        public async void OnSettingsClicked(object? sender, EventArgs e)
-        {
-            await _appNavigator.OpenObjectEditor();
-        }
-
-        public async Task ScrollDown(ScrolledEventArgs e)
-        {
-            int lastIndex = mainStack.Children.OfType<RedditPostComponent>().Count() - 1;
-
-            if (WindowInLoadRange)
-            {
-                await this.TryLoad();
-            }
-            else if (Math.Abs(_lastRefresh - e.ScrollY) < _applicationTheme.ThumbnailSize)
-            {
-                return;
-            }
-
-            _lastRefresh = e.ScrollY;
-
-            List<RedditPostComponent> children = [.. mainStack.Children.OfType<RedditPostComponent>()];
-
-            for (int i = lastIndex - 1; i >= 0; i--)
-            {
-                RedditPostComponent child = children[i];
-
-                ViewPosition viewPosition = scrollView.Position(child, scrollView.Height);
-
-                switch (viewPosition)
-                {
-                    case ViewPosition.Above:
-                        if (!child.Deinitialize())
-                        {
-                            return;
-                        }
-
-                        break;
-
-                    case ViewPosition.Below:
-                    case ViewPosition.Unknown:
-                        continue;
-                    case ViewPosition.Within:
-                        child.Initialize();
-                        break;
-                }
-            }
-        }
-
-        public void ScrollUp(ScrolledEventArgs e)
-        {
-            if (Math.Abs(_lastRefresh - e.ScrollY) < _applicationTheme.ThumbnailSize)
-            {
-                return;
-            }
-
-            _lastRefresh = e.ScrollY;
-
-            List<RedditPostComponent> children = [.. mainStack.Children.OfType<RedditPostComponent>()];
-
-            for (int i = children.Count - 1; i >= 0; i--)
-            {
-                RedditPostComponent child = children[i];
-
-                ViewPosition position = scrollView.Position(child, _applicationTheme.ThumbnailSize * _applicationHacks.PageBuffer);
-
-                switch (position)
-                {
-                    case ViewPosition.Above:
-                        return;
-
-                    case ViewPosition.Below:
-                        child.Deinitialize();
-                        break;
-
-                    case ViewPosition.Within:
-                        child.Initialize();
-                        break;
-                }
-            }
-        }
-
-        public async void ScrollView_Scrolled(object? sender, ScrolledEventArgs e)
-        {
-            if (_scrollSemaphore.Wait(0))
-            {
-                if (e.ScrollY < _lastScroll)
-                {
-                    this.ScrollUp(e);
-                }
-                else
-                {
-                    await this.ScrollDown(e);
-                }
-
-                _lastScroll = e.ScrollY;
-
-                _scrollSemaphore.Release();
-            }
-        }
-
-        private string? _after = null;
-
-        public async Task TryLoad()
-        {
-
-            await DataService.LoadAsync(mainStack, async () =>
-            {
-                int newLoadedPostCount = 0;
-
-                HashSet<string> loadedNames = _loadedPosts.Select(_loadedPosts => _loadedPosts.Post.Name).ToHashSet();
-
-                List<ContentView> newComponents = [];
-
-                do
-                {
-
-                    List<ApiThing> newPosts = await _redditClient.GetPosts(after: _after,
-                                                                            subreddit: _thingCollectionName,
-                                                                            sort: _sort,
-                                                                            region: _applicationHacks.DefaultRegion)
-                                                                           .Take(_applicationHacks.PageSize)
-                                                                           .ToList();
-                    Dictionary<string, UserPartial>? userData = null;
-
-                    if (_blockConfiguration.RequiresUserData())
-                    {
-                        userData = await _redditClient.GetUserData(newPosts.Select(p => p.AuthorFullName).Distinct());
-                    }
-
-                    foreach (ApiThing thing in newPosts)
-                    {
-                        _after = thing.Name;
-
-                        if (!_blockConfiguration.IsAllowed(thing, userData))
-                        {
-                            continue;
-                        }
-
-                        if(!loadedNames.Add(thing.Name))
-                        {
-                            continue;
-                        }
-
-                        ContentView? view = null;
-
-                        if (thing is ApiPost post)
-                        {
-                            if (!string.IsNullOrWhiteSpace(post.Category))
-                            {
-                                Debug.WriteLine(post.Category);
-                            }
-
-                            if (post.ContentCategories.NotNullAny())
-                            {
-                                foreach (string category in post.ContentCategories)
-                                {
-                                    Debug.WriteLine(category);
-                                }
-                            }
-
-                            if(post.Hidden)
-                            {
-                                continue;
-                            }
-
-                            RedditPostComponent redditPostComponent = _appNavigator.CreatePostComponent(post, _selectionGroup);
-
-                            redditPostComponent.BlockAdded += this.RedditPostComponent_OnBlockAdded;
-                            redditPostComponent.HideClicked += this.RedditPostComponent_HideClicked;
-
-                            view = redditPostComponent;
-                        }
-
-                        if (thing is ApiComment comment)
-                        {
-                            view = _appNavigator.CreateCommentComponent(comment, null, _selectionGroup);
-                        }
-
-                        if (view is not null)
-                        {
-                            try
-                            {
-                                newComponents.Add(view);
-                                newLoadedPostCount++;
-                            }
-                            catch (System.MissingMethodException mme) when (mme.Message.Contains("Microsoft.Maui.Controls.Handlers.Compatibility.FrameRenderer"))
-                            {
-                                Debug.WriteLine("FrameRenderer Missing Method Exception");
-                            }
-
-                            _loadedPosts.Add(new LoadedThing()
-                            {
-                                Post = thing,
-                                PostComponent = view
-                            });
-                        }
-                    }
-                } while (newLoadedPostCount < _applicationHacks.PageSize);
-
-                foreach (ContentView component in newComponents)
-                {
-                    mainStack.Children.Add(component);
-                }
-            }, _applicationTheme.HighlightColor.ToMauiColor());
-        }
-
         private void RedditPostComponent_HideClicked(object? sender, OnHideClickedEventArgs e)
         {
-            mainStack.Remove(e.Component);
+            scrollView.Remove(e.Component);
         }
 
         private void RedditPostComponent_OnBlockAdded(object? sender, BlockRule e)
@@ -364,7 +298,7 @@ namespace Deaddit.Pages
             {
                 if (!e.IsAllowed(loadedPost.Post))
                 {
-                    mainStack.Remove(loadedPost.PostComponent);
+                    scrollView.Remove(loadedPost.PostComponent);
                     _loadedPosts.Remove(loadedPost);
                 }
             }
@@ -376,9 +310,8 @@ namespace Deaddit.Pages
             _after = null;
 
             //Cheap Hack
-            IView nav = mainStack.Children.First();
-            mainStack.Children.Clear();
-            mainStack.Children.Add(nav);
+            scrollView.Clear();
+            scrollView.Add(_sortButtons);
 
             await this.TryLoad();
         }
