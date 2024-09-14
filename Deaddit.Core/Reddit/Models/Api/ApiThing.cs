@@ -61,7 +61,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public object? BannedBy { get; init; }
 
         [JsonPropertyNames("body", "selftext")]
-        public string? Body { get; init; }
+        public string? Body { get; set; }
 
         [JsonPropertyNames("body_html", "selftext_html")]
         public string? BodyHtml { get; init; }
@@ -142,7 +142,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public List<string> ReportReasons { get; init; } = [];
 
         [JsonPropertyName("saved")]
-        public bool? Saved { get; init; }
+        public bool? Saved { get; set; }
 
         [JsonPropertyName("score")]
         public long? Score { get; set; }

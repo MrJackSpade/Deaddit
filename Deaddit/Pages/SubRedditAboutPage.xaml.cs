@@ -14,7 +14,7 @@ namespace Deaddit.Pages
 {
     public partial class SubRedditAboutPage : ContentPage
     {
-        private readonly ApplicationStyling _applicationTheme;
+        private readonly ApplicationStyling _applicationStyling;
 
         private readonly IAppNavigator _appNavigator;
 
@@ -31,7 +31,7 @@ namespace Deaddit.Pages
             NavigationPage.SetHasNavigationBar(this, false);
 
             _appNavigator = appNavigator;
-            _applicationTheme = applicationTheme;
+            _applicationStyling = applicationTheme;
             _redditClient = redditClient;
             _subredditName = subredditName;
 
@@ -41,7 +41,7 @@ namespace Deaddit.Pages
 
         public async Task TryLoad()
         {
-            await DataService.LoadAsync(mainStack, this.LoadAbout, _applicationTheme.HighlightColor.ToMauiColor());
+            await DataService.LoadAsync(mainStack, this.LoadAbout, _applicationStyling.HighlightColor.ToMauiColor());
         }
 
         private async Task LoadAbout()

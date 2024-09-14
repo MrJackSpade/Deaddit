@@ -5,8 +5,14 @@ namespace Deaddit.Core.Configurations.Models
 {
     public class ApplicationStyling
     {
-        [EditorDisplay(Name = "Distinguished Color", Order = 4)]
-        public DynamicColor DistinguishedColor { get; set; } = DynamicColor.Parse("#287F24");
+        [EditorDisplay(Name = "Distinguished Title Color", Order = 4)]
+        public DynamicColor DistinguishedTitleColor { get; set; } = DynamicColor.Parse("#287F24");
+
+        [EditorDisplay(Name = "Distinguished Author Text Color", Order = 4)]
+        public DynamicColor DistinguishedAuthorTextColor { get; set; } = DynamicColor.Parse("#FFFFFF");
+
+        [EditorDisplay(Name = "Distinguished Autho Background Color", Order = 4)]
+        public DynamicColor DistinguishedAuthorBackgroundColor { get; set; } = DynamicColor.Parse("#287F24");
 
         [EditorDisplay(Name = "Downvote Color", Order = 10)]
         public DynamicColor DownvoteColor { get; set; } = DynamicColor.Parse("#7193ff");
@@ -43,5 +49,11 @@ namespace Deaddit.Core.Configurations.Models
 
         [EditorDisplay(Name = "Visited Opacity", Order = 13)]
         public double VisitedOpacity { get; set; } = 0.3f;
+
+        [EditorDisplay(Name = "Op Background Color")]
+        public DynamicColor OpBackgroundColor { get; set; } = DynamicColor.Parse("#0055df");
+
+        [EditorDisplay(Name = "Op Text Color")]
+        public DynamicColor OpTextColor { get; set; } = DynamicColor.Parse("#FFFFFF");
     }
 }

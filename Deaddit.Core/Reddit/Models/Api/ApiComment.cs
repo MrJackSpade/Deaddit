@@ -43,17 +43,62 @@ namespace Deaddit.Core.Reddit.Models.Api
         [JsonPropertyName("geo_filter")]
         public string? GeoFilter { get; init; }
 
+        /// <summary>
+        /// Only used when viewing comment outside of post
+        /// </summary>
+        [JsonPropertyName("over_18")]
+        public bool? IsNsfw { get; init; }
+
         [JsonPropertyName("is_submitter")]
         public bool? IsSubmitter { get; init; }
+
+        /// <summary>
+        /// Only used when viewing comment outside of post
+        /// </summary>
+        [JsonPropertyName("link_author")]
+        public string? Linkauthor { get; init; }
 
         [JsonPropertyName("link_id")]
         public string? LinkId { get; init; }
 
+        /// <summary>
+        /// Only used when viewing comment outside of post
+        /// </summary>
+        [JsonPropertyName("link_permalink")]
+        public string? LinkPermalink { get; init; }
+
+        /// <summary>
+        /// Only used when viewing comment outside of post
+        /// </summary>
+        [JsonPropertyName("link_title")]
+        public string? LinkTitle { get; init; }
+
+        /// <summary>
+        /// Only used when viewing comment outside of post
+        /// </summary>
+        [JsonPropertyName("link_url")]
+        public string? LinkUrl { get; init; }
+
         [JsonPropertyName("modhash")]
         public string? ModHash { get; init; }
 
+        /// <summary>
+        /// Only used when viewing comment outside of post
+        /// </summary>
+        [JsonPropertyName("num_comments")]
+        public int? NumberOfComments { get; init; }
+
         [JsonPropertyName("parent_id")]
-        public string? ParentId { get; init; }
+        public string? ParentId { get; set; }
+
+        [JsonPropertyName("rte_mode")]
+        public RteMode RteMode { get; set; }
+
+        /// <summary>
+        /// Only used when viewing comment outside of post
+        /// </summary>
+        [JsonPropertyName("quarantine")]
+        public bool? Quarantine { get; init; }
 
         [JsonPropertyName("replies")]
         public ApiThingCollection? Replies { get; set; }

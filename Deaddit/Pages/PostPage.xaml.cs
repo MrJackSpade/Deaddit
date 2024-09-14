@@ -21,7 +21,7 @@ namespace Deaddit.Pages
 {
     public partial class PostPage : ContentPage
     {
-        private readonly ApplicationStyling _applicationTheme;
+        private readonly ApplicationStyling _applicationStyling;
 
         private readonly IAppNavigator _appNavigator;
 
@@ -47,31 +47,31 @@ namespace Deaddit.Pages
             _commentSelectionGroup = new SelectionGroup();
             _post = post;
             _blockConfiguration = blockConfiguration;
-            _applicationTheme = applicationTheme;
+            _applicationStyling = applicationTheme;
             _redditClient = redditClient;
 
             this.InitializeComponent();
 
             RedditPostComponent redditPostComponent = _appNavigator.CreatePostComponent(post, null);
 
-            BackgroundColor = _applicationTheme.SecondaryColor.ToMauiColor();
+            BackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
 
-            postBodyBorder.Stroke = _applicationTheme.TertiaryColor.ToMauiColor();
+            postBodyBorder.Stroke = _applicationStyling.TertiaryColor.ToMauiColor();
             postBodyBorder.IsVisible = !string.IsNullOrWhiteSpace(post.Body);
-            postBodyBorder.BackgroundColor = _applicationTheme.PrimaryColor.ToMauiColor();
+            postBodyBorder.BackgroundColor = _applicationStyling.PrimaryColor.ToMauiColor();
             postBodyBorder.HorizontalOptions = LayoutOptions.Center;
 
-            postBody.HyperlinkColor = _applicationTheme.HyperlinkColor.ToMauiColor();
-            postBody.BlockQuoteBorderColor = _applicationTheme.TextColor.ToMauiColor();
-            postBody.TextColor = _applicationTheme.TextColor.ToMauiColor();
-            postBody.BlockQuoteBackgroundColor = _applicationTheme.SecondaryColor.ToMauiColor();
-            postBody.BlockQuoteTextColor = _applicationTheme.TextColor.ToMauiColor();
+            postBody.HyperlinkColor = _applicationStyling.HyperlinkColor.ToMauiColor();
+            postBody.BlockQuoteBorderColor = _applicationStyling.TextColor.ToMauiColor();
+            postBody.TextColor = _applicationStyling.TextColor.ToMauiColor();
+            postBody.BlockQuoteBackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
+            postBody.BlockQuoteTextColor = _applicationStyling.TextColor.ToMauiColor();
             postBody.MarkdownText = MarkDownHelper.Clean(applicationHacks.CleanBody(post.Body));
 
-            shareButton.TextColor = _applicationTheme.TextColor.ToMauiColor();
-            saveButton.TextColor = _applicationTheme.TextColor.ToMauiColor();
-            moreButton.TextColor = _applicationTheme.TextColor.ToMauiColor();
-            replyButton.TextColor = _applicationTheme.TextColor.ToMauiColor();
+            shareButton.TextColor = _applicationStyling.TextColor.ToMauiColor();
+            saveButton.TextColor = _applicationStyling.TextColor.ToMauiColor();
+            moreButton.TextColor = _applicationStyling.TextColor.ToMauiColor();
+            replyButton.TextColor = _applicationStyling.TextColor.ToMauiColor();
 
             mainStack.Children.Insert(0, redditPostComponent);
         }
@@ -210,7 +210,7 @@ namespace Deaddit.Pages
 
         public async Task TryLoad()
         {
-            await DataService.LoadAsync(mainStack, this.LoadDataAsync, _applicationTheme.HighlightColor.ToMauiColor());
+            await DataService.LoadAsync(mainStack, this.LoadDataAsync, _applicationStyling.HighlightColor.ToMauiColor());
         }
 
         private void AddChildren(IEnumerable<ApiThing> children)
@@ -287,7 +287,7 @@ namespace Deaddit.Pages
         {
             MoreCommentsComponent mcomponent = sender as MoreCommentsComponent;
 
-            await DataService.LoadAsync(mainStack, async () => await this.LoadMoreAsync(_post, e), _applicationTheme.HighlightColor.ToMauiColor());
+            await DataService.LoadAsync(mainStack, async () => await this.LoadMoreAsync(_post, e), _applicationStyling.HighlightColor.ToMauiColor());
 
             mainStack.Children.Remove(mcomponent);
         }

@@ -84,6 +84,45 @@ namespace Deaddit.Core.Reddit
             return response.Data as ApiSubReddit;
         }
 
+        public async Task<ApiComment> Update(ApiThing thing)
+        {
+            await this.EnsureAuthenticated();
+            await this.ThrottleAsync();
+
+            System.Diagnostics.Stopwatch stopwatch = new();
+            stopwatch.Start();
+
+            string fullUrl = $"{API_ROOT}/api/editusertext";
+
+            // Prepare the form values as a dictionary
+            Dictionary<string, string> formValues = new()
+            {
+                { "api_type", "json" },
+                { "thing_id", thing.Name },
+                { "text", thing.Body }
+            };
+
+            // Use the modified Post method to send the form data
+            PostCommentResponse response = await _jsonClient.Post<PostCommentResponse>(fullUrl, formValues);
+
+            if (response.Json.Errors.Count > 0)
+            {
+                List<Exception> exceptions = [];
+
+                foreach (string error in response.Json.Errors)
+                {
+                    exceptions.Add(new Exception(error));
+                }
+
+                throw new AggregateException(exceptions);
+            }
+
+            stopwatch.Stop();
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in Comment method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+
+            return response.Json.Data.Things.OfType<ApiComment>().Single();
+        }
+
         public async Task<ApiComment> Comment(ApiThing thing, string comment)
         {
             await this.EnsureAuthenticated();
@@ -195,13 +234,22 @@ namespace Deaddit.Core.Reddit
 
         public async Task<Dictionary<string, UserPartial>> GetUserData(IEnumerable<string> usernames)
         {
+            Ensure.NotNull(usernames);
+
+            List<string> userNames = usernames.ToList();
+
+            if(!userNames.Any())
+            {
+                return [];
+            }
+
             await this.EnsureAuthenticated();
             await this.ThrottleAsync();
 
             System.Diagnostics.Stopwatch stopwatch = new();
             stopwatch.Start();
 
-            string url = $"{API_ROOT}/api/user_data_by_account_ids?ids={string.Join(",", usernames)}";
+            string url = $"{API_ROOT}/api/user_data_by_account_ids?ids={string.Join(",", userNames)}";
 
             try
             {
@@ -210,7 +258,7 @@ namespace Deaddit.Core.Reddit
             }
             catch (HttpRequestException hre) when (hre.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
-                Debug.WriteLine($"User data not found ('{string.Join(",", usernames)}')");
+                Debug.WriteLine($"User data not found ('{string.Join(",", userNames)}')");
                 return [];
             }
             finally
@@ -440,6 +488,28 @@ namespace Deaddit.Core.Reddit
 
             stopwatch.Stop();
             System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in ToggleSubScription method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+        }
+
+        public async Task ToggleSave(ApiThing thing, bool saved)
+        {
+            await this.EnsureAuthenticated();
+            await this.ThrottleAsync();
+
+            System.Diagnostics.Stopwatch stopwatch = new();
+            stopwatch.Start();
+
+            string url = !saved ? $"{API_ROOT}/api/unsave" : $"{API_ROOT}/api/save";
+
+            // Prepare the form values as a dictionary
+            Dictionary<string, string> formValues = new()
+            {
+                { "id", thing.Name }
+            };
+
+            await _jsonClient.Post(url, formValues);
+
+            stopwatch.Stop();
+            System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in Save method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
         }
 
         public async Task ToggleVisibility(ApiThing thing, bool visible)

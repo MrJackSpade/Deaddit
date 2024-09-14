@@ -8,7 +8,7 @@ namespace Deaddit
 {
     public partial class EmbeddedVideo : ContentPage
     {
-        private readonly ApplicationStyling _applicationTheme;
+        private readonly ApplicationStyling _applicationStyling;
 
         private readonly PostItems _postItems;
 
@@ -25,16 +25,16 @@ namespace Deaddit
             {
                 Debug.WriteLine(e);
             }
-        } 
+        }
 
         public EmbeddedVideo(PostItems items, ApplicationStyling applicationTheme)
         {
-            _applicationTheme = applicationTheme;
+            _applicationStyling = applicationTheme;
             _postItems = items;
 
             this.InitializeComponent();
-            navigationBar.BackgroundColor = _applicationTheme.PrimaryColor.ToMauiColor();
-            mediaView.BackgroundColor = _applicationTheme.SecondaryColor.ToMauiColor();
+            navigationBar.BackgroundColor = _applicationStyling.PrimaryColor.ToMauiColor();
+            mediaView.BackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
             saveButton.TextColor = applicationTheme.TextColor.ToMauiColor();
             shareButton.TextColor = applicationTheme.TextColor.ToMauiColor();
 

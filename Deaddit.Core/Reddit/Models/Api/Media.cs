@@ -6,5 +6,26 @@ namespace Deaddit.Core.Reddit.Models.Api
     {
         [JsonPropertyName("reddit_video")]
         public RedditVideo? RedditVideo { get; init; }
+
+        [JsonPropertyName("type")]
+        public string? Type { get; set; }
+
+        [JsonPropertyName("oembed")]
+        public OEmbed? OEmbed { get; set; }
+
+        [JsonPropertyName("content")]
+        public string? Content { get; set; }
+
+        [JsonPropertyName("height")]
+        public int? Height { get; set; }
+
+        [JsonPropertyName("media_domain_url")]
+        public string? MediaDomainUrl { get; set; }
+
+        [JsonPropertyName("scrolling")]
+        public bool? Scrolling { get; set; }
+
+        [JsonPropertyName("width")]
+        public int? Width { get; set; }
     }
 }

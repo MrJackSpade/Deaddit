@@ -22,16 +22,19 @@ namespace Deaddit.Pages
 
         private readonly ApiThing _replyTo;
 
-        public ReplyPage(ApiThing replyTo, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme)
+        private readonly ApiThing _toEdit;
+
+        public ReplyPage(ApiThing? replyTo, ApiThing? toEdit, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme)
         {
             _redditClient = redditClient;
-            _replyTo = replyTo;
+            _replyTo = replyTo ?? toEdit.Parent;
+            _toEdit = toEdit;
             _appNavigator = appNavigator;
 
             BindingContext = new ReplyPageViewModel(applicationTheme);
             this.InitializeComponent();
 
-            ApiThing? toRender = replyTo;
+            ApiThing? toRender = _replyTo;
             SelectionGroup unused = new();
             do
             {
@@ -87,6 +90,11 @@ namespace Deaddit.Pages
 
                 toRender = toRender.Parent;
             } while (toRender != null);
+
+            if (toEdit != null)
+            {
+                textEditor.Text = toEdit.Body;
+            }
         }
 
         public event EventHandler<ReplySubmittedEventArgs>? OnSubmitted;
@@ -102,9 +110,18 @@ namespace Deaddit.Pages
 
         public async void OnSubmitClicked(object? sender, EventArgs e)
         {
-            string commentBody = textEditor.Text;
+            ApiComment meta;
 
-            ApiComment meta = await _redditClient.Comment(_replyTo, commentBody);
+            if (_toEdit is ApiComment comment)
+            {
+                comment.Body = textEditor.Text;
+                meta = await _redditClient.Update(comment);
+            }
+            else
+            {
+                string commentBody = textEditor.Text;
+                meta = await _redditClient.Comment(_replyTo, commentBody);
+            }
 
             OnSubmitted?.Invoke(this, new ReplySubmittedEventArgs(_replyTo, meta));
 

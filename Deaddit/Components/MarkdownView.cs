@@ -411,9 +411,9 @@ namespace Deaddit.Components
                 if (string.IsNullOrEmpty(p))
                 {
                     continue;
-                }      
-                
-                string trimmed = p;
+                }
+
+                string? trimmed = p;
 
                 Span span = new()
                 {
@@ -434,7 +434,6 @@ namespace Deaddit.Components
                     span.FontAttributes |= FontAttributes.Bold;
                 }
 
-
                 if (trimmed.TryTrim("_", out trimmed))
                 {
                     span.Text = trimmed;
@@ -447,7 +446,6 @@ namespace Deaddit.Components
                     span.FontAttributes |= FontAttributes.Bold;
                 }
 
-                
                 if (trimmed.TryTrim("*", out trimmed))
                 {
                     span.Text = trimmed;

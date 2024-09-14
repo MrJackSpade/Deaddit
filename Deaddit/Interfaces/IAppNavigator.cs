@@ -19,6 +19,8 @@ namespace Deaddit.Interfaces
 
         Task<EmbeddedBrowser> OpenBrowser(PostItems resource);
 
+        Task<ReplyPage> OpenEditPage(ApiThing toEdit);
+
         Task<EmbeddedImage> OpenImage(PostItems resource);
 
         Task<ObjectEditorPage> OpenObjectEditor(object original);

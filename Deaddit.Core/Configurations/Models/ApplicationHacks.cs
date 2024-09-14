@@ -24,7 +24,7 @@ namespace Deaddit.Core.Configurations.Models
         public int PageSize { get; set; } = 25;
 
         [EditorDisplay(Name = "Page Buffer", Order = 6)]
-        public int PageBuffer { get; set; } = 2;    
+        public int PageBuffer { get; set; } = 2;
 
     }
 }

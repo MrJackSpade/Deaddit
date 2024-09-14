@@ -21,7 +21,7 @@ namespace Deaddit.MAUI.Components
 {
     public partial class RedditCommentComponent : ContentView, ISelectionGroupItem
     {
-        private readonly ApplicationStyling _applicationTheme;
+        private readonly ApplicationStyling _applicationStyling;
 
         private readonly IAppNavigator _appNavigator;
 
@@ -46,7 +46,7 @@ namespace Deaddit.MAUI.Components
         public RedditCommentComponent(ApiComment comment, ApiPost post, bool selectEnabled, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration)
         {
             SelectEnabled = selectEnabled;
-            _applicationTheme = applicationTheme;
+            _applicationStyling = applicationTheme;
             _blockConfiguration = blockConfiguration;
             _redditClient = redditClient;
             _post = post;
@@ -56,10 +56,15 @@ namespace Deaddit.MAUI.Components
 
             this.InitializeComponent();
 
-            //--------- SPEED
             if (comment.Distinguished == DistinguishedKind.Moderator)
             {
-                authorLabel.TextColor = applicationTheme.DistinguishedColor.ToMauiColor();
+                authorLabel.TextColor = applicationTheme.DistinguishedAuthorTextColor.ToMauiColor();
+                authorLabel.BackgroundColor = applicationTheme.DistinguishedAuthorBackgroundColor.ToMauiColor();
+            }
+            else if (post is not null && post.Author == comment.Author)
+            {
+                authorLabel.TextColor = applicationTheme.OpTextColor.ToMauiColor();
+                authorLabel.BackgroundColor = applicationTheme.OpBackgroundColor.ToMauiColor();
             }
             else
             {
@@ -69,7 +74,6 @@ namespace Deaddit.MAUI.Components
             authorLabel.Text = comment.Author;
 
             commentContainer.Background = applicationTheme.SecondaryColor.ToMauiColor();
-            //----------
 
             if (MarkDownHelper.IsMarkDown(_comment.Body))
             {
@@ -80,15 +84,15 @@ namespace Deaddit.MAUI.Components
                 MarkdownView markdownView = new()
                 {
                     MarkdownText = MarkDownHelper.Clean(_comment.Body),
-                    HyperlinkColor = _applicationTheme.HyperlinkColor.ToMauiColor(),
-                    TextColor = _applicationTheme.TextColor.ToMauiColor(),
-                    H1Color = _applicationTheme.TextColor.ToMauiColor(),
-                    H2Color = _applicationTheme.TextColor.ToMauiColor(),
-                    H3Color = _applicationTheme.TextColor.ToMauiColor(),
-                    TextFontSize = _applicationTheme.FontSize,
-                    BlockQuoteBorderColor = _applicationTheme.TextColor.ToMauiColor(),
-                    BlockQuoteBackgroundColor = _applicationTheme.SecondaryColor.ToMauiColor(),
-                    BlockQuoteTextColor = _applicationTheme.TextColor.ToMauiColor(),
+                    HyperlinkColor = _applicationStyling.HyperlinkColor.ToMauiColor(),
+                    TextColor = _applicationStyling.TextColor.ToMauiColor(),
+                    H1Color = _applicationStyling.TextColor.ToMauiColor(),
+                    H2Color = _applicationStyling.TextColor.ToMauiColor(),
+                    H3Color = _applicationStyling.TextColor.ToMauiColor(),
+                    TextFontSize = _applicationStyling.FontSize,
+                    BlockQuoteBorderColor = _applicationStyling.TextColor.ToMauiColor(),
+                    BlockQuoteBackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor(),
+                    BlockQuoteTextColor = _applicationStyling.TextColor.ToMauiColor(),
                     Padding = new Thickness(10, 4, 0, 10)
                 };
 
@@ -101,14 +105,14 @@ namespace Deaddit.MAUI.Components
             else
             {
                 contentLabel.Text = MarkDownHelper.Clean(_comment.Body);
-                contentLabel.TextColor = _applicationTheme.TextColor.ToMauiColor();
-                contentLabel.FontSize = _applicationTheme.FontSize;
+                contentLabel.TextColor = _applicationStyling.TextColor.ToMauiColor();
+                contentLabel.FontSize = _applicationStyling.FontSize;
                 contentLabel.Padding = new Thickness(10, 4, 0, 10);
                 commentBody = contentLabel;
             }
 
-            metaDataLabel.TextColor = _applicationTheme.SubTextColor.ToMauiColor();
-            metaDataLabel.FontSize = _applicationTheme.FontSize * 0.75;
+            metaDataLabel.TextColor = _applicationStyling.SubTextColor.ToMauiColor();
+            metaDataLabel.FontSize = _applicationStyling.FontSize * 0.75;
 
             this.SetIndicatorState(_comment.Likes);
 
@@ -208,6 +212,16 @@ namespace Deaddit.MAUI.Components
         {
             if (!string.Equals(_redditClient.LoggedInUser, _comment.Author, StringComparison.OrdinalIgnoreCase))
             {
+                Dictionary<CommentMoreOptions, string> overrides = [];
+
+                overrides.Add(CommentMoreOptions.BlockAuthor, $"Block /u/{_comment.Author}");
+                overrides.Add(CommentMoreOptions.ViewAuthor, $"View /u/{_comment.Author}");
+
+                if (_comment.Saved == true)
+                {
+                    overrides.Add(CommentMoreOptions.Save, $"Unsave");
+                }
+
                 CommentMoreOptions? postMoreOptions = await this.DisplayActionSheet<CommentMoreOptions>("Select:", null, null);
 
                 if (postMoreOptions is null)
@@ -217,6 +231,20 @@ namespace Deaddit.MAUI.Components
 
                 switch (postMoreOptions.Value)
                 {
+                    case CommentMoreOptions.Save:
+                        if (_comment.Saved == true)
+                        {
+                            await _redditClient.ToggleSave(_comment, false);
+                            _comment.Saved = false;
+                        }
+                        else
+                        {
+                            await _redditClient.ToggleSave(_comment, true);
+                            _comment.Saved = true;
+                        }
+
+                        break;
+
                     case CommentMoreOptions.BlockAuthor:
                         await this.NewBlockRule(new BlockRule()
                         {
@@ -265,6 +293,11 @@ namespace Deaddit.MAUI.Components
                         OnDelete?.Invoke(this, new OnDeleteClickedEventArgs(_comment, this));
                         break;
 
+                    case MyCommentMoreOptions.Edit:
+                        ReplyPage replyPage = await _appNavigator.OpenEditPage(_comment);
+                        replyPage.OnSubmitted += this.EditPage_OnSubmitted;
+                        break;
+
                     default: throw new EnumNotImplementedException(postMoreOptions.Value);
                 }
             }
@@ -310,10 +343,10 @@ namespace Deaddit.MAUI.Components
 
         void ISelectionGroupItem.Select()
         {
-            _topBar = new RedditCommentComponentTopBar(_applicationTheme);
+            _topBar = new RedditCommentComponentTopBar(_applicationStyling);
             commentContainer.Children.Insert(0, _topBar);
 
-            _bottomBar = new RedditCommentComponentBottomBar(_comment, _applicationTheme);
+            _bottomBar = new RedditCommentComponentBottomBar(_comment, _applicationStyling);
 
             _topBar.DoneClicked += this.OnDoneClicked;
             _topBar.HideClicked += this.OnHideClicked;
@@ -324,8 +357,8 @@ namespace Deaddit.MAUI.Components
             _bottomBar.ReplyClicked += this.OnReplyClicked;
             _bottomBar.UpvoteClicked += this.OnUpvoteClicked;
 
-            commentHeader.BackgroundColor = _applicationTheme.HighlightColor.ToMauiColor();
-            commentBody.BackgroundColor = _applicationTheme.HighlightColor.ToMauiColor();
+            commentHeader.BackgroundColor = _applicationStyling.HighlightColor.ToMauiColor();
+            commentBody.BackgroundColor = _applicationStyling.HighlightColor.ToMauiColor();
 
             int indexOfComment = commentContainer.Children.IndexOf(commentBody);
 
@@ -338,8 +371,8 @@ namespace Deaddit.MAUI.Components
             _topBar = null;
             commentContainer.Children.Remove(_bottomBar);
             _bottomBar = null;
-            commentHeader.BackgroundColor = _applicationTheme.SecondaryColor.ToMauiColor();
-            commentBody.BackgroundColor = _applicationTheme.SecondaryColor.ToMauiColor();
+            commentHeader.BackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
+            commentBody.BackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
         }
 
         private void BlockRuleOnSave(object? sender, ObjectEditorSaveEventArgs e)
@@ -349,6 +382,24 @@ namespace Deaddit.MAUI.Components
         private async Task ContinueThread(ApiComment comment)
         {
             await _appNavigator.OpenPost(_post, comment);
+        }
+
+        private async void EditPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
+        {
+            _comment.Body = e.NewComment.Body;
+
+            if (commentBody is Label label)
+            {
+                label.Text = MarkDownHelper.Clean(_comment.Body);
+            }
+            else if (commentBody is MarkdownView markdownView)
+            {
+                markdownView.MarkdownText = MarkDownHelper.Clean(_comment.Body);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
         }
 
         private async Task LoadMoreCommentsAsync(ApiMore comment)
@@ -364,7 +415,7 @@ namespace Deaddit.MAUI.Components
 
             if (e.ChildNames.NotNullAny())
             {
-                await DataService.LoadAsync(_replies, async () => await this.LoadMoreCommentsAsync(e), _applicationTheme.HighlightColor.ToMauiColor());
+                await DataService.LoadAsync(_replies, async () => await this.LoadMoreCommentsAsync(e), _applicationStyling.HighlightColor.ToMauiColor());
 
                 _replies.Remove(mcomponent);
             }
@@ -406,6 +457,9 @@ namespace Deaddit.MAUI.Components
         {
             Ensure.NotNull(e.NewComment, "New comment data");
 
+            e.NewComment.ParentId = _comment.Id;
+            e.NewComment.Parent = _comment;
+
             RedditCommentComponent redditCommentComponent = _appNavigator.CreateCommentComponent(e.NewComment, _post, _commentSelectionGroup);
             redditCommentComponent.OnDelete += this.OnCommentDelete;
             this.TryInitReplies();
@@ -421,21 +475,21 @@ namespace Deaddit.MAUI.Components
                 case UpvoteState.Upvote:
                     _comment.Likes = UpvoteState.Upvote;
                     voteIndicator.Text = "▲";
-                    voteIndicator.TextColor = _applicationTheme.UpvoteColor.ToMauiColor();
+                    voteIndicator.TextColor = _applicationStyling.UpvoteColor.ToMauiColor();
                     voteIndicator.IsVisible = true;
                     break;
 
                 case UpvoteState.Downvote:
                     _comment.Likes = UpvoteState.Downvote;
                     voteIndicator.Text = "▼";
-                    voteIndicator.TextColor = _applicationTheme.DownvoteColor.ToMauiColor();
+                    voteIndicator.TextColor = _applicationStyling.DownvoteColor.ToMauiColor();
                     voteIndicator.IsVisible = true;
                     break;
 
                 default:
                     _comment.Likes = UpvoteState.None;
                     voteIndicator.Text = string.Empty;
-                    voteIndicator.TextColor = _applicationTheme.TextColor.ToMauiColor();
+                    voteIndicator.TextColor = _applicationStyling.TextColor.ToMauiColor();
                     voteIndicator.IsVisible = false;
                     break;
             }
@@ -449,7 +503,7 @@ namespace Deaddit.MAUI.Components
                 {
                     VerticalOptions = LayoutOptions.Fill,
                     Margin = new Thickness(15, 0, 0, 0),
-                    BackgroundColor = _applicationTheme.TertiaryColor.ToMauiColor(),
+                    BackgroundColor = _applicationStyling.TertiaryColor.ToMauiColor(),
                     Padding = new Thickness(1, 0, 0, 0)
                 };
 
@@ -464,7 +518,8 @@ namespace Deaddit.MAUI.Components
             if (!_comment.ScoreHidden == true)
             {
                 metaDataLabel.Text = $"{_comment.Score} points {_comment.CreatedUtc.Elapsed()}";
-            } else
+            }
+            else
             {
                 metaDataLabel.Text = _comment.CreatedUtc.Elapsed();
             }
