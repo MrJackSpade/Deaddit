@@ -9,22 +9,17 @@ namespace Deaddit.Utils
     {
         public static void CaptureException(Action toInvoke)
         {
-            CaptureExceptionInternal(
-                () =>
-                {
-                    toInvoke();
-                    return Task.CompletedTask;
-                },
-                isAsync: false
-            ).GetAwaiter().GetResult();
+            try
+            {
+                toInvoke();
+            }
+            catch (Exception ex)
+            {
+                HandleException(ex);
+            }
         }
 
-        public static Task CaptureException(Func<Task> toInvoke)
-        {
-            return CaptureExceptionInternal(toInvoke, isAsync: true);
-        }
-
-        private static async Task CaptureExceptionInternal(Func<Task> toInvoke, bool isAsync)
+        public static async Task CaptureException(Func<Task> toInvoke)
         {
             try
             {

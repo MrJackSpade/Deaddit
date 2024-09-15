@@ -78,7 +78,7 @@ namespace Deaddit.Pages
             mainStack.Children.Insert(0, redditPostComponent);
         }
 
-        public void OnImagesClicked(object? sender, EventArgs e)
+        public virtual void OnImagesClicked(object? sender, EventArgs e)
         {
             foreach (RedditCommentComponent commentComponent in mainStack.Children.OfType<RedditCommentComponent>())
             {
@@ -86,17 +86,17 @@ namespace Deaddit.Pages
             }
         }
 
-        public void OnBackClicked(object? sender, EventArgs e)
+        public virtual void OnBackClicked(object? sender, EventArgs e)
         {
             Navigation.PopAsync();
         }
 
-        public async void OnHideClicked(object? sender, EventArgs e)
+        public virtual async void OnHideClicked(object? sender, EventArgs e)
         {
             await _redditClient.ToggleVisibility(_post, false);
         }
 
-        public async void OnHyperLinkClicked(object? sender, LinkEventArgs e)
+        public virtual async void OnHyperLinkClicked(object? sender, LinkEventArgs e)
         {
             Ensure.NotNullOrWhiteSpace(e.Url);
 
@@ -121,7 +121,7 @@ namespace Deaddit.Pages
             objectEditorPage.OnSave += this.BlockRuleOnSave;
         }
 
-        public async void OnSaveClicked(object? sender, EventArgs e)
+        public virtual async void OnSaveClicked(object? sender, EventArgs e)
         {
             if (_post.Saved == true)
             {
@@ -137,7 +137,7 @@ namespace Deaddit.Pages
             }
         }
 
-        public async void OnMoreOptionsClicked(object? sender, EventArgs e)
+        public virtual async void OnMoreOptionsClicked(object? sender, EventArgs e)
         {
 
             Dictionary<PostMoreOptions, string?> options = [];
@@ -227,13 +227,13 @@ namespace Deaddit.Pages
             }
         }
 
-        public async void OnReplyClicked(object? sender, EventArgs e)
+        public virtual async void OnReplyClicked(object? sender, EventArgs e)
         {
             ReplyPage replyPage = await _appNavigator.OpenReplyPage(_post);
             replyPage.OnSubmitted += this.ReplyPage_OnSubmitted;
         }
 
-        public async void OnShareClicked(object? sender, EventArgs e)
+        public virtual async void OnShareClicked(object? sender, EventArgs e)
         {
             await Share.Default.RequestAsync(new ShareTextRequest
             {
