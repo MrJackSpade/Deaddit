@@ -11,6 +11,9 @@ namespace Deaddit.Core.Reddit.Models.Api
         Deleted = 1,
 
         [EnumMember(Value = "LOW_SCORE")]
-        LowScore = 2
+        LowScore = 2,
+
+        [EnumMember(Value = "BLOCKED_AUTHOR")]
+        BlockedAuthor = 3
     }
 }
