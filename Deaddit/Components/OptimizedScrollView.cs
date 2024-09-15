@@ -129,7 +129,7 @@
             {
                 foreach (VisualElement element in innerStack.OfType<VisualElement>().Where(v => v.IsVisible))
                 {
-                    if(element.Height > ScrollY - innerStack.Padding.Top)
+                    if (element.Height > ScrollY - innerStack.Padding.Top)
                     {
                         return;
                     }

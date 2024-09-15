@@ -17,7 +17,7 @@ namespace Deaddit.Extensions
             {
                 if (textOverrides.TryGetValue(value, out string? textOverride))
                 {
-                    if(!string.IsNullOrWhiteSpace(textOverride))
+                    if (!string.IsNullOrWhiteSpace(textOverride))
                     {
                         buttonValues.Add(textOverride, value);
                     }

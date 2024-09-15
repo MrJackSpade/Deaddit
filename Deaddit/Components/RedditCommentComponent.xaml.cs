@@ -16,6 +16,7 @@ using Deaddit.Interfaces;
 using Deaddit.MAUI.Components.Partials;
 using Deaddit.Pages;
 using Deaddit.Utils;
+using System.Diagnostics;
 
 namespace Deaddit.MAUI.Components
 {
@@ -160,12 +161,13 @@ namespace Deaddit.MAUI.Components
                         commentComponent.AddChildren(comment.GetReplies());
                         commentComponent.OnDelete += this.OnCommentDelete;
                         childComponent = commentComponent;
-                    } else
+                    }
+                    else
                     {
                         renderChild = new CollapsedMore(comment);
                     }
                 }
-                
+
                 if (renderChild is IMore more)
                 {
                     MoreCommentsComponent mcomponent = _appNavigator.CreateMoreCommentsComponent(more);
@@ -173,7 +175,7 @@ namespace Deaddit.MAUI.Components
                     childComponent = mcomponent;
                 }
 
-                if(childComponent is null)
+                if (childComponent is null)
                 {
                     throw new NotImplementedException();
                 }
@@ -219,7 +221,7 @@ namespace Deaddit.MAUI.Components
         {
             Ensure.NotNullOrWhiteSpace(e.Url);
 
-            PostItems resource = RedditPostExtensions.Resolve(e.Url);
+            PostItems resource = UrlHelper.Resolve(e.Url);
 
             await Navigation.OpenResource(resource, _appNavigator);
         }
@@ -238,7 +240,7 @@ namespace Deaddit.MAUI.Components
                     overrides.Add(CommentMoreOptions.Save, $"Unsave");
                 }
 
-                CommentMoreOptions? postMoreOptions = await this.DisplayActionSheet<CommentMoreOptions>("Select:", null, null);
+                CommentMoreOptions? postMoreOptions = await this.DisplayActionSheet<CommentMoreOptions>("Select:", null, null, overrides);
 
                 if (postMoreOptions is null)
                 {
@@ -538,6 +540,50 @@ namespace Deaddit.MAUI.Components
             else
             {
                 metaDataLabel.Text = _comment.CreatedUtc.Elapsed();
+            }
+        }
+
+        internal void LoadImages(bool recursive = false)
+        {
+            if (commentBody is MarkdownView mv)
+            {
+                foreach (LinkSpan linkSpan in mv.LinkSpans)
+                {
+                    Grid? grid = linkSpan.Element.Closest<Grid>();
+
+                    Label? label = linkSpan.Element.Closest<Label>();
+
+                    if (grid is null || label is null)
+                    {
+                        Debug.WriteLine("Could not find image grid or label");
+                        continue;
+                    }
+
+                    PostItems item = UrlHelper.Resolve(linkSpan.Url);
+
+                    if (item.Kind == PostTargetKind.Image)
+                    {
+                        grid.Children.InsertAfter(
+                            label,
+                            new Image()
+                            {
+                                Source = ImageSource.FromUri(new Uri(linkSpan.Url)),
+                                MaximumWidthRequest = commentBody.Width,
+                                Aspect = Aspect.AspectFit,
+                                MaximumHeightRequest = Application.Current.Windows[0].Height
+                            });
+
+                        grid.Children.Remove(label);
+                    }
+                }
+            }
+
+            if (recursive)
+            {
+                foreach (RedditCommentComponent element in commentContainer.OfType<RedditCommentComponent>())
+                {
+                    element.LoadImages(true);
+                }
             }
         }
     }

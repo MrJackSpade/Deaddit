@@ -22,7 +22,7 @@ namespace Deaddit.MAUI.Components
 
             string display = !isContinueThread ? $"More {comment.Count}" : "Continue Thread";
 
-            if(comment is CollapsedMore cm)
+            if (comment is CollapsedMore cm)
             {
                 display = cm.CollapsedReasonCode switch
                 {

@@ -181,9 +181,10 @@ namespace Deaddit.MAUI.Components
             options.Add(PostMoreOptions.ViewSubreddit, $"View /r/{_post.SubReddit}");
 
             if (!string.IsNullOrWhiteSpace(_post.Domain))
-            { 
+            {
                 options.Add(PostMoreOptions.BlockDomain, $"Block {_post.Domain}");
-            } else
+            }
+            else
             {
                 options.Add(PostMoreOptions.BlockDomain, null);
             }
@@ -191,7 +192,8 @@ namespace Deaddit.MAUI.Components
             if (!string.IsNullOrWhiteSpace(_post.LinkFlairText))
             {
                 options.Add(PostMoreOptions.BlockFlair, $"Block [{_post.LinkFlairText}]");
-            } else
+            }
+            else
             {
                 options.Add(PostMoreOptions.BlockFlair, null);
             }

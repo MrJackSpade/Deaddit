@@ -41,7 +41,7 @@ namespace Deaddit.Core.Extensions
                         return false;
                     }
 
-                    if(blockConfiguration.MaxLinkKarmaRatio > 0 && user.LinkKarma > 0 && (double)user.LinkKarma / user.CommentKarma > blockConfiguration.MaxLinkKarmaRatio)
+                    if (blockConfiguration.MaxLinkKarmaRatio > 0 && user.LinkKarma > 0 && (double)user.LinkKarma / user.CommentKarma > blockConfiguration.MaxLinkKarmaRatio)
                     {
                         return false;
                     }
