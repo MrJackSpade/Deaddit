@@ -58,9 +58,9 @@ namespace Deaddit.Utils
             return new MoreCommentsComponent(more, _applicationStyling);
         }
 
-        public RedditPostComponent CreatePostComponent(ApiPost post, SelectionGroup? selectionGroup = null)
+        public RedditPostComponent CreatePostComponent(ApiPost post, bool blocked, SelectionGroup? selectionGroup = null)
         {
-            RedditPostComponent postComponent = new(post, selectionGroup is not null, this, _redditClient, _applicationStyling, _applicationHacks, _visitTracker, selectionGroup ?? new SelectionGroup(), _blockConfiguration, _configurationService);
+            RedditPostComponent postComponent = new(post, selectionGroup is not null, blocked, this, _redditClient, _applicationStyling, _applicationHacks, _visitTracker, selectionGroup ?? new SelectionGroup(), _blockConfiguration, _configurationService);
             return postComponent;
         }
 

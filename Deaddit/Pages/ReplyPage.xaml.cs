@@ -46,7 +46,7 @@ namespace Deaddit.Pages
                 }
                 else if (toRender is ApiPost post)
                 {
-                    RedditPostComponent redditPostComponent = _appNavigator.CreatePostComponent(post, null);
+                    RedditPostComponent redditPostComponent = _appNavigator.CreatePostComponent(post, false, null);
 
                     if (!string.IsNullOrWhiteSpace(post.Body))
                     {

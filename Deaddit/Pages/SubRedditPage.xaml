@@ -6,7 +6,7 @@
     <Grid RowDefinitions="auto, *">
         <!-- Navigation Bar -->
         <Grid Padding="0"
-              ColumnDefinitions="auto, auto, *, auto, auto"
+              ColumnDefinitions="auto, auto, auto, *, auto, auto"
               Row="0"
               x:Name="navigationBar">
             <!-- Left Hamburger Button -->
@@ -24,13 +24,21 @@
                     HorizontalOptions="End"
                     Background="Transparent"
                     Clicked="OnReloadClicked" />
+            <Button Text="⯃"
+                    x:Name="blockButton"
+                    TextColor="Red"
+                    Grid.Column="2"
+                    VerticalOptions="Center"
+                    HorizontalOptions="End"
+                    Background="Transparent"
+                    Clicked="OnBlockClicked" />
             <Label x:Name="subredditLabel"
                    HorizontalTextAlignment="Center"
                    VerticalTextAlignment="Center"
-                   Grid.Column="2"></Label>
+                   Grid.Column="3"></Label>
             <Button Text="ⓘ"
                     x:Name="infoButton"
-                    Grid.Column="3"
+                    Grid.Column="4"
                     VerticalOptions="Center"
                     HorizontalOptions="End"
                     Background="Transparent"
@@ -38,7 +46,7 @@
             <!-- Right Gear Button -->
             <Button Text="&#x2699;"
                     x:Name="settingsButton"
-                    Grid.Column="4"
+                    Grid.Column="5"
                     VerticalOptions="Center"
                     HorizontalOptions="End"
                     Background="Transparent"

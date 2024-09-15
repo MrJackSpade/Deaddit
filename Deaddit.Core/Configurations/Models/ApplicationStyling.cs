@@ -50,6 +50,9 @@ namespace Deaddit.Core.Configurations.Models
         [EditorDisplay(Name = "Visited Opacity", Order = 13)]
         public double VisitedOpacity { get; set; } = 0.3f;
 
+        [EditorDisplay(Name = "Blocked Background Color", Order = 13)]
+        public DynamicColor BlockedBackgroundColor { get; set; } = DynamicColor.Parse("#3b1f1f");
+
         [EditorDisplay(Name = "Op Background Color")]
         public DynamicColor OpBackgroundColor { get; set; } = DynamicColor.Parse("#0055df");
 

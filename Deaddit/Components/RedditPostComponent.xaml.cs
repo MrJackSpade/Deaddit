@@ -64,11 +64,13 @@ namespace Deaddit.MAUI.Components
 
         private VerticalStackLayout titleStack;
 
+        private readonly bool _isBlocked;
+
         private Label upvoteButton;
 
         private Grid voteStack;
 
-        public RedditPostComponent(ApiPost post, bool isListView, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
+        public RedditPostComponent(ApiPost post, bool isListView, bool blocked, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IVisitTracker visitTracker, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration, IConfigurationService configurationService)
         {
             _configurationService = configurationService;
             _applicationStyling = applicationTheme;
@@ -76,6 +78,7 @@ namespace Deaddit.MAUI.Components
             _redditClient = redditClient;
             _selectionGroup = selectionTracker;
             _applicationHacks = applicationHacks;
+            _isBlocked = blocked;
             _visitTracker = visitTracker;
             _post = post;
             _appNavigator = appNavigator;
@@ -349,8 +352,18 @@ namespace Deaddit.MAUI.Components
         void ISelectionGroupItem.Unselect()
         {
             Selected = false;
-            BackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
-            mainGrid.BackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
+
+            if (!_isBlocked)
+            {
+                BackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
+                mainGrid.BackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
+            }
+            else
+            {
+                BackgroundColor = _applicationStyling.BlockedBackgroundColor.ToMauiColor();
+                mainGrid.BackgroundColor = _applicationStyling.BlockedBackgroundColor.ToMauiColor();
+            }
+
             timeUserLabel.IsVisible = false;
             this.RemoveActionButtons();
         }
@@ -596,7 +609,17 @@ namespace Deaddit.MAUI.Components
             timeUserLabel.IsVisible = !isPreview;
             Opacity = isPreview && _visitTracker.HasVisited(_post) ? _applicationStyling.VisitedOpacity : 1;
             mainGrid.MinimumHeightRequest = _applicationStyling.ThumbnailSize;
-            mainGrid.BackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
+
+            if (!_isBlocked)
+            {
+                BackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
+                mainGrid.BackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
+            }
+            else
+            {
+                BackgroundColor = _applicationStyling.BlockedBackgroundColor.ToMauiColor();
+                mainGrid.BackgroundColor = _applicationStyling.BlockedBackgroundColor.ToMauiColor();
+            }
         }
 
         private async Task NewBlockRule(BlockRule blockRule)
