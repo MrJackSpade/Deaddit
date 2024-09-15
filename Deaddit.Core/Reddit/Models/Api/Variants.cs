@@ -11,7 +11,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public string? MP4 { get; init; }
 
         [JsonPropertyName("obfuscated")]
-        public bool? IsObfuscated { get; init; }
+        public Media? Obfuscated { get; init; }
 
         [JsonPropertyName("nsfw")]
         public bool? IsNsfw { get; init; }

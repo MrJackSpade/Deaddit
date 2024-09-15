@@ -7,12 +7,14 @@ namespace Deaddit.Core.Utils
     {
         public static PostItems Resolve(string url)
         {
-            if (url.Contains('?'))
+            string testUrl = url;
+
+            if (testUrl.Contains('?'))
             {
-                url = url[..url.IndexOf('?')];
+                testUrl = testUrl[..testUrl.IndexOf('?')];
             }
 
-            string mimeType = UrlHelper.GetMimeTypeFromUri(new Uri(url));
+            string mimeType = UrlHelper.GetMimeTypeFromUri(new Uri(testUrl));
 
             PostItems items;
             // Switch based on the type
