@@ -276,14 +276,14 @@ namespace Deaddit.Pages
             Debug.WriteLine("LoadDataAsync: " + sw.ElapsedMilliseconds + "ms");
         }
 
-        private async Task LoadMoreAsync(ApiPost post, ApiMore more)
+        private async Task LoadMoreAsync(ApiPost post, IMore more)
         {
             List<ApiThing> response = await _redditClient.MoreComments(post, more).ToList();
 
             this.AddChildren(response);
         }
 
-        private async void MoreCommentsClick(object? sender, ApiMore e)
+        private async void MoreCommentsClick(object? sender, IMore e)
         {
             MoreCommentsComponent mcomponent = sender as MoreCommentsComponent;
 

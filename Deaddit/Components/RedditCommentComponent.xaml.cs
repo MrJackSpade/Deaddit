@@ -123,41 +123,57 @@ namespace Deaddit.MAUI.Components
 
         public bool SelectEnabled { get; private set; }
 
-        public void AddChildren(IEnumerable<ApiThing> children)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="children"></param>
+        /// <param name="loadMore">Force load collapsed children</param>
+        /// <exception cref="NotImplementedException"></exception>
+        public void AddChildren(IEnumerable<ApiThing> children, bool loadMore = false)
         {
             foreach (ApiThing? child in children)
             {
-                if (!_blockConfiguration.IsAllowed(child))
+                ApiThing renderChild = child;
+
+                if (!_blockConfiguration.IsAllowed(renderChild))
                 {
                     continue;
                 }
 
-                if (child.Id == _post.Id)
+                if (renderChild.Id == _post.Id)
                 {
                     continue;
                 }
 
-                if (child.IsDeleted() || child.IsRemoved())
+                if (renderChild.IsDeleted() || renderChild.IsRemoved())
                 {
                     continue;
                 }
 
                 ContentView? childComponent = null;
 
-                if (child is ApiComment comment)
+                if (renderChild is ApiComment comment)
                 {
-                    RedditCommentComponent commentComponent = _appNavigator.CreateCommentComponent(comment, _post, _commentSelectionGroup);
-                    commentComponent.AddChildren(comment.GetReplies());
-                    commentComponent.OnDelete += this.OnCommentDelete;
-                    childComponent = commentComponent;
+                    if (comment.CollapsedReasonCode == CollapsedReasonKind.None || loadMore)
+                    {
+                        RedditCommentComponent commentComponent = _appNavigator.CreateCommentComponent(comment, _post, _commentSelectionGroup);
+                        commentComponent.AddChildren(comment.GetReplies());
+                        commentComponent.OnDelete += this.OnCommentDelete;
+                        childComponent = commentComponent;
+                    } else
+                    {
+                        renderChild = new CollapsedMore(comment);
+                    }
                 }
-                else if (child is ApiMore more)
+                
+                if (renderChild is IMore more)
                 {
                     MoreCommentsComponent mcomponent = _appNavigator.CreateMoreCommentsComponent(more);
                     mcomponent.OnClick += this.MoreCommentsClick;
                     childComponent = mcomponent;
                 }
-                else
+
+                if(childComponent is null)
                 {
                     throw new NotImplementedException();
                 }
@@ -402,14 +418,14 @@ namespace Deaddit.MAUI.Components
             }
         }
 
-        private async Task LoadMoreCommentsAsync(ApiMore comment)
+        private async Task LoadMoreCommentsAsync(IMore comment)
         {
             List<ApiThing> response = await _redditClient.MoreComments(_post, comment).ToList();
 
-            this.AddChildren(response);
+            this.AddChildren(response, true);
         }
 
-        private async void MoreCommentsClick(object? sender, ApiMore e)
+        private async void MoreCommentsClick(object? sender, IMore e)
         {
             MoreCommentsComponent? mcomponent = sender as MoreCommentsComponent;
 

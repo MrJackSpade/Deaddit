@@ -10,9 +10,6 @@ namespace Deaddit.Core.Reddit.Models.Api
         [JsonPropertyName("associated_award")]
         public object? AssociatedAward { get; init; }
 
-        [JsonPropertyName("author_cakeday")]
-        public bool? AuthorCakeDay { get; init; }
-
         [JsonPropertyName("before")]
         public string? Before { get; init; }
 
