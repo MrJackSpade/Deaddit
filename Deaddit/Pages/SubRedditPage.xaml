@@ -6,20 +6,13 @@
     <Grid RowDefinitions="auto, *">
         <!-- Navigation Bar -->
         <Grid Padding="0"
-              ColumnDefinitions="auto, auto, auto, *, auto, auto"
+              ColumnDefinitions="auto, auto, *, auto, auto"
               Row="0"
               x:Name="navigationBar">
             <!-- Left Hamburger Button -->
-            <Button Text="🔙"
-                    Grid.Column="0"
-                    x:Name="menuButton"
-                    Background="Transparent"
-                    VerticalOptions="Center"
-                    HorizontalOptions="Start"
-                    Clicked="OnMenuClicked" />
             <Button Text="⟳"
                     x:Name="reloadButton"
-                    Grid.Column="1"
+                    Grid.Column="0"
                     VerticalOptions="Center"
                     HorizontalOptions="End"
                     Background="Transparent"
@@ -27,7 +20,7 @@
             <Button Text="⯃"
                     x:Name="blockButton"
                     TextColor="Red"
-                    Grid.Column="2"
+                    Grid.Column="1"
                     VerticalOptions="Center"
                     HorizontalOptions="End"
                     Background="Transparent"
@@ -35,10 +28,10 @@
             <Label x:Name="subredditLabel"
                    HorizontalTextAlignment="Center"
                    VerticalTextAlignment="Center"
-                   Grid.Column="3"></Label>
+                   Grid.Column="2"></Label>
             <Button Text="ⓘ"
                     x:Name="infoButton"
-                    Grid.Column="4"
+                    Grid.Column="3"
                     VerticalOptions="Center"
                     HorizontalOptions="End"
                     Background="Transparent"
@@ -46,7 +39,7 @@
             <!-- Right Gear Button -->
             <Button Text="&#x2699;"
                     x:Name="settingsButton"
-                    Grid.Column="5"
+                    Grid.Column="4"
                     VerticalOptions="Center"
                     HorizontalOptions="End"
                     Background="Transparent"

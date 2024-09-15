@@ -92,11 +92,6 @@ namespace Deaddit.Pages
             await _appNavigator.OpenSubRedditAbout(_thingCollectionName);
         }
 
-        public async void OnMenuClicked(object? sender, EventArgs e)
-        {
-            await Navigation.PopAsync();
-        }
-
         public async void OnReloadClicked(object? sender, EventArgs e)
         {
             if (_loadsemaphore.Wait(0))
