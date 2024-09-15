@@ -1,6 +1,5 @@
 using Deaddit.Components;
 using Deaddit.Core.Configurations.Models;
-using Deaddit.Core.Reddit.Extensions;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
@@ -10,6 +9,7 @@ using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.MAUI.Components;
 using Deaddit.Pages.Models;
+using Deaddit.Utils;
 using Microsoft.Maui.Controls.Shapes;
 
 namespace Deaddit.Pages
@@ -110,28 +110,31 @@ namespace Deaddit.Pages
 
         public async void OnSubmitClicked(object? sender, EventArgs e)
         {
-            ApiComment meta;
-
-            if (_toEdit is ApiComment comment)
+            await ExceptionHelper.CaptureException(async () =>
             {
-                comment.Body = textEditor.Text;
-                meta = await _redditClient.Update(comment);
-            }
-            else
-            {
-                string commentBody = textEditor.Text;
-                meta = await _redditClient.Comment(_replyTo, commentBody);
-            }
+                ApiComment meta;
 
-            OnSubmitted?.Invoke(this, new ReplySubmittedEventArgs(_replyTo, meta));
+                if (_toEdit is ApiComment comment)
+                {
+                    comment.Body = textEditor.Text;
+                    meta = await _redditClient.Update(comment);
+                }
+                else
+                {
+                    string commentBody = textEditor.Text;
+                    meta = await _redditClient.Comment(_replyTo, commentBody);
+                }
 
-            await Navigation.PopAsync();
+                OnSubmitted?.Invoke(this, new ReplySubmittedEventArgs(_replyTo, meta));
+
+                await Navigation.PopAsync();
+            });
         }
 
         private async void OnHyperLinkClicked(object? sender, LinkEventArgs e)
         {
             Ensure.NotNullOrWhiteSpace(e.Url);
-            PostItems resource = RedditPostExtensions.Resolve(e.Url);
+            PostItems resource = UrlHelper.Resolve(e.Url);
 
             await Navigation.OpenResource(resource, _appNavigator);
         }

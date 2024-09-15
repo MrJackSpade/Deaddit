@@ -12,6 +12,21 @@ namespace Deaddit.Components
         public string? Url { get; set; }
     }
 
+    public class LinkSpan
+    {
+        public LinkSpan(string url, Span element)
+        {
+            Url = url;
+            Element = element;
+        }
+
+        public Span Element { get; set; }
+
+        public Element Parent => Element.Parent;
+
+        public string Url { get; set; }
+    }
+
     /// <summary>
     /// https://github.com/0xc3u/Indiko.Maui.Controls.Markdown/blob/main/src/Indiko.Maui.Controls.Markdown/MarkdownView.cs
     /// </summary>
@@ -244,6 +259,8 @@ namespace Deaddit.Components
             set => this.SetValue(LinkCommandParameterProperty, value);
         }
 
+        public List<LinkSpan> LinkSpans { get; } = [];
+
         public string MarkdownText
         {
             get => (string)this.GetValue(MarkdownTextProperty);
@@ -279,6 +296,12 @@ namespace Deaddit.Components
             {
                 LinkCommand.Execute(url);
             }
+        }
+
+        private static void AddEmptyRow(Grid grid, ref int gridRow)
+        {
+            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(10) });
+            gridRow++;
         }
 
         private static void HandleActiveCodeBlock(string line, ref Label activeCodeBlockLabel, ref int gridRow)
@@ -328,12 +351,6 @@ namespace Deaddit.Components
             grid.Children.Add(bulletPoint);
             Grid.SetRow(bulletPoint, gridRow);
             Grid.SetColumn(bulletPoint, 0);
-        }
-
-        private static void AddEmptyRow(Grid grid, ref int gridRow)
-        {
-            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(10) });
-            gridRow++;
         }
 
         private void AddListItemTextToGrid(string listItemText, Grid grid, int gridRow)
@@ -407,7 +424,6 @@ namespace Deaddit.Components
 
             foreach (string p in parts)
             {
-
                 if (string.IsNullOrEmpty(p))
                 {
                     continue;
@@ -485,7 +501,7 @@ namespace Deaddit.Components
                 {
                     string linkText = (trimmed.Split("](")[0] + "]")[1..^1];
 
-                    string linkUrl = "(" + trimmed.Split("](")[1];
+                    string linkUrl = ("(" + trimmed.Split("](")[1])[1..^1];
 
                     if (string.IsNullOrWhiteSpace(linkText))
                     {
@@ -497,8 +513,10 @@ namespace Deaddit.Components
                     span.TextDecorations = TextDecorations.Underline;
 
                     TapGestureRecognizer linkTapGestureRecognizer = new();
-                    linkTapGestureRecognizer.Tapped += (_, _) => this.TriggerHyperLinkClicked(linkUrl[1..^1]);
+                    linkTapGestureRecognizer.Tapped += (_, _) => this.TriggerHyperLinkClicked(linkUrl);
                     span.GestureRecognizers.Add(linkTapGestureRecognizer);
+
+                    LinkSpans.Add(new LinkSpan(linkUrl, span));
                 }
 
                 span.FontSize = TextFontSize;

@@ -18,7 +18,7 @@
                 BackgroundColor="{Binding HighlightColor}"
                 Margin="0"
                 Padding="0"
-                ColumnDefinitions="*,*,*,*">
+                ColumnDefinitions="*,*,*,*,*">
 
                 <Button
                     Text="Share"
@@ -40,11 +40,16 @@
                     Grid.Column="2"
                     Clicked="OnMoreOptionsClicked"
                     BackgroundColor="Transparent" />
-
+                <Button
+                    Text="&#128444;"
+                    x:Name="imagesButton"
+                    Grid.Column="3"
+                    Clicked="OnImagesClicked"
+                    BackgroundColor="Transparent" />
                 <Button
                     Text="Reply"
                     x:Name="replyButton"
-                    Grid.Column="3"
+                    Grid.Column="4"
                     Clicked="OnReplyClicked"
                     BackgroundColor="Transparent" />
             </Grid>

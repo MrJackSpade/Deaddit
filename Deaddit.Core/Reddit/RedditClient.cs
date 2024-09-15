@@ -238,7 +238,7 @@ namespace Deaddit.Core.Reddit
 
             List<string> userNames = usernames.ToList();
 
-            if(!userNames.Any())
+            if (!userNames.Any())
             {
                 return [];
             }

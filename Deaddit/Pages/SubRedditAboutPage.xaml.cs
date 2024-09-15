@@ -1,6 +1,5 @@
 using Deaddit.Components;
 using Deaddit.Core.Configurations.Models;
-using Deaddit.Core.Reddit.Extensions;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
@@ -76,7 +75,7 @@ namespace Deaddit.Pages
         {
             Ensure.NotNullOrWhiteSpace(e.Url);
 
-            PostItems resource = RedditPostExtensions.Resolve(e.Url);
+            PostItems resource = UrlHelper.Resolve(e.Url);
 
             await Navigation.OpenResource(resource, _appNavigator);
         }

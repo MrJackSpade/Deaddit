@@ -7,7 +7,7 @@ namespace Deaddit.Core.Reddit.Models
     {
         public CollapsedMore(ApiComment comment)
         {
-            ChildNames = new List<string>() { comment.Id };
+            ChildNames = [comment.Id];
             Count = 1;
             Parent = comment.Parent;
             CollapsedReasonCode = comment.CollapsedReasonCode;

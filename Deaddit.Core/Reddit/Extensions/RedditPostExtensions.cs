@@ -35,7 +35,7 @@ namespace Deaddit.Core.Reddit.Extensions
                     {
                         DownloadUrl = imageUrl,
                         LaunchUrl = imageUrl,
-                        FileName = $"{post.Id}_{i++}{UrlHandler.GetExtension(imageUrl)}"
+                        FileName = $"{post.Id}_{i++}{UrlHelper.GetExtension(imageUrl)}"
                     });
                 }
 
@@ -50,7 +50,7 @@ namespace Deaddit.Core.Reddit.Extensions
                     {
                         DownloadUrl = post.Media.RedditVideo.FallbackUrl,
                         LaunchUrl = post.Media.RedditVideo.DashUrl,
-                        FileName = $"{post.Id}{UrlHandler.GetExtension(post.Media.RedditVideo.FallbackUrl)}"
+                        FileName = $"{post.Id}{UrlHelper.GetExtension(post.Media.RedditVideo.FallbackUrl)}"
                     }
                 };
 
@@ -59,40 +59,7 @@ namespace Deaddit.Core.Reddit.Extensions
 
             Ensure.NotNullOrWhiteSpace(post.Url);
 
-            return Resolve(post.Url);
-        }
-
-        public static PostItems Resolve(string url)
-        {
-            string mimeType = UrlHandler.GetMimeTypeFromUri(new Uri(url));
-
-            PostItems items;
-            // Switch based on the type
-            if (mimeType.StartsWith("image/"))
-            {
-                items = new(PostTargetKind.Image);
-            }
-            else if (mimeType.StartsWith("audio/"))
-            {
-                items = new(PostTargetKind.Audio);
-            }
-            else if (mimeType.StartsWith("video/"))
-            {
-                items = new(PostTargetKind.Video);
-            }
-            else
-            {
-                items = new(PostTargetKind.Url);
-            }
-
-            items.Add(new PostItem()
-            {
-                DownloadUrl = url,
-                LaunchUrl = url,
-                FileName = UrlHandler.GetFileName(url)
-            });
-
-            return items;
+            return UrlHelper.Resolve(post.Url);
         }
 
         public static string? TryGetPreview(this ApiPost redditPost)
