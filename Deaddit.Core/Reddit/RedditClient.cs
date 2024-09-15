@@ -28,6 +28,8 @@ namespace Deaddit.Core.Reddit
 
         private OAuthToken? _oAuthToken;
 
+        private DateTime _tokenExpiration = DateTime.MinValue;
+
         private readonly SemaphoreSlim _semaphore = new(1, 1);
 
         public int MinimumDelayMs { get; set; } = 500; // Default to 500ms
@@ -37,6 +39,7 @@ namespace Deaddit.Core.Reddit
         public async Task ThrottleAsync()
         {
             await _semaphore.WaitAsync();
+
             try
             {
                 TimeSpan elapsedSinceLastFire = DateTime.UtcNow - LastFired;
@@ -71,15 +74,16 @@ namespace Deaddit.Core.Reddit
 
         public async Task<ApiSubReddit> About(ThingCollectionName subreddit)
         {
+            await this.EnsureAuthenticated();
             await this.ThrottleAsync();
 
-            System.Diagnostics.Stopwatch stopwatch = new();
+            Stopwatch stopwatch = new();
             stopwatch.Start();
 
             ApiThingMeta response = await _jsonClient.Get<ApiThingMeta>($"{API_ROOT}{subreddit.RootedName}/about");
 
             stopwatch.Stop();
-            System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in About method: {stopwatch.ElapsedMilliseconds}ms");
+            Debug.WriteLine($"[DEBUG] Time spent in About method: {stopwatch.ElapsedMilliseconds}ms");
 
             return response.Data as ApiSubReddit;
         }
@@ -89,7 +93,7 @@ namespace Deaddit.Core.Reddit
             await this.EnsureAuthenticated();
             await this.ThrottleAsync();
 
-            System.Diagnostics.Stopwatch stopwatch = new();
+            Stopwatch stopwatch = new();
             stopwatch.Start();
 
             string fullUrl = $"{API_ROOT}/api/editusertext";
@@ -118,7 +122,7 @@ namespace Deaddit.Core.Reddit
             }
 
             stopwatch.Stop();
-            System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in Comment method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+            Debug.WriteLine($"[DEBUG] Time spent in Comment method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
 
             return response.Json.Data.Things.OfType<ApiComment>().Single();
         }
@@ -128,7 +132,7 @@ namespace Deaddit.Core.Reddit
             await this.EnsureAuthenticated();
             await this.ThrottleAsync();
 
-            System.Diagnostics.Stopwatch stopwatch = new();
+            Stopwatch stopwatch = new();
             stopwatch.Start();
 
             string fullUrl = $"{API_ROOT}/api/comment";
@@ -157,16 +161,17 @@ namespace Deaddit.Core.Reddit
             }
 
             stopwatch.Stop();
-            System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in Comment method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+            Debug.WriteLine($"[DEBUG] Time spent in Comment method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
 
             return response.Json.Data.Things.OfType<ApiComment>().Single();
         }
 
         public async IAsyncEnumerable<ApiThing> Comments(ApiPost parent, ApiComment? focusComment)
         {
+            await this.EnsureAuthenticated();
             await this.ThrottleAsync();
 
-            System.Diagnostics.Stopwatch stopwatch = new();
+            Stopwatch stopwatch = new();
             stopwatch.Start();
 
             ApiThing responseParent = (ApiThing)focusComment ?? parent;
@@ -206,7 +211,7 @@ namespace Deaddit.Core.Reddit
             }
 
             stopwatch.Stop();
-            System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in Comments method: {stopwatch.ElapsedMilliseconds}ms");
+            Debug.WriteLine($"[DEBUG] Time spent in Comments method: {stopwatch.ElapsedMilliseconds}ms");
         }
 
         public async Task Delete(ApiThing thing)
@@ -214,7 +219,7 @@ namespace Deaddit.Core.Reddit
             await this.EnsureAuthenticated();
             await this.ThrottleAsync();
 
-            System.Diagnostics.Stopwatch stopwatch = new();
+            Stopwatch stopwatch = new();
             stopwatch.Start();
 
             string url = $"{API_ROOT}/api/del";
@@ -229,7 +234,7 @@ namespace Deaddit.Core.Reddit
 
             stopwatch.Stop();
 
-            System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in Delete method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+            Debug.WriteLine($"[DEBUG] Time spent in Delete method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
         }
 
         public async Task<Dictionary<string, UserPartial>> GetUserData(IEnumerable<string> usernames)
@@ -246,7 +251,7 @@ namespace Deaddit.Core.Reddit
             await this.EnsureAuthenticated();
             await this.ThrottleAsync();
 
-            System.Diagnostics.Stopwatch stopwatch = new();
+            Stopwatch stopwatch = new();
             stopwatch.Start();
 
             string url = $"{API_ROOT}/api/user_data_by_account_ids?ids={string.Join(",", userNames)}";
@@ -264,7 +269,7 @@ namespace Deaddit.Core.Reddit
             finally
             {
                 stopwatch.Stop();
-                System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in GetUserData method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+                Debug.WriteLine($"[DEBUG] Time spent in GetUserData method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
             }
         }
 
@@ -274,7 +279,7 @@ namespace Deaddit.Core.Reddit
             await this.EnsureAuthenticated();
             await this.ThrottleAsync();
 
-            System.Diagnostics.Stopwatch stopwatch = new();
+            Stopwatch stopwatch = new();
 
             stopwatch.Start();
 
@@ -289,7 +294,7 @@ namespace Deaddit.Core.Reddit
                 ApiThingCollection posts = await _jsonClient.Get<ApiThingCollection>(fullUrl);
 
                 stopwatch.Stop();
-                System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in GetPosts method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+                Debug.WriteLine($"[DEBUG] Time spent in GetPosts method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
 
                 if (!posts.Children.NotNullAny())
                 {
@@ -315,10 +320,11 @@ namespace Deaddit.Core.Reddit
 
         public async IAsyncEnumerable<ApiThing> MoreComments(ApiPost post, IMore moreItem)
         {
+            await this.EnsureAuthenticated();
             await this.ThrottleAsync();
 
             // Exclude authentication or other setup time if necessary
-            System.Diagnostics.Stopwatch stopwatch = new();
+            Stopwatch stopwatch = new();
             stopwatch.Start();
 
             // Ensure the required properties are not null or empty
@@ -380,7 +386,7 @@ namespace Deaddit.Core.Reddit
             }
 
             stopwatch.Stop();
-            System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in MoreComments method: {stopwatch.ElapsedMilliseconds}ms");
+            Debug.WriteLine($"[DEBUG] Time spent in MoreComments method: {stopwatch.ElapsedMilliseconds}ms");
 
             foreach (ApiThing redditCommentMeta in things)
             {
@@ -416,7 +422,7 @@ namespace Deaddit.Core.Reddit
             await this.EnsureAuthenticated();
             await this.ThrottleAsync();
 
-            System.Diagnostics.Stopwatch stopwatch = new();
+            Stopwatch stopwatch = new();
             stopwatch.Start();
 
             int stateInt = 0;
@@ -441,7 +447,7 @@ namespace Deaddit.Core.Reddit
             await _jsonClient.Post(url);
 
             stopwatch.Stop();
-            System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in SetUpvoteState method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+            Debug.WriteLine($"[DEBUG] Time spent in SetUpvoteState method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
         }
 
         public async Task ToggleInboxReplies(ApiThing thing, bool enabled)
@@ -449,7 +455,7 @@ namespace Deaddit.Core.Reddit
             await this.EnsureAuthenticated();
             await this.ThrottleAsync();
 
-            System.Diagnostics.Stopwatch stopwatch = new();
+            Stopwatch stopwatch = new();
             stopwatch.Start();
 
             string url = $"{API_ROOT}/api/sendreplies";
@@ -464,7 +470,7 @@ namespace Deaddit.Core.Reddit
             await _jsonClient.Post(url, formValues);
 
             stopwatch.Stop();
-            System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in ToggleInboxReplies method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+            Debug.WriteLine($"[DEBUG] Time spent in ToggleInboxReplies method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
         }
 
         public async Task ToggleSubScription(ApiSubReddit thing, bool subscribed)
@@ -472,7 +478,7 @@ namespace Deaddit.Core.Reddit
             await this.EnsureAuthenticated();
             await this.ThrottleAsync();
 
-            System.Diagnostics.Stopwatch stopwatch = new();
+            Stopwatch stopwatch = new();
             stopwatch.Start();
 
             string url = $"{API_ROOT}/api/subscribe";
@@ -487,7 +493,7 @@ namespace Deaddit.Core.Reddit
             await _jsonClient.Post(url, formValues);
 
             stopwatch.Stop();
-            System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in ToggleSubScription method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+            Debug.WriteLine($"[DEBUG] Time spent in ToggleSubScription method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
         }
 
         public async Task ToggleSave(ApiThing thing, bool saved)
@@ -495,7 +501,7 @@ namespace Deaddit.Core.Reddit
             await this.EnsureAuthenticated();
             await this.ThrottleAsync();
 
-            System.Diagnostics.Stopwatch stopwatch = new();
+            Stopwatch stopwatch = new();
             stopwatch.Start();
 
             string url = !saved ? $"{API_ROOT}/api/unsave" : $"{API_ROOT}/api/save";
@@ -509,7 +515,7 @@ namespace Deaddit.Core.Reddit
             await _jsonClient.Post(url, formValues);
 
             stopwatch.Stop();
-            System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in Save method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+            Debug.WriteLine($"[DEBUG] Time spent in Save method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
         }
 
         public async Task ToggleVisibility(ApiThing thing, bool visible)
@@ -517,7 +523,7 @@ namespace Deaddit.Core.Reddit
             await this.EnsureAuthenticated();
             await this.ThrottleAsync();
 
-            System.Diagnostics.Stopwatch stopwatch = new();
+            Stopwatch stopwatch = new();
             stopwatch.Start();
 
             string url = !visible ? $"{API_ROOT}/api/hide" : $"{API_ROOT}/api/unhide";
@@ -531,7 +537,7 @@ namespace Deaddit.Core.Reddit
             await _jsonClient.Post(url, formValues);
 
             stopwatch.Stop();
-            System.Diagnostics.Debug.WriteLine($"[DEBUG] Time spent in ToggleVisibility method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+            Debug.WriteLine($"[DEBUG] Time spent in ToggleVisibility method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
         }
 
         private static string GetSortString<T>(T sort) where T : Enum
@@ -575,6 +581,11 @@ namespace Deaddit.Core.Reddit
 
         private async Task EnsureAuthenticated()
         {
+            if(_tokenExpiration < DateTime.Now)
+            {
+                _oAuthToken = null;
+            }
+
             if (_oAuthToken is null)
             {
                 Ensure.NotNullOrWhiteSpace(_redditCredentials.UserName);
@@ -604,7 +615,11 @@ namespace Deaddit.Core.Reddit
                 string responseContent = await response.Content.ReadAsStringAsync();
 
                 _oAuthToken = JsonSerializer.Deserialize<OAuthToken>(responseContent)!;
+
+                _tokenExpiration = DateTime.Now.AddSeconds(_oAuthToken.ExpiresIn - 5);
+
                 _jsonClient.SetDefaultHeader("Authorization", _oAuthToken.TokenType + " " + _oAuthToken.AccessToken);
+
                 LoggedInUser = _redditCredentials.UserName;
             }
         }
