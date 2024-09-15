@@ -173,18 +173,27 @@ namespace Deaddit.MAUI.Components
 
         public async void OnMoreOptionsClicked(object? sender, EventArgs e)
         {
-            Dictionary<PostMoreOptions, string> options = [];
-
-            Uri.TryCreate(_post.Domain, UriKind.Absolute, out Uri uri);
+            Dictionary<PostMoreOptions, string?> options = [];
 
             options.Add(PostMoreOptions.BlockAuthor, $"Block /u/{_post.Author}");
             options.Add(PostMoreOptions.BlockSubreddit, $"Block /r/{_post.SubReddit}");
             options.Add(PostMoreOptions.ViewAuthor, $"View /u/{_post.Author}");
             options.Add(PostMoreOptions.ViewSubreddit, $"View /r/{_post.SubReddit}");
 
-            if (uri != null)
+            if (!string.IsNullOrWhiteSpace(_post.Domain))
+            { 
+                options.Add(PostMoreOptions.BlockDomain, $"Block {_post.Domain}");
+            } else
             {
-                options.Add(PostMoreOptions.BlockDomain, $"Block {uri.Host}");
+                options.Add(PostMoreOptions.BlockDomain, null);
+            }
+
+            if (!string.IsNullOrWhiteSpace(_post.LinkFlairText))
+            {
+                options.Add(PostMoreOptions.BlockFlair, $"Block [{_post.LinkFlairText}]");
+            } else
+            {
+                options.Add(PostMoreOptions.BlockFlair, null);
             }
 
             PostMoreOptions? postMoreOptions = await this.DisplayActionSheet("Select:", null, null, options);
@@ -233,13 +242,13 @@ namespace Deaddit.MAUI.Components
                     break;
 
                 case PostMoreOptions.BlockDomain:
-                    if (uri != null)
+                    if (!string.IsNullOrWhiteSpace(_post.Domain))
                     {
                         await this.NewBlockRule(new BlockRule()
                         {
-                            Domain = uri.Host,
+                            Domain = _post.Domain,
                             BlockType = BlockType.Post,
-                            RuleName = $"({uri.Host})"
+                            RuleName = $"({_post.Domain})"
                         });
                     }
 
