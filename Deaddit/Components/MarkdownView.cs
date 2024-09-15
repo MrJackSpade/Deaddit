@@ -422,35 +422,47 @@ namespace Deaddit.Components
                     Text = trimmed
                 };
 
-                if (trimmed.TryTrim("~~", out trimmed))
-                {
-                    span.Text = trimmed;
-                    span.TextDecorations |= TextDecorations.Strikethrough;
-                }
+                bool modified;
 
-                if (trimmed.TryTrim("__", out trimmed))
+                do
                 {
-                    span.Text = trimmed;
-                    span.FontAttributes |= FontAttributes.Bold;
-                }
+                    modified = false;
 
-                if (trimmed.TryTrim("_", out trimmed))
-                {
-                    span.Text = trimmed;
-                    span.FontAttributes |= FontAttributes.Italic;
-                }
+                    if (trimmed.TryTrim("~~", out trimmed))
+                    {
+                        span.Text = trimmed;
+                        span.TextDecorations |= TextDecorations.Strikethrough;
+                        modified = true;
+                    }
 
-                if (trimmed.TryTrim("**", out trimmed))
-                {
-                    span.Text = trimmed;
-                    span.FontAttributes |= FontAttributes.Bold;
-                }
+                    if (trimmed.TryTrim("__", out trimmed))
+                    {
+                        span.Text = trimmed;
+                        span.FontAttributes |= FontAttributes.Bold;
+                        modified = true;
+                    }
 
-                if (trimmed.TryTrim("*", out trimmed))
-                {
-                    span.Text = trimmed;
-                    span.FontAttributes |= FontAttributes.Italic;
-                }
+                    if (trimmed.TryTrim("_", out trimmed))
+                    {
+                        span.Text = trimmed;
+                        span.FontAttributes |= FontAttributes.Italic;
+                        modified = true;
+                    }
+
+                    if (trimmed.TryTrim("**", out trimmed))
+                    {
+                        span.Text = trimmed;
+                        span.FontAttributes |= FontAttributes.Bold;
+                        modified = true;
+                    }
+
+                    if (trimmed.TryTrim("*", out trimmed))
+                    {
+                        span.Text = trimmed;
+                        span.FontAttributes |= FontAttributes.Italic;
+                        modified = true;
+                    }
+                } while (modified);
 
                 if (trimmed.TryTrim(">!", "!<", out trimmed))
                 {
@@ -471,10 +483,16 @@ namespace Deaddit.Components
                 }
                 else if (trimmed.StartsWith('[') && trimmed.Contains("](")) // Link detection
                 {
-                    string linkText = trimmed.Split("](")[0] + "]";
+                    string linkText = (trimmed.Split("](")[0] + "]")[1..^1];
+
                     string linkUrl = "(" + trimmed.Split("](")[1];
 
-                    span.Text = linkText[1..^1];
+                    if (string.IsNullOrWhiteSpace(linkText))
+                    {
+                        linkText = linkUrl;
+                    }
+
+                    span.Text = linkText;
                     span.TextColor = HyperlinkColor;
                     span.TextDecorations = TextDecorations.Underline;
 
@@ -581,12 +599,21 @@ namespace Deaddit.Components
 
         private void HandleBlockQuote(string line, bool lineBeforeWasBlockQuote, Grid grid, out bool currentLineIsBlockQuote, ref int gridRow)
         {
-            Frame box = new()
+            Grid blockQuoteGrid = new()
             {
-                Margin = new Thickness(0),
+                RowSpacing = 0,
+                ColumnSpacing = 0,
+                BackgroundColor = BlockQuoteBackgroundColor,
+                ColumnDefinitions =
+                {
+                    new ColumnDefinition { Width = 2 },
+                    new ColumnDefinition { Width = GridLength.Star }
+                }
+            };
+
+            BoxView box = new()
+            {
                 BackgroundColor = BlockQuoteBorderColor,
-                BorderColor = BlockQuoteBorderColor,
-                CornerRadius = 0,
                 HorizontalOptions = LayoutOptions.Fill,
                 VerticalOptions = LayoutOptions.Fill
             };
@@ -601,17 +628,6 @@ namespace Deaddit.Components
                 Padding = new Thickness(2, 0, 0, 0)
             };
 
-            Grid blockQuoteGrid = new()
-            {
-                RowSpacing = 0,
-                ColumnSpacing = 0,
-                ColumnDefinitions =
-                {
-                    new ColumnDefinition { Width = 2 },
-                    new ColumnDefinition { Width = GridLength.Star }
-                }
-            };
-
             blockQuoteGrid.Children.Add(box);
             Grid.SetRow(box, 0);
             Grid.SetColumn(box, 0);
@@ -620,25 +636,16 @@ namespace Deaddit.Components
             Grid.SetRow(blockQuoteLabel, 0);
             Grid.SetColumn(blockQuoteLabel, 1);
 
-            Frame blockquote = new()
-            {
-                Padding = new Thickness(0),
-                CornerRadius = 0,
-                BackgroundColor = BlockQuoteBackgroundColor,
-                BorderColor = BlockQuoteBackgroundColor,
-                Content = blockQuoteGrid
-            };
-
             if (lineBeforeWasBlockQuote)
             {
-                blockquote.Margin = new Thickness(0, -grid.RowSpacing, 0, 0);
+                blockQuoteGrid.Margin = new Thickness(0, -grid.RowSpacing, 0, 0);
             }
 
             currentLineIsBlockQuote = true;
 
-            grid.Children.Add(blockquote);
-            Grid.SetColumnSpan(blockquote, 2);
-            Grid.SetRow(blockquote, gridRow++);
+            grid.Children.Add(blockQuoteGrid);
+            Grid.SetColumnSpan(blockQuoteGrid, 2);
+            Grid.SetRow(blockQuoteGrid, gridRow++);
         }
 
         private void HandleSingleLineOrStartOfCodeBlock(string line, Grid grid, ref int gridRow, bool isSingleLineCodeBlock, ref Label activeCodeBlockLabel)

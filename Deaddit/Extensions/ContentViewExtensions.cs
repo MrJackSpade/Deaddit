@@ -17,9 +17,12 @@ namespace Deaddit.Extensions
 
             foreach (T value in Enum.GetValues(typeof(T)))
             {
-                if (textOverrides.TryGetValue(value, out string textOverride))
+                if (textOverrides.TryGetValue(value, out string? textOverride))
                 {
-                    buttonValues.Add(textOverride, value);
+                    if (!string.IsNullOrWhiteSpace(textOverride))
+                    {
+                        buttonValues.Add(textOverride, value);
+                    }
                 }
                 else if (value.GetAttribute<EnumMemberAttribute>() is EnumMemberAttribute ea && !string.IsNullOrWhiteSpace(ea.Value))
                 {

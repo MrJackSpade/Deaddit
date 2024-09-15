@@ -161,42 +161,42 @@ namespace Deaddit.Core.Utils
                     return true;
                 }
 
-                if (Regex.IsMatch(input, MARKDOWN_PATTERN))
+                if (Regex.IsMatch(line, MARKDOWN_PATTERN))
                 {
                     return true;
                 }
 
-                if (IsBlockQuote(input))
+                if (IsBlockQuote(line))
                 {
                     return true;
                 }
 
-                if (IsCodeBlock(input, out _))
+                if (IsCodeBlock(line, out _))
                 {
                     return true;
                 }
 
-                if (IsHeadline(input, out _))
+                if (IsHeadline(line, out _))
                 {
                     return true;
                 }
 
-                if (IsHorizontalRule(input))
+                if (IsHorizontalRule(line))
                 {
                     return true;
                 }
 
-                if (IsImage(input))
+                if (IsImage(line))
                 {
                     return true;
                 }
 
-                if (IsOrderedList(input, out _))
+                if (IsOrderedList(line, out _))
                 {
                     return true;
                 }
 
-                if (IsUnorderedList(input))
+                if (IsUnorderedList(line))
                 {
                     return true;
                 }

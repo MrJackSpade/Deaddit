@@ -5,7 +5,7 @@ namespace Deaddit.Extensions
 {
     public static class ContentPageExtensions
     {
-        public static async Task<T?> DisplayActionSheet<T>(this ContentPage page, string? title, string? cancel, string? destruction, Dictionary<T, string> textOverrides = null) where T : struct, Enum
+        public static async Task<T?> DisplayActionSheet<T>(this ContentPage page, string? title, string? cancel, string? destruction, Dictionary<T, string?> textOverrides = null) where T : struct, Enum
         {
             //This should all be replaced with something that looks better and uses the proper theme, but this is as good as anything for now
 
@@ -15,9 +15,12 @@ namespace Deaddit.Extensions
 
             foreach (T value in Enum.GetValues(typeof(T)))
             {
-                if (textOverrides.TryGetValue(value, out string textOverride))
+                if (textOverrides.TryGetValue(value, out string? textOverride))
                 {
-                    buttonValues.Add(textOverride, value);
+                    if(!string.IsNullOrWhiteSpace(textOverride))
+                    {
+                        buttonValues.Add(textOverride, value);
+                    }
                 }
                 else if (value.GetAttribute<EnumMemberAttribute>() is EnumMemberAttribute ea && !string.IsNullOrWhiteSpace(ea.Value))
                 {

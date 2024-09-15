@@ -9,5 +9,11 @@ namespace Deaddit.Core.Reddit.Models.Api
 
         [JsonPropertyName("mp4")]
         public string? MP4 { get; init; }
+
+        [JsonPropertyName("obfuscated")]
+        public bool? IsObfuscated { get; init; }
+
+        [JsonPropertyName("nsfw")]
+        public bool? IsNsfw { get; init; }
     }
 }
