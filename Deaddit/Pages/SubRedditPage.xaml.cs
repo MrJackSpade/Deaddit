@@ -45,6 +45,12 @@ namespace Deaddit.Pages
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
+            if(subreddit.Kind == ThingKind.Account)
+            {
+                _isBlockEnabled = false;
+                blockButton.TextColor = applicationTheme.TextColor.ToMauiColor();
+            }
+
             _applicationHacks = Ensure.NotNull(applicationHacks);
             _appNavigator = Ensure.NotNull(appNavigator);
             _blockConfiguration = Ensure.NotNull(blockConfiguration);
@@ -159,8 +165,10 @@ namespace Deaddit.Pages
                         // Update the 'after' cursor for pagination
                         _after = thing.Name;
 
+                        bool blocked = !_blockConfiguration.IsAllowed(thing, userData);
+
                         // Skip if not allowed by block configuration
-                        if (!_blockConfiguration.IsAllowed(thing, userData))
+                        if (blocked && _isBlockEnabled)
                         {
                             continue;
                         }
@@ -197,7 +205,7 @@ namespace Deaddit.Pages
                             }
 
                             // Create post component
-                            RedditPostComponent redditPostComponent = _appNavigator.CreatePostComponent(post, _selectionGroup);
+                            RedditPostComponent redditPostComponent = _appNavigator.CreatePostComponent(post, blocked, _selectionGroup);
 
                             // Attach event handlers
                             redditPostComponent.BlockAdded += this.RedditPostComponent_OnBlockAdded;
@@ -240,6 +248,23 @@ namespace Deaddit.Pages
                     scrollView.Add(component);
                 }
             }, _applicationStyling.HighlightColor.ToMauiColor());
+        }
+
+        private bool _isBlockEnabled = true;
+
+        public async void OnBlockClicked(object? sender, EventArgs e)
+        {
+            _isBlockEnabled = !_isBlockEnabled;
+
+            if (_isBlockEnabled)
+            {
+                blockButton.TextColor = Color.Parse("#FF0000");
+            } else
+            {
+                blockButton.TextColor = _applicationStyling.TextColor.ToMauiColor();
+            }
+
+            await this.Reload();
         }
 
         private void InitSortButtons(Enum sort)

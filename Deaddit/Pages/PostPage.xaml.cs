@@ -52,7 +52,7 @@ namespace Deaddit.Pages
 
             this.InitializeComponent();
 
-            RedditPostComponent redditPostComponent = _appNavigator.CreatePostComponent(post, null);
+            RedditPostComponent redditPostComponent = _appNavigator.CreatePostComponent(post, false, null);
 
             BackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
 
