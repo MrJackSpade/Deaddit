@@ -157,6 +157,9 @@ namespace Deaddit.Core.Reddit.Models.Api
         [JsonPropertyName("thumbnail_width")]
         public int? ThumbnailWidth { get; init; }
 
+        [JsonPropertyName("num_duplicates")]
+        public int? NumberOfDuplicates { get; init; }
+
         [JsonPropertyName("title")]
         public string? Title { get; init; }
 
@@ -170,7 +173,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public string? UrlOverriddenByDest { get; init; }
 
         [JsonPropertyName("view_count")]
-        public object? ViewCount { get; init; }
+        public int? ViewCount { get; init; }
 
         [JsonPropertyName("visited")]
         public bool Visited { get; init; }

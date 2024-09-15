@@ -313,7 +313,7 @@ namespace Deaddit.Core.Reddit
             return await _httpClient.GetStreamAsync(url);
         }
 
-        public async IAsyncEnumerable<ApiThing> MoreComments(ApiPost post, ApiMore moreItem)
+        public async IAsyncEnumerable<ApiThing> MoreComments(ApiPost post, IMore moreItem)
         {
             await this.ThrottleAsync();
 

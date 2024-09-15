@@ -53,7 +53,7 @@ namespace Deaddit.Utils
             }
         }
 
-        public MoreCommentsComponent CreateMoreCommentsComponent(ApiMore more)
+        public MoreCommentsComponent CreateMoreCommentsComponent(IMore more)
         {
             return new MoreCommentsComponent(more, _applicationStyling);
         }

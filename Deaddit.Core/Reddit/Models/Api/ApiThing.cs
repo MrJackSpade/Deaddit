@@ -12,6 +12,9 @@ namespace Deaddit.Core.Reddit.Models.Api
         [JsonPropertyName("approved_at_utc")]
         public OptionalDateTime ApprovedAtUtc { get; init; }
 
+        [JsonPropertyName("author_cakeday")]
+        public bool? AuthorCakeDay { get; init; }
+
         [JsonPropertyName("approved_by")]
         public object? ApprovedBy { get; init; }
 
