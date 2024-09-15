@@ -45,12 +45,6 @@ namespace Deaddit.Pages
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
-            if(subreddit.Kind == ThingKind.Account)
-            {
-                _isBlockEnabled = false;
-                blockButton.TextColor = applicationTheme.TextColor.ToMauiColor();
-            }
-
             _applicationHacks = Ensure.NotNull(applicationHacks);
             _appNavigator = Ensure.NotNull(appNavigator);
             _blockConfiguration = Ensure.NotNull(blockConfiguration);
@@ -65,6 +59,12 @@ namespace Deaddit.Pages
 
             this.InitializeComponent();
 
+            if (subreddit.Kind == ThingKind.Account)
+            {
+                _isBlockEnabled = false;
+                blockButton.TextColor = applicationTheme.TextColor.ToMauiColor();
+            }
+
             scrollView.Add(_sortButtons, false);
             scrollView.Spacing = 1;
             scrollView.BackgroundColor = applicationTheme.SecondaryColor.ToMauiColor();
@@ -73,12 +73,10 @@ namespace Deaddit.Pages
 
             navigationBar.BackgroundColor = applicationTheme.PrimaryColor.ToMauiColor();
             settingsButton.TextColor = applicationTheme.TextColor.ToMauiColor();
-            menuButton.TextColor = applicationTheme.TextColor.ToMauiColor();
 
             subredditLabel.TextColor = applicationTheme.TextColor.ToMauiColor();
             subredditLabel.Text = subreddit.DisplayName;
 
-            menuButton.TextColor = applicationTheme.TextColor.ToMauiColor();
             reloadButton.TextColor = applicationTheme.TextColor.ToMauiColor();
             infoButton.TextColor = applicationTheme.TextColor.ToMauiColor();
 

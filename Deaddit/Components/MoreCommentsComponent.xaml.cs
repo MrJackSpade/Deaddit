@@ -28,6 +28,7 @@ namespace Deaddit.MAUI.Components
                 {
                     CollapsedReasonKind.Deleted => "Deleted",
                     CollapsedReasonKind.LowScore => "Low Score",
+                    CollapsedReasonKind.BlockedAuthor => "Blocked Author",
                     _ => cm.CollapsedReasonCode.ToString()
                 };
             }
