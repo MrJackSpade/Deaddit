@@ -3,7 +3,6 @@ using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Exceptions;
 using Deaddit.Core.Extensions;
 using Deaddit.Core.Interfaces;
-using Deaddit.Core.Reddit.Extensions;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
@@ -17,22 +16,15 @@ using Deaddit.MAUI.Components.Partials;
 using Deaddit.Pages;
 using Deaddit.Utils;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Deaddit.MAUI.Components
 {
-    public partial class RedditCommentComponent : ContentView, ISelectionGroupItem
+    public partial class RedditCommentComponent : ContentView, ISelectionGroupItem, IHasChildren
     {
         private readonly ApplicationStyling _applicationStyling;
 
-        private readonly IAppNavigator _appNavigator;
-
-        private readonly BlockConfiguration _blockConfiguration;
-
         private readonly ApiComment _comment;
-
-        private readonly SelectionGroup _commentSelectionGroup;
-
-        private readonly ApiPost _post;
 
         private readonly IRedditClient _redditClient;
 
@@ -48,12 +40,12 @@ namespace Deaddit.MAUI.Components
         {
             SelectEnabled = selectEnabled;
             _applicationStyling = applicationTheme;
-            _blockConfiguration = blockConfiguration;
+            BlockConfiguration = blockConfiguration;
             _redditClient = redditClient;
-            _post = post;
-            _appNavigator = appNavigator;
+            Post = post;
+            AppNavigator = appNavigator;
             _comment = comment;
-            _commentSelectionGroup = selectionTracker;
+            SelectionGroup = selectionTracker;
 
             this.InitializeComponent();
 
@@ -122,66 +114,57 @@ namespace Deaddit.MAUI.Components
 
         public event EventHandler<OnDeleteClickedEventArgs>? OnDelete;
 
+        public IAppNavigator AppNavigator { get; }
+
+        public BlockConfiguration BlockConfiguration { get; }
+
+        Layout IHasChildren.ChildContainer => _replies;
+
+        public ApiPost Post { get; }
+
         public bool SelectEnabled { get; private set; }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="children"></param>
-        /// <param name="loadMore">Force load collapsed children</param>
-        /// <exception cref="NotImplementedException"></exception>
-        public void AddChildren(IEnumerable<ApiThing> children, bool loadMore = false)
+        public SelectionGroup SelectionGroup { get; }
+
+        [MemberNotNull(nameof(_replies))]
+        public void InitChildContainer()
         {
-            foreach (ApiThing? child in children)
+            if (_replies is null)
             {
-                ApiThing renderChild = child;
-
-                if (!_blockConfiguration.IsAllowed(renderChild))
+                _replies = new VerticalStackLayout()
                 {
-                    continue;
-                }
+                    VerticalOptions = LayoutOptions.Fill,
+                    Margin = new Thickness(15, 0, 0, 0),
+                    BackgroundColor = _applicationStyling.TertiaryColor.ToMauiColor(),
+                    Padding = new Thickness(1, 0, 0, 0)
+                };
 
-                if (renderChild.Id == _post.Id)
+                commentContainer.Padding = new Thickness(0, 0, 0, 6);
+
+                commentContainer.Add(_replies);
+            }
+        }
+
+        public async void MoreCommentsClick(object? sender, IMore e)
+        {
+            MoreCommentsComponent? mcomponent = sender as MoreCommentsComponent;
+
+            if (e.ChildNames.NotNullAny())
+            {
+                await DataService.LoadAsync(_replies, async () => await this.LoadMoreCommentsAsync(e), _applicationStyling.HighlightColor.ToMauiColor());
+
+                _replies.Remove(mcomponent);
+            }
+            else
+            {
+                if (e.Parent is ApiComment parentComment)
                 {
-                    continue;
+                    await this.ContinueThread(parentComment);
                 }
-
-                if (renderChild.IsDeleted() || renderChild.IsRemoved())
+                else
                 {
-                    continue;
+                    throw new ArgumentException("For some reason the more comment parent wasn't a proper comment");
                 }
-
-                ContentView? childComponent = null;
-
-                if (renderChild is ApiComment comment)
-                {
-                    if (comment.CollapsedReasonCode == CollapsedReasonKind.None || loadMore)
-                    {
-                        RedditCommentComponent commentComponent = _appNavigator.CreateCommentComponent(comment, _post, _commentSelectionGroup);
-                        commentComponent.AddChildren(comment.GetReplies());
-                        commentComponent.OnDelete += this.OnCommentDelete;
-                        childComponent = commentComponent;
-                    }
-                    else
-                    {
-                        renderChild = new CollapsedMore(comment);
-                    }
-                }
-
-                if (renderChild is IMore more)
-                {
-                    MoreCommentsComponent mcomponent = _appNavigator.CreateMoreCommentsComponent(more);
-                    mcomponent.OnClick += this.MoreCommentsClick;
-                    childComponent = mcomponent;
-                }
-
-                if (childComponent is null)
-                {
-                    throw new NotImplementedException();
-                }
-
-                this.TryInitReplies();
-                _replies.Add(childComponent);
             }
         }
 
@@ -223,7 +206,7 @@ namespace Deaddit.MAUI.Components
 
             PostItems resource = UrlHelper.Resolve(e.Url);
 
-            await Navigation.OpenResource(resource, _appNavigator);
+            await Navigation.OpenResource(resource, AppNavigator);
         }
 
         public async void OnMoreClicked(object? sender, EventArgs e)
@@ -266,15 +249,15 @@ namespace Deaddit.MAUI.Components
                     case CommentMoreOptions.BlockAuthor:
                         await this.NewBlockRule(new BlockRule()
                         {
-                            Author = _post.Author,
+                            Author = Post.Author,
                             BlockType = BlockType.Post,
-                            RuleName = $"/u/{_post.Author}"
+                            RuleName = $"/u/{Post.Author}"
                         });
                         break;
 
                     case CommentMoreOptions.ViewAuthor:
                         Ensure.NotNull(_comment.Author);
-                        await _appNavigator.OpenUser(_comment.Author);
+                        await AppNavigator.OpenUser(_comment.Author);
                         break;
 
                     case CommentMoreOptions.CopyRaw:
@@ -312,7 +295,7 @@ namespace Deaddit.MAUI.Components
                         break;
 
                     case MyCommentMoreOptions.Edit:
-                        ReplyPage replyPage = await _appNavigator.OpenEditPage(_comment);
+                        ReplyPage replyPage = await AppNavigator.OpenEditPage(_comment);
                         replyPage.OnSubmitted += this.EditPage_OnSubmitted;
                         break;
 
@@ -328,12 +311,12 @@ namespace Deaddit.MAUI.Components
 
         public void OnParentTapped(object? sender, TappedEventArgs e)
         {
-            _commentSelectionGroup.Toggle(this);
+            SelectionGroup.Toggle(this);
         }
 
         public async void OnReplyClicked(object? sender, EventArgs e)
         {
-            ReplyPage replyPage = await _appNavigator.OpenReplyPage(_comment);
+            ReplyPage replyPage = await AppNavigator.OpenReplyPage(_comment);
             replyPage.OnSubmitted += this.ReplyPage_OnSubmitted;
         }
 
@@ -393,156 +376,6 @@ namespace Deaddit.MAUI.Components
             commentBody.BackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
         }
 
-        private void BlockRuleOnSave(object? sender, ObjectEditorSaveEventArgs e)
-        {
-        }
-
-        private async Task ContinueThread(ApiComment comment)
-        {
-            await _appNavigator.OpenPost(_post, comment);
-        }
-
-        private async void EditPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
-        {
-            _comment.Body = e.NewComment.Body;
-
-            if (commentBody is Label label)
-            {
-                label.Text = MarkDownHelper.Clean(_comment.Body);
-            }
-            else if (commentBody is MarkdownView markdownView)
-            {
-                markdownView.MarkdownText = MarkDownHelper.Clean(_comment.Body);
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        private async Task LoadMoreCommentsAsync(IMore comment)
-        {
-            List<ApiThing> response = await _redditClient.MoreComments(_post, comment).ToList();
-
-            this.AddChildren(response, true);
-        }
-
-        private async void MoreCommentsClick(object? sender, IMore e)
-        {
-            MoreCommentsComponent? mcomponent = sender as MoreCommentsComponent;
-
-            if (e.ChildNames.NotNullAny())
-            {
-                await DataService.LoadAsync(_replies, async () => await this.LoadMoreCommentsAsync(e), _applicationStyling.HighlightColor.ToMauiColor());
-
-                _replies.Remove(mcomponent);
-            }
-            else
-            {
-                if (e.Parent is ApiComment parentComment)
-                {
-                    await this.ContinueThread(parentComment);
-                }
-                else
-                {
-                    throw new ArgumentException("For some reason the more comment parent wasn't a proper comment");
-                }
-            }
-        }
-
-        private async Task NewBlockRule(BlockRule blockRule)
-        {
-            ObjectEditorPage objectEditorPage = await _appNavigator.OpenObjectEditor(blockRule);
-
-            objectEditorPage.OnSave += this.BlockRuleOnSave;
-        }
-
-        private void OnCommentDelete(object? sender, OnDeleteClickedEventArgs e)
-        {
-            _replies.Children.Remove(e.Component);
-        }
-
-        private async void OnShareClicked(object? sender, EventArgs e)
-        {
-            await Share.Default.RequestAsync(new ShareTextRequest
-            {
-                Uri = _comment.Permalink,
-                Title = _comment.Body
-            });
-        }
-
-        private void ReplyPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
-        {
-            Ensure.NotNull(e.NewComment, "New comment data");
-
-            e.NewComment.ParentId = _comment.Id;
-            e.NewComment.Parent = _comment;
-
-            RedditCommentComponent redditCommentComponent = _appNavigator.CreateCommentComponent(e.NewComment, _post, _commentSelectionGroup);
-            redditCommentComponent.OnDelete += this.OnCommentDelete;
-            this.TryInitReplies();
-            _replies.Children.Insert(0, redditCommentComponent);
-        }
-
-        private void SetIndicatorState(UpvoteState state)
-        {
-            this.UpdateMetaData();
-
-            switch (state)
-            {
-                case UpvoteState.Upvote:
-                    _comment.Likes = UpvoteState.Upvote;
-                    voteIndicator.Text = "▲";
-                    voteIndicator.TextColor = _applicationStyling.UpvoteColor.ToMauiColor();
-                    voteIndicator.IsVisible = true;
-                    break;
-
-                case UpvoteState.Downvote:
-                    _comment.Likes = UpvoteState.Downvote;
-                    voteIndicator.Text = "▼";
-                    voteIndicator.TextColor = _applicationStyling.DownvoteColor.ToMauiColor();
-                    voteIndicator.IsVisible = true;
-                    break;
-
-                default:
-                    _comment.Likes = UpvoteState.None;
-                    voteIndicator.Text = string.Empty;
-                    voteIndicator.TextColor = _applicationStyling.TextColor.ToMauiColor();
-                    voteIndicator.IsVisible = false;
-                    break;
-            }
-        }
-
-        private void TryInitReplies()
-        {
-            if (_replies is null)
-            {
-                _replies = new VerticalStackLayout()
-                {
-                    VerticalOptions = LayoutOptions.Fill,
-                    Margin = new Thickness(15, 0, 0, 0),
-                    BackgroundColor = _applicationStyling.TertiaryColor.ToMauiColor(),
-                    Padding = new Thickness(1, 0, 0, 0)
-                };
-
-                commentContainer.Padding = new Thickness(0, 0, 0, 6);
-
-                commentContainer.Add(_replies);
-            }
-        }
-
-        private void UpdateMetaData()
-        {
-            if (!_comment.ScoreHidden == true)
-            {
-                metaDataLabel.Text = $"{_comment.Score} points {_comment.CreatedUtc.Elapsed()}";
-            }
-            else
-            {
-                metaDataLabel.Text = _comment.CreatedUtc.Elapsed();
-            }
-        }
-
         internal void LoadImages(bool recursive = false)
         {
             if (commentBody is MarkdownView mv)
@@ -584,6 +417,110 @@ namespace Deaddit.MAUI.Components
                 {
                     element.LoadImages(true);
                 }
+            }
+        }
+
+        private void BlockRuleOnSave(object? sender, ObjectEditorSaveEventArgs e)
+        {
+        }
+
+        private async Task ContinueThread(ApiComment comment)
+        {
+            await AppNavigator.OpenPost(Post, comment);
+        }
+
+        private async void EditPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
+        {
+            _comment.Body = e.NewComment.Body;
+
+            if (commentBody is Label label)
+            {
+                label.Text = MarkDownHelper.Clean(_comment.Body);
+            }
+            else if (commentBody is MarkdownView markdownView)
+            {
+                markdownView.MarkdownText = MarkDownHelper.Clean(_comment.Body);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private async Task LoadMoreCommentsAsync(IMore comment)
+        {
+            List<ApiThing> response = await _redditClient.MoreComments(Post, comment).ToList();
+
+            this.AddChildren(response, true);
+        }
+
+        private async Task NewBlockRule(BlockRule blockRule)
+        {
+            ObjectEditorPage objectEditorPage = await AppNavigator.OpenObjectEditor(blockRule);
+
+            objectEditorPage.OnSave += this.BlockRuleOnSave;
+        }
+
+        private async void OnShareClicked(object? sender, EventArgs e)
+        {
+            await Share.Default.RequestAsync(new ShareTextRequest
+            {
+                Uri = _comment.Permalink,
+                Title = _comment.Body
+            });
+        }
+
+        private void ReplyPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
+        {
+            Ensure.NotNull(e.NewComment, "New comment data");
+
+            e.NewComment.ParentId = _comment.Id;
+            e.NewComment.Parent = _comment;
+
+            RedditCommentComponent redditCommentComponent = AppNavigator.CreateCommentComponent(e.NewComment, Post, SelectionGroup);
+            redditCommentComponent.OnDelete += (s, e) => _replies.Remove(redditCommentComponent);
+            this.InitChildContainer();
+            _replies.Children.Insert(0, redditCommentComponent);
+        }
+
+        private void SetIndicatorState(UpvoteState state)
+        {
+            this.UpdateMetaData();
+
+            switch (state)
+            {
+                case UpvoteState.Upvote:
+                    _comment.Likes = UpvoteState.Upvote;
+                    voteIndicator.Text = "▲";
+                    voteIndicator.TextColor = _applicationStyling.UpvoteColor.ToMauiColor();
+                    voteIndicator.IsVisible = true;
+                    break;
+
+                case UpvoteState.Downvote:
+                    _comment.Likes = UpvoteState.Downvote;
+                    voteIndicator.Text = "▼";
+                    voteIndicator.TextColor = _applicationStyling.DownvoteColor.ToMauiColor();
+                    voteIndicator.IsVisible = true;
+                    break;
+
+                default:
+                    _comment.Likes = UpvoteState.None;
+                    voteIndicator.Text = string.Empty;
+                    voteIndicator.TextColor = _applicationStyling.TextColor.ToMauiColor();
+                    voteIndicator.IsVisible = false;
+                    break;
+            }
+        }
+
+        private void UpdateMetaData()
+        {
+            if (!_comment.ScoreHidden == true)
+            {
+                metaDataLabel.Text = $"{_comment.Score} points {_comment.CreatedUtc.Elapsed()}";
+            }
+            else
+            {
+                metaDataLabel.Text = _comment.CreatedUtc.Elapsed();
             }
         }
     }

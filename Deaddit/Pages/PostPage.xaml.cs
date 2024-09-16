@@ -19,21 +19,13 @@ using System.Diagnostics;
 
 namespace Deaddit.Pages
 {
-    public partial class PostPage : ContentPage
+    public partial class PostPage : ContentPage, IHasChildren
     {
         private readonly ApplicationStyling _applicationStyling;
 
-        private readonly IAppNavigator _appNavigator;
-
-        private readonly BlockConfiguration _blockConfiguration;
-
         private readonly ApiComment? _commentFocus;
 
-        private readonly SelectionGroup _commentSelectionGroup;
-
         private readonly IConfigurationService _configurationService;
-
-        private readonly ApiPost _post;
 
         private readonly IRedditClient _redditClient;
 
@@ -42,17 +34,17 @@ namespace Deaddit.Pages
             NavigationPage.SetHasNavigationBar(this, false);
 
             _configurationService = configurationService;
-            _appNavigator = appNavigator;
+            AppNavigator = appNavigator;
             _commentFocus = focus;
-            _commentSelectionGroup = new SelectionGroup();
-            _post = post;
-            _blockConfiguration = blockConfiguration;
+            SelectionGroup = new SelectionGroup();
+            Post = post;
+            BlockConfiguration = blockConfiguration;
             _applicationStyling = applicationTheme;
             _redditClient = redditClient;
 
             this.InitializeComponent();
 
-            RedditPostComponent redditPostComponent = _appNavigator.CreatePostComponent(post, false, null);
+            RedditPostComponent redditPostComponent = AppNavigator.CreatePostComponent(post, false, null);
 
             BackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
 
@@ -73,9 +65,51 @@ namespace Deaddit.Pages
             moreButton.TextColor = _applicationStyling.TextColor.ToMauiColor();
             replyButton.TextColor = _applicationStyling.TextColor.ToMauiColor();
 
-            saveButton.Text = _post.Saved == true ? "Unsave" : "Save";
+            saveButton.Text = Post.Saved == true ? "Unsave" : "Save";
 
             mainStack.Children.Insert(0, redditPostComponent);
+        }
+
+        public IAppNavigator AppNavigator { get; }
+
+        public BlockConfiguration BlockConfiguration { get; }
+
+        Layout IHasChildren.ChildContainer => this.mainStack;
+
+        public ApiPost Post { get; }
+
+        public SelectionGroup SelectionGroup { get; }
+
+        public void InitChildContainer()
+        {
+        }
+
+        public async void MoreCommentsClick(object? sender, IMore e)
+        {
+            MoreCommentsComponent mcomponent = sender as MoreCommentsComponent;
+
+            await DataService.LoadAsync(mainStack, async () => await this.LoadMoreAsync(Post, e), _applicationStyling.HighlightColor.ToMauiColor());
+
+            mainStack.Children.Remove(mcomponent);
+        }
+
+        public virtual void OnBackClicked(object? sender, EventArgs e)
+        {
+            Navigation.PopAsync();
+        }
+
+        public virtual async void OnHideClicked(object? sender, EventArgs e)
+        {
+            await _redditClient.ToggleVisibility(Post, false);
+        }
+
+        public virtual async void OnHyperLinkClicked(object? sender, LinkEventArgs e)
+        {
+            Ensure.NotNullOrWhiteSpace(e.Url);
+
+            PostItems resource = UrlHelper.Resolve(e.Url);
+
+            await Navigation.OpenResource(resource, AppNavigator);
         }
 
         public virtual void OnImagesClicked(object? sender, EventArgs e)
@@ -86,79 +120,27 @@ namespace Deaddit.Pages
             }
         }
 
-        public virtual void OnBackClicked(object? sender, EventArgs e)
-        {
-            Navigation.PopAsync();
-        }
-
-        public virtual async void OnHideClicked(object? sender, EventArgs e)
-        {
-            await _redditClient.ToggleVisibility(_post, false);
-        }
-
-        public virtual async void OnHyperLinkClicked(object? sender, LinkEventArgs e)
-        {
-            Ensure.NotNullOrWhiteSpace(e.Url);
-
-            PostItems resource = UrlHelper.Resolve(e.Url);
-
-            await Navigation.OpenResource(resource, _appNavigator);
-        }
-
-        private void BlockRuleOnSave(object? sender, Deaddit.EventArguments.ObjectEditorSaveEventArgs e)
-        {
-            if (e.Saved is BlockRule blockRule)
-            {
-                _blockConfiguration.BlockRules.Add(blockRule);
-
-                _configurationService.Write(_blockConfiguration);
-            }
-        }
-        private async Task NewBlockRule(BlockRule blockRule)
-        {
-            ObjectEditorPage objectEditorPage = await _appNavigator.OpenObjectEditor(blockRule);
-
-            objectEditorPage.OnSave += this.BlockRuleOnSave;
-        }
-
-        public virtual async void OnSaveClicked(object? sender, EventArgs e)
-        {
-            if (_post.Saved == true)
-            {
-                await _redditClient.ToggleSave(_post, false);
-                _post.Saved = false;
-                saveButton.Text = "Save";
-            }
-            else
-            {
-                await _redditClient.ToggleSave(_post, true);
-                _post.Saved = true;
-                saveButton.Text = "Unsave";
-            }
-        }
-
         public virtual async void OnMoreOptionsClicked(object? sender, EventArgs e)
         {
-
             Dictionary<PostMoreOptions, string?> options = [];
 
-            options.Add(PostMoreOptions.BlockAuthor, $"Block /u/{_post.Author}");
-            options.Add(PostMoreOptions.BlockSubreddit, $"Block /r/{_post.SubReddit}");
-            options.Add(PostMoreOptions.ViewAuthor, $"View /u/{_post.Author}");
-            options.Add(PostMoreOptions.ViewSubreddit, $"View /r/{_post.SubReddit}");
+            options.Add(PostMoreOptions.BlockAuthor, $"Block /u/{Post.Author}");
+            options.Add(PostMoreOptions.BlockSubreddit, $"Block /r/{Post.SubReddit}");
+            options.Add(PostMoreOptions.ViewAuthor, $"View /u/{Post.Author}");
+            options.Add(PostMoreOptions.ViewSubreddit, $"View /r/{Post.SubReddit}");
 
-            if (!string.IsNullOrWhiteSpace(_post.Domain))
+            if (!string.IsNullOrWhiteSpace(Post.Domain))
             {
-                options.Add(PostMoreOptions.BlockDomain, $"Block {_post.Domain}");
+                options.Add(PostMoreOptions.BlockDomain, $"Block {Post.Domain}");
             }
             else
             {
                 options.Add(PostMoreOptions.BlockDomain, null);
             }
 
-            if (!string.IsNullOrWhiteSpace(_post.LinkFlairText))
+            if (!string.IsNullOrWhiteSpace(Post.LinkFlairText))
             {
-                options.Add(PostMoreOptions.BlockFlair, $"Block [{_post.LinkFlairText}]");
+                options.Add(PostMoreOptions.BlockFlair, $"Block [{Post.LinkFlairText}]");
             }
             else
             {
@@ -175,49 +157,49 @@ namespace Deaddit.Pages
             switch (postMoreOptions.Value)
             {
                 case PostMoreOptions.ViewAuthor:
-                    await _appNavigator.OpenUser(_post.Author);
+                    await AppNavigator.OpenUser(Post.Author);
                     break;
 
                 case PostMoreOptions.BlockFlair:
                     await this.NewBlockRule(new BlockRule()
                     {
-                        Flair = _post.LinkFlairText,
-                        SubReddit = _post.SubReddit,
+                        Flair = Post.LinkFlairText,
+                        SubReddit = Post.SubReddit,
                         BlockType = BlockType.Post,
-                        RuleName = $"{_post.SubReddit} [{_post.LinkFlairText}]"
+                        RuleName = $"{Post.SubReddit} [{Post.LinkFlairText}]"
                     });
                     break;
 
                 case PostMoreOptions.BlockSubreddit:
                     await this.NewBlockRule(new BlockRule()
                     {
-                        SubReddit = _post.SubReddit,
+                        SubReddit = Post.SubReddit,
                         BlockType = BlockType.Post,
-                        RuleName = $"/r/{_post.SubReddit}"
+                        RuleName = $"/r/{Post.SubReddit}"
                     });
                     break;
 
                 case PostMoreOptions.ViewSubreddit:
-                    await _appNavigator.OpenSubReddit(_post.SubReddit, ApiPostSort.Hot);
+                    await AppNavigator.OpenSubReddit(Post.SubReddit, ApiPostSort.Hot);
                     break;
 
                 case PostMoreOptions.BlockAuthor:
                     await this.NewBlockRule(new BlockRule()
                     {
-                        Author = _post.Author,
+                        Author = Post.Author,
                         BlockType = BlockType.Post,
-                        RuleName = $"/u/{_post.Author}"
+                        RuleName = $"/u/{Post.Author}"
                     });
                     break;
 
                 case PostMoreOptions.BlockDomain:
-                    if (!string.IsNullOrWhiteSpace(_post.Domain))
+                    if (!string.IsNullOrWhiteSpace(Post.Domain))
                     {
                         await this.NewBlockRule(new BlockRule()
                         {
-                            Domain = _post.Domain,
+                            Domain = Post.Domain,
                             BlockType = BlockType.Post,
-                            RuleName = $"({_post.Domain})"
+                            RuleName = $"({Post.Domain})"
                         });
                     }
 
@@ -229,16 +211,32 @@ namespace Deaddit.Pages
 
         public virtual async void OnReplyClicked(object? sender, EventArgs e)
         {
-            ReplyPage replyPage = await _appNavigator.OpenReplyPage(_post);
+            ReplyPage replyPage = await AppNavigator.OpenReplyPage(Post);
             replyPage.OnSubmitted += this.ReplyPage_OnSubmitted;
+        }
+
+        public virtual async void OnSaveClicked(object? sender, EventArgs e)
+        {
+            if (Post.Saved == true)
+            {
+                await _redditClient.ToggleSave(Post, false);
+                Post.Saved = false;
+                saveButton.Text = "Save";
+            }
+            else
+            {
+                await _redditClient.ToggleSave(Post, true);
+                Post.Saved = true;
+                saveButton.Text = "Unsave";
+            }
         }
 
         public virtual async void OnShareClicked(object? sender, EventArgs e)
         {
             await Share.Default.RequestAsync(new ShareTextRequest
             {
-                Uri = _post.Url,
-                Title = _post.Title
+                Uri = Post.Url,
+                Title = Post.Title
             });
         }
 
@@ -247,51 +245,13 @@ namespace Deaddit.Pages
             await DataService.LoadAsync(mainStack, this.LoadDataAsync, _applicationStyling.HighlightColor.ToMauiColor());
         }
 
-        private void AddChildren(IEnumerable<ApiThing> children)
+        private void BlockRuleOnSave(object? sender, Deaddit.EventArguments.ObjectEditorSaveEventArgs e)
         {
-            foreach (ApiThing child in children)
+            if (e.Saved is BlockRule blockRule)
             {
-                if (!_blockConfiguration.IsAllowed(child))
-                {
-                    continue;
-                }
+                BlockConfiguration.BlockRules.Add(blockRule);
 
-                if (child.IsDeleted() || child.IsRemoved())
-                {
-                    continue;
-                }
-
-                ContentView? childComponent = null;
-
-                if (child is ApiComment comment)
-                {
-                    RedditCommentComponent ccomponent = _appNavigator.CreateCommentComponent(comment, _post, _commentSelectionGroup);
-                    ccomponent.AddChildren(comment.GetReplies());
-                    ccomponent.OnDelete += this.OnCommentDelete;
-                    //outer most comment padded only.
-                    ccomponent.Margin = new Thickness(0, 0, 10, 0);
-                    childComponent = ccomponent;
-                }
-                else if (child is ApiMore more)
-                {
-                    MoreCommentsComponent mcomponent = _appNavigator.CreateMoreCommentsComponent(more);
-                    mcomponent.OnClick += this.MoreCommentsClick;
-                    childComponent = mcomponent;
-                }
-                else
-                {
-                    throw new NotImplementedException();
-                }
-
-                try
-                {
-                    mainStack.Children.Add(childComponent);
-                }
-                catch (MissingMethodException mme)
-                {
-                    //More android weirdness?
-                    Debug.WriteLine(mme.Message);
-                }
+                _configurationService.Write(BlockConfiguration);
             }
         }
 
@@ -301,7 +261,7 @@ namespace Deaddit.Pages
 
             sw.Start();
 
-            List<ApiThing> response = await _redditClient.Comments(_post, _commentFocus).ToList();
+            List<ApiThing> response = await _redditClient.Comments(Post, _commentFocus).ToList();
 
             this.AddChildren(response);
 
@@ -314,30 +274,23 @@ namespace Deaddit.Pages
         {
             List<ApiThing> response = await _redditClient.MoreComments(post, more).ToList();
 
-            this.AddChildren(response);
+            this.AddChildren(response, true);
         }
 
-        private async void MoreCommentsClick(object? sender, IMore e)
+        private async Task NewBlockRule(BlockRule blockRule)
         {
-            MoreCommentsComponent mcomponent = sender as MoreCommentsComponent;
+            ObjectEditorPage objectEditorPage = await AppNavigator.OpenObjectEditor(blockRule);
 
-            await DataService.LoadAsync(mainStack, async () => await this.LoadMoreAsync(_post, e), _applicationStyling.HighlightColor.ToMauiColor());
-
-            mainStack.Children.Remove(mcomponent);
-        }
-
-        private void OnCommentDelete(object? sender, OnDeleteClickedEventArgs e)
-        {
-            mainStack.Children.Remove(e.Component);
+            objectEditorPage.OnSave += this.BlockRuleOnSave;
         }
 
         private void ReplyPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
         {
             Ensure.NotNull(e.NewComment, "New Comment Data");
 
-            RedditCommentComponent redditCommentComponent = _appNavigator.CreateCommentComponent(e.NewComment, _post, _commentSelectionGroup);
+            RedditCommentComponent redditCommentComponent = AppNavigator.CreateCommentComponent(e.NewComment, Post, SelectionGroup);
 
-            redditCommentComponent.OnDelete += this.OnCommentDelete;
+            redditCommentComponent.OnDelete += (s, e) => this.mainStack.Remove(redditCommentComponent);
 
             mainStack.Children.InsertAfter(postBodyBorder, redditCommentComponent);
         }

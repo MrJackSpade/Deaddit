@@ -4,6 +4,11 @@ namespace Deaddit.Core.Reddit.Models.Api
 {
     public class ApiComment : ApiThing
     {
+        public override string ToString()
+        {
+            return $"[{Author}] {Body}";
+        }
+
         [JsonPropertyName("after")]
         public string? After { get; init; }
 
