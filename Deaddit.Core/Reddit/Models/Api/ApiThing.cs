@@ -12,14 +12,14 @@ namespace Deaddit.Core.Reddit.Models.Api
         [JsonPropertyName("approved_at_utc")]
         public OptionalDateTime ApprovedAtUtc { get; init; }
 
-        [JsonPropertyName("author_cakeday")]
-        public bool? AuthorCakeDay { get; init; }
-
         [JsonPropertyName("approved_by")]
         public object? ApprovedBy { get; init; }
 
         [JsonPropertyName("author")]
         public string? Author { get; init; }
+
+        [JsonPropertyName("author_cakeday")]
+        public bool? AuthorCakeDay { get; init; }
 
         [JsonPropertyName("author_flair_background_color")]
         public DynamicColor? AuthorFlairBackgroundColor { get; init; }
@@ -130,10 +130,16 @@ namespace Deaddit.Core.Reddit.Models.Api
         [JsonPropertyName("no_follow")]
         public bool? NoFollow { get; init; }
 
+        [JsonPropertyName("num_comments")]
+        public int? NumComments { get; set; }
+
         [JsonPropertyName("num_reports")]
         public int? NumReports { get; init; }
 
         public ApiThing? Parent { get; set; }
+
+        [JsonPropertyName("parent_id")]
+        public string? ParentId { get; set; }
 
         [JsonPropertyName("permalink")]
         public string? Permalink { get; init; }

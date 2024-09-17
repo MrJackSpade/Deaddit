@@ -376,6 +376,29 @@ namespace Deaddit.MAUI.Components
             commentBody.BackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
         }
 
+        private readonly Dictionary<string, Stream> _cachedImageStreams = [];
+
+        private async Task<Stream> GetImageStream(CancellationToken c, string url)
+        {
+            if (!_cachedImageStreams.TryGetValue(url, out Stream cachedImageStream))
+            {
+                if (Uri.TryCreate(url, UriKind.Absolute, out _))
+                {
+                    cachedImageStream = await ImageHelper.ResizeLargeImageWithContainFitAsync(url, (int)Application.Current.Windows[0].Height);
+                    _cachedImageStreams.Add(url, cachedImageStream);
+                }
+            }
+
+            if (cachedImageStream is null)
+            {
+                return null;
+            }
+
+            cachedImageStream.Seek(0, SeekOrigin.Begin);
+
+            return cachedImageStream;
+        }
+
         internal void LoadImages(bool recursive = false)
         {
             if (commentBody is MarkdownView mv)
@@ -400,7 +423,7 @@ namespace Deaddit.MAUI.Components
                             label,
                             new Image()
                             {
-                                Source = ImageSource.FromUri(new Uri(linkSpan.Url)),
+                                Source = ImageSource.FromStream(async (c) => await this.GetImageStream(c, linkSpan.Url)),
                                 MaximumWidthRequest = commentBody.Width,
                                 Aspect = Aspect.AspectFit,
                                 MaximumHeightRequest = Application.Current.Windows[0].Height

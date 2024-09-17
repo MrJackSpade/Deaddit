@@ -12,6 +12,8 @@ namespace Deaddit.Interfaces
     {
         RedditCommentComponent CreateCommentComponent(ApiComment comment, ApiPost? post = null, SelectionGroup? selectionGroup = null);
 
+        RedditMessageComponent CreateMessageComponent(ApiMessage message, SelectionGroup? selectionGroup = null);
+
         MoreCommentsComponent CreateMoreCommentsComponent(IMore more);
 
         RedditPostComponent CreatePostComponent(ApiPost post, bool blocked, SelectionGroup? selectionGroup = null);
@@ -23,7 +25,7 @@ namespace Deaddit.Interfaces
         Task<ReplyPage> OpenEditPage(ApiThing toEdit);
 
         Task<EmbeddedImage> OpenImage(PostItems resource);
-
+        Task<SubRedditPage> OpenMessages(InboxSort sort = InboxSort.Unread);
         Task<ObjectEditorPage> OpenObjectEditor(object original);
 
         Task OpenObjectEditor(Action onSave);

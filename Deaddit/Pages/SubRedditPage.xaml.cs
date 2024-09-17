@@ -213,25 +213,33 @@ namespace Deaddit.Pages
                             view = _appNavigator.CreateCommentComponent(comment, null, _selectionGroup);
                         }
 
-                        // Add view to new components if created
-                        if (view is not null)
+                        if (thing is ApiMessage message)
                         {
-                            try
-                            {
-                                newComponents.Add(view);
-                            }
-                            catch (System.MissingMethodException mme) when (mme.Message.Contains("Microsoft.Maui.Controls.Handlers.Compatibility.FrameRenderer"))
-                            {
-                                Debug.WriteLine("FrameRenderer Missing Method Exception");
-                            }
-
-                            // Add to loaded posts
-                            _loadedPosts.Add(new LoadedThing()
-                            {
-                                Post = thing,
-                                PostComponent = view
-                            });
+                            view = _appNavigator.CreateMessageComponent(message, _selectionGroup);
                         }
+
+                        // Add view to new components if created
+                        if (view is null)
+                        {
+                            throw new NotImplementedException();
+                        }
+
+                        try
+                        {
+                            newComponents.Add(view);
+                        }
+                        catch (System.MissingMethodException mme) when (mme.Message.Contains("Microsoft.Maui.Controls.Handlers.Compatibility.FrameRenderer"))
+                        {
+                            Debug.WriteLine("FrameRenderer Missing Method Exception");
+                        }
+
+                        // Add to loaded posts
+                        _loadedPosts.Add(new LoadedThing()
+                        {
+                            Post = thing,
+                            PostComponent = view
+                        });
+
                     }
                 } while (newComponents.Count < _applicationHacks.PageSize);
 
@@ -252,7 +260,8 @@ namespace Deaddit.Pages
             if (_isBlockEnabled)
             {
                 blockButton.TextColor = Color.Parse("#FF0000");
-            } else
+            }
+            else
             {
                 blockButton.TextColor = _applicationStyling.TextColor.ToMauiColor();
             }
