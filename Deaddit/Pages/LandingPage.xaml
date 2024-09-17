@@ -10,8 +10,15 @@
               Row="0"
               x:Name="navigationBar"
               BackgroundColor="{Binding PrimaryColor}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
                 <Button Text="&#x2699;"
+                    Grid.Column="0"
                     x:Name="menuButton"
                     Background="Transparent"
                     TextColor="{Binding TextColor}"
@@ -19,9 +26,20 @@
                     HorizontalOptions="Start"
                     Clicked="OnMenuClicked" />
 
-                <!-- Right Gear Button -->
+                <!-- New Envelope Button -->
+                <Button Text="&#9993;"
+                    Grid.Column="1"
+                    x:Name="envelopeButton"
+                    VerticalOptions="Center"
+                    TextColor="{Binding TextColor}"
+                    HorizontalOptions="End"
+                    Background="Transparent"
+                    Clicked="OnMessageClicked" />
+
+                <!-- Add Button -->
                 <Button Text="&#10133;"
-                    x:Name="settingsButton"
+                    Grid.Column="2"
+                    x:Name="addButton"
                     VerticalOptions="Center"
                     TextColor="{Binding TextColor}"
                     HorizontalOptions="End"

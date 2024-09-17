@@ -103,9 +103,6 @@ namespace Deaddit.Core.Reddit.Models.Api
         [JsonPropertyName("media_only")]
         public bool MediaOnly { get; init; }
 
-        [JsonPropertyName("num_comments")]
-        public long NumComments { get; init; }
-
         [JsonPropertyName("num_crossposts")]
         public long NumCrossPosts { get; init; }
 

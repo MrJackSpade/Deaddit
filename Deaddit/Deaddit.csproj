@@ -81,6 +81,9 @@
 	  <Compile Update="Components\Partials\RedditCommentComponentTopBar.xaml.cs">
 	    <DependentUpon>RedditCommentComponentTopBar.xaml</DependentUpon>
 	  </Compile>
+	  <Compile Update="Components\RedditMessageComponent.xaml.cs">
+	    <DependentUpon>RedditMessageComponent.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="Pages\ObjectEditorPage.xaml.cs">
 	    <DependentUpon>ObjectEditorPage.xaml</DependentUpon>
 	  </Compile>
@@ -118,6 +121,9 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Components\Partials\RedditCommentComponentTopBar.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Components\RedditMessageComponent.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Pages\ObjectEditorPage.xaml">

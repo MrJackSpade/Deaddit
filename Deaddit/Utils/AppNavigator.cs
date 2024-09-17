@@ -53,6 +53,18 @@ namespace Deaddit.Utils
             }
         }
 
+        public RedditMessageComponent CreateMessageComponent(ApiMessage message, SelectionGroup? selectionGroup = null)
+        {
+            if (selectionGroup is null)
+            {
+                return new RedditMessageComponent(message, false, this, _redditClient, _applicationStyling, selectionGroup ?? new SelectionGroup(), _blockConfiguration);
+            }
+            else
+            {
+                return new RedditMessageComponent(message, true, this, _redditClient, _applicationStyling, selectionGroup ?? new SelectionGroup(), _blockConfiguration);
+            }
+        }
+
         public MoreCommentsComponent CreateMoreCommentsComponent(IMore more)
         {
             return new MoreCommentsComponent(more, _applicationStyling);
@@ -143,6 +155,14 @@ namespace Deaddit.Utils
         public async Task<SubRedditPage> OpenSubReddit(string subRedditName, ApiPostSort sort = ApiPostSort.Hot)
         {
             return await this.OpenSubReddit(new ThingCollectionName(subRedditName), sort);
+        }
+
+        public async Task<SubRedditPage> OpenMessages(InboxSort sort = InboxSort.Unread)
+        {
+            SubRedditPage page = new(new ThingCollectionName("Messages", "/message", ThingKind.Message), sort, _applicationHacks, this, _redditClient, _applicationStyling, _blockConfiguration);
+            await Navigation.PushAsync(page);
+            await page.TryLoad();
+            return page;
         }
 
         public async Task<SubRedditPage> OpenSubReddit(ThingCollectionName subRedditName, ApiPostSort sort = ApiPostSort.Hot)

@@ -4,6 +4,16 @@ namespace Deaddit.Core.Reddit.Models
 {
     public class ThingCollectionName
     {
+        public ThingCollectionName(string name, string rootedname, ThingKind kind)
+        {
+            Ensure.NotNull(name);
+            Ensure.NotNull(rootedname);
+            
+            this.RootedName = rootedname;
+            this.Kind = kind;
+            this.DisplayName = name;
+        }
+
         public ThingCollectionName(string name)
         {
             Ensure.NotNull(name);

@@ -4,6 +4,55 @@ namespace Deaddit.Core.Utils
 {
     public static class ImageHelper
     {
+        public static async Task<Stream> ResizeLargeImageWithContainFitAsync(string imageUrl, int maxSize)
+        {
+            using HttpClient client = new();
+            HttpResponseMessage response = await client.GetAsync(imageUrl);
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception("Unable to download image.");
+            }
+
+            using Stream inputStream = await response.Content.ReadAsStreamAsync();
+            using SKBitmap originalBitmap = SKBitmap.Decode(inputStream) ?? throw new Exception("Unable to decode image.");
+
+            // Check if resizing is necessary
+            if (originalBitmap.Width <= maxSize && originalBitmap.Height <= maxSize)
+            {
+                // No resizing needed, return the original image
+                using SKImage imagei = SKImage.FromBitmap(originalBitmap);
+                SKData encodedDatai = imagei.Encode(SKEncodedImageFormat.Jpeg, 100);
+                return encodedDatai.AsStream();
+            }
+
+            // Calculate aspect ratio of the original image
+            float aspectRatio = (float)originalBitmap.Width / originalBitmap.Height;
+
+            // Calculate new dimensions while maintaining aspect ratio
+            int newWidth, newHeight;
+            if (originalBitmap.Width > originalBitmap.Height)
+            {
+                newWidth = maxSize;
+                newHeight = (int)(maxSize / aspectRatio);
+            }
+            else
+            {
+                newHeight = maxSize;
+                newWidth = (int)(maxSize * aspectRatio);
+            }
+
+            // Resize the bitmap to the new dimensions
+            using SKBitmap resizedBitmap = originalBitmap.Resize(new SKImageInfo(newWidth, newHeight), SKFilterQuality.High)
+                ?? throw new Exception("Unable to resize image.");
+
+            // Create an SKImage from the resized bitmap
+            using SKImage image = SKImage.FromBitmap(resizedBitmap);
+
+            // Encode the image to a memory stream in JPEG format
+            SKData encodedData = image.Encode(SKEncodedImageFormat.Jpeg, 100);
+            return encodedData.AsStream();
+        }
+
         public static async Task<Stream> ResizeAndCropImageFromUrlAsync(string imageUrl, int size)
         {
             // Use HttpClient to download the image from the URL

@@ -13,8 +13,5 @@ namespace Deaddit.Core.Reddit.Models.Api
 
         [JsonPropertyName("depth")]
         public int? Depth { get; init; }
-
-        [JsonPropertyName("parent_id")]
-        public string? ParentId { get; init; }
     }
 }

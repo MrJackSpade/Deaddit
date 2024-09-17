@@ -55,6 +55,11 @@ namespace Deaddit.Pages
             DataService.LoadAsync(mainStack, this.LoadMultis, applicationTheme.HighlightColor.ToMauiColor());
         }
 
+        public async void OnMessageClicked(object sender, EventArgs e)
+        {
+            await _appNavigator.OpenMessages();
+        }
+
         public async void OnAddClicked(object? sender, EventArgs e)
         {
             string result = await this.DisplayPromptAsync("", "Enter a SubReddit");

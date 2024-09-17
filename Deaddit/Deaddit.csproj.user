@@ -24,6 +24,9 @@
     <MauiXaml Update="Components\Partials\RedditCommentComponentTopBar.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
+    <MauiXaml Update="Components\RedditMessageComponent.xaml">
+      <SubType>Designer</SubType>
+    </MauiXaml>
     <MauiXaml Update="Pages\ObjectEditorPage.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>

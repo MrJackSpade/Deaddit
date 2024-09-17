@@ -84,15 +84,6 @@ namespace Deaddit.Core.Reddit.Models.Api
         [JsonPropertyName("modhash")]
         public string? ModHash { get; init; }
 
-        /// <summary>
-        /// Only used when viewing comment outside of post
-        /// </summary>
-        [JsonPropertyName("num_comments")]
-        public int? NumberOfComments { get; init; }
-
-        [JsonPropertyName("parent_id")]
-        public string? ParentId { get; set; }
-
         [JsonPropertyName("rte_mode")]
         public RteMode RteMode { get; set; }
 
