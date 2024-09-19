@@ -269,6 +269,21 @@ namespace Deaddit.Pages
             }, _applicationStyling.HighlightColor.ToMauiColor());
         }
 
+        private void UpdateSort(Enum sort)
+        {
+            foreach (Button button in _sortButtons.Children)
+            {
+                if (button.Text == sort.ToString())
+                {
+                    button.BackgroundColor = _applicationStyling.TertiaryColor.ToMauiColor();
+                }
+                else
+                {
+                    button.BackgroundColor = Colors.Transparent;
+                }
+            }
+        }
+
         private void InitSortButtons(Enum sort)
         {
             _sortButtons.Children.Clear();
@@ -302,9 +317,15 @@ namespace Deaddit.Pages
                     FontSize = 14
                 };
 
+                if (sort.Equals(sortValue))
+                {
+                    button.BackgroundColor = _applicationStyling.TertiaryColor.ToMauiColor();
+                }
+
                 button.Clicked += async (sender, e) =>
                 {
                     _sort = sortValue;
+                    UpdateSort(sortValue);
                     await this.Reload();
                 };
 

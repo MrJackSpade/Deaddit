@@ -1,4 +1,5 @@
-﻿using Deaddit.Core.Extensions;
+﻿using Deaddit.Core.Exceptions;
+using Deaddit.Core.Extensions;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Json;
 using System.Diagnostics;
@@ -20,10 +21,15 @@ namespace Deaddit.Core.Utils
         {
             string response = await Retry(async () =>
             {
-                HttpResponseMessage httpResponse = await _httpClient.GetAsync(url);
-                string responseBody = await httpResponse.Content.ReadAsStringAsync();
-                httpResponse.EnsureSuccessStatusCode();
-                return responseBody;
+                HttpResponseMessage responseMessage = await _httpClient.GetAsync(url);
+                string response = await responseMessage.Content.ReadAsStringAsync();
+
+                if (!responseMessage.IsSuccessStatusCode)
+                {
+                    throw new RemoteException(url, response, responseMessage.StatusCode);
+                }
+
+                return response;
             });
 
             return JsonDeserializer.Deserialize<T>(response);
@@ -37,7 +43,10 @@ namespace Deaddit.Core.Utils
 
             string response = await responseMessage.Content.ReadAsStringAsync();
 
-            responseMessage.EnsureSuccessStatusCode();
+            if (!responseMessage.IsSuccessStatusCode)
+            {
+                throw new RemoteException(url, response, responseMessage.StatusCode);
+            }
 
             return JsonDeserializer.Deserialize<T>(response);
         }
@@ -50,7 +59,10 @@ namespace Deaddit.Core.Utils
 
             Debug.WriteLine(response);
 
-            responseMessage.EnsureSuccessStatusCode();
+            if (!responseMessage.IsSuccessStatusCode)
+            {
+                throw new RemoteException(url, response, responseMessage.StatusCode);
+            }
         }
 
         public async Task Post(string url, object body)
@@ -63,7 +75,10 @@ namespace Deaddit.Core.Utils
 
             Debug.WriteLine(response);
 
-            responseMessage.EnsureSuccessStatusCode();
+            if (!responseMessage.IsSuccessStatusCode)
+            {
+                throw new RemoteException(url, response, responseMessage.StatusCode);
+            }
         }
 
         public async Task Post(string url, Dictionary<string, string> formValues)
@@ -80,7 +95,10 @@ namespace Deaddit.Core.Utils
             Debug.WriteLine(response);
 
             // Ensure the response indicates success
-            responseMessage.EnsureSuccessStatusCode();
+            if (!responseMessage.IsSuccessStatusCode)
+            {
+                throw new RemoteException(url, response, responseMessage.StatusCode);
+            }
         }
 
         public async Task<T> Post<T>(string url, Dictionary<string, string> formValues) where T : class
@@ -95,7 +113,10 @@ namespace Deaddit.Core.Utils
             string response = await responseMessage.Content.ReadAsStringAsync();
 
             // Ensure the response indicates success
-            responseMessage.EnsureSuccessStatusCode();
+            if (!responseMessage.IsSuccessStatusCode)
+            {
+                throw new RemoteException(url, response, responseMessage.StatusCode);
+            }
 
             return JsonDeserializer.Deserialize<T>(response);
         }
@@ -115,7 +136,7 @@ namespace Deaddit.Core.Utils
                 {
                     return func();
                 }
-                catch (HttpRequestException e) when (e.StatusCode is System.Net.HttpStatusCode.ServiceUnavailable or System.Net.HttpStatusCode.NotFound)
+                catch (RemoteException e) when (e.HttpStatusCode is System.Net.HttpStatusCode.ServiceUnavailable or System.Net.HttpStatusCode.NotFound)
                 {
                     if (retries++ > maxRetries)
                     {

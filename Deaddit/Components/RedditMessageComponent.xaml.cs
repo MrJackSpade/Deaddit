@@ -40,8 +40,13 @@ namespace Deaddit.MAUI.Components
 
             if (message.Distinguished == DistinguishedKind.Moderator)
             {
-                authorLabel.TextColor = applicationTheme.DistinguishedAuthorTextColor.ToMauiColor();
-                authorLabel.BackgroundColor = applicationTheme.DistinguishedAuthorBackgroundColor.ToMauiColor();
+                authorLabel.TextColor = applicationTheme.ModeratorAuthorTextColor.ToMauiColor();
+                authorLabel.BackgroundColor = applicationTheme.ModeratorAuthorBackgroundColor.ToMauiColor();
+            }
+            else if (message.Distinguished == DistinguishedKind.Admin)
+            {
+                authorLabel.TextColor = applicationTheme.AdminAuthorTextColor.ToMauiColor();
+                authorLabel.BackgroundColor = applicationTheme.AdminAuthorBackgroundColor.ToMauiColor();
             }
             else
             {

@@ -8,6 +8,9 @@ namespace Deaddit.Core.Reddit.Models.Api
         None,
 
         [EnumMember(Value = "moderator")]
-        Moderator
+        Moderator,
+
+        [EnumMember(Value = "admin")]
+        Admin
     }
 }
