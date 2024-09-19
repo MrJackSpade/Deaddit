@@ -8,11 +8,17 @@ namespace Deaddit.Core.Configurations.Models
         [EditorDisplay(Name = "Blocked Background Color", Order = 13)]
         public DynamicColor BlockedBackgroundColor { get; set; } = DynamicColor.Parse("#3b1f1f");
 
-        [EditorDisplay(Name = "Distinguished Autho Background Color", Order = 4)]
-        public DynamicColor DistinguishedAuthorBackgroundColor { get; set; } = DynamicColor.Parse("#287F24");
+        [EditorDisplay(Name = "Admin Author Background Color", Order = 4)]
+        public DynamicColor AdminAuthorBackgroundColor { get; set; } = DynamicColor.Parse("#ff4500");
 
-        [EditorDisplay(Name = "Distinguished Author Text Color", Order = 4)]
-        public DynamicColor DistinguishedAuthorTextColor { get; set; } = DynamicColor.Parse("#FFFFFF");
+        [EditorDisplay(Name = "Admin Author Text Color", Order = 4)]
+        public DynamicColor AdminAuthorTextColor { get; set; } = DynamicColor.Parse("#FFFFFF");
+
+        [EditorDisplay(Name = "Moderator Autho Background Color", Order = 4)]
+        public DynamicColor ModeratorAuthorBackgroundColor { get; set; } = DynamicColor.Parse("#287F24");
+
+        [EditorDisplay(Name = "Moderator Author Text Color", Order = 4)]
+        public DynamicColor ModeratorAuthorTextColor { get; set; } = DynamicColor.Parse("#FFFFFF");
 
         [EditorDisplay(Name = "Distinguished Title Color", Order = 4)]
         public DynamicColor DistinguishedTitleColor { get; set; } = DynamicColor.Parse("#287F24");
