@@ -8,10 +8,10 @@ namespace Deaddit.Core.Reddit.Models
         {
             Ensure.NotNull(name);
             Ensure.NotNull(rootedname);
-            
-            this.RootedName = rootedname;
-            this.Kind = kind;
-            this.DisplayName = name;
+
+            RootedName = rootedname;
+            Kind = kind;
+            DisplayName = name;
         }
 
         public ThingCollectionName(string name)

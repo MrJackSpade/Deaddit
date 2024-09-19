@@ -20,21 +20,509 @@ namespace Deaddit.Core.Reddit
 
         private const string AUTHORIZATION_ROOT = "https://www.reddit.com";
 
+        private readonly IDisplayExceptions _exceptionDisplay;
+
         private readonly HttpClient _httpClient;
 
         private readonly IJsonClient _jsonClient;
 
         private readonly RedditCredentials _redditCredentials;
 
+        private readonly SemaphoreSlim _semaphore = new(1, 1);
+
         private OAuthToken? _oAuthToken;
 
         private DateTime _tokenExpiration = DateTime.MinValue;
 
-        private readonly SemaphoreSlim _semaphore = new(1, 1);
+        public RedditClient(RedditCredentials redditCredentials, IJsonClient jsonClient, IDisplayExceptions exceptionDisplay, HttpClient httpClient)
+        {
+            _redditCredentials = redditCredentials;
+            _httpClient = httpClient;
+            _jsonClient = jsonClient;
+            _exceptionDisplay = exceptionDisplay;
+            _jsonClient.SetDefaultHeader("User-Agent", "Deaddit");
+        }
+
+        public bool CanLogIn => _redditCredentials.Valid;
+
+        public DateTime LastFired { get; private set; } = DateTime.MinValue;
+
+        public string? LoggedInUser { get; private set; }
 
         public int MinimumDelayMs { get; set; } = 500; // Default to 500ms
 
-        public DateTime LastFired { get; private set; } = DateTime.MinValue;
+        private RedditUrlStandardizer UrlStandardizer => new(LoggedInUser);
+
+        public async Task<ApiSubReddit?> About(ThingCollectionName subreddit)
+        {
+            try
+            {
+                await this.EnsureAuthenticated();
+                await this.ThrottleAsync();
+
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
+
+                ApiThingMeta response = await _jsonClient.Get<ApiThingMeta>($"{API_ROOT}{subreddit.RootedName}/about");
+
+                stopwatch.Stop();
+                Debug.WriteLine($"[DEBUG] Time spent in About method: {stopwatch.ElapsedMilliseconds}ms");
+
+                return response.Data as ApiSubReddit;
+            }
+            catch (Exception ex)
+            {
+                if (!await _exceptionDisplay.DisplayException(ex))
+                {
+                    throw;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        public async Task<ApiComment> Comment(ApiThing thing, string comment)
+        {
+            try
+            {
+                await this.EnsureAuthenticated();
+                await this.ThrottleAsync();
+
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
+
+                string fullUrl = $"{API_ROOT}/api/comment";
+
+                // Prepare the form values as a dictionary
+                Dictionary<string, string> formValues = new()
+                {
+                    { "api_type", "json" },
+                    { "thing_id", thing.Name },
+                    { "text", comment }
+                };
+
+                // Use the modified Post method to send the form data
+                PostCommentResponse response = await _jsonClient.Post<PostCommentResponse>(fullUrl, formValues);
+
+                if (response.Json.Errors.Count > 0)
+                {
+                    List<Exception> exceptions = [];
+
+                    foreach (string error in response.Json.Errors)
+                    {
+                        exceptions.Add(new Exception(error));
+                    }
+
+                    throw new AggregateException(exceptions);
+                }
+
+                stopwatch.Stop();
+                Debug.WriteLine($"[DEBUG] Time spent in Comment method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+
+                return response.Json.Data.Things.OfType<ApiComment>().Single();
+            }
+            catch (Exception ex)
+            {
+                if (!await _exceptionDisplay.DisplayException(ex))
+                {
+                    throw;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        public async Task<List<ApiThing>> Comments(ApiPost parent, ApiComment? focusComment)
+        {
+            List<ApiThingCollection> response;
+            ApiThing responseParent = (ApiThing)focusComment ?? parent;
+            Stopwatch stopwatch = new();
+            List<ApiThing> toReturn = [];
+
+            try
+            {
+                await this.EnsureAuthenticated();
+                await this.ThrottleAsync();
+
+                stopwatch.Start();
+
+                string fullUrl = $"{API_ROOT}/comments/{parent.Id}";
+
+                if (!string.IsNullOrWhiteSpace(focusComment?.Id))
+                {
+                    fullUrl += $"?comment={focusComment?.Id}";
+                }
+
+                response = await _jsonClient.Get<List<ApiThingCollection>>(fullUrl);
+
+                foreach (ApiThingCollection commentReadResponse in response)
+                {
+                    if (commentReadResponse?.Children != null)
+                    {
+                        foreach (ApiThing child in commentReadResponse.Children)
+                        {
+                            SetParent(responseParent, child);
+                        }
+                    }
+                }
+
+                foreach (ApiThingCollection commentReadResponse in response)
+                {
+                    if (commentReadResponse?.Children != null)
+                    {
+                        foreach (ApiThing child in commentReadResponse.Children)
+                        {
+                            if (child.Id != parent.Id)
+                            {
+                                toReturn.Add(child);
+                            }
+                        }
+                    }
+                }
+
+                stopwatch.Stop();
+                Debug.WriteLine($"[DEBUG] Time spent in Comments method: {stopwatch.ElapsedMilliseconds}ms");
+            }
+            catch (Exception ex)
+            {
+                if (!await _exceptionDisplay.DisplayException(ex))
+                {
+                    throw;
+                }
+            }
+
+            return toReturn;
+        }
+
+        public async Task Delete(ApiThing thing)
+        {
+            try
+            {
+                await this.EnsureAuthenticated();
+                await this.ThrottleAsync();
+
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
+
+                string url = $"{API_ROOT}/api/del";
+
+                // Prepare the form values as a dictionary
+                Dictionary<string, string> formValues = new()
+                {
+                    { "id", thing.Name }
+                };
+
+                await _jsonClient.Post(url, formValues);
+
+                stopwatch.Stop();
+
+                Debug.WriteLine($"[DEBUG] Time spent in Delete method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+            }
+            catch (Exception ex)
+            {
+                if (!await _exceptionDisplay.DisplayException(ex))
+                {
+                    throw;
+                }
+            }
+        }
+
+        public async Task<List<ApiThing>> GetPosts<T>(ThingCollectionName subreddit, T sort, int pageSize, string? after = null, Models.Region region = Models.Region.GLOBAL) where T : Enum
+        {
+            //TODO: This makes way more sense as an IEnumerable
+            //Remove page size and fix the interop between try/catch 
+            //and the async functionality.
+
+            List<ApiThing> toReturn = [];
+
+            try
+            {
+                //Returns HTML if not authenticated
+                await this.EnsureAuthenticated();
+                await this.ThrottleAsync();
+
+                Stopwatch stopwatch = new();
+
+                stopwatch.Start();
+
+                string sortString = GetSortString(sort);
+
+                string root = UrlStandardizer.Standardize(subreddit.RootedName);
+
+                do
+                {
+                    string fullUrl = $"{API_ROOT}{root}{sortString}?after={after}&g={region}";
+
+                    ApiThingCollection posts = await _jsonClient.Get<ApiThingCollection>(fullUrl);
+
+                    stopwatch.Stop();
+                    Debug.WriteLine($"[DEBUG] Time spent in GetPosts method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+
+                    if (!posts.Children.NotNullAny())
+                    {
+                        return toReturn;
+                    }
+
+                    foreach (ApiThing redditPostMeta in posts.Children)
+                    {
+                        toReturn.Add(redditPostMeta);
+
+                        if(toReturn.Count >= pageSize)
+                        {
+                            return toReturn;
+                        }
+
+                        after = redditPostMeta.Name;
+                    }
+                } while (true);
+            }
+            catch (Exception ex)
+            {
+                if (!await _exceptionDisplay.DisplayException(ex))
+                {
+                    throw;
+                }
+                else
+                {
+                    return toReturn;
+                }
+            }
+        }
+
+        public async Task<Stream> GetStream(string url)
+        {
+            await this.EnsureAuthenticated();
+            await this.ThrottleAsync();
+
+            return await _httpClient.GetStreamAsync(url);
+        }
+
+        public async Task<Dictionary<string, UserPartial>> GetUserData(IEnumerable<string> usernames)
+        {
+            try
+            {
+                Ensure.NotNull(usernames);
+
+                List<string> userNames = usernames.ToList();
+
+                if (!userNames.Any())
+                {
+                    return [];
+                }
+
+                await this.EnsureAuthenticated();
+                await this.ThrottleAsync();
+
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
+
+                string url = $"{API_ROOT}/api/user_data_by_account_ids?ids={string.Join(",", userNames)}";
+
+                try
+                {
+                    Dictionary<string, UserPartial> response = await _jsonClient.Get<Dictionary<string, UserPartial>>(url);
+                    return response;
+                }
+                catch (HttpRequestException hre) when (hre.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    Debug.WriteLine($"User data not found ('{string.Join(",", userNames)}')");
+                    return [];
+                }
+                finally
+                {
+                    stopwatch.Stop();
+                    Debug.WriteLine($"[DEBUG] Time spent in GetUserData method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+                }
+            }
+            catch (Exception ex)
+            {
+                if (!await _exceptionDisplay.DisplayException(ex))
+                {
+                    throw;
+                }
+                else
+                {
+                    return [];
+                }
+            }
+        }
+
+        public async Task<List<ApiThing>> MoreComments(ApiPost post, IMore moreItem)
+        {
+            List<ApiThing> toReturn = [];
+
+            try
+            {
+                await this.EnsureAuthenticated();
+                await this.ThrottleAsync();
+
+                // Exclude authentication or other setup time if necessary
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
+
+                // Ensure the required properties are not null or empty
+                Ensure.NotNullOrEmpty(moreItem.ChildNames);
+
+                string fullUrl = $"{API_ROOT}/api/morechildren";
+
+                // Prepare the form values as a dictionary
+                Dictionary<string, string> formValues = new()
+                {
+                    { "api_type", "json" },
+                    { "link_id", post.Name },
+                    { "children", string.Join(",", moreItem.ChildNames) },
+                    { "limit_children", "false" },
+                    { "depth", "999" }
+                };
+
+                // Use the modified Post method to send the form data
+                MoreCommentsResponse response = await _jsonClient.Post<MoreCommentsResponse>(fullUrl, formValues);
+
+                List<ApiThing> things = [.. response.Json.Data.Things];
+
+                Dictionary<string, ApiComment> tree = [];
+
+                foreach (ApiComment redditCommentMeta in things.OfType<ApiComment>())
+                {
+                    tree.Add(redditCommentMeta.Name, redditCommentMeta);
+                }
+
+                foreach (ApiThing redditCommentMeta in things.ToList())
+                {
+                    if (redditCommentMeta is ApiComment apiComment)
+                    {
+                        if (apiComment?.ParentId is null)
+                        {
+                            continue;
+                        }
+
+                        if (tree.TryGetValue(apiComment.ParentId, out ApiComment? parent))
+                        {
+                            parent.AddReply(redditCommentMeta);
+                            things.Remove(redditCommentMeta);
+                        }
+                    }
+
+                    if (redditCommentMeta is ApiMore apiMore)
+                    {
+                        if (apiMore?.ParentId is null)
+                        {
+                            continue;
+                        }
+
+                        if (tree.TryGetValue(apiMore.ParentId, out ApiComment? parent))
+                        {
+                            parent.AddReply(redditCommentMeta);
+                            things.Remove(redditCommentMeta);
+                        }
+                    }
+                }
+
+                stopwatch.Stop();
+                Debug.WriteLine($"[DEBUG] Time spent in MoreComments method: {stopwatch.ElapsedMilliseconds}ms");
+
+                foreach (ApiThing redditCommentMeta in things)
+                {
+                    if (moreItem.Parent is null)
+                    {
+                        continue;
+                    }
+
+                    SetParent(moreItem.Parent, redditCommentMeta);
+
+                    toReturn.Add(redditCommentMeta);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (!await _exceptionDisplay.DisplayException(ex))
+                {
+                    throw;
+                }
+            }
+
+            return toReturn;
+        }
+
+        public async Task<List<ApiMulti>> Multis()
+        {
+            List<ApiMulti> toReturn = [];
+            try
+            {
+                await this.EnsureAuthenticated();
+                await this.ThrottleAsync();
+
+                string url = $"{API_ROOT}/api/multi/mine";
+
+                List<ApiMultiMeta> response = await _jsonClient.Get<List<ApiMultiMeta>>(url);
+
+                foreach (ApiMultiMeta multi in response)
+                {
+                    toReturn.Add(multi.Data);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (!await _exceptionDisplay.DisplayException(ex))
+                {
+                    throw;
+                }
+            }
+
+            return toReturn;
+        }
+
+        public async Task SetUpvoteState(ApiThing thing, UpvoteState state)
+        {
+            try
+            {
+                // Exclude authentication time
+                await this.EnsureAuthenticated();
+                await this.ThrottleAsync();
+
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
+
+                int stateInt = 0;
+
+                switch (state)
+                {
+                    case UpvoteState.Upvote:
+                        stateInt = 1;
+                        break;
+
+                    case UpvoteState.Downvote:
+                        stateInt = -1;
+                        break;
+
+                    case UpvoteState.None:
+                        stateInt = 0;
+                        break;
+                }
+
+                string url = $"{API_ROOT}/api/vote?dir={stateInt}&id={thing.Name}";
+
+                await _jsonClient.Post(url);
+
+                stopwatch.Stop();
+                Debug.WriteLine($"[DEBUG] Time spent in SetUpvoteState method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+            }
+            catch (Exception ex)
+            {
+                if (!await _exceptionDisplay.DisplayException(ex))
+                {
+                    throw;
+                }
+                else
+                {
+                    return;
+                }
+            }
+        }
 
         public async Task ThrottleAsync()
         {
@@ -58,486 +546,203 @@ namespace Deaddit.Core.Reddit
             }
         }
 
-        public RedditClient(RedditCredentials redditCredentials, IJsonClient jsonClient, HttpClient httpClient)
-        {
-            _redditCredentials = redditCredentials;
-            _httpClient = httpClient;
-            _jsonClient = jsonClient;
-            _jsonClient.SetDefaultHeader("User-Agent", "Deaddit");
-        }
-
-        public bool CanLogIn => _redditCredentials.Valid;
-
-        public string? LoggedInUser { get; private set; }
-
-        private RedditUrlStandardizer UrlStandardizer => new(LoggedInUser);
-
-        public async Task<ApiSubReddit> About(ThingCollectionName subreddit)
-        {
-            await this.EnsureAuthenticated();
-            await this.ThrottleAsync();
-
-            Stopwatch stopwatch = new();
-            stopwatch.Start();
-
-            ApiThingMeta response = await _jsonClient.Get<ApiThingMeta>($"{API_ROOT}{subreddit.RootedName}/about");
-
-            stopwatch.Stop();
-            Debug.WriteLine($"[DEBUG] Time spent in About method: {stopwatch.ElapsedMilliseconds}ms");
-
-            return response.Data as ApiSubReddit;
-        }
-
-        public async Task<ApiComment> Update(ApiThing thing)
-        {
-            await this.EnsureAuthenticated();
-            await this.ThrottleAsync();
-
-            Stopwatch stopwatch = new();
-            stopwatch.Start();
-
-            string fullUrl = $"{API_ROOT}/api/editusertext";
-
-            // Prepare the form values as a dictionary
-            Dictionary<string, string> formValues = new()
-            {
-                { "api_type", "json" },
-                { "thing_id", thing.Name },
-                { "text", thing.Body }
-            };
-
-            // Use the modified Post method to send the form data
-            PostCommentResponse response = await _jsonClient.Post<PostCommentResponse>(fullUrl, formValues);
-
-            if (response.Json.Errors.Count > 0)
-            {
-                List<Exception> exceptions = [];
-
-                foreach (string error in response.Json.Errors)
-                {
-                    exceptions.Add(new Exception(error));
-                }
-
-                throw new AggregateException(exceptions);
-            }
-
-            stopwatch.Stop();
-            Debug.WriteLine($"[DEBUG] Time spent in Comment method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
-
-            return response.Json.Data.Things.OfType<ApiComment>().Single();
-        }
-
-        public async Task<ApiComment> Comment(ApiThing thing, string comment)
-        {
-            await this.EnsureAuthenticated();
-            await this.ThrottleAsync();
-
-            Stopwatch stopwatch = new();
-            stopwatch.Start();
-
-            string fullUrl = $"{API_ROOT}/api/comment";
-
-            // Prepare the form values as a dictionary
-            Dictionary<string, string> formValues = new()
-            {
-                { "api_type", "json" },
-                { "thing_id", thing.Name },
-                { "text", comment }
-            };
-
-            // Use the modified Post method to send the form data
-            PostCommentResponse response = await _jsonClient.Post<PostCommentResponse>(fullUrl, formValues);
-
-            if (response.Json.Errors.Count > 0)
-            {
-                List<Exception> exceptions = [];
-
-                foreach (string error in response.Json.Errors)
-                {
-                    exceptions.Add(new Exception(error));
-                }
-
-                throw new AggregateException(exceptions);
-            }
-
-            stopwatch.Stop();
-            Debug.WriteLine($"[DEBUG] Time spent in Comment method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
-
-            return response.Json.Data.Things.OfType<ApiComment>().Single();
-        }
-
-        public async IAsyncEnumerable<ApiThing> Comments(ApiPost parent, ApiComment? focusComment)
-        {
-            await this.EnsureAuthenticated();
-            await this.ThrottleAsync();
-
-            Stopwatch stopwatch = new();
-            stopwatch.Start();
-
-            ApiThing responseParent = (ApiThing)focusComment ?? parent;
-
-            string fullUrl = $"{API_ROOT}/comments/{parent.Id}";
-
-            if (!string.IsNullOrWhiteSpace(focusComment?.Id))
-            {
-                fullUrl += $"?comment={focusComment?.Id}";
-            }
-
-            List<ApiThingCollection> response = await _jsonClient.Get<List<ApiThingCollection>>(fullUrl);
-
-            foreach (ApiThingCollection commentReadResponse in response)
-            {
-                if (commentReadResponse?.Children != null)
-                {
-                    foreach (ApiThing child in commentReadResponse.Children)
-                    {
-                        SetParent(responseParent, child);
-                    }
-                }
-            }
-
-            foreach (ApiThingCollection commentReadResponse in response)
-            {
-                if (commentReadResponse?.Children != null)
-                {
-                    foreach (ApiThing child in commentReadResponse.Children)
-                    {
-                        if (child.Id != parent.Id)
-                        {
-                            yield return child;
-                        }
-                    }
-                }
-            }
-
-            stopwatch.Stop();
-            Debug.WriteLine($"[DEBUG] Time spent in Comments method: {stopwatch.ElapsedMilliseconds}ms");
-        }
-
-        public async Task Delete(ApiThing thing)
-        {
-            await this.EnsureAuthenticated();
-            await this.ThrottleAsync();
-
-            Stopwatch stopwatch = new();
-            stopwatch.Start();
-
-            string url = $"{API_ROOT}/api/del";
-
-            // Prepare the form values as a dictionary
-            Dictionary<string, string> formValues = new()
-            {
-                { "id", thing.Name }
-            };
-
-            await _jsonClient.Post(url, formValues);
-
-            stopwatch.Stop();
-
-            Debug.WriteLine($"[DEBUG] Time spent in Delete method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
-        }
-
-        public async Task<Dictionary<string, UserPartial>> GetUserData(IEnumerable<string> usernames)
-        {
-            Ensure.NotNull(usernames);
-
-            List<string> userNames = usernames.ToList();
-
-            if (!userNames.Any())
-            {
-                return [];
-            }
-
-            await this.EnsureAuthenticated();
-            await this.ThrottleAsync();
-
-            Stopwatch stopwatch = new();
-            stopwatch.Start();
-
-            string url = $"{API_ROOT}/api/user_data_by_account_ids?ids={string.Join(",", userNames)}";
-
-            try
-            {
-                Dictionary<string, UserPartial> response = await _jsonClient.Get<Dictionary<string, UserPartial>>(url);
-                return response;
-            }
-            catch (HttpRequestException hre) when (hre.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                Debug.WriteLine($"User data not found ('{string.Join(",", userNames)}')");
-                return [];
-            }
-            finally
-            {
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in GetUserData method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
-            }
-        }
-
-        public async IAsyncEnumerable<ApiThing> GetPosts<T>(ThingCollectionName subreddit, T sort, string? after = null, Models.Region region = Models.Region.GLOBAL) where T : Enum
-        {
-            //Returns HTML if not authenticated
-            await this.EnsureAuthenticated();
-            await this.ThrottleAsync();
-
-            Stopwatch stopwatch = new();
-
-            stopwatch.Start();
-
-            string sortString = GetSortString(sort);
-
-            string root = UrlStandardizer.Standardize(subreddit.RootedName);
-
-            do
-            {
-                string fullUrl = $"{API_ROOT}{root}{sortString}?after={after}&g={region}";
-
-                ApiThingCollection posts = await _jsonClient.Get<ApiThingCollection>(fullUrl);
-
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in GetPosts method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
-
-                if (!posts.Children.NotNullAny())
-                {
-                    yield break;
-                }
-
-                foreach (ApiThing redditPostMeta in posts.Children)
-                {
-                    yield return redditPostMeta;
-
-                    after = redditPostMeta.Name;
-                }
-            } while (true);
-        }
-
-        public async Task<Stream> GetStream(string url)
-        {
-            await this.EnsureAuthenticated();
-            await this.ThrottleAsync();
-
-            return await _httpClient.GetStreamAsync(url);
-        }
-
-        public async IAsyncEnumerable<ApiThing> MoreComments(ApiPost post, IMore moreItem)
-        {
-            await this.EnsureAuthenticated();
-            await this.ThrottleAsync();
-
-            // Exclude authentication or other setup time if necessary
-            Stopwatch stopwatch = new();
-            stopwatch.Start();
-
-            // Ensure the required properties are not null or empty
-            Ensure.NotNullOrEmpty(moreItem.ChildNames);
-
-            string fullUrl = $"{API_ROOT}/api/morechildren";
-
-            // Prepare the form values as a dictionary
-            Dictionary<string, string> formValues = new()
-            {
-                { "api_type", "json" },
-                { "link_id", post.Name },
-                { "children", string.Join(",", moreItem.ChildNames) },
-                { "limit_children", "false" },
-                { "depth", "999" }
-            };
-
-            // Use the modified Post method to send the form data
-            MoreCommentsResponse response = await _jsonClient.Post<MoreCommentsResponse>(fullUrl, formValues);
-
-            List<ApiThing> things = [.. response.Json.Data.Things];
-
-            Dictionary<string, ApiComment> tree = [];
-
-            foreach (ApiComment redditCommentMeta in things.OfType<ApiComment>())
-            {
-                tree.Add(redditCommentMeta.Name, redditCommentMeta);
-            }
-
-            foreach (ApiThing redditCommentMeta in things.ToList())
-            {
-                if (redditCommentMeta is ApiComment apiComment)
-                {
-                    if (apiComment?.ParentId is null)
-                    {
-                        continue;
-                    }
-
-                    if (tree.TryGetValue(apiComment.ParentId, out ApiComment? parent))
-                    {
-                        parent.AddReply(redditCommentMeta);
-                        things.Remove(redditCommentMeta);
-                    }
-                }
-
-                if (redditCommentMeta is ApiMore apiMore)
-                {
-                    if (apiMore?.ParentId is null)
-                    {
-                        continue;
-                    }
-
-                    if (tree.TryGetValue(apiMore.ParentId, out ApiComment? parent))
-                    {
-                        parent.AddReply(redditCommentMeta);
-                        things.Remove(redditCommentMeta);
-                    }
-                }
-            }
-
-            stopwatch.Stop();
-            Debug.WriteLine($"[DEBUG] Time spent in MoreComments method: {stopwatch.ElapsedMilliseconds}ms");
-
-            foreach (ApiThing redditCommentMeta in things)
-            {
-                if (moreItem.Parent is null)
-                {
-                    continue;
-                }
-
-                SetParent(moreItem.Parent, redditCommentMeta);
-
-                yield return redditCommentMeta;
-            }
-        }
-
-        public async IAsyncEnumerable<ApiMulti> Multis()
-        {
-            await this.EnsureAuthenticated();
-            await this.ThrottleAsync();
-
-            string url = $"{API_ROOT}/api/multi/mine";
-
-            List<ApiMultiMeta> response = await _jsonClient.Get<List<ApiMultiMeta>>(url);
-
-            foreach (ApiMultiMeta multi in response)
-            {
-                yield return multi.Data;
-            }
-        }
-
-        public async Task SetUpvoteState(ApiThing thing, UpvoteState state)
-        {
-            // Exclude authentication time
-            await this.EnsureAuthenticated();
-            await this.ThrottleAsync();
-
-            Stopwatch stopwatch = new();
-            stopwatch.Start();
-
-            int stateInt = 0;
-
-            switch (state)
-            {
-                case UpvoteState.Upvote:
-                    stateInt = 1;
-                    break;
-
-                case UpvoteState.Downvote:
-                    stateInt = -1;
-                    break;
-
-                case UpvoteState.None:
-                    stateInt = 0;
-                    break;
-            }
-
-            string url = $"{API_ROOT}/api/vote?dir={stateInt}&id={thing.Name}";
-
-            await _jsonClient.Post(url);
-
-            stopwatch.Stop();
-            Debug.WriteLine($"[DEBUG] Time spent in SetUpvoteState method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
-        }
-
         public async Task ToggleInboxReplies(ApiThing thing, bool enabled)
         {
-            await this.EnsureAuthenticated();
-            await this.ThrottleAsync();
+            try
+            {
+                await this.EnsureAuthenticated();
+                await this.ThrottleAsync();
 
-            Stopwatch stopwatch = new();
-            stopwatch.Start();
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
 
-            string url = $"{API_ROOT}/api/sendreplies";
+                string url = $"{API_ROOT}/api/sendreplies";
 
-            // Prepare the form values as a dictionary
-            Dictionary<string, string> formValues = new()
+                // Prepare the form values as a dictionary
+                Dictionary<string, string> formValues = new()
             {
                 { "id", thing.Name },
                 { "state", $"{enabled}" }
             };
 
-            await _jsonClient.Post(url, formValues);
+                await _jsonClient.Post(url, formValues);
 
-            stopwatch.Stop();
-            Debug.WriteLine($"[DEBUG] Time spent in ToggleInboxReplies method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+                stopwatch.Stop();
+                Debug.WriteLine($"[DEBUG] Time spent in ToggleInboxReplies method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+            }
+            catch (Exception ex)
+            {
+                if (!await _exceptionDisplay.DisplayException(ex))
+                {
+                    throw;
+                }
+                else
+                {
+                    return;
+                }
+            }
+        }
+
+        public async Task ToggleSave(ApiThing thing, bool saved)
+        {
+            try
+            {
+                await this.EnsureAuthenticated();
+                await this.ThrottleAsync();
+
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
+
+                string url = !saved ? $"{API_ROOT}/api/unsave" : $"{API_ROOT}/api/save";
+
+                // Prepare the form values as a dictionary
+                Dictionary<string, string> formValues = new()
+            {
+                { "id", thing.Name }
+            };
+
+                await _jsonClient.Post(url, formValues);
+
+                stopwatch.Stop();
+                Debug.WriteLine($"[DEBUG] Time spent in Save method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+            }
+            catch (Exception ex)
+            {
+                if (!await _exceptionDisplay.DisplayException(ex))
+                {
+                    throw;
+                }
+                else
+                {
+                    return;
+                }
+            }
         }
 
         public async Task ToggleSubScription(ApiSubReddit thing, bool subscribed)
         {
-            await this.EnsureAuthenticated();
-            await this.ThrottleAsync();
+            try
+            {
+                await this.EnsureAuthenticated();
+                await this.ThrottleAsync();
 
-            Stopwatch stopwatch = new();
-            stopwatch.Start();
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
 
-            string url = $"{API_ROOT}/api/subscribe";
+                string url = $"{API_ROOT}/api/subscribe";
 
-            // Prepare the form values as a dictionary
-            Dictionary<string, string> formValues = new()
+                // Prepare the form values as a dictionary
+                Dictionary<string, string> formValues = new()
             {
                 { "action", subscribed ? "sub" : "unsub" },
                 { "sr", $"{thing.Name}" }
             };
 
-            await _jsonClient.Post(url, formValues);
+                await _jsonClient.Post(url, formValues);
 
-            stopwatch.Stop();
-            Debug.WriteLine($"[DEBUG] Time spent in ToggleSubScription method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
-        }
-
-        public async Task ToggleSave(ApiThing thing, bool saved)
-        {
-            await this.EnsureAuthenticated();
-            await this.ThrottleAsync();
-
-            Stopwatch stopwatch = new();
-            stopwatch.Start();
-
-            string url = !saved ? $"{API_ROOT}/api/unsave" : $"{API_ROOT}/api/save";
-
-            // Prepare the form values as a dictionary
-            Dictionary<string, string> formValues = new()
+                stopwatch.Stop();
+                Debug.WriteLine($"[DEBUG] Time spent in ToggleSubScription method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+            }
+            catch (Exception ex)
             {
-                { "id", thing.Name }
-            };
-
-            await _jsonClient.Post(url, formValues);
-
-            stopwatch.Stop();
-            Debug.WriteLine($"[DEBUG] Time spent in Save method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+                if (!await _exceptionDisplay.DisplayException(ex))
+                {
+                    throw;
+                }
+                else
+                {
+                    return;
+                }
+            }
         }
 
         public async Task ToggleVisibility(ApiThing thing, bool visible)
         {
-            await this.EnsureAuthenticated();
-            await this.ThrottleAsync();
+            try
+            {
+                await this.EnsureAuthenticated();
+                await this.ThrottleAsync();
 
-            Stopwatch stopwatch = new();
-            stopwatch.Start();
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
 
-            string url = !visible ? $"{API_ROOT}/api/hide" : $"{API_ROOT}/api/unhide";
+                string url = !visible ? $"{API_ROOT}/api/hide" : $"{API_ROOT}/api/unhide";
 
-            // Prepare the form values as a dictionary
-            Dictionary<string, string> formValues = new()
+                // Prepare the form values as a dictionary
+                Dictionary<string, string> formValues = new()
             {
                 { "id", thing.Name }
             };
 
-            await _jsonClient.Post(url, formValues);
+                await _jsonClient.Post(url, formValues);
 
-            stopwatch.Stop();
-            Debug.WriteLine($"[DEBUG] Time spent in ToggleVisibility method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+                stopwatch.Stop();
+                Debug.WriteLine($"[DEBUG] Time spent in ToggleVisibility method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+            }
+            catch (Exception ex)
+            {
+                if (!await _exceptionDisplay.DisplayException(ex))
+                {
+                    throw;
+                }
+                else
+                {
+                    return;
+                }
+            }
+        }
+
+        public async Task<ApiComment> Update(ApiThing thing)
+        {
+            try
+            {
+                await this.EnsureAuthenticated();
+                await this.ThrottleAsync();
+
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
+
+                string fullUrl = $"{API_ROOT}/api/editusertext";
+
+                // Prepare the form values as a dictionary
+                Dictionary<string, string> formValues = new()
+                {
+                    { "api_type", "json" },
+                    { "thing_id", thing.Name },
+                    { "text", thing.Body }
+                };
+
+                // Use the modified Post method to send the form data
+                PostCommentResponse response = await _jsonClient.Post<PostCommentResponse>(fullUrl, formValues);
+
+                if (response.Json.Errors.Count > 0)
+                {
+                    List<Exception> exceptions = [];
+
+                    foreach (string error in response.Json.Errors)
+                    {
+                        exceptions.Add(new Exception(error));
+                    }
+
+                    throw new AggregateException(exceptions);
+                }
+
+                stopwatch.Stop();
+                Debug.WriteLine($"[DEBUG] Time spent in Comment method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+
+                return response.Json.Data.Things.OfType<ApiComment>().Single();
+            }
+            catch (Exception ex)
+            {
+                if (!await _exceptionDisplay.DisplayException(ex))
+                {
+                    throw;
+                }
+                else
+                {
+                    return null;
+                }
+            }
         }
 
         private static string GetSortString<T>(T sort) where T : Enum
@@ -581,7 +786,7 @@ namespace Deaddit.Core.Reddit
 
         private async Task EnsureAuthenticated()
         {
-            if(_tokenExpiration < DateTime.Now)
+            if (_tokenExpiration < DateTime.Now)
             {
                 _oAuthToken = null;
             }

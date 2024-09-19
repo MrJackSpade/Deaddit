@@ -47,7 +47,6 @@
         </Grid>
         <!-- Main Content -->
         <components:OptimizedScrollView Grid.Row="1" x:Name="scrollView">
-            
         </components:OptimizedScrollView>
     </Grid>
 </ContentPage>

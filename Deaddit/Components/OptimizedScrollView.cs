@@ -16,14 +16,14 @@
 
         private double _lastScroll;
 
-        public int HeaderCount { get; set; }
-
         public OptimizedScrollView()
         {
             innerStack = [];
             Content = innerStack;
             Scrolled += this.OnScrolled;
         }
+
+        public int HeaderCount { get; set; }
 
         public Layout InnerStack => innerStack;
 
@@ -59,7 +59,6 @@
 
         public async void OnScrolled(object? sender, ScrolledEventArgs e)
         {
-
             if (e.ScrollY < _lastScroll)
             {
                 if (_scrollSemaphore.Wait(0))
@@ -102,13 +101,6 @@
             }
         }
 
-        private void ScrollDown(ScrolledEventArgs e)
-        {
-            _lastRefresh = e.ScrollY;
-
-            this.RefreshView();
-        }
-
         private void RefreshView()
         {
             if (ScrollY < innerStack.Padding.Top)
@@ -140,6 +132,13 @@
             }
         }
 
+        private void ScrollDown(ScrolledEventArgs e)
+        {
+            _lastRefresh = e.ScrollY;
+
+            this.RefreshView();
+        }
+
         private void ScrollUp(ScrolledEventArgs e)
         {
             _lastRefresh = e.ScrollY;
@@ -151,13 +150,13 @@
         {
             public VisualElement Element { get; set; } = element ?? throw new ArgumentNullException(nameof(element));
 
-            public Rect RenderedBounds { get; set; }
-
             public bool IsRendered
             {
                 get => Element.IsVisible;
                 set => Element.IsVisible = value;
             }
+
+            public Rect RenderedBounds { get; set; }
 
             internal void FindBounds()
             {

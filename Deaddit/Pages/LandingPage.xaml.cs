@@ -55,11 +55,6 @@ namespace Deaddit.Pages
             DataService.LoadAsync(mainStack, this.LoadMultis, applicationTheme.HighlightColor.ToMauiColor());
         }
 
-        public async void OnMessageClicked(object sender, EventArgs e)
-        {
-            await _appNavigator.OpenMessages();
-        }
-
         public async void OnAddClicked(object? sender, EventArgs e)
         {
             string result = await this.DisplayPromptAsync("", "Enter a SubReddit");
@@ -95,11 +90,16 @@ namespace Deaddit.Pages
             await _appNavigator.OpenObjectEditor();
         }
 
+        public async void OnMessageClicked(object sender, EventArgs e)
+        {
+            await _appNavigator.OpenMessages();
+        }
+
         private async Task LoadMultis()
         {
             if (_redditClient.CanLogIn)
             {
-                await foreach (ApiMulti multi in _redditClient.Multis())
+                foreach (ApiMulti multi in await _redditClient.Multis())
                 {
                     if (!multi.Subreddits.NotNullAny())
                     {

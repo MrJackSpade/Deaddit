@@ -24,6 +24,8 @@ namespace Deaddit.MAUI.Components
     {
         private readonly ApplicationStyling _applicationStyling;
 
+        private readonly Dictionary<string, Stream> _cachedImageStreams = [];
+
         private readonly ApiComment _comment;
 
         private readonly IRedditClient _redditClient;
@@ -376,29 +378,6 @@ namespace Deaddit.MAUI.Components
             commentBody.BackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
         }
 
-        private readonly Dictionary<string, Stream> _cachedImageStreams = [];
-
-        private async Task<Stream> GetImageStream(CancellationToken c, string url)
-        {
-            if (!_cachedImageStreams.TryGetValue(url, out Stream cachedImageStream))
-            {
-                if (Uri.TryCreate(url, UriKind.Absolute, out _))
-                {
-                    cachedImageStream = await ImageHelper.ResizeLargeImageWithContainFitAsync(url, (int)Application.Current.Windows[0].Height);
-                    _cachedImageStreams.Add(url, cachedImageStream);
-                }
-            }
-
-            if (cachedImageStream is null)
-            {
-                return null;
-            }
-
-            cachedImageStream.Seek(0, SeekOrigin.Begin);
-
-            return cachedImageStream;
-        }
-
         internal void LoadImages(bool recursive = false)
         {
             if (commentBody is MarkdownView mv)
@@ -434,9 +413,9 @@ namespace Deaddit.MAUI.Components
                 }
             }
 
-            if (recursive)
+            if (recursive && _replies != null)
             {
-                foreach (RedditCommentComponent element in commentContainer.OfType<RedditCommentComponent>())
+                foreach (RedditCommentComponent element in _replies.OfType<RedditCommentComponent>())
                 {
                     element.LoadImages(true);
                 }
@@ -470,9 +449,32 @@ namespace Deaddit.MAUI.Components
             }
         }
 
+        private async Task<Stream> GetImageStream(CancellationToken c, string url)
+        {
+            if (!_cachedImageStreams.TryGetValue(url, out Stream cachedImageStream))
+            {
+                if (Uri.TryCreate(url, UriKind.Absolute, out _))
+                {
+                    cachedImageStream = await ImageHelper.ResizeLargeImageWithContainFitAsync(url,
+                                                                                              (int)Application.Current.Windows[0].Width,
+                                                                                              (int)Application.Current.Windows[0].Height);
+                    _cachedImageStreams.Add(url, cachedImageStream);
+                }
+            }
+
+            if (cachedImageStream is null)
+            {
+                return null;
+            }
+
+            cachedImageStream.Seek(0, SeekOrigin.Begin);
+
+            return cachedImageStream;
+        }
+
         private async Task LoadMoreCommentsAsync(IMore comment)
         {
-            List<ApiThing> response = await _redditClient.MoreComments(Post, comment).ToList();
+            List<ApiThing> response = await _redditClient.MoreComments(Post, comment);
 
             this.AddChildren(response, true);
         }

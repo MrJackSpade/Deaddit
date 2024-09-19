@@ -8,9 +8,9 @@ namespace Deaddit.Core.Reddit.Extensions
     {
         public static PostItems GetPostItems(this ApiPost post)
         {
-            //v.reddit links won't currently resolve if not uploaded as part of 
-            //the original post, as reddit isn't smart enough to copy over 
-            //media metadata for its own links. 
+            //v.reddit links won't currently resolve if not uploaded as part of
+            //the original post, as reddit isn't smart enough to copy over
+            //media metadata for its own links.
 
             if (post.IsSelf)
             {

@@ -2,16 +2,21 @@
 {
     public static class IAsyncEnumerableExtensions
     {
-        public static async Task<List<T>> ToList<T>(this IAsyncEnumerable<T> source)
+        public static async IAsyncEnumerable<T> Take<T>(this Task<List<T>> source, int count)
         {
-            List<T> toReturn = [];
+            int taken = 0;
 
-            await foreach (T item in source)
+            foreach (T item in await source)
             {
-                toReturn.Add(item);
-            }
+                yield return item;
 
-            return toReturn;
+                taken++;
+
+                if (taken >= count)
+                {
+                    break;
+                }
+            }
         }
 
         public static async IAsyncEnumerable<T> Take<T>(this IAsyncEnumerable<T> source, int count)
@@ -29,6 +34,18 @@
                     break;
                 }
             }
+        }
+
+        public static async Task<List<T>> ToList<T>(this IAsyncEnumerable<T> source)
+        {
+            List<T> toReturn = [];
+
+            await foreach (T item in source)
+            {
+                toReturn.Add(item);
+            }
+
+            return toReturn;
         }
     }
 }

@@ -38,6 +38,30 @@ namespace Deaddit.Pages
             this.InitializeComponent();
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
+        public async void OnBackClicked(object? sender, object e)
+        {
+            await Navigation.PopAsync();
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
+        public void OnMoreClicked(object? sender, object e)
+        {
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
+        public void OnRulesClicked(object? sender, object e)
+        {
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
+        public async void OnSubscribeClicked(object? sender, object e)
+        {
+            await _redditClient.ToggleSubScription(_apiSubReddit, !_apiSubReddit.UserIsSubscriber);
+            _apiSubReddit.UserIsSubscriber = !_apiSubReddit.UserIsSubscriber;
+            this.SetSubscribeButtonState(_apiSubReddit.UserIsSubscriber);
+        }
+
         public async Task TryLoad()
         {
             await DataService.LoadAsync(mainStack, this.LoadAbout, _applicationStyling.HighlightColor.ToMauiColor());
@@ -64,13 +88,6 @@ namespace Deaddit.Pages
             this.SetSubscribeButtonState(_apiSubReddit.UserIsSubscriber);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
-
-        public async void OnBackClicked(object? sender, object e)
-        {
-            await Navigation.PopAsync();
-        }
-
         private async void OnHyperLinkClicked(object? sender, LinkEventArgs e)
         {
             Ensure.NotNullOrWhiteSpace(e.Url);
@@ -78,26 +95,6 @@ namespace Deaddit.Pages
             PostItems resource = UrlHelper.Resolve(e.Url);
 
             await Navigation.OpenResource(resource, _appNavigator);
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
-
-        public void OnMoreClicked(object? sender, object e)
-        {
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
-        public void OnRulesClicked(object? sender, object e)
-        {
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
-
-        public async void OnSubscribeClicked(object? sender, object e)
-        {
-            await _redditClient.ToggleSubScription(_apiSubReddit, !_apiSubReddit.UserIsSubscriber);
-            _apiSubReddit.UserIsSubscriber = !_apiSubReddit.UserIsSubscriber;
-            this.SetSubscribeButtonState(_apiSubReddit.UserIsSubscriber);
         }
 
         private void SetSubscribeButtonState(bool state)

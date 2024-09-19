@@ -3,10 +3,14 @@
     public class PanZoomImageContainer : ContentView
     {
         private readonly Image image;
+
         private double currentScale = 1;
-        private double startScale = 1;
+
         private double panX = 0;
+
         private double panY = 0;
+
+        private double startScale = 1;
 
         public PanZoomImageContainer()
         {
@@ -34,32 +38,6 @@
             this.ResetImagePosition();
         }
 
-        private void ResetImagePosition()
-        {
-            currentScale = 1;
-            startScale = 1;
-            panX = 0;
-            panY = 0;
-            Content.Scale = 1;
-            Content.TranslationX = 0;
-            Content.TranslationY = 0;
-        }
-
-        private void OnPinchUpdated(object sender, PinchGestureUpdatedEventArgs e)
-        {
-            if (e.Status == GestureStatus.Started)
-            {
-                startScale = currentScale;
-            }
-
-            if (e.Status == GestureStatus.Running)
-            {
-                currentScale += (e.Scale - 1) * startScale;
-                currentScale = Math.Max(1, currentScale); // Prevent scaling smaller than original size
-                Content.Scale = currentScale;
-            }
-        }
-
         private void OnPanUpdated(object sender, PanUpdatedEventArgs e)
         {
             switch (e.StatusType)
@@ -77,6 +55,32 @@
                     panY = Content.TranslationY;
                     break;
             }
+        }
+
+        private void OnPinchUpdated(object sender, PinchGestureUpdatedEventArgs e)
+        {
+            if (e.Status == GestureStatus.Started)
+            {
+                startScale = currentScale;
+            }
+
+            if (e.Status == GestureStatus.Running)
+            {
+                currentScale += (e.Scale - 1) * startScale;
+                currentScale = Math.Max(1, currentScale); // Prevent scaling smaller than original size
+                Content.Scale = currentScale;
+            }
+        }
+
+        private void ResetImagePosition()
+        {
+            currentScale = 1;
+            startScale = 1;
+            panX = 0;
+            panY = 0;
+            Content.Scale = 1;
+            Content.TranslationX = 0;
+            Content.TranslationY = 0;
         }
     }
 }

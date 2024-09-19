@@ -25,14 +25,16 @@ namespace Deaddit
                 RedditCredentials ApplicationTheme = s.GetRequiredService<RedditCredentials>();
                 IJsonClient jsonClient = s.GetRequiredService<IJsonClient>();
                 HttpClient httpClient = s.GetRequiredService<HttpClient>();
+                IDisplayExceptions displayExceptions = s.GetRequiredService<IDisplayExceptions>();
 
-                return new RedditClient(ApplicationTheme, jsonClient, httpClient);
+                return new RedditClient(ApplicationTheme, jsonClient, displayExceptions, httpClient);
             });
 
             builder.Services.AddConfiguration<ApplicationStyling>();
             builder.Services.AddConfiguration<RedditCredentials>();
             builder.Services.AddConfiguration<BlockConfiguration>();
             builder.Services.AddConfiguration<ApplicationHacks>();
+            builder.Services.AddSingleton<IDisplayExceptions, MauiExceptionDisplay>();
             builder.Services.AddSingleton<IAppNavigator, AppNavigator>();
             builder.Services.AddTransient<IJsonClient, JsonClient>();
             builder.Services.AddSingleton<IVisitTracker, PreferencesVisitTracker>();

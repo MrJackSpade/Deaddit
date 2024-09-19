@@ -102,6 +102,14 @@ namespace Deaddit.Utils
             return browser;
         }
 
+        public async Task<SubRedditPage> OpenMessages(InboxSort sort = InboxSort.Unread)
+        {
+            SubRedditPage page = new(new ThingCollectionName("Messages", "/message", ThingKind.Message), sort, _applicationHacks, this, _redditClient, _applicationStyling, _blockConfiguration);
+            await Navigation.PushAsync(page);
+            await page.TryLoad();
+            return page;
+        }
+
         public async Task<ObjectEditorPage> OpenObjectEditor(object original)
         {
             ObjectEditorPage page = new(original, applicationTheme);
@@ -155,14 +163,6 @@ namespace Deaddit.Utils
         public async Task<SubRedditPage> OpenSubReddit(string subRedditName, ApiPostSort sort = ApiPostSort.Hot)
         {
             return await this.OpenSubReddit(new ThingCollectionName(subRedditName), sort);
-        }
-
-        public async Task<SubRedditPage> OpenMessages(InboxSort sort = InboxSort.Unread)
-        {
-            SubRedditPage page = new(new ThingCollectionName("Messages", "/message", ThingKind.Message), sort, _applicationHacks, this, _redditClient, _applicationStyling, _blockConfiguration);
-            await Navigation.PushAsync(page);
-            await page.TryLoad();
-            return page;
         }
 
         public async Task<SubRedditPage> OpenSubReddit(ThingCollectionName subRedditName, ApiPostSort sort = ApiPostSort.Hot)

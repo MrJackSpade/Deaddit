@@ -15,7 +15,7 @@
             HorizontalOptions="FillAndExpand"
             ColumnDefinitions="*, auto, auto"
             VerticalOptions="Center">
-            
+
             <Button
                 Text="&#8278;"
                 Grid.Column="1"

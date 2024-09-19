@@ -1,22 +1,16 @@
 ﻿using Deaddit.Components;
 using Deaddit.Core.Configurations.Models;
-using Deaddit.Core.Exceptions;
-using Deaddit.Core.Extensions;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
-using Deaddit.Core.Reddit.Models.Options;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Extensions;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
-using Deaddit.MAUI.Components.Partials;
 using Deaddit.Pages;
-using Deaddit.Utils;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Deaddit.MAUI.Components
 {
@@ -24,16 +18,13 @@ namespace Deaddit.MAUI.Components
     {
         private readonly ApplicationStyling _applicationStyling;
 
+        private readonly Dictionary<string, Stream> _cachedImageStreams = [];
+
         private readonly ApiMessage _message;
 
         private readonly IRedditClient _redditClient;
 
         private readonly View messageBody;
-
-        public void OnParentTapped(object? sender, TappedEventArgs e)
-        {
-            SelectionGroup.Toggle(this);
-        }
 
         public RedditMessageComponent(ApiMessage message, bool selectEnabled, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration)
         {
@@ -119,6 +110,11 @@ namespace Deaddit.MAUI.Components
             await Navigation.OpenResource(resource, AppNavigator);
         }
 
+        public void OnParentTapped(object? sender, TappedEventArgs e)
+        {
+            SelectionGroup.Toggle(this);
+        }
+
         public async void OnReplyClicked(object? sender, EventArgs e)
         {
             ReplyPage replyPage = await AppNavigator.OpenReplyPage(_message);
@@ -127,35 +123,10 @@ namespace Deaddit.MAUI.Components
 
         void ISelectionGroupItem.Select()
         {
-
         }
 
         void ISelectionGroupItem.Unselect()
         {
-
-        }
-
-        private readonly Dictionary<string, Stream> _cachedImageStreams = [];
-
-        private async Task<Stream> GetImageStream(CancellationToken c, string url)
-        {
-            if (!_cachedImageStreams.TryGetValue(url, out Stream cachedImageStream))
-            {
-                if (Uri.TryCreate(url, UriKind.Absolute, out _))
-                {
-                    cachedImageStream = await ImageHelper.ResizeLargeImageWithContainFitAsync(url, (int)Application.Current.Windows[0].Height);
-                    _cachedImageStreams.Add(url, cachedImageStream);
-                }
-            }
-
-            if (cachedImageStream is null)
-            {
-                return null;
-            }
-
-            cachedImageStream.Seek(0, SeekOrigin.Begin);
-
-            return cachedImageStream;
         }
 
         internal void LoadImages(bool recursive = false)
@@ -206,9 +177,31 @@ namespace Deaddit.MAUI.Components
         {
         }
 
+        private async Task<Stream> GetImageStream(CancellationToken c, string url)
+        {
+            if (!_cachedImageStreams.TryGetValue(url, out Stream cachedImageStream))
+            {
+                if (Uri.TryCreate(url, UriKind.Absolute, out _))
+                {
+                    cachedImageStream = await ImageHelper.ResizeLargeImageWithContainFitAsync(url,
+                                                                                             (int)Application.Current.Windows[0].Width,
+                                                                                             (int)Application.Current.Windows[0].Height);
+                    _cachedImageStreams.Add(url, cachedImageStream);
+                }
+            }
+
+            if (cachedImageStream is null)
+            {
+                return null;
+            }
+
+            cachedImageStream.Seek(0, SeekOrigin.Begin);
+
+            return cachedImageStream;
+        }
+
         private void ReplyPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
         {
-
         }
     }
 }

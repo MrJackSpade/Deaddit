@@ -1,16 +1,10 @@
-﻿using Deaddit.Core.Configurations.Models;
-using Deaddit.Core.Extensions;
+﻿using Deaddit.Core.Extensions;
 using Deaddit.Core.Reddit.Extensions;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Interfaces;
 using Deaddit.MAUI.Components;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Deaddit.Extensions
 {
@@ -55,7 +49,8 @@ namespace Deaddit.Extensions
                     MoreCommentsComponent mcomponent = target.AppNavigator.CreateMoreCommentsComponent(more);
                     mcomponent.OnClick += target.MoreCommentsClick;
                     childComponent = mcomponent;
-                } else if(child is ApiMessage message)
+                }
+                else if (child is ApiMessage message)
                 {
                     RedditMessageComponent mcomponent = target.AppNavigator.CreateMessageComponent(message);
                     childComponent = mcomponent;

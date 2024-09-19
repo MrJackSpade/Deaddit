@@ -25,7 +25,9 @@ namespace Deaddit.Interfaces
         Task<ReplyPage> OpenEditPage(ApiThing toEdit);
 
         Task<EmbeddedImage> OpenImage(PostItems resource);
+
         Task<SubRedditPage> OpenMessages(InboxSort sort = InboxSort.Unread);
+
         Task<ObjectEditorPage> OpenObjectEditor(object original);
 
         Task OpenObjectEditor(Action onSave);
