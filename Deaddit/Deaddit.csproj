@@ -47,16 +47,22 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <AndroidResource Remove="Attributes\**" />
 	  <AndroidResource Remove="Models\**" />
 	  <AndroidResource Remove="Release\**" />
+	  <Compile Remove="Attributes\**" />
 	  <Compile Remove="Models\**" />
 	  <Compile Remove="Release\**" />
+	  <EmbeddedResource Remove="Attributes\**" />
 	  <EmbeddedResource Remove="Models\**" />
 	  <EmbeddedResource Remove="Release\**" />
+	  <MauiCss Remove="Attributes\**" />
 	  <MauiCss Remove="Models\**" />
 	  <MauiCss Remove="Release\**" />
+	  <MauiXaml Remove="Attributes\**" />
 	  <MauiXaml Remove="Models\**" />
 	  <MauiXaml Remove="Release\**" />
+	  <None Remove="Attributes\**" />
 	  <None Remove="Models\**" />
 	  <None Remove="Release\**" />
 	</ItemGroup>
@@ -165,7 +171,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Attributes\" />
 	  <Folder Include="Pages\Interfaces\" />
 	</ItemGroup>
 

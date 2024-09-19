@@ -39,6 +39,8 @@ namespace Deaddit.Pages
 
         private string? _after = null;
 
+        private bool _isBlockEnabled = true;
+
         private Enum _sort;
 
         public SubRedditPage(ThingCollectionName subreddit, Enum sort, ApplicationHacks applicationHacks, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, BlockConfiguration blockConfiguration)
@@ -84,6 +86,22 @@ namespace Deaddit.Pages
         }
 
         private bool WindowInLoadRange => scrollView.ScrollY >= scrollView.ContentSize.Height - scrollView.Height - navigationBar.Height;
+
+        public async void OnBlockClicked(object? sender, EventArgs e)
+        {
+            _isBlockEnabled = !_isBlockEnabled;
+
+            if (_isBlockEnabled)
+            {
+                blockButton.TextColor = Color.Parse("#FF0000");
+            }
+            else
+            {
+                blockButton.TextColor = _applicationStyling.TextColor.ToMauiColor();
+            }
+
+            await this.Reload();
+        }
 
         public async void OnInfoClicked(object? sender, EventArgs e)
         {
@@ -131,6 +149,7 @@ namespace Deaddit.Pages
                     // Fetch new posts from Reddit API
                     List<ApiThing> newPosts = await _redditClient.GetPosts(after: _after,
                                                                             subreddit: _thingCollectionName,
+                                                                            pageSize: _applicationHacks.PageSize,
                                                                             sort: _sort,
                                                                             region: _applicationHacks.DefaultRegion)
                                                                            .Take(_applicationHacks.PageSize)
@@ -239,7 +258,6 @@ namespace Deaddit.Pages
                             Post = thing,
                             PostComponent = view
                         });
-
                     }
                 } while (newComponents.Count < _applicationHacks.PageSize);
 
@@ -249,24 +267,6 @@ namespace Deaddit.Pages
                     scrollView.Add(component);
                 }
             }, _applicationStyling.HighlightColor.ToMauiColor());
-        }
-
-        private bool _isBlockEnabled = true;
-
-        public async void OnBlockClicked(object? sender, EventArgs e)
-        {
-            _isBlockEnabled = !_isBlockEnabled;
-
-            if (_isBlockEnabled)
-            {
-                blockButton.TextColor = Color.Parse("#FF0000");
-            }
-            else
-            {
-                blockButton.TextColor = _applicationStyling.TextColor.ToMauiColor();
-            }
-
-            await this.Reload();
         }
 
         private void InitSortButtons(Enum sort)

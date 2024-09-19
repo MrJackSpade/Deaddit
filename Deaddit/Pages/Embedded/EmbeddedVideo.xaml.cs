@@ -12,21 +12,6 @@ namespace Deaddit
 
         private readonly PostItems _postItems;
 
-        protected override void OnDisappearing()
-        {
-            base.OnDisappearing();
-
-            try
-            {
-                mediaView.Stop();
-                mediaView.Dispose();
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine(e);
-            }
-        }
-
         public EmbeddedVideo(PostItems items, ApplicationStyling applicationTheme)
         {
             _applicationStyling = applicationTheme;
@@ -45,6 +30,26 @@ namespace Deaddit
             mediaView.Source = new Uri(url);
         }
 
+        public async void OnShareClicked(object? sender, EventArgs e)
+        {
+            await Share.Default.ShareFiles("", _postItems);
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+
+            try
+            {
+                mediaView.Stop();
+                mediaView.Dispose();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+            }
+        }
+
         private void OnBackClicked(object? sender, EventArgs e)
         {
             // Logic to go back, for example:
@@ -54,11 +59,6 @@ namespace Deaddit
         private async void OnSaveClicked(object? sender, EventArgs e)
         {
             await FileStorage.Save(_postItems);
-        }
-
-        public async void OnShareClicked(object? sender, EventArgs e)
-        {
-            await Share.Default.ShareFiles("", _postItems);
         }
     }
 }

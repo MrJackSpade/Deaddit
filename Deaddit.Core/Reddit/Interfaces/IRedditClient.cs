@@ -13,19 +13,19 @@ namespace Deaddit.Core.Reddit.Interfaces
 
         Task<ApiComment> Comment(ApiThing replyTo, string comment);
 
-        IAsyncEnumerable<ApiThing> Comments(ApiPost thing, ApiComment? focus);
+        Task<List<ApiThing>> Comments(ApiPost thing, ApiComment? focus);
 
         Task Delete(ApiThing thing);
 
-        IAsyncEnumerable<ApiThing> GetPosts<T>(ThingCollectionName subreddit, T sort, string? after = null, Region region = Region.GLOBAL) where T : Enum;
+        Task<List<ApiThing>> GetPosts<T>(ThingCollectionName subreddit, T sort, int pageSize, string? after = null, Region region = Region.GLOBAL) where T : Enum;
 
         Task<Stream> GetStream(string url);
 
         Task<Dictionary<string, UserPartial>> GetUserData(IEnumerable<string> usernames);
 
-        IAsyncEnumerable<ApiThing> MoreComments(ApiPost thing, IMore comment);
+        Task<List<ApiThing>> MoreComments(ApiPost thing, IMore comment);
 
-        IAsyncEnumerable<ApiMulti> Multis();
+        Task<List<ApiMulti>> Multis();
 
         Task SetUpvoteState(ApiThing thing, UpvoteState state);
 

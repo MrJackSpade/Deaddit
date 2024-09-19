@@ -73,7 +73,6 @@ namespace Deaddit.Utils
 
             if (visited.Add(thing.Name))
             {
-
                 visits.Add(new Visit()
                 {
                     Date = DateTime.Now,

@@ -22,6 +22,12 @@ namespace Deaddit.Core.Reddit.Models.Api
         [JsonPropertyName("contest_mode")]
         public bool ContestMode { get; init; }
 
+        [JsonPropertyName("crosspost_parent")]
+        public string CrossPostParent { get; init; }
+
+        [JsonPropertyName("crosspost_parent_list")]
+        public List<ApiPost> CrossPostParentList { get; init; }
+
         [JsonPropertyName("discussion_type")]
         public object? DiscussionType { get; init; }
 
@@ -33,12 +39,6 @@ namespace Deaddit.Core.Reddit.Models.Api
 
         [JsonPropertyName("hidden")]
         public bool Hidden { get; init; }
-
-        [JsonPropertyName("crosspost_parent_list")]
-        public List<ApiPost> CrossPostParentList { get; init; }
-
-        [JsonPropertyName("crosspost_parent")]
-        public string CrossPostParent { get; init; }
 
         [JsonPropertyName("hide_score")]
         public bool HideScore { get; init; }
@@ -103,6 +103,9 @@ namespace Deaddit.Core.Reddit.Models.Api
         [JsonPropertyName("media_only")]
         public bool MediaOnly { get; init; }
 
+        [JsonPropertyName("num_duplicates")]
+        public int? NumberOfDuplicates { get; init; }
+
         [JsonPropertyName("num_crossposts")]
         public long NumCrossPosts { get; init; }
 
@@ -153,9 +156,6 @@ namespace Deaddit.Core.Reddit.Models.Api
 
         [JsonPropertyName("thumbnail_width")]
         public int? ThumbnailWidth { get; init; }
-
-        [JsonPropertyName("num_duplicates")]
-        public int? NumberOfDuplicates { get; init; }
 
         [JsonPropertyName("title")]
         public string? Title { get; init; }

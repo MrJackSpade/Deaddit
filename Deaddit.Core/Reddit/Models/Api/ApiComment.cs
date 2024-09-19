@@ -4,11 +4,6 @@ namespace Deaddit.Core.Reddit.Models.Api
 {
     public class ApiComment : ApiThing
     {
-        public override string ToString()
-        {
-            return $"[{Author}] {Body}";
-        }
-
         [JsonPropertyName("after")]
         public string? After { get; init; }
 
@@ -84,9 +79,6 @@ namespace Deaddit.Core.Reddit.Models.Api
         [JsonPropertyName("modhash")]
         public string? ModHash { get; init; }
 
-        [JsonPropertyName("rte_mode")]
-        public RteMode RteMode { get; set; }
-
         /// <summary>
         /// Only used when viewing comment outside of post
         /// </summary>
@@ -96,10 +88,18 @@ namespace Deaddit.Core.Reddit.Models.Api
         [JsonPropertyName("replies")]
         public ApiThingCollection? Replies { get; set; }
 
+        [JsonPropertyName("rte_mode")]
+        public RteMode RteMode { get; set; }
+
         [JsonPropertyName("score_hidden")]
         public bool? ScoreHidden { get; init; }
 
         [JsonPropertyName("unrepliable_reason")]
         public UnrepliableReason UnrepliableReason { get; init; }
+
+        public override string ToString()
+        {
+            return $"[{Author}] {Body}";
+        }
     }
 }

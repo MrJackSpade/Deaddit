@@ -9,7 +9,6 @@ using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.MAUI.Components;
 using Deaddit.Pages.Models;
-using Deaddit.Utils;
 using Microsoft.Maui.Controls.Shapes;
 
 namespace Deaddit.Pages
@@ -110,25 +109,22 @@ namespace Deaddit.Pages
 
         public async void OnSubmitClicked(object? sender, EventArgs e)
         {
-            await ExceptionHelper.CaptureException(async () =>
+            ApiComment meta;
+
+            if (_toEdit is ApiComment comment)
             {
-                ApiComment meta;
+                comment.Body = textEditor.Text;
+                meta = await _redditClient.Update(comment);
+            }
+            else
+            {
+                string commentBody = textEditor.Text;
+                meta = await _redditClient.Comment(_replyTo, commentBody);
+            }
 
-                if (_toEdit is ApiComment comment)
-                {
-                    comment.Body = textEditor.Text;
-                    meta = await _redditClient.Update(comment);
-                }
-                else
-                {
-                    string commentBody = textEditor.Text;
-                    meta = await _redditClient.Comment(_replyTo, commentBody);
-                }
+            OnSubmitted?.Invoke(this, new ReplySubmittedEventArgs(_replyTo, meta));
 
-                OnSubmitted?.Invoke(this, new ReplySubmittedEventArgs(_replyTo, meta));
-
-                await Navigation.PopAsync();
-            });
+            await Navigation.PopAsync();
         }
 
         private async void OnHyperLinkClicked(object? sender, LinkEventArgs e)

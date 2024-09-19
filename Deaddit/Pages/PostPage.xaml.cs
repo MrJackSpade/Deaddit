@@ -3,7 +3,6 @@ using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Exceptions;
 using Deaddit.Core.Extensions;
-using Deaddit.Core.Reddit.Extensions;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
@@ -74,7 +73,7 @@ namespace Deaddit.Pages
 
         public BlockConfiguration BlockConfiguration { get; }
 
-        Layout IHasChildren.ChildContainer => this.mainStack;
+        Layout IHasChildren.ChildContainer => mainStack;
 
         public ApiPost Post { get; }
 
@@ -261,7 +260,7 @@ namespace Deaddit.Pages
 
             sw.Start();
 
-            List<ApiThing> response = await _redditClient.Comments(Post, _commentFocus).ToList();
+            List<ApiThing> response = await _redditClient.Comments(Post, _commentFocus);
 
             this.AddChildren(response);
 
@@ -272,7 +271,7 @@ namespace Deaddit.Pages
 
         private async Task LoadMoreAsync(ApiPost post, IMore more)
         {
-            List<ApiThing> response = await _redditClient.MoreComments(post, more).ToList();
+            List<ApiThing> response = await _redditClient.MoreComments(post, more);
 
             this.AddChildren(response, true);
         }
@@ -290,7 +289,7 @@ namespace Deaddit.Pages
 
             RedditCommentComponent redditCommentComponent = AppNavigator.CreateCommentComponent(e.NewComment, Post, SelectionGroup);
 
-            redditCommentComponent.OnDelete += (s, e) => this.mainStack.Remove(redditCommentComponent);
+            redditCommentComponent.OnDelete += (s, e) => mainStack.Remove(redditCommentComponent);
 
             mainStack.Children.InsertAfter(postBodyBorder, redditCommentComponent);
         }

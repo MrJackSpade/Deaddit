@@ -7,11 +7,6 @@ namespace Deaddit.Core.Extensions
 {
     public static class BlockRuleExtensions
     {
-        public static bool RequiresUserData(this BlockConfiguration blockConfiguration)
-        {
-            return blockConfiguration.MinAccountAgeDays > 0 || blockConfiguration.MinCommentKarma > 0 || blockConfiguration.MaxLinkKarma > 0;
-        }
-
         public static bool IsAllowed(this BlockConfiguration blockConfiguration, ApiThing thing, Dictionary<string, UserPartial>? userData = null)
         {
             foreach (BlockRule br in blockConfiguration.BlockRules)
@@ -63,6 +58,11 @@ namespace Deaddit.Core.Extensions
             blocked &= BlockListHelper.TriggersOrSkip(rule.Body, thing.Body, DynamicMatchType(rule.Body), true);
 
             return !blocked;
+        }
+
+        public static bool RequiresUserData(this BlockConfiguration blockConfiguration)
+        {
+            return blockConfiguration.MinAccountAgeDays > 0 || blockConfiguration.MinCommentKarma > 0 || blockConfiguration.MaxLinkKarma > 0;
         }
 
         private static StringMatchType DynamicMatchType(string? toMatch)

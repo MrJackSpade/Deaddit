@@ -22,7 +22,6 @@
                     LineHeight="1"
                     Margin="5,0,0,0"
                     FontAttributes="Bold" />
-
         </Grid>
 
         <!-- Content Text -->

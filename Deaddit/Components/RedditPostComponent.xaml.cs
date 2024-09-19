@@ -30,6 +30,8 @@ namespace Deaddit.MAUI.Components
 
         private readonly IConfigurationService _configurationService;
 
+        private readonly bool _isBlocked;
+
         private readonly bool _isListView;
 
         private readonly ApiPost _post;
@@ -63,8 +65,6 @@ namespace Deaddit.MAUI.Components
         private Label titleLabel;
 
         private VerticalStackLayout titleStack;
-
-        private readonly bool _isBlocked;
 
         private Label upvoteButton;
 

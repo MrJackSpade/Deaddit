@@ -4,15 +4,6 @@ namespace Deaddit.Core.Reddit.Models.Api
 {
     public class Media
     {
-        [JsonPropertyName("reddit_video")]
-        public RedditVideo? RedditVideo { get; init; }
-
-        [JsonPropertyName("type")]
-        public string? Type { get; set; }
-
-        [JsonPropertyName("oembed")]
-        public OEmbed? OEmbed { get; set; }
-
         [JsonPropertyName("content")]
         public string? Content { get; set; }
 
@@ -22,8 +13,17 @@ namespace Deaddit.Core.Reddit.Models.Api
         [JsonPropertyName("media_domain_url")]
         public string? MediaDomainUrl { get; set; }
 
+        [JsonPropertyName("oembed")]
+        public OEmbed? OEmbed { get; set; }
+
+        [JsonPropertyName("reddit_video")]
+        public RedditVideo? RedditVideo { get; init; }
+
         [JsonPropertyName("scrolling")]
         public bool? Scrolling { get; set; }
+
+        [JsonPropertyName("type")]
+        public string? Type { get; set; }
 
         [JsonPropertyName("width")]
         public int? Width { get; set; }

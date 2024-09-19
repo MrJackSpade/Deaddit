@@ -35,16 +35,6 @@
             }
         }
 
-        public string ToArgbHex()
-        {
-            return $"#{Alpha:X2}{Red:X2}{Green:X2}{Blue:X2}";
-        }
-
-        public string ToHex()
-        {
-            return $"#{Red:X2}{Green:X2}{Blue:X2}";
-        }
-
         public static bool TryParse(string v, out DynamicColor longValue)
         {
             if (v.Trim('#').Length is 6 or 8)
@@ -57,6 +47,16 @@
                 longValue = null;
                 return false;
             }
+        }
+
+        public string ToArgbHex()
+        {
+            return $"#{Alpha:X2}{Red:X2}{Green:X2}{Blue:X2}";
+        }
+
+        public string ToHex()
+        {
+            return $"#{Red:X2}{Green:X2}{Blue:X2}";
         }
     }
 }

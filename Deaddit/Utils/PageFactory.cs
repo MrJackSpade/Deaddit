@@ -3,10 +3,10 @@ using System.Reflection.Emit;
 
 namespace Deaddit.Utils
 {
-
     public static class PageFactory
     {
         private static readonly AssemblyBuilder assemblyBuilder;
+
         private static readonly ModuleBuilder moduleBuilder;
 
         static PageFactory()
@@ -14,6 +14,53 @@ namespace Deaddit.Utils
             AssemblyName assemblyName = new("DynamicAssembly");
             assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
             moduleBuilder = assemblyBuilder.DefineDynamicModule("DynamicModule");
+        }
+
+        public static T CreateProxy<T>(params object[] constructorArgs) where T : class
+        {
+            Type baseType = typeof(T);
+            TypeBuilder typeBuilder = moduleBuilder.DefineType(
+                $"{baseType.Name}Proxy",
+                TypeAttributes.Public | TypeAttributes.Class,
+                baseType);
+
+            // Create constructor
+            CreateConstructor(typeBuilder, baseType, constructorArgs);
+
+            MethodInfo[] methods = baseType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                .Where(m => !m.IsSpecialName) // Exclude property getters and setters
+                .ToArray();
+
+            foreach (MethodInfo method in methods)
+            {
+                if (method.ReturnType != typeof(void))
+                {
+                    continue;
+                }
+
+                if (method.DeclaringType.Assembly != typeof(T).Assembly)
+                {
+                    continue;
+                }
+
+                if (method.IsFinal)
+                {
+                    continue; // Skip virtual and sealed methods
+                }
+
+                if (!method.IsVirtual)
+                {
+                    throw new Exception($"Method '{method.Name}' on class '{typeof(T)}' must be marked as virtual or sealed.");
+                }
+
+                OverrideMethod(typeBuilder, method);
+            }
+
+            Type proxyType = typeBuilder.CreateType();
+
+            // Find a constructor that matches the provided arguments
+            // Create instance using the constructor we defined
+            return (T)Activator.CreateInstance(proxyType, constructorArgs);
         }
 
         private static void CreateConstructor(TypeBuilder typeBuilder, Type baseType, object[] constructorArgs)
@@ -74,53 +121,6 @@ namespace Deaddit.Utils
             il.Emit(OpCodes.Ret);
         }
 
-        public static T CreateProxy<T>(params object[] constructorArgs) where T : class
-        {
-            Type baseType = typeof(T);
-            TypeBuilder typeBuilder = moduleBuilder.DefineType(
-                $"{baseType.Name}Proxy",
-                TypeAttributes.Public | TypeAttributes.Class,
-                baseType);
-
-            // Create constructor
-            CreateConstructor(typeBuilder, baseType, constructorArgs);
-
-            MethodInfo[] methods = baseType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
-                .Where(m => !m.IsSpecialName) // Exclude property getters and setters
-                .ToArray();
-
-            foreach (MethodInfo method in methods)
-            {
-                if (method.ReturnType != typeof(void))
-                {
-                    continue;
-                }
-
-                if (method.DeclaringType.Assembly != typeof(T).Assembly)
-                {
-                    continue;
-                }
-
-                if (method.IsFinal)
-                {
-                    continue; // Skip virtual and sealed methods
-                }
-
-                if (!method.IsVirtual)
-                {
-                    throw new Exception($"Method '{method.Name}' on class '{typeof(T)}' must be marked as virtual or sealed.");
-                }
-
-                OverrideMethod(typeBuilder, method);
-            }
-
-            Type proxyType = typeBuilder.CreateType();
-
-            // Find a constructor that matches the provided arguments
-            // Create instance using the constructor we defined
-            return (T)Activator.CreateInstance(proxyType, constructorArgs);
-        }
-
         private static void OverrideMethod(TypeBuilder typeBuilder, MethodInfo method)
         {
             ParameterInfo[] parameters = method.GetParameters();
@@ -135,7 +135,7 @@ namespace Deaddit.Utils
             ILGenerator il = methodBuilder.GetILGenerator();
 
             // Load ExceptionHandler.CaptureException method
-            MethodInfo captureExceptionMethod = typeof(ExceptionHelper).GetMethod(
+            MethodInfo captureExceptionMethod = typeof(MauiExceptionDisplay).GetMethod(
                 "CaptureException",
                 new[] { method.ReturnType == typeof(void) ? typeof(Action) : typeof(Func<Task>) });
 
