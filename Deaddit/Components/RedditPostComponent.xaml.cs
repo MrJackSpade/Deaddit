@@ -20,6 +20,18 @@ namespace Deaddit.MAUI.Components
 {
     public partial class RedditPostComponent : ContentView, ISelectionGroupItem
     {
+        private const string TXT_COMMENT = "🗨";
+
+        private const string TXT_DOTS = "...";
+
+        private const string TXT_HIDE = "Hide";
+
+        private const string TXT_SAVE = "Save";
+
+        private const string TXT_SHARE = "Share";
+
+        private const string TXT_UNSAVE = "Unsave";
+
         private readonly ApplicationHacks _applicationHacks;
 
         private readonly ApplicationStyling _applicationStyling;
@@ -269,13 +281,13 @@ namespace Deaddit.MAUI.Components
             {
                 await _redditClient.ToggleSave(_post, false);
                 _post.Saved = false;
-                saveButton.Text = "Save";
+                saveButton.Text = TXT_SAVE;
             }
             else
             {
                 await _redditClient.ToggleSave(_post, true);
                 _post.Saved = true;
-                saveButton.Text = "Unsave";
+                saveButton.Text = TXT_UNSAVE;
             }
         }
 
@@ -423,7 +435,7 @@ namespace Deaddit.MAUI.Components
             // Initialize the Share button
             Button shareButton = new()
             {
-                Text = "Share",
+                Text = TXT_SHARE,
                 BackgroundColor = Colors.Transparent,
                 TextColor = _applicationStyling.TextColor.ToMauiColor()
             };
@@ -432,7 +444,7 @@ namespace Deaddit.MAUI.Components
             // Initialize the Save button
             saveButton = new()
             {
-                Text = _post.Saved == true ? "Unsave" : "Save",
+                Text = _post.Saved == true ? TXT_UNSAVE : TXT_SAVE,
                 BackgroundColor = Colors.Transparent,
                 TextColor = _applicationStyling.TextColor.ToMauiColor()
             };
@@ -441,7 +453,7 @@ namespace Deaddit.MAUI.Components
             // Initialize the Hide button
             Button hideButton = new()
             {
-                Text = "Hide",
+                Text = TXT_HIDE,
                 BackgroundColor = Colors.Transparent,
                 TextColor = _applicationStyling.TextColor.ToMauiColor()
             };
@@ -450,7 +462,7 @@ namespace Deaddit.MAUI.Components
             // Initialize the More Options button
             Button moreButton = new()
             {
-                Text = "...",
+                Text = TXT_DOTS,
                 BackgroundColor = Colors.Transparent,
                 TextColor = _applicationStyling.TextColor.ToMauiColor()
             };
@@ -459,7 +471,7 @@ namespace Deaddit.MAUI.Components
             // Initialize the Comments button
             Button commentsButton = new()
             {
-                Text = "🗨",
+                Text = TXT_COMMENT,
                 BackgroundColor = Colors.Transparent,
                 TextColor = _applicationStyling.TextColor.ToMauiColor()
             };
