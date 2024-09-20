@@ -11,7 +11,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public string? AuthorUrl { get; set; }
 
         [JsonPropertyName("height")]
-        public int Height { get; set; }
+        public int? Height { get; set; }
 
         [JsonPropertyName("html")]
         public string? Html { get; set; }
@@ -23,13 +23,13 @@ namespace Deaddit.Core.Reddit.Models.Api
         public string? ProviderUrl { get; set; }
 
         [JsonPropertyName("thumbnail_height")]
-        public int ThumbnailHeight { get; set; }
+        public int? ThumbnailHeight { get; set; }
 
         [JsonPropertyName("thumbnail_url")]
         public string? ThumbnailUrl { get; set; }
 
         [JsonPropertyName("thumbnail_width")]
-        public int ThumbnailWidth { get; set; }
+        public int? ThumbnailWidth { get; set; }
 
         [JsonPropertyName("title")]
         public string? Title { get; set; }
@@ -41,6 +41,6 @@ namespace Deaddit.Core.Reddit.Models.Api
         public string? Version { get; set; }
 
         [JsonPropertyName("width")]
-        public int Width { get; set; }
+        public int? Width { get; set; }
     }
 }
