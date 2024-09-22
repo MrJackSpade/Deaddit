@@ -1,4 +1,7 @@
-﻿namespace Deaddit.Components
+﻿using Deaddit.Core.Interfaces;
+using Deaddit.MAUI.Components;
+
+namespace Deaddit.Components
 {
     internal class OptimizedScrollView : ScrollView
     {
@@ -108,6 +111,7 @@
                 foreach (VisualElement element in innerStack.OfType<VisualElement>().Where(v => !v.IsVisible).Reverse())
                 {
                     element.IsVisible = true;
+
                     innerStack.Padding = new Thickness(0, innerStack.Padding.Top - element.Height, 0, innerStack.Padding.Bottom);
 
                     if (ScrollY >= innerStack.Padding.Top)
@@ -127,6 +131,7 @@
                     }
 
                     element.IsVisible = false;
+
                     innerStack.Padding = new Thickness(0, innerStack.Padding.Top + element.Height, 0, innerStack.Padding.Bottom);
                 }
             }

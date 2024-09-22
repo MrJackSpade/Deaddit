@@ -325,7 +325,7 @@ namespace Deaddit.Pages
                 button.Clicked += async (sender, e) =>
                 {
                     _sort = sortValue;
-                    UpdateSort(sortValue);
+                    this.UpdateSort(sortValue);
                     await this.Reload();
                 };
 
