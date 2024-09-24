@@ -9,6 +9,12 @@ namespace Deaddit.Core.Configurations.Models
 
     public class SubRedditSubscription
     {
+        public string? DisplayString { get; set; }
+
+        public ApiPostSort Sort { get; set; } = ApiPostSort.Hot;
+
+        public string? SubReddit { get; set; }
+
         public SubRedditSubscription()
         {
         }
@@ -19,11 +25,5 @@ namespace Deaddit.Core.Configurations.Models
             DisplayString = displayString;
             SubReddit = subReddit;
         }
-
-        public string? DisplayString { get; set; }
-
-        public ApiPostSort Sort { get; set; } = ApiPostSort.Hot;
-
-        public string? SubReddit { get; set; }
     }
 }

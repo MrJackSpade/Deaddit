@@ -17,8 +17,6 @@ namespace Deaddit.Interfaces
 
         MoreCommentsComponent CreateMoreCommentsComponent(IMore more);
 
-        RedditPostComponent CreatePostComponent(ApiPost post, bool blocked, SelectionGroup? selectionGroup = null);
-
         RedditPostWebComponent CreatePostWebComponent(ApiPost post, bool blocked, SelectionGroup? selectionGroup = null);
 
         SubRedditComponent CreateSubRedditComponent(SubRedditSubscription subscription, SelectionGroup? group = null);

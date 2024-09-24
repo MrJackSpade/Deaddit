@@ -16,6 +16,12 @@
             window.location.href = `webcomponent://${componentId}/${methodName}?args=${JSON.stringify(args)}`;
         }
 
+        window.onscroll = function (ev) {
+            if ((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight) {
+                window.location.href = `webcomponent://scroll-bottom`;
+            }
+        };
+
         function updateTextNode(elementId, newText) {
             const element = document.getElementById(elementId);
 

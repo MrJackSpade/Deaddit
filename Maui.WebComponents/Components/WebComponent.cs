@@ -8,10 +8,6 @@ namespace Maui.WebComponents.Components
     {
         private string _innerText = string.Empty;
 
-        public event EventHandler? OnClick;
-
-        internal event EventHandler<OnInnerTextChangedEventArgs>? OnInnerTextChanged;
-
         public List<WebComponent> Children { get; } = [];
 
         [HtmlAttribute]
@@ -31,6 +27,10 @@ namespace Maui.WebComponents.Components
         }
 
         public StyleCollection Style { get; } = [];
+
+        public event EventHandler? OnClick;
+
+        internal event EventHandler<OnInnerTextChangedEventArgs>? OnInnerTextChanged;
 
         [HtmlEvent("onclick")]
         public void Click(object sender, EventArgs args)

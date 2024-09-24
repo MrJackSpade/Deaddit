@@ -6,7 +6,14 @@ namespace Deaddit.Pages.Models
 {
     public class BaseViewModel : INotifyPropertyChanged
     {
+        private class PropertyWrapper
+        {
+            public object? Value { get; set; }
+        }
+
         private readonly Dictionary<string, PropertyWrapper> _wrappers = [];
+
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         public BaseViewModel()
         {
@@ -16,8 +23,6 @@ namespace Deaddit.Pages.Models
                 _wrappers.Add(pi.Name, wrapper);
             }
         }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
 
         public T GetValue<T>([CallerMemberName] string callerName = "")
         {
@@ -35,11 +40,6 @@ namespace Deaddit.Pages.Models
             PropertyWrapper notifying = _wrappers[callerName];
             notifying.Value = value;
             this.OnPropertyChanged(callerName);
-        }
-
-        private class PropertyWrapper
-        {
-            public object? Value { get; set; }
         }
     }
 }

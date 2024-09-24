@@ -18,6 +18,12 @@ namespace Deaddit.MAUI.Components
 
         private readonly SubRedditSubscription _subscription;
 
+        public bool Selected { get; private set; }
+
+        public bool SelectEnabled { get; private set; }
+
+        public event EventHandler<SubRedditSubscriptionRemoveEventArgs>? OnRemove;
+
         public SubRedditComponent(SubRedditSubscription subscription, bool removable, IAppNavigator appNavigator, ApplicationStyling applicationTheme, SelectionGroup selectionTracker)
         {
             SelectEnabled = removable;
@@ -29,12 +35,6 @@ namespace Deaddit.MAUI.Components
             BindingContext = new SubRedditComponentViewModel(subscription.DisplayString, applicationTheme);
             this.InitializeComponent();
         }
-
-        public event EventHandler<SubRedditSubscriptionRemoveEventArgs>? OnRemove;
-
-        public bool Selected { get; private set; }
-
-        public bool SelectEnabled { get; private set; }
 
         public void OnRemoveClick(object? sender, EventArgs e)
         {

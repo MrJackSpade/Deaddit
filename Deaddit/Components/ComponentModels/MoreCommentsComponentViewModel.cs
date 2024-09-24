@@ -6,16 +6,6 @@ namespace Deaddit.Components.ComponentModels
 {
     internal class MoreCommentsComponentViewModel : BaseViewModel
     {
-        public MoreCommentsComponentViewModel(string viewText, ApplicationStyling applicationTheme)
-        {
-            TertiaryColor = applicationTheme.TertiaryColor.ToMauiColor();
-            SecondaryColor = applicationTheme.SecondaryColor.ToMauiColor();
-            PrimaryColor = applicationTheme.PrimaryColor.ToMauiColor();
-            TextColor = applicationTheme.TextColor.ToMauiColor();
-            MoreText = viewText;
-            FontSize = applicationTheme.FontSize;
-        }
-
         public double FontSize
         {
             get => this.GetValue<double>();
@@ -50,6 +40,16 @@ namespace Deaddit.Components.ComponentModels
         {
             get => this.GetValue<Color>();
             set => this.SetValue(value);
+        }
+
+        public MoreCommentsComponentViewModel(string viewText, ApplicationStyling applicationTheme)
+        {
+            TertiaryColor = applicationTheme.TertiaryColor.ToMauiColor();
+            SecondaryColor = applicationTheme.SecondaryColor.ToMauiColor();
+            PrimaryColor = applicationTheme.PrimaryColor.ToMauiColor();
+            TextColor = applicationTheme.TextColor.ToMauiColor();
+            MoreText = viewText;
+            FontSize = applicationTheme.FontSize;
         }
     }
 }

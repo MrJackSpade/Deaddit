@@ -7,5 +7,6 @@ using System.Threading.Tasks;
 namespace Maui.WebComponents.Attributes
 {
     [AttributeUsage(AttributeTargets.Property)]
-    public class HtmlAttributeAttribute : Attribute { }
+    public class HtmlAttributeAttribute : Attribute
+    { }
 }

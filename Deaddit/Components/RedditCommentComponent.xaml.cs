@@ -38,6 +38,20 @@ namespace Deaddit.MAUI.Components
 
         private RedditCommentComponentTopBar? _topBar;
 
+        public IAppNavigator AppNavigator { get; }
+
+        public BlockConfiguration BlockConfiguration { get; }
+
+        Layout IHasChildren.ChildContainer => _replies;
+
+        public ApiPost Post { get; }
+
+        public bool SelectEnabled { get; private set; }
+
+        public SelectionGroup SelectionGroup { get; }
+
+        public event EventHandler<OnDeleteClickedEventArgs>? OnDelete;
+
         public RedditCommentComponent(ApiComment comment, ApiPost post, bool selectEnabled, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration)
         {
             SelectEnabled = selectEnabled;
@@ -118,20 +132,6 @@ namespace Deaddit.MAUI.Components
 
             this.UpdateMetaData();
         }
-
-        public event EventHandler<OnDeleteClickedEventArgs>? OnDelete;
-
-        public IAppNavigator AppNavigator { get; }
-
-        public BlockConfiguration BlockConfiguration { get; }
-
-        Layout IHasChildren.ChildContainer => _replies;
-
-        public ApiPost Post { get; }
-
-        public bool SelectEnabled { get; private set; }
-
-        public SelectionGroup SelectionGroup { get; }
 
         [MemberNotNull(nameof(_replies))]
         public void InitChildContainer()

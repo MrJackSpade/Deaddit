@@ -2,13 +2,13 @@ namespace Deaddit.Pages
 {
     public partial class SelectPage : ContentPage
     {
+        public event EventHandler<string>? OnSelect;
+
         public SelectPage(params string[] options)
         {
             this.InitializeComponent();
             this.PopulateOptions(options);
         }
-
-        public event EventHandler<string>? OnSelect;
 
         private void OnCancelClicked(object? sender, EventArgs e)
         {

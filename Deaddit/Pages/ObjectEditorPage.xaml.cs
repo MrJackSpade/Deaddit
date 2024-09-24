@@ -25,6 +25,8 @@ namespace Deaddit.Pages
 
         private readonly bool _topLevel;
 
+        public event EventHandler<ObjectEditorSaveEventArgs>? OnSave;
+
         public ObjectEditorPage(object original, ApplicationStyling applicationTheme) : this(original, true, applicationTheme)
         {
         }
@@ -52,8 +54,6 @@ namespace Deaddit.Pages
 
             this.InitializeComponent();
         }
-
-        public event EventHandler<ObjectEditorSaveEventArgs>? OnSave;
 
         public static int GetPropertyOrder(PropertyInfo pi)
         {

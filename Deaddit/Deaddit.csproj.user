@@ -45,9 +45,6 @@
     <MauiXaml Update="Components\RedditCommentComponent.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="Components\RedditPostComponent.xaml">
-      <SubType>Designer</SubType>
-    </MauiXaml>
     <MauiXaml Update="Pages\Embedded\EmbeddedVideo.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>

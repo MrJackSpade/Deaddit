@@ -17,6 +17,8 @@ namespace Maui.WebComponents
 
         public StyleCollection BodyStyle { get; } = [];
 
+        public event EventHandler? OnScrollBottom;
+
         public WebElement()
         {
             BodyStyle.OnStyleChanged += this.UpdateStyle;
@@ -29,9 +31,22 @@ namespace Maui.WebComponents
             await this.AddChild(child, -1);
         }
 
+        public async Task Clear()
+        {
+            await _loadedTask.Task;
+            _children.Clear();
+            _componentMap.Clear();
+            await this.EvaluateJavaScriptAsync($"document.body.replaceChildren();");
+        }
+
         public async Task InsertChild(int index, WebComponent child)
         {
             await this.AddChild(child, index);
+        }
+
+        public async Task RemoveChild(WebComponent child)
+        {
+            await this.RemoveChild(child.Id);
         }
 
         public async Task RemoveChild(string componentId)
@@ -194,6 +209,12 @@ namespace Maui.WebComponents
                 if (string.Equals(e.Url, "webcomponent://loaded/", StringComparison.OrdinalIgnoreCase))
                 {
                     _loadedTask.SetResult();
+                    return;
+                }
+
+                if (string.Equals(e.Url, "webcomponent://scroll-bottom/", StringComparison.OrdinalIgnoreCase))
+                {
+                    OnScrollBottom?.Invoke(this, EventArgs.Empty);
                     return;
                 }
 

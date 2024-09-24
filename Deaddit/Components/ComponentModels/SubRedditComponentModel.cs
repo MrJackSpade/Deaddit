@@ -6,15 +6,6 @@ namespace Deaddit.Components.ComponentModels
 {
     internal class SubRedditComponentViewModel : BaseViewModel
     {
-        public SubRedditComponentViewModel(string? displayString, ApplicationStyling applicationTheme)
-        {
-            SubReddit = displayString;
-            PrimaryColor = applicationTheme.PrimaryColor.ToMauiColor();
-            SecondaryColor = applicationTheme.SecondaryColor.ToMauiColor();
-            TertiaryColor = applicationTheme.TertiaryColor.ToMauiColor();
-            TextColor = applicationTheme.TextColor.ToMauiColor();
-        }
-
         public Color PrimaryColor
         {
             get => this.GetValue<Color>();
@@ -43,6 +34,15 @@ namespace Deaddit.Components.ComponentModels
         {
             get => this.GetValue<Color>();
             set => this.SetValue(value);
+        }
+
+        public SubRedditComponentViewModel(string? displayString, ApplicationStyling applicationTheme)
+        {
+            SubReddit = displayString;
+            PrimaryColor = applicationTheme.PrimaryColor.ToMauiColor();
+            SecondaryColor = applicationTheme.SecondaryColor.ToMauiColor();
+            TertiaryColor = applicationTheme.TertiaryColor.ToMauiColor();
+            TextColor = applicationTheme.TextColor.ToMauiColor();
         }
     }
 }

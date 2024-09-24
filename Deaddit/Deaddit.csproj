@@ -150,9 +150,6 @@
 	  <MauiXaml Update="Components\RedditCommentComponent.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Components\RedditPostComponent.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
 	  <MauiXaml Update="Pages\Embedded\EmbeddedVideo.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

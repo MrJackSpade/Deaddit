@@ -7,10 +7,19 @@ namespace Deaddit.Extensions
     {
         public static async Task<T?> DisplayActionSheet<T>(this ContentView view, string? title, string? cancel, string? destruction, Dictionary<T, string> textOverrides = null) where T : struct, Enum
         {
-            //This should all be replaced with something that looks better and uses the proper theme, but this is as good as anything for now
-
             Page? page = view.FindPage();
 
+            if (page is null)
+            {
+                return null;
+            }
+
+            return await page.DisplayActionSheet(title, cancel, destruction, textOverrides);
+        }
+
+        public static async Task<T?> DisplayActionSheet<T>(this Page page, string? title, string? cancel, string? destruction, Dictionary<T, string> textOverrides = null) where T : struct, Enum
+        {
+            //This should all be replaced with something that looks better and uses the proper theme, but this is as good as anything for now
             Dictionary<string, T> buttonValues = [];
 
             textOverrides ??= [];

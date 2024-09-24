@@ -3,11 +3,11 @@
     [AttributeUsage(AttributeTargets.Class)]
     public class HtmlEntityAttribute : Attribute
     {
+        public string Tag { get; }
+
         public HtmlEntityAttribute(string tag)
         {
             Tag = tag;
         }
-
-        public string Tag { get; }
     }
 }
