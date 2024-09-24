@@ -5,10 +5,15 @@
         html, body {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
         }
 
         body {
             font-family: Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
         }
     </style>
     <script>
@@ -63,7 +68,9 @@
                         }
                     }
                     if (!textNodeFound) {
-                        throw new Error(`No text node found in element with ID "${elementId}".`);
+                        // Add a new text node if none are found
+                        const textNode = document.createTextNode(newText);
+                        element.appendChild(textNode);
                     }
                 } else {
                     throw new Error(`Element with ID "${elementId}" not found.`);

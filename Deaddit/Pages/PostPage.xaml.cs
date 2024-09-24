@@ -111,20 +111,6 @@ namespace Deaddit.Pages
             webElement.AddChild(commentContainer);
         }
 
-        private ButtonComponent ActionButton(string text)
-        {
-            return new ButtonComponent
-            {
-                InnerText = text,
-                FontSize = $"{_applicationStyling.FontSize}px",
-                Color = _applicationStyling.TextColor.ToHex(),
-                BackgroundColor = _applicationStyling.SecondaryColor.ToHex(),
-                Padding = "10px",
-                FlexGrow = "1",
-                Border = "0",
-            };
-        }
-
         public void InitChildContainer()
         {
         }
@@ -286,6 +272,20 @@ namespace Deaddit.Pages
         public async Task TryLoad()
         {
             await DataService.LoadAsync(null, this.LoadDataAsync, _applicationStyling.HighlightColor.ToMauiColor());
+        }
+
+        private ButtonComponent ActionButton(string text)
+        {
+            return new ButtonComponent
+            {
+                InnerText = text,
+                FontSize = $"{_applicationStyling.FontSize}px",
+                Color = _applicationStyling.TextColor.ToHex(),
+                BackgroundColor = _applicationStyling.SecondaryColor.ToHex(),
+                Padding = "10px",
+                FlexGrow = "1",
+                Border = "0",
+            };
         }
 
         private void BlockRuleOnSave(object? sender, Deaddit.EventArguments.ObjectEditorSaveEventArgs e)

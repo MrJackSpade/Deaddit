@@ -76,6 +76,12 @@ namespace Maui.WebComponents.Components
             set => this.Style("color", value);
         }
 
+        public string? Cursor
+        {
+            get => this.Style("cursor");
+            set => this.Style("cursor", value);
+        }
+
         public string? Display
         {
             get => this.Style("display");

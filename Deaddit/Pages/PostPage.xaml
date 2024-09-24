@@ -7,7 +7,6 @@
     <ScrollView
         x:Name="scrollView">
         <webComponents:WebElement x:Name="webElement">
-            
         </webComponents:WebElement>
     </ScrollView>
 </ContentPage>
