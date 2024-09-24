@@ -3,17 +3,14 @@ using Deaddit.Components.WebComponents;
 using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Exceptions;
-using Deaddit.Core.Extensions;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Reddit.Models.Options;
 using Deaddit.Core.Utils;
-using Deaddit.Core.Utils.Extensions;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
-using Deaddit.MAUI.Components;
 using Deaddit.Utils;
 using Maui.WebComponents.Components;
 using Maui.WebComponents.Extensions;
@@ -86,39 +83,21 @@ namespace Deaddit.Pages
 
             DivComponent actionButtons = new()
             {
-                Display = "none",
                 FlexDirection = "row",
                 Width = "100%",
-                BackgroundColor = applicationStyling.HighlightColor.ToHex(),
+                Display = "flex",
+                BackgroundColor = applicationStyling.SecondaryColor.ToHex(),
             };
 
-            shareButton = new ButtonComponent()
-            {
-                InnerText = "Share",
-                Color = _applicationStyling.TextColor.ToHex(),
-                FlexGrow = "1"
-            };
+            shareButton = this.ActionButton("Share");
+            saveButton = this.ActionButton("Save");
+            moreButton = this.ActionButton("...");
+            replyButton = this.ActionButton("Reply");
 
-            saveButton = new ButtonComponent()
-            {
-                InnerText = "Save",
-                Color = _applicationStyling.TextColor.ToHex(),
-                FlexGrow = "1"
-            };
-
-            moreButton = new ButtonComponent()
-            {
-                InnerText = "...",
-                Color = _applicationStyling.TextColor.ToHex(),
-                FlexGrow = "1"
-            };
-
-            replyButton = new ButtonComponent()
-            {
-                InnerText = "Reply",
-                Color = _applicationStyling.TextColor.ToHex(),
-                FlexGrow = "1"
-            };
+            shareButton.OnClick += this.OnShareClicked;
+            saveButton.OnClick += this.OnSaveClicked;
+            moreButton.OnClick += this.OnMoreOptionsClicked;
+            replyButton.OnClick += this.OnReplyClicked;
 
             saveButton.InnerText = Post.Saved == true ? "Unsave" : "Save";
 
@@ -132,13 +111,27 @@ namespace Deaddit.Pages
             webElement.AddChild(commentContainer);
         }
 
+        private ButtonComponent ActionButton(string text)
+        {
+            return new ButtonComponent
+            {
+                InnerText = text,
+                FontSize = $"{_applicationStyling.FontSize}px",
+                Color = _applicationStyling.TextColor.ToHex(),
+                BackgroundColor = _applicationStyling.SecondaryColor.ToHex(),
+                Padding = "10px",
+                FlexGrow = "1",
+                Border = "0",
+            };
+        }
+
         public void InitChildContainer()
         {
         }
 
         public async void MoreCommentsClick(object? sender, IMore e)
         {
-            MoreCommentsComponent mcomponent = sender as MoreCommentsComponent;
+            MoreCommentsWebComponent mcomponent = sender as MoreCommentsWebComponent;
 
             await DataService.LoadAsync(null, async () => await this.LoadMoreAsync(Post, e), _applicationStyling.HighlightColor.ToMauiColor());
         }

@@ -191,6 +191,17 @@
             }
         };
 
+        document.addEventListener('click', (e) => {
+            let target = e.target.closest('a');
+            if (target) { // if the click was on or within an <a>
+                // then based on some condition...
+                if (target.getAttribute("href")) {
+                    e.preventDefault(); // tell the browser not to respond to the link click
+                    // then maybe do something else
+                    window.location.href = `webcomponent://href/${encodeURIComponent(error.message)}`;
+                }
+            }
+        });
     </script>
 </head>
 <body id="body">

@@ -244,14 +244,7 @@ namespace Deaddit.Pages
                             throw new NotImplementedException();
                         }
 
-                        try
-                        {
-                            newComponents.Add(view);
-                        }
-                        catch (System.MissingMethodException mme) when (mme.Message.Contains("Microsoft.Maui.Controls.Handlers.Compatibility.FrameRenderer"))
-                        {
-                            Debug.WriteLine("FrameRenderer Missing Method Exception");
-                        }
+                        newComponents.Add(view);
 
                         // Add to loaded posts
                         _loadedPosts.Add(new LoadedThing()

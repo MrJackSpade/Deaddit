@@ -28,25 +28,6 @@ namespace Maui.WebComponents.Classes
             OnWebComponentAdded?.Invoke(this, new OnWebComponentAddedEventArgs(component));
         }
 
-        public void InsertAfter(WebComponent component, WebComponent after)
-        {
-            if (!_components.Contains(after))
-            {
-                throw new ArgumentException("Component does not exist in collection", nameof(after));
-            }
-
-            if (_components.Contains(component))
-            {
-                throw new ArgumentException("Component already exists in collection", nameof(component));
-            }
-
-            int index = _components.IndexOf(after);
-
-            _components.Insert(index + 1, component);
-
-            OnWebComponentInsert?.Invoke(this, new OnWebComponentInsertEventArgs(component, index + 1));
-        }
-
         public void Clear()
         {
             List<WebComponent> list = [.. _components];
@@ -66,6 +47,32 @@ namespace Maui.WebComponents.Classes
         IEnumerator IEnumerable.GetEnumerator()
         {
             return ((IEnumerable)_components).GetEnumerator();
+        }
+
+        public void Insert(int index, WebComponent component)
+        {
+            _components.Insert(index, component);
+
+            OnWebComponentInsert?.Invoke(this, new OnWebComponentInsertEventArgs(component, index));
+        }
+
+        public void InsertAfter(WebComponent component, WebComponent after)
+        {
+            if (!_components.Contains(after))
+            {
+                throw new ArgumentException("Component does not exist in collection", nameof(after));
+            }
+
+            if (_components.Contains(component))
+            {
+                throw new ArgumentException("Component already exists in collection", nameof(component));
+            }
+
+            int index = _components.IndexOf(after);
+
+            _components.Insert(index + 1, component);
+
+            OnWebComponentInsert?.Invoke(this, new OnWebComponentInsertEventArgs(component, index + 1));
         }
 
         public bool Remove(WebComponent component)

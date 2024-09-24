@@ -1,5 +1,4 @@
 ﻿using Maui.WebComponents.Attributes;
-using Maui.WebComponents.Extensions;
 
 namespace Maui.WebComponents.Components
 {
@@ -7,6 +6,5 @@ namespace Maui.WebComponents.Components
     [HtmlEntity("span")]
     public class SpanComponent : WebComponent
     {
-      
     }
 }

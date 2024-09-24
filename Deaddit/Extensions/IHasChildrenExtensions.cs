@@ -5,7 +5,6 @@ using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Interfaces;
-using Deaddit.MAUI.Components;
 using Maui.WebComponents.Components;
 
 namespace Deaddit.Extensions
@@ -49,7 +48,7 @@ namespace Deaddit.Extensions
                 else if (child is ApiMore more)
                 {
                     MoreCommentsWebComponent mcomponent = target.AppNavigator.CreateMoreCommentsWebComponent(more);
-                    mcomponent.OnClick += (s, e) => target.MoreCommentsClick(mcomponent, mcomponent);
+                    mcomponent.LoadMore += target.MoreCommentsClick;
                     childComponent = mcomponent;
                 }
                 else if (child is ApiMessage message)
@@ -77,7 +76,7 @@ namespace Deaddit.Extensions
 
                 MoreCommentsWebComponent mcomponent = target.AppNavigator.CreateMoreCommentsWebComponent(more);
 
-                mcomponent.OnClick += (s,e) => target.MoreCommentsClick(mcomponent, mcomponent);
+                mcomponent.OnClick += (s, e) => target.MoreCommentsClick(mcomponent, mcomponent);
 
                 target.ChildContainer.Children.Add(mcomponent);
             }

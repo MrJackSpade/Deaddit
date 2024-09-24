@@ -9,7 +9,6 @@ using Deaddit.Core.Utils;
 using Deaddit.Interfaces;
 using Deaddit.MAUI.Components;
 using Deaddit.Pages;
-using Maui.WebComponents.Components;
 
 namespace Deaddit.Utils
 {
@@ -43,18 +42,6 @@ namespace Deaddit.Utils
 
         private static INavigation Navigation => Shell.Current.Navigation;
 
-        public RedditCommentComponent CreateCommentComponent(ApiComment comment, ApiPost? post = null, SelectionGroup? selectionGroup = null)
-        {
-            if (selectionGroup is null)
-            {
-                return new RedditCommentComponent(comment, post, false, this, _redditClient, _applicationStyling, selectionGroup ?? new SelectionGroup(), _blockConfiguration);
-            }
-            else
-            {
-                return new RedditCommentComponent(comment, post, true, this, _redditClient, _applicationStyling, selectionGroup ?? new SelectionGroup(), _blockConfiguration);
-            }
-        }
-
         public RedditCommentWebComponent CreateCommentWebComponent(ApiComment comment, ApiPost? post = null, SelectionGroup? selectionGroup = null)
         {
             if (selectionGroup is null)
@@ -82,11 +69,6 @@ namespace Deaddit.Utils
         public RedditMessageWebComponent CreateMessageWebComponent(ApiMessage message)
         {
             throw new NotImplementedException();
-        }
-
-        public MoreCommentsComponent CreateMoreCommentsComponent(IMore more)
-        {
-            return new MoreCommentsComponent(more, _applicationStyling);
         }
 
         public MoreCommentsWebComponent CreateMoreCommentsWebComponent(IMore more)
