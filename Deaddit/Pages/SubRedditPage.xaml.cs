@@ -12,8 +12,8 @@ using Deaddit.Interfaces;
 using Deaddit.Pages.Models;
 using Deaddit.Utils;
 using Maui.WebComponents.Components;
-using System.Diagnostics;
 using Maui.WebComponents.Extensions;
+using System.Diagnostics;
 
 namespace Deaddit.Pages
 {
@@ -33,9 +33,9 @@ namespace Deaddit.Pages
 
         private readonly IRedditClient _redditClient;
 
-        private readonly SelectionGroup _selectionGroup;
+        private readonly DivComponent _sortButtons = new();
 
-        private readonly Grid _sortButtons;
+        private readonly SelectionGroup _selectionGroup;
 
         private readonly ThingCollectionName _thingCollectionName;
 
@@ -56,8 +56,14 @@ namespace Deaddit.Pages
             _sort = Ensure.NotNull(sort);
             _redditClient = Ensure.NotNull(redditClient);
             _applicationStyling = Ensure.NotNull(applicationTheme);
-            _sortButtons = [];
             _selectionGroup = new SelectionGroup();
+            _sortButtons = new DivComponent()
+            {
+                Display = "flex",
+                FlexDirection = "row",
+                Width = "100%",
+                BackgroundColor = "red"
+            };
 
             BindingContext = new SubRedditPageViewModel(subreddit);
 
@@ -264,10 +270,12 @@ namespace Deaddit.Pages
             }, _applicationStyling.HighlightColor.ToMauiColor());
         }
 
-        private void InitSortButtons(Enum sort)
+        private async Task InitSortButtons(Enum sort)
         {
+            await webElement.AddChild(_sortButtons);
+
             _sortButtons.Children.Clear();
-            _sortButtons.ColumnDefinitions.Clear();
+
             List<Enum> values = [];
 
             foreach (Enum e in Enum.GetValues(sort.GetType()))
@@ -278,31 +286,25 @@ namespace Deaddit.Pages
                 }
             }
 
-            int columnCount = values.Count;
-
-            // Define columns
-            for (int i = 0; i < columnCount; i++)
-            {
-                _sortButtons.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            }
-
-            int column = 0;
             foreach (Enum sortValue in values)
             {
-                Button button = new()
+                ButtonComponent button = new()
                 {
-                    Text = sortValue.ToString(),
-                    BackgroundColor = Colors.Transparent,
-                    TextColor = Colors.White,
-                    FontSize = 14
+                    InnerText = sortValue.ToString(),
+                    Color = _applicationStyling.TextColor.ToHex(),
+                    FontSize = $"{_applicationStyling.FontSize}px",
+                    BackgroundColor = _applicationStyling.SecondaryColor.ToHex(),
+                    Border = "0",
+                    FlexGrow = "1",
+                    Padding = "15px",
                 };
 
                 if (sort.Equals(sortValue))
                 {
-                    button.BackgroundColor = _applicationStyling.TertiaryColor.ToMauiColor();
+                    button.BackgroundColor = _applicationStyling.TertiaryColor.ToHex();
                 }
 
-                button.Clicked += async (sender, e) =>
+                button.OnClick += async (sender, e) =>
                 {
                     _sort = sortValue;
                     this.UpdateSort(sortValue);
@@ -310,8 +312,6 @@ namespace Deaddit.Pages
                 };
 
                 _sortButtons.Children.Add(button);
-                Grid.SetColumn(button, column);
-                column++;
             }
         }
 
@@ -339,20 +339,22 @@ namespace Deaddit.Pages
 
             await webElement.Clear();
 
+            await webElement.AddChild(_sortButtons);
+
             await this.TryLoad();
         }
 
         private void UpdateSort(Enum sort)
         {
-            foreach (Button button in _sortButtons.Children.Cast<Button>())
+            foreach (ButtonComponent button in _sortButtons.Children.OfType<ButtonComponent>())
             {
-                if (button.Text == sort.ToString())
+                if (button.InnerText == sort.ToString())
                 {
-                    button.BackgroundColor = _applicationStyling.TertiaryColor.ToMauiColor();
+                    button.BackgroundColor = _applicationStyling.TertiaryColor.ToHex();
                 }
                 else
                 {
-                    button.BackgroundColor = Colors.Transparent;
+                    button.BackgroundColor = _applicationStyling.SecondaryColor.ToHex();
                 }
             }
         }
