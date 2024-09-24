@@ -19,11 +19,11 @@ namespace Deaddit.Utils
 
             if (top)
             {
-                activityContainer.Children.Insert(0, activityIndicator);
+                activityContainer?.Children?.Insert(0, activityIndicator);
             }
             else
             {
-                activityContainer.Children.Add(activityIndicator);
+                activityContainer?.Children?.Add(activityIndicator);
             }
 
             Task executing = toExecute();
@@ -38,7 +38,7 @@ namespace Deaddit.Utils
 
             _semaphore.Wait(() => _tasks.Remove(executing));
 
-            activityContainer.Children.Remove(activityIndicator);
+            activityContainer?.Children?.Remove(activityIndicator);
         }
     }
 }
