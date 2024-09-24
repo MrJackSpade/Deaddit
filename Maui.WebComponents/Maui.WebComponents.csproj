@@ -7,6 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="WebElement.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="WebElement.html" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.90" />
   </ItemGroup>
 

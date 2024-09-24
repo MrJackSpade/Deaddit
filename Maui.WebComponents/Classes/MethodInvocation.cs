@@ -1,4 +1,4 @@
-﻿namespace Maui.WebComponents
+﻿namespace Maui.WebComponents.Classes
 {
     public class MethodInvocation
     {

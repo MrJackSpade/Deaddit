@@ -71,15 +71,15 @@ namespace Deaddit.Utils
             return new MoreCommentsComponent(more, _applicationStyling);
         }
 
-        public RedditPostWebComponent CreatePostWebComponent(ApiPost post, bool blocked, SelectionGroup? selectionGroup = null)
-        {
-            RedditPostWebComponent postComponent = new(post, _applicationStyling);
-            return postComponent;
-        }
-
         public RedditPostComponent CreatePostComponent(ApiPost post, bool blocked, SelectionGroup? selectionGroup = null)
         {
             RedditPostComponent postComponent = new(post, selectionGroup is not null, blocked, this, _redditClient, _applicationStyling, _applicationHacks, _visitTracker, selectionGroup ?? new SelectionGroup(), _blockConfiguration, _configurationService);
+            return postComponent;
+        }
+
+        public RedditPostWebComponent CreatePostWebComponent(ApiPost post, bool blocked, SelectionGroup? selectionGroup = null)
+        {
+            RedditPostWebComponent postComponent = new(post, _redditClient, _applicationStyling, selectionGroup);
             return postComponent;
         }
 

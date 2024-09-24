@@ -55,7 +55,7 @@ namespace Deaddit.MAUI.Components
             {
                 authorLabel.TextColor = applicationTheme.ModeratorAuthorTextColor.ToMauiColor();
                 authorLabel.BackgroundColor = applicationTheme.ModeratorAuthorBackgroundColor.ToMauiColor();
-            } 
+            }
             else if (comment.Distinguished == DistinguishedKind.Admin)
             {
                 authorLabel.TextColor = applicationTheme.AdminAuthorTextColor.ToMauiColor();

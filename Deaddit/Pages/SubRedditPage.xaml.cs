@@ -9,10 +9,9 @@ using Deaddit.Core.Utils.Extensions;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
-using Deaddit.MAUI.Components;
 using Deaddit.Pages.Models;
 using Deaddit.Utils;
-using Maui.WebComponents.Interfaces;
+using Maui.WebComponents.Components;
 using System.Diagnostics;
 
 namespace Deaddit.Pages
@@ -144,7 +143,7 @@ namespace Deaddit.Pages
                 // Create a set of already loaded post names to avoid duplicates
                 HashSet<string> loadedNames = _loadedPosts.Select(_loadedPosts => _loadedPosts.Post.Name).ToHashSet();
 
-                List<IWebComponent> newComponents = [];
+                List<WebComponent> newComponents = [];
 
                 do
                 {
@@ -193,7 +192,7 @@ namespace Deaddit.Pages
                             continue;
                         }
 
-                        IWebComponent? view = null;
+                        WebComponent? view = null;
 
                         // Handle ApiPost
                         if (thing is ApiPost post)
@@ -219,8 +218,7 @@ namespace Deaddit.Pages
                             }
 
                             // Create post component
-                            IWebComponent redditPostComponent = _appNavigator.CreatePostWebComponent(post, blocked, _selectionGroup);
-
+                            RedditPostWebComponent redditPostComponent = _appNavigator.CreatePostWebComponent(post, blocked, _selectionGroup);
                             //RedditPostComponent redditPostComponent = _appNavigator.CreatePostComponent(post, blocked, _selectionGroup);
 
                             // Attach event handlers
@@ -266,27 +264,11 @@ namespace Deaddit.Pages
                 } while (newComponents.Count < _applicationHacks.PageSize);
 
                 // Add all new components to the scroll view
-                foreach (IWebComponent component in newComponents)
+                foreach (WebComponent component in newComponents)
                 {
                     await webElement.AddChild(component);
                 }
-
             }, _applicationStyling.HighlightColor.ToMauiColor());
-        }
-
-        private void UpdateSort(Enum sort)
-        {
-            foreach (Button button in _sortButtons.Children)
-            {
-                if (button.Text == sort.ToString())
-                {
-                    button.BackgroundColor = _applicationStyling.TertiaryColor.ToMauiColor();
-                }
-                else
-                {
-                    button.BackgroundColor = Colors.Transparent;
-                }
-            }
         }
 
         private void InitSortButtons(Enum sort)
@@ -367,6 +349,21 @@ namespace Deaddit.Pages
             //scrollView.Add(_sortButtons);
 
             await this.TryLoad();
+        }
+
+        private void UpdateSort(Enum sort)
+        {
+            foreach (Button button in _sortButtons.Children)
+            {
+                if (button.Text == sort.ToString())
+                {
+                    button.BackgroundColor = _applicationStyling.TertiaryColor.ToMauiColor();
+                }
+                else
+                {
+                    button.BackgroundColor = Colors.Transparent;
+                }
+            }
         }
     }
 }
