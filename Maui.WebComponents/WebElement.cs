@@ -1,16 +1,15 @@
 ﻿using Maui.WebComponents.Attributes;
-using Maui.WebComponents.Interfaces;
+using Maui.WebComponents.Components;
 using System.Reflection;
 using System.Text;
-using System.Text.Json;
 
 namespace Maui.WebComponents
 {
     public class WebElement : WebView
     {
-        private readonly List<IWebComponent> _children = [];
+        private readonly List<WebComponent> _children = [];
 
-        private readonly Dictionary<string, IWebComponent> _componentMap = [];
+        private readonly Dictionary<string, WebComponent> _componentMap = [];
 
         private readonly TaskCompletionSource _loadedTask = new();
 
@@ -20,12 +19,12 @@ namespace Maui.WebComponents
             Navigating += this.OnNavigating;
         }
 
-        public async Task AddChild(IWebComponent child)
+        public async Task AddChild(WebComponent child)
         {
             await this.AddChild(child, -1);
         }
 
-        public async Task InsertChild(int index, IWebComponent child)
+        public async Task InsertChild(int index, WebComponent child)
         {
             await this.AddChild(child, index);
         }
@@ -34,7 +33,7 @@ namespace Maui.WebComponents
         {
             await _loadedTask.Task;
 
-            if (_componentMap.TryGetValue(componentId, out IWebComponent? component))
+            if (_componentMap.TryGetValue(componentId, out WebComponent? component))
             {
                 int index = _children.IndexOf(component);
                 if (index != -1)
@@ -46,7 +45,7 @@ namespace Maui.WebComponents
             }
         }
 
-        private static string RenderComponent(IWebComponent component)
+        private static string RenderComponent(WebComponent component)
         {
             Type type = component.GetType();
             HtmlEntityAttribute? entityAttr = type.GetCustomAttribute<HtmlEntityAttribute>()
@@ -101,7 +100,7 @@ namespace Maui.WebComponents
             }
 
             // Render children
-            foreach (IWebComponent child in component.Children)
+            foreach (WebComponent child in component.Children)
             {
                 sb.Append(RenderComponent(child));
             }
@@ -114,84 +113,22 @@ namespace Maui.WebComponents
         private static string RenderInitialHtml()
         {
             StringBuilder sb = new();
-            sb.Append(@"
-                <html>
-                <head>
-                    <meta charset=""UTF-8"">
-                    <style>
-                        html, body {
-                            margin: 0;
-                            padding: 0;
-                        }
 
-                        body {
-                            font-family: Arial, sans-serif;
-                        }   
-                    </style>
-                    <script>
-                        function invokeMethod(componentId, methodName, args) {
-                            window.location.href = `webcomponent://${componentId}/${methodName}?args=${JSON.stringify(args)}`;
-                        }
+            var assembly = Assembly.GetExecutingAssembly();
+            var resourceName = "Maui.WebComponents.WebElement.html";
 
-                        function base64ToUtf8(base64Str) {
-                            // Decode base64 to bytes
-                            var binaryStr = atob(base64Str);
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
 
-                            // Convert binary string to an array of bytes
-                            var bytes = new Uint8Array(binaryStr.length);
-                            for (var i = 0; i < binaryStr.length; i++) {
-                                bytes[i] = binaryStr.charCodeAt(i);
-                            }
+            using (StreamReader reader = new(stream))
+            {
+                string result = reader.ReadToEnd();
+                sb.Append(result);
+            }
 
-                            // Decode bytes to a UTF-8 string
-                            var decodedStr = new TextDecoder('utf-8').decode(bytes);
-                            return decodedStr;
-                        }
-
-                        function addElement(base64Html, index) {
-                            var container = document.getElementById('container');
-
-                            // Save the current scroll position
-                            var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-                            // Decode the base64-encoded HTML string using UTF-8
-                            var decodedHtml = base64ToUtf8(base64Html);
-
-                            var div = document.createElement('div');
-                            div.innerHTML = decodedHtml;
-                            var newElement = div.firstChild;
-
-                            if (index >= container.children.length) {
-                                container.appendChild(newElement);
-                            } else {
-                                container.insertBefore(newElement, container.children[index]);
-                            }
-
-                            // Restore the previous scroll position
-                            window.scrollTo(0, scrollTop);
-                        }
-
-
-                        function removeElement(componentId) {
-                            var element = document.getElementById(componentId);
-                            if (element) {
-                                element.parentNode.removeChild(element);
-                            }
-                        }
-
-                        window.onload = function() {
-                            window.location.href = `webcomponent://Loaded`;
-                        };
-                    </script>
-                </head>
-                <body>
-                    <div id='container'></div>
-                </body>
-                </html>");
             return sb.ToString();
         }
 
-        private async Task AddChild(IWebComponent child, int index)
+        private async Task AddChild(WebComponent child, int index)
         {
             await _loadedTask.Task;
 
@@ -205,13 +142,12 @@ namespace Maui.WebComponents
                 _children.Insert(index, child);
             }
 
-            _componentMap[child.Id] = child;
             await this.InjectChildElement(child, index);
         }
 
         private void HandleInvokeMethod(string componentId, string methodName, string argsJson)
         {
-            if (_componentMap.TryGetValue(componentId, out IWebComponent? component))
+            if (_componentMap.TryGetValue(componentId, out WebComponent? component))
             {
                 MethodInfo? method = component.GetType().GetMethod(methodName);
 
@@ -221,8 +157,10 @@ namespace Maui.WebComponents
             }
         }
 
-        private async Task InjectChildElement(IWebComponent component, int index)
+        private async Task InjectChildElement(WebComponent component, int index)
         {
+            this.RegisterChildren(component);
+
             string elementHtml = RenderComponent(component);
 
             // Base64 encode the HTML string
@@ -263,34 +201,23 @@ namespace Maui.WebComponents
             }
         }
 
-        private void RefreshContent()
+        private void RegisterChildren(WebComponent component)
         {
-            Source = new HtmlWebViewSource { Html = this.RenderHtml() };
+            _componentMap[component.Id] = component;
+
+            component.Style.OnStyleChanged += async (s, e) => await this.EvaluateJavaScriptAsync($"updateElementStyle('{component.Id}', '{e.Key}', '{e.Value}')");
+            component.OnInnerTextChanged += async (s, e) => await this.EvaluateJavaScriptAsync($"updateTextNode('{component.Id}', '{e.InnerText}')");
+
+            foreach (WebComponent child in component.Children)
+            {
+                this.RegisterChildren(child);
+            }
         }
 
         private async Task RemoveChildElement(string componentId)
         {
             string script = $"removeElement('{componentId}');";
             await this.EvaluateJavaScriptAsync(script);
-        }
-
-        private string RenderHtml()
-        {
-            StringBuilder sb = new();
-            sb.Append("<html><head><script>");
-            sb.Append(@"
-                    function invokeMethod(componentId, methodName, args) {
-                        window.location.href = `webcomponent://${componentId}/${methodName}?args=${JSON.stringify(args)}`;
-                    }
-            ");
-            sb.Append("</script></head><body>");
-            foreach (IWebComponent child in _children)
-            {
-                sb.Append(RenderComponent(child));
-            }
-
-            sb.Append("</body></html>");
-            return sb.ToString();
         }
     }
 }

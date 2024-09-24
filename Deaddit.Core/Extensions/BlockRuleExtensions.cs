@@ -81,7 +81,7 @@ namespace Deaddit.Core.Extensions
         {
             bool blocked = true;
 
-            blocked &= BlockListHelper.TriggersOrSkip(rule.Domain, post.Domain, StringMatchType.String); 
+            blocked &= BlockListHelper.TriggersOrSkip(rule.Domain, post.Domain, StringMatchType.String);
 
             blocked &= BlockListHelper.TriggersOrSkip(rule.IsLocked, post.IsLocked);
 

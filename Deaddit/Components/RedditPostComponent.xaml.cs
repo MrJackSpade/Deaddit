@@ -448,6 +448,7 @@ namespace Deaddit.MAUI.Components
                 BackgroundColor = Colors.Transparent,
                 TextColor = _applicationStyling.TextColor.ToMauiColor()
             };
+
             saveButton.Clicked += this.OnSaveClicked;
 
             // Initialize the Hide button
@@ -457,6 +458,7 @@ namespace Deaddit.MAUI.Components
                 BackgroundColor = Colors.Transparent,
                 TextColor = _applicationStyling.TextColor.ToMauiColor()
             };
+
             hideButton.Clicked += this.OnHideClicked;
 
             // Initialize the More Options button
@@ -726,7 +728,7 @@ namespace Deaddit.MAUI.Components
         private void SetTitleLabel(ApiPost post, ApplicationHacks applicationHacks, ApplicationStyling applicationTheme)
         {
             titleLabel.Text = applicationHacks.CleanTitle(post.Title);
-            titleLabel.TextColor = post.Distinguished == DistinguishedKind.Moderator ? applicationTheme.DistinguishedTitleColor.ToMauiColor() :                                                                                       applicationTheme.TextColor.ToMauiColor();
+            titleLabel.TextColor = post.Distinguished == DistinguishedKind.Moderator ? applicationTheme.DistinguishedTitleColor.ToMauiColor() : applicationTheme.TextColor.ToMauiColor();
         }
 
         private void SetVoteStack(ApplicationStyling applicationTheme)

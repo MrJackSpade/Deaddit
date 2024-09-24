@@ -49,11 +49,6 @@
             }
         }
 
-        public override string ToString()
-        {
-            return this.ToHex();
-        }
-
         public string ToArgbHex()
         {
             return $"#{Alpha:X2}{Red:X2}{Green:X2}{Blue:X2}";
@@ -62,6 +57,11 @@
         public string ToHex()
         {
             return $"#{Red:X2}{Green:X2}{Blue:X2}";
+        }
+
+        public override string ToString()
+        {
+            return this.ToHex();
         }
     }
 }

@@ -1,0 +1,100 @@
+<html>
+<head>
+    <meta charset="" UTF-8"">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+        }
+    </style>
+    <script>
+        function invokeMethod(componentId, methodName, args) {
+            window.location.href = `webcomponent://${componentId}/${methodName}?args=${JSON.stringify(args)}`;
+        }
+
+        function updateTextNode(elementId, newText) {
+            const element = document.getElementById(elementId);
+
+            if (element) {
+                // Loop through the child nodes
+                for (let i = 0; i < element.childNodes.length; i++) {
+                    const node = element.childNodes[i];
+
+                    // Check if the node is a text node (nodeType === 3)
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        node.nodeValue = newText;
+                        break; // Exit after changing the first text node
+                    }
+                }
+            } else {
+                console.error(`Element with ID "${elementId}" not found.`);
+            }
+        }
+
+        function updateElementStyle(elementId, styleKey, value) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.style[styleKey] = value;
+            } else {
+                console.error(`Element with ID "${elementId}" not found.`);
+            }
+        }
+
+        function base64ToUtf8(base64Str) {
+            // Decode base64 to bytes
+            var binaryStr = atob(base64Str);
+
+            // Convert binary string to an array of bytes
+            var bytes = new Uint8Array(binaryStr.length);
+            for (var i = 0; i < binaryStr.length; i++) {
+                bytes[i] = binaryStr.charCodeAt(i);
+            }
+
+            // Decode bytes to a UTF-8 string
+            var decodedStr = new TextDecoder('utf-8').decode(bytes);
+            return decodedStr;
+        }
+
+        function addElement(base64Html, index) {
+            var container = document.getElementById('container');
+
+            // Save the current scroll position
+            var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+            // Decode the base64-encoded HTML string using UTF-8
+            var decodedHtml = base64ToUtf8(base64Html);
+
+            var div = document.createElement('div');
+            div.innerHTML = decodedHtml;
+            var newElement = div.firstChild;
+
+            if (index >= container.children.length) {
+                container.appendChild(newElement);
+            } else {
+                container.insertBefore(newElement, container.children[index]);
+            }
+
+            // Restore the previous scroll position
+            window.scrollTo(0, scrollTop);
+        }
+
+        function removeElement(componentId) {
+            var element = document.getElementById(componentId);
+            if (element) {
+                element.parentNode.removeChild(element);
+            }
+        }
+
+        window.onload = function () {
+            window.location.href = `webcomponent://Loaded`;
+        };
+    </script>
+</head>
+<body>
+    <div id='container'></div>
+</body>
+</html>

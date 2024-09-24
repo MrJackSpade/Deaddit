@@ -1,16 +1,34 @@
 ﻿using Maui.WebComponents.Attributes;
 using Maui.WebComponents.Extensions;
 
-namespace Maui.WebComponents
+namespace Maui.WebComponents.Components
 {
     // Example usage remains the same
     [HtmlEntity("span")]
     public class SpanComponent : WebComponent
     {
+        public string? BackgroundColor
+        {
+            get => this.Style("background-color");
+            set => this.Style("background-color", value);
+        }
+
+        public string? Border
+        {
+            get => this.Style("border");
+            set => this.Style("border", value);
+        }
+
         public string? Color
         {
             get => this.Style("color");
             set => this.Style("color", value);
+        }
+
+        public string? Display
+        {
+            get => this.Style("display");
+            set => this.Style("display", value);
         }
 
         public string? FontSize
@@ -23,18 +41,6 @@ namespace Maui.WebComponents
         {
             get => this.Style("font-weight");
             set => this.Style("font-weight", value);
-        }
-
-        public string? TextAlign
-        {
-            get => this.Style("text-align");
-            set => this.Style("text-align", value);
-        }
-
-        public string? BackgroundColor
-        {
-            get => this.Style("background-color");
-            set => this.Style("background-color", value);
         }
 
         public string? LineHeight
@@ -55,16 +61,10 @@ namespace Maui.WebComponents
             set => this.Style("padding", value);
         }
 
-        public string? Border
+        public string? TextAlign
         {
-            get => this.Style("border");
-            set => this.Style("border", value);
-        }
-
-        public string? Display
-        {
-            get => this.Style("display");
-            set => this.Style("display", value);
+            get => this.Style("text-align");
+            set => this.Style("text-align", value);
         }
     }
 }

@@ -1,12 +1,7 @@
 ﻿using Maui.WebComponents.Attributes;
 using Maui.WebComponents.Extensions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Maui.WebComponents
+namespace Maui.WebComponents.Components
 {
     [HtmlEntity("button")]
     public class ButtonComponent : WebComponent
@@ -51,6 +46,12 @@ namespace Maui.WebComponents
         {
             get => this.Style("display");
             set => this.Style("display", value);
+        }
+
+        public string? FlexGrow
+        {
+            get => this.Style("flex-grow");
+            set => this.Style("flex-grow", value);
         }
 
         public string? FontSize

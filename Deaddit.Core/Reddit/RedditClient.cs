@@ -234,7 +234,7 @@ namespace Deaddit.Core.Reddit
         public async Task<List<ApiThing>> GetPosts<T>(ThingCollectionName subreddit, T sort, int pageSize, string? after = null, Models.Region region = Models.Region.GLOBAL) where T : Enum
         {
             //TODO: This makes way more sense as an IEnumerable
-            //Remove page size and fix the interop between try/catch 
+            //Remove page size and fix the interop between try/catch
             //and the async functionality.
 
             List<ApiThing> toReturn = [];
@@ -271,7 +271,7 @@ namespace Deaddit.Core.Reddit
                     {
                         toReturn.Add(redditPostMeta);
 
-                        if(toReturn.Count >= pageSize)
+                        if (toReturn.Count >= pageSize)
                         {
                             return toReturn;
                         }

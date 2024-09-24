@@ -1,30 +1,86 @@
 ﻿using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Extensions;
+using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Extensions;
+using Deaddit.Core.Reddit.Interfaces;
+using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
-using Maui.WebComponents;
+using Deaddit.Core.Utils;
 using Maui.WebComponents.Attributes;
-using Maui.WebComponents.Extensions;
+using Maui.WebComponents.Components;
 
 namespace Deaddit.Components.WebComponents
 {
     [HtmlEntity("reddit-post")]
-    public class RedditPostWebComponent : WebComponent
+    public class RedditPostWebComponent : DivComponent, ISelectionGroupItem
     {
-        private readonly ApiPost _post;
+        private const string TXT_COMMENT = "🗨";
 
-        public RedditPostWebComponent(ApiPost post, ApplicationStyling applicationStyling)
+        private const string TXT_DOTS = "...";
+
+        private const string TXT_HIDE = "Hide";
+
+        private const string TXT_SAVE = "Save";
+
+        private const string TXT_SHARE = "Share";
+
+        private const string TXT_UNSAVE = "Unsave";
+
+        private readonly DivComponent _actionButtons;
+
+        private readonly ApplicationStyling _applicationStyling;
+
+        private readonly SpanComponent _downvoteButton;
+
+        private readonly IRedditClient _redditClient;
+
+        private readonly SpanComponent _score;
+
+        private readonly SelectionGroup? _selectionGroup;
+
+        private readonly SpanComponent _upvoteButton;
+
+        public event EventHandler? OnThumbnailClick;
+
+        public event EventHandler? OnTitleClick;
+
+        public RedditPostWebComponent(ApiPost post, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup? selectionGroup)
         {
-            _post = post;
+            Post = post;
+            _applicationStyling = applicationStyling;
+            _redditClient = redditClient;
+            _selectionGroup = selectionGroup;
 
-            DivComponent container = new()
+            Display = "flex";
+            FlexDirection = "column";
+            BackgroundColor = applicationStyling.SecondaryColor.ToHex();
+
+            DivComponent topContainer = new()
             {
                 Display = "flex",
                 FlexDirection = "row",
                 Width = "100%",
-                BackgroundColor = applicationStyling.SecondaryColor.ToHex(),
-                
             };
+
+            _actionButtons = new()
+            {
+                Display = "none",
+                FlexDirection = "row",
+                Width = "100%",
+                BackgroundColor = applicationStyling.HighlightColor.ToHex(),
+            };
+
+            ButtonComponent shareButton = this.ActionButton(TXT_SHARE);
+            ButtonComponent saveButton = this.ActionButton(TXT_SAVE);
+            ButtonComponent hideButton = this.ActionButton(TXT_HIDE);
+            ButtonComponent moreButton = this.ActionButton(TXT_DOTS);
+            ButtonComponent commentsButton = this.ActionButton(TXT_COMMENT);
+
+            _actionButtons.Children.Add(shareButton);
+            _actionButtons.Children.Add(saveButton);
+            _actionButtons.Children.Add(hideButton);
+            _actionButtons.Children.Add(moreButton);
+            _actionButtons.Children.Add(commentsButton);
 
             ImgComponent thumbnail = new()
             {
@@ -38,7 +94,8 @@ namespace Deaddit.Components.WebComponents
             {
                 Display = "flex",
                 FlexDirection = "column",
-                Padding = "10px"
+                Padding = "10px",
+                FlexGrow = "1"
             };
 
             SpanComponent title = new()
@@ -53,6 +110,7 @@ namespace Deaddit.Components.WebComponents
                 InnerText = $"{post.CreatedUtc.Elapsed()} by {post.Author}",
                 FontSize = $"{(int)(applicationStyling.FontSize * 0.75)}px",
                 Color = applicationStyling.SubTextColor.ToHex(),
+                Display = "none"
             };
 
             SpanComponent metaData = new()
@@ -66,10 +124,149 @@ namespace Deaddit.Components.WebComponents
             textContainer.Children.Add(timeUser);
             textContainer.Children.Add(metaData);
 
-            container.Children.Add(thumbnail);
-            container.Children.Add(textContainer);
+            DivComponent voteContainer = new()
+            {
+                Display = "flex",
+                FlexGrow = "0",
+                FlexDirection = "column",
+                Padding = "10px"
+            };
 
-            this.Children.Add(container);
+            _upvoteButton = new()
+            {
+                TextAlign = "center",
+                InnerText = "▲",
+                FontSize = $"{applicationStyling.FontSize}px",
+                Color = applicationStyling.TextColor.ToHex(),
+            };
+
+            _score = new()
+            {
+                TextAlign = "center",
+                InnerText = post.Score.ToString(),
+                FontSize = $"{applicationStyling.FontSize}px",
+                Color = applicationStyling.TextColor.ToHex(),
+            };
+
+            _downvoteButton = new()
+            {
+                TextAlign = "center",
+                InnerText = "▼",
+                FontSize = $"{applicationStyling.FontSize}px",
+                Color = applicationStyling.TextColor.ToHex(),
+            };
+
+            _downvoteButton.OnClick += this.Downvote;
+            _upvoteButton.OnClick += this.Upvote;
+            textContainer.OnClick += this.TextContainer_OnClick;
+            thumbnail.OnClick += (sender, e) => this.OnThumbnailClick?.Invoke(this, e);
+            title.OnClick += (sender, e) => this.OnTitleClick?.Invoke(this, e);
+
+            voteContainer.Children.Add(_upvoteButton);
+            voteContainer.Children.Add(_score);
+            voteContainer.Children.Add(_downvoteButton);
+
+            topContainer.Children.Add(thumbnail);
+            topContainer.Children.Add(textContainer);
+            topContainer.Children.Add(voteContainer);
+
+            Children.Add(topContainer);
+            Children.Add(_actionButtons);
+        }
+
+        public ApiPost Post { get; }
+
+        public bool SelectEnabled => true;
+
+        public void Select()
+        {
+            BackgroundColor = _applicationStyling.HighlightColor.ToHex();
+            _actionButtons.Display = "flex";
+        }
+
+        public void Unselect()
+        {
+            BackgroundColor = _applicationStyling.SecondaryColor.ToHex();
+            _actionButtons.Display = "none";
+        }
+
+        private ButtonComponent ActionButton(string text)
+        {
+            return new ButtonComponent
+            {
+                InnerText = text,
+                FontSize = $"{_applicationStyling.FontSize}px",
+                Color = _applicationStyling.TextColor.ToHex(),
+                BackgroundColor = _applicationStyling.HighlightColor.ToHex(),
+                Padding = "10px",
+                FlexGrow = "1",
+                Border = "0",
+            };
+        }
+
+        private void Downvote(object? sender, EventArgs e)
+        {
+            switch (Post.Likes)
+            {
+                case UpvoteState.None:
+                    Post.Score--;
+                    Post.Likes = UpvoteState.Downvote;
+                    _score.Color = _applicationStyling.DownvoteColor.ToHex();
+                    _downvoteButton.Color = _applicationStyling.DownvoteColor.ToHex();
+                    break;
+
+                case UpvoteState.Downvote:
+                    Post.Score++;
+                    Post.Likes = UpvoteState.None;
+                    _score.Color = _applicationStyling.TextColor.ToHex();
+                    _downvoteButton.Color = _applicationStyling.TextColor.ToHex();
+                    break;
+
+                case UpvoteState.Upvote:
+                    Post.Score -= 2;
+                    Post.Likes = UpvoteState.Downvote;
+                    _score.Color = _applicationStyling.DownvoteColor.ToHex();
+                    _upvoteButton.Color = _applicationStyling.TextColor.ToHex();
+                    _downvoteButton.Color = _applicationStyling.DownvoteColor.ToHex();
+                    break;
+            }
+
+            _score.InnerText = Post.Score.ToString();
+        }
+
+        private void TextContainer_OnClick(object? sender, EventArgs e)
+        {
+            _selectionGroup?.Toggle(this);
+        }
+
+        private void Upvote(object? sender, EventArgs e)
+        {
+            switch (Post.Likes)
+            {
+                case UpvoteState.None:
+                    Post.Score++;
+                    Post.Likes = UpvoteState.Upvote;
+                    _score.Color = _applicationStyling.UpvoteColor.ToHex();
+                    _upvoteButton.Color = _applicationStyling.UpvoteColor.ToHex();
+                    break;
+
+                case UpvoteState.Upvote:
+                    Post.Score--;
+                    Post.Likes = UpvoteState.None;
+                    _score.Color = _applicationStyling.TextColor.ToHex();
+                    _upvoteButton.Color = _applicationStyling.TextColor.ToHex();
+                    break;
+
+                case UpvoteState.Downvote:
+                    Post.Score += 2;
+                    Post.Likes = UpvoteState.Upvote;
+                    _score.Color = _applicationStyling.UpvoteColor.ToHex();
+                    _upvoteButton.Color = _applicationStyling.UpvoteColor.ToHex();
+                    _downvoteButton.Color = _applicationStyling.TextColor.ToHex();
+                    break;
+            }
+
+            _score.InnerText = Post.Score.ToString();
         }
     }
 }

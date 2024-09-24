@@ -1,8 +1,7 @@
 ﻿using Maui.WebComponents.Attributes;
 using Maui.WebComponents.Extensions;
-using Maui.WebComponents.Interfaces;
 
-namespace Maui.WebComponents
+namespace Maui.WebComponents.Components
 {
     [HtmlEntity("div")]
     public class DivComponent : WebComponent
@@ -53,6 +52,12 @@ namespace Maui.WebComponents
         {
             get => this.Style("flex-direction");
             set => this.Style("flex-direction", value);
+        }
+
+        public string? FlexGrow
+        {
+            get => this.Style("flex-grow");
+            set => this.Style("flex-grow", value);
         }
 
         public string? Height

@@ -1,7 +1,7 @@
 ﻿using Maui.WebComponents.Attributes;
 using Maui.WebComponents.Extensions;
 
-namespace Maui.WebComponents
+namespace Maui.WebComponents.Components
 {
     // Example usage remains the same
     [HtmlEntity("img")]
