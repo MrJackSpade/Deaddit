@@ -6,21 +6,16 @@ using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.MAUI.Components;
 using Deaddit.Pages;
-using Maui.WebComponents.Components;
 
 namespace Deaddit.Interfaces
 {
     public interface IAppNavigator
     {
-        RedditCommentComponent CreateCommentComponent(ApiComment comment, ApiPost? post = null, SelectionGroup? selectionGroup = null);
-
         RedditCommentWebComponent CreateCommentWebComponent(ApiComment newComment, ApiPost post, SelectionGroup selectionGroup);
 
         RedditMessageComponent CreateMessageComponent(ApiMessage message, SelectionGroup? selectionGroup = null);
 
         RedditMessageWebComponent CreateMessageWebComponent(ApiMessage message);
-
-        MoreCommentsComponent CreateMoreCommentsComponent(IMore more);
 
         MoreCommentsWebComponent CreateMoreCommentsWebComponent(IMore more);
 

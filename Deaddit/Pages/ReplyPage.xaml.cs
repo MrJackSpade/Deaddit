@@ -7,7 +7,6 @@ using Deaddit.Core.Utils;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
-using Deaddit.MAUI.Components;
 using Deaddit.Pages.Models;
 using Microsoft.Maui.Controls.Shapes;
 
@@ -41,9 +40,9 @@ namespace Deaddit.Pages
             {
                 if (toRender is ApiComment rc)
                 {
-                    RedditCommentComponent redditCommentComponent = _appNavigator.CreateCommentComponent(rc, null, unused);
+                    //RedditCommentWebComponent redditCommentComponent = _appNavigator.CreateCommentWebComponent(rc, null, unused);
 
-                    commentStack.Children.Insert(0, redditCommentComponent);
+                    //commentStack.Children.Insert(0, redditCommentComponent);
                 }
                 else if (toRender is ApiPost post)
                 {

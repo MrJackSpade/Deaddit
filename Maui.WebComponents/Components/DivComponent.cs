@@ -1,5 +1,4 @@
 ﻿using Maui.WebComponents.Attributes;
-using Maui.WebComponents.Extensions;
 
 namespace Maui.WebComponents.Components
 {

@@ -19,6 +19,8 @@ namespace Maui.WebComponents
 
         public StyleCollection BodyStyle { get; } = [];
 
+        public event EventHandler<string> ClickUrl;
+
         public event EventHandler? OnScrollBottom;
 
         public WebElement()
@@ -51,6 +53,23 @@ namespace Maui.WebComponents
             }
 
             await this.InjectChildElement(child, index);
+        }
+
+        public async Task InsertChild(WebComponent parent, int index, WebComponent child)
+        {
+            await _loadedTask.Task;
+
+            if (index == -1 || index >= parent.Children.Count)
+            {
+                index = parent.Children.Count - 1;
+            }
+
+            await this.InjectChildElement(child, index, parent);
+        }
+
+        public bool IsRendered(WebComponent component)
+        {
+            return _componentMap.ContainsKey(component.Id);
         }
 
         public async Task RemoveChild(WebComponent child)
@@ -141,11 +160,6 @@ namespace Maui.WebComponents
             return sb.ToString();
         }
 
-        public bool IsRendered(WebComponent component)
-        {
-            return _componentMap.ContainsKey(component.Id);
-        }
-
         private void HandleInvokeMethod(string componentId, string methodName, string argsJson)
         {
             if (_componentMap.TryGetValue(componentId, out WebComponent? component))
@@ -168,7 +182,7 @@ namespace Maui.WebComponents
             string base64Html = Convert.ToBase64String(Encoding.UTF8.GetBytes(elementHtml));
 
             // Build the JavaScript code to execute
-            string script = parent is null ? 
+            string script = parent is null ?
                             $"addElement('{base64Html}', {index});" :
                             $"addElement('{base64Html}', {index}, '{parent.Id}');";
 
@@ -201,7 +215,7 @@ namespace Maui.WebComponents
 
                 if (e.Url.StartsWith("webcomponent://error/", StringComparison.OrdinalIgnoreCase))
                 {
-                    var queryDictionary = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                    System.Collections.Specialized.NameValueCollection queryDictionary = System.Web.HttpUtility.ParseQueryString(uri.Query);
                     string message = queryDictionary["message"];
                     throw new JavascriptException(message);
                 }
@@ -212,23 +226,16 @@ namespace Maui.WebComponents
                     return;
                 }
 
+                if (e.Url.StartsWith("webcomponent://href/", StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
                 string componentId = uri.Host;
                 string methodName = uri.AbsolutePath.TrimStart('/');
                 string? args = System.Web.HttpUtility.ParseQueryString(uri.Query).Get("args");
                 this.HandleInvokeMethod(componentId, methodName, args);
             }
-        }
-
-        public async Task InsertChild(WebComponent parent, int index, WebComponent child)
-        {
-            await _loadedTask.Task;
-
-            if (index == -1 || index >= parent.Children.Count)
-            {
-                index = parent.Children.Count - 1;
-            }
-
-            await this.InjectChildElement(child, index, parent);
         }
 
         private void RegisterChildren(WebComponent component)

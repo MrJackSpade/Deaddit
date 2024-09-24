@@ -65,6 +65,8 @@ namespace Deaddit.Components.WebComponents
 
         private readonly IVisitTracker _visitTracker;
 
+        private bool _isDisposed = false;
+
         public bool SelectEnabled => true;
 
         public event EventHandler<BlockRule> BlockAdded;
@@ -219,10 +221,12 @@ namespace Deaddit.Components.WebComponents
                     _upvoteButton.Color = applicationStyling.UpvoteColor.ToHex();
                     _score.Color = applicationStyling.UpvoteColor.ToHex();
                     break;
+
                 case UpvoteState.Downvote:
                     _downvoteButton.Color = applicationStyling.DownvoteColor.ToHex();
                     _score.Color = applicationStyling.DownvoteColor.ToHex();
                     break;
+
                 case UpvoteState.None:
                     break;
             }
@@ -254,6 +258,11 @@ namespace Deaddit.Components.WebComponents
             {
                 Opacity = _applicationStyling.VisitedOpacity.ToString("0.00");
             }
+        }
+
+        public void Dispose()
+        {
+            _isDisposed = true;
         }
 
         public void Select()
@@ -528,13 +537,6 @@ namespace Deaddit.Components.WebComponents
 
             _score.InnerText = _post.Score.ToString();
             _redditClient.SetUpvoteState(_post, _post.Likes);
-        }
-
-        private bool _isDisposed = false;
-
-        public void Dispose()
-        {
-            _isDisposed = true;
         }
     }
 }

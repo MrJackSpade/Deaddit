@@ -1,5 +1,7 @@
 ﻿using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Exceptions;
+using Deaddit.Core.Extensions;
+using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
@@ -17,13 +19,21 @@ using Maui.WebComponents.Components;
 namespace Deaddit.Components.WebComponents
 {
     [HtmlEntity("reddit-comment")]
-    public class RedditCommentWebComponent : DivComponent, IHasChildren
+    public class RedditCommentWebComponent : DivComponent, IHasChildren, ISelectionGroupItem
     {
         private readonly ApplicationStyling _applicationStyling;
+
+        private readonly DivComponent _bottomBar;
 
         private readonly ApiComment _comment;
 
         private readonly DivComponent _commentBody;
+
+        private readonly DivComponent _commentContainer;
+
+        private readonly DivComponent _commentHeader;
+
+        private readonly SpanComponent _commentMeta;
 
         private readonly INavigation _navigation;
 
@@ -31,9 +41,9 @@ namespace Deaddit.Components.WebComponents
 
         private readonly DivComponent _replies;
 
-        private readonly bool _selectEnabled;
+        private readonly DivComponent _topBar;
 
-        private readonly SelectionGroup _selectionGroup;
+        private readonly SpanComponent voteIndicator;
 
         public IAppNavigator AppNavigator { get; }
 
@@ -41,9 +51,11 @@ namespace Deaddit.Components.WebComponents
 
         WebComponent IHasChildren.ChildContainer => _replies;
 
-        public ApiPost? Post { get; }
+        public ApiPost Post { get; }
 
-        public SelectionGroup SelectionGroup { get; }
+        public bool SelectEnabled { get; private set; }
+
+        public SelectionGroup SelectionGroup { get; private set; }
 
         public event EventHandler<OnDeleteClickedEventArgs> OnDelete;
 
@@ -51,23 +63,90 @@ namespace Deaddit.Components.WebComponents
         {
             _comment = comment;
             Post = post;
-            _selectEnabled = selectEnabled;
+            SelectEnabled = selectEnabled;
             AppNavigator = appNavigator;
             _redditClient = redditClient;
             _applicationStyling = applicationStyling;
-            _selectionGroup = selectionGroup;
+            SelectionGroup = selectionGroup;
             BlockConfiguration = blockConfiguration;
             _navigation = navigation;
 
-            _commentBody = new DivComponent()
+            _commentContainer = new DivComponent()
             {
-                InnerText = comment.BodyHtml
+                Display = "flex",
+                FlexDirection = "column",
             };
 
-            _replies = new DivComponent();
+            _commentBody = new DivComponent()
+            {
+                InnerText = comment.BodyHtml,
+                Color = _applicationStyling.TextColor.ToHex(),
+                FontSize = $"{(int)(_applicationStyling.FontSize * .75)}px",
+                PaddingLeft = "10px"
+            };
 
-            this.Children.Add(_commentBody);
-            this.Children.Add(_replies);
+            _replies = new DivComponent()
+            {
+                PaddingLeft = "25px",
+                BorderLeft = $"1px solid {_applicationStyling.SubTextColor.ToHex()}"
+            };
+
+            _commentHeader = new DivComponent();
+
+            SpanComponent authorSpan = new()
+            {
+                InnerText = comment.Author,
+                Color = _applicationStyling.SubTextColor.ToHex(),
+                MarginRight = "5px"
+            };
+
+            _commentMeta = new SpanComponent()
+            {
+                Color = _applicationStyling.SubTextColor.ToHex(),
+                FontSize = $"{(int)(_applicationStyling.FontSize * .75)}px",
+            };
+
+            voteIndicator = new SpanComponent();
+
+            _topBar = new DivComponent()
+            {
+                Display = "none"
+            };
+
+            _bottomBar = new DivComponent()
+            {
+                Display = "none"
+            };
+
+            ButtonComponent upvoteButton = this.ActionButton("▲");
+            ButtonComponent downvoteButton = this.ActionButton("▼");
+            ButtonComponent moreButton = this.ActionButton("...");
+            ButtonComponent shareButton = this.ActionButton("⢔");
+            ButtonComponent replyButton = this.ActionButton("↩");
+
+            upvoteButton.OnClick += this.OnUpvoteClicked;
+            downvoteButton.OnClick += this.OnDownvoteClicked;
+            moreButton.OnClick += this.OnMoreClicked;
+            shareButton.OnClick += this.OnShareClicked;
+            replyButton.OnClick += this.OnReplyClicked;
+
+            _commentHeader.Children.Add(voteIndicator);
+            _commentHeader.Children.Add(authorSpan);
+            _commentHeader.Children.Add(_commentMeta);
+            _commentContainer.Children.Add(_commentHeader);
+            _commentContainer.Children.Add(_commentBody);
+
+            Children.Add(_commentContainer);
+            Children.Add(_replies);
+
+            BoxSizing = "border-box";
+            Padding = "5px";
+            Display = "flex";
+            FlexDirection = "column";
+
+            _commentContainer.OnClick += this.SelectClick;
+
+            this.UpdateMetaData();
         }
 
         public async void MoreCommentsClick(object? sender, IMore e)
@@ -188,14 +267,65 @@ namespace Deaddit.Components.WebComponents
             }
         }
 
+        public async void OnReplyClicked(object? sender, EventArgs e)
+        {
+            ReplyPage replyPage = await AppNavigator.OpenReplyPage(_comment);
+            replyPage.OnSubmitted += this.ReplyPage_OnSubmitted;
+        }
+
+        public void OnUpvoteClicked(object? sender, EventArgs e)
+        {
+            if (_comment.Likes == UpvoteState.Upvote)
+            {
+                _comment.Score--;
+                this.SetIndicatorState(UpvoteState.None);
+                _redditClient.SetUpvoteState(_comment, UpvoteState.None);
+            }
+            else if (_comment.Likes == UpvoteState.Downvote)
+            {
+                _comment.Score += 2;
+                this.SetIndicatorState(UpvoteState.Upvote);
+                _redditClient.SetUpvoteState(_comment, UpvoteState.Upvote);
+            }
+            else
+            {
+                _comment.Score++;
+                this.SetIndicatorState(UpvoteState.Upvote);
+                _redditClient.SetUpvoteState(_comment, UpvoteState.Upvote);
+            }
+        }
+
+        public void Select()
+        {
+            _commentContainer.BackgroundColor = _applicationStyling.HighlightColor.ToHex();
+        }
+
+        public void Unselect()
+        {
+            _commentContainer.BackgroundColor = null;
+        }
+
         internal void LoadImages(bool recursive = false)
         {
             throw new NotImplementedException();
         }
 
+        private ButtonComponent ActionButton(string text)
+        {
+            return new ButtonComponent
+            {
+                InnerText = text,
+                FontSize = $"{_applicationStyling.FontSize}px",
+                Color = _applicationStyling.TextColor.ToHex(),
+                BackgroundColor = _applicationStyling.HighlightColor.ToHex(),
+                Padding = "10px",
+                FlexGrow = "1",
+                Border = "0",
+            };
+        }
+
         private void BlockRuleOnSave(object? sender, ObjectEditorSaveEventArgs e)
         {
-            throw new NotImplementedException();
         }
 
         private async Task ContinueThread(ApiComment comment)
@@ -224,6 +354,28 @@ namespace Deaddit.Components.WebComponents
             objectEditorPage.OnSave += this.BlockRuleOnSave;
         }
 
+        private void OnDownvoteClicked(object? sender, EventArgs e)
+        {
+            if (_comment.Likes == UpvoteState.Downvote)
+            {
+                _comment.Score++;
+                this.SetIndicatorState(UpvoteState.None);
+                _redditClient.SetUpvoteState(_comment, UpvoteState.None);
+            }
+            else if (_comment.Likes == UpvoteState.Upvote)
+            {
+                _comment.Score -= 2;
+                this.SetIndicatorState(UpvoteState.Downvote);
+                _redditClient.SetUpvoteState(_comment, UpvoteState.Downvote);
+            }
+            else
+            {
+                _comment.Score--;
+                this.SetIndicatorState(UpvoteState.Downvote);
+                _redditClient.SetUpvoteState(_comment, UpvoteState.Downvote);
+            }
+        }
+
         private async void OnShareClicked(object? sender, EventArgs e)
         {
             await Share.Default.RequestAsync(new ShareTextRequest
@@ -231,6 +383,67 @@ namespace Deaddit.Components.WebComponents
                 Uri = _comment.Permalink,
                 Title = _comment.Body
             });
+        }
+
+        private void ReplyButton_OnClick(object? sender, EventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void ReplyPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
+        {
+            Ensure.NotNull(e.NewComment, "New comment data");
+
+            e.NewComment.ParentId = _comment.Id;
+            e.NewComment.Parent = _comment;
+
+            RedditCommentWebComponent redditCommentComponent = AppNavigator.CreateCommentWebComponent(e.NewComment, Post, SelectionGroup);
+            redditCommentComponent.OnDelete += (s, e) => _replies.Children.Remove(redditCommentComponent);
+            _replies.Children.Insert(0, redditCommentComponent);
+        }
+
+        private void SelectClick(object? sender, EventArgs e)
+        {
+            SelectionGroup?.Select(this);
+        }
+
+        private void SetIndicatorState(UpvoteState state)
+        {
+            switch (state)
+            {
+                case UpvoteState.Upvote:
+                    _comment.Likes = UpvoteState.Upvote;
+                    voteIndicator.InnerText = "▲";
+                    voteIndicator.Color = _applicationStyling.UpvoteColor.ToHex();
+                    voteIndicator.Display = "block";
+                    break;
+
+                case UpvoteState.Downvote:
+                    _comment.Likes = UpvoteState.Downvote;
+                    voteIndicator.InnerText = "▼";
+                    voteIndicator.Color = _applicationStyling.DownvoteColor.ToHex();
+                    voteIndicator.Display = "block";
+                    break;
+
+                default:
+                    _comment.Likes = UpvoteState.None;
+                    voteIndicator.InnerText = string.Empty;
+                    voteIndicator.Color = _applicationStyling.TextColor.ToHex();
+                    voteIndicator.Display = "none";
+                    break;
+            }
+        }
+
+        private void UpdateMetaData()
+        {
+            if (!_comment.ScoreHidden == true)
+            {
+                _commentMeta.InnerText = $"{_comment.Score} points {_comment.CreatedUtc.Elapsed()}";
+            }
+            else
+            {
+                _commentMeta.InnerText = _comment.CreatedUtc.Elapsed();
+            }
         }
     }
 }
