@@ -1,4 +1,5 @@
-﻿using Deaddit.Configurations;
+﻿using Deaddit.Components.WebComponents;
+using Deaddit.Configurations;
 using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Reddit.Interfaces;
@@ -68,6 +69,12 @@ namespace Deaddit.Utils
         public MoreCommentsComponent CreateMoreCommentsComponent(IMore more)
         {
             return new MoreCommentsComponent(more, _applicationStyling);
+        }
+
+        public RedditPostWebComponent CreatePostWebComponent(ApiPost post, bool blocked, SelectionGroup? selectionGroup = null)
+        {
+            RedditPostWebComponent postComponent = new(post, _applicationStyling);
+            return postComponent;
         }
 
         public RedditPostComponent CreatePostComponent(ApiPost post, bool blocked, SelectionGroup? selectionGroup = null)

@@ -726,8 +726,7 @@ namespace Deaddit.MAUI.Components
         private void SetTitleLabel(ApiPost post, ApplicationHacks applicationHacks, ApplicationStyling applicationTheme)
         {
             titleLabel.Text = applicationHacks.CleanTitle(post.Title);
-            titleLabel.TextColor = post.Distinguished == DistinguishedKind.Moderator ? applicationTheme.DistinguishedTitleColor.ToMauiColor() :
-                                                                                       applicationTheme.TextColor.ToMauiColor();
+            titleLabel.TextColor = post.Distinguished == DistinguishedKind.Moderator ? applicationTheme.DistinguishedTitleColor.ToMauiColor() :                                                                                       applicationTheme.TextColor.ToMauiColor();
         }
 
         private void SetVoteStack(ApplicationStyling applicationTheme)

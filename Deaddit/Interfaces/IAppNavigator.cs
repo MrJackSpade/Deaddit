@@ -1,4 +1,5 @@
-﻿using Deaddit.Core.Configurations.Models;
+﻿using Deaddit.Components.WebComponents;
+using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
@@ -17,6 +18,8 @@ namespace Deaddit.Interfaces
         MoreCommentsComponent CreateMoreCommentsComponent(IMore more);
 
         RedditPostComponent CreatePostComponent(ApiPost post, bool blocked, SelectionGroup? selectionGroup = null);
+
+        RedditPostWebComponent CreatePostWebComponent(ApiPost post, bool blocked, SelectionGroup? selectionGroup = null);
 
         SubRedditComponent CreateSubRedditComponent(SubRedditSubscription subscription, SelectionGroup? group = null);
 

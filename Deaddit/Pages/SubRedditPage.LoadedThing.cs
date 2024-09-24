@@ -1,4 +1,5 @@
 ﻿using Deaddit.Core.Reddit.Models.Api;
+using Maui.WebComponents.Interfaces;
 
 namespace Deaddit.Pages
 {
@@ -8,7 +9,7 @@ namespace Deaddit.Pages
         {
             public ApiThing Post { get; set; }
 
-            public VisualElement PostComponent { get; set; }
+            public IWebComponent PostComponent { get; set; }
         }
     }
 }

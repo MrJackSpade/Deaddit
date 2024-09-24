@@ -70,7 +70,7 @@
 	<ItemGroup>
 		<PackageReference Include="CommunityToolkit.Maui" Version="9.0.3" />
 		<PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="4.1.0" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.82" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.90" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.82" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
 		<PackageReference Include="MimeKit" Version="4.7.1" />
@@ -176,6 +176,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Deaddit.Core\Deaddit.Core.csproj" />
+	  <ProjectReference Include="..\Maui.WebComponents\Maui.WebComponents.csproj" />
 	</ItemGroup>
 
 </Project>

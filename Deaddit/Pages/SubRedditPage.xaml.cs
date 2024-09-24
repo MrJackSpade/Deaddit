@@ -1,4 +1,5 @@
-﻿using Deaddit.Core.Configurations.Models;
+﻿using Deaddit.Components.WebComponents;
+using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Extensions;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
@@ -11,6 +12,7 @@ using Deaddit.Interfaces;
 using Deaddit.MAUI.Components;
 using Deaddit.Pages.Models;
 using Deaddit.Utils;
+using Maui.WebComponents.Interfaces;
 using System.Diagnostics;
 
 namespace Deaddit.Pages
@@ -67,25 +69,25 @@ namespace Deaddit.Pages
                 blockButton.TextColor = applicationTheme.TextColor.ToMauiColor();
             }
 
-            scrollView.Add(_sortButtons, false);
-            scrollView.Spacing = 1;
-            scrollView.BackgroundColor = applicationTheme.SecondaryColor.ToMauiColor();
-            scrollView.ScrolledDown = this.ScrollDown;
-            scrollView.HeaderCount = 1;
+            //scrollView.Add(_sortButtons, false);
+            //scrollView.Spacing = 1;
+            //scrollView.BackgroundColor = applicationTheme.SecondaryColor.ToMauiColor();
+            //scrollView.ScrolledDown = this.ScrollDown;
+            //scrollView.HeaderCount = 1;
 
-            navigationBar.BackgroundColor = applicationTheme.PrimaryColor.ToMauiColor();
-            settingsButton.TextColor = applicationTheme.TextColor.ToMauiColor();
+            //navigationBar.BackgroundColor = applicationTheme.PrimaryColor.ToMauiColor();
+            //settingsButton.TextColor = applicationTheme.TextColor.ToMauiColor();
 
-            subredditLabel.TextColor = applicationTheme.TextColor.ToMauiColor();
-            subredditLabel.Text = subreddit.DisplayName;
+            //subredditLabel.TextColor = applicationTheme.TextColor.ToMauiColor();
+            //subredditLabel.Text = subreddit.DisplayName;
 
-            reloadButton.TextColor = applicationTheme.TextColor.ToMauiColor();
-            infoButton.TextColor = applicationTheme.TextColor.ToMauiColor();
+            //reloadButton.TextColor = applicationTheme.TextColor.ToMauiColor();
+            //infoButton.TextColor = applicationTheme.TextColor.ToMauiColor();
 
             this.InitSortButtons(sort);
         }
 
-        private bool WindowInLoadRange => scrollView.ScrollY >= scrollView.ContentSize.Height - scrollView.Height - navigationBar.Height;
+        //private bool WindowInLoadRange => scrollView.ScrollY >= scrollView.ContentSize.Height - scrollView.Height - navigationBar.Height;
 
         public async void OnBlockClicked(object? sender, EventArgs e)
         {
@@ -122,27 +124,27 @@ namespace Deaddit.Pages
             await _appNavigator.OpenObjectEditor();
         }
 
-        public async Task ScrollDown(ScrolledEventArgs e)
-        {
-            if (WindowInLoadRange)
-            {
-                if (_loadsemaphore.Wait(0))
-                {
-                    await this.TryLoad();
-                    _loadsemaphore.Release();
-                }
-            }
-        }
+        //public async Task ScrollDown(ScrolledEventArgs e)
+        //{
+        //    if (WindowInLoadRange)
+        //    {
+        //        if (_loadsemaphore.Wait(0))
+        //        {
+        //            await this.TryLoad();
+        //            _loadsemaphore.Release();
+        //        }
+        //    }
+        //}
 
         public async Task TryLoad()
         {
             // Wrap the loading process in a DataService call, likely for UI updates or error handling
-            await DataService.LoadAsync(scrollView.InnerStack, async () =>
+            await DataService.LoadAsync(null, async () =>
             {
                 // Create a set of already loaded post names to avoid duplicates
                 HashSet<string> loadedNames = _loadedPosts.Select(_loadedPosts => _loadedPosts.Post.Name).ToHashSet();
 
-                List<ContentView> newComponents = [];
+                List<IWebComponent> newComponents = [];
 
                 do
                 {
@@ -191,7 +193,7 @@ namespace Deaddit.Pages
                             continue;
                         }
 
-                        ContentView? view = null;
+                        IWebComponent? view = null;
 
                         // Handle ApiPost
                         if (thing is ApiPost post)
@@ -217,11 +219,13 @@ namespace Deaddit.Pages
                             }
 
                             // Create post component
-                            RedditPostComponent redditPostComponent = _appNavigator.CreatePostComponent(post, blocked, _selectionGroup);
+                            IWebComponent redditPostComponent = _appNavigator.CreatePostWebComponent(post, blocked, _selectionGroup);
+
+                            //RedditPostComponent redditPostComponent = _appNavigator.CreatePostComponent(post, blocked, _selectionGroup);
 
                             // Attach event handlers
-                            redditPostComponent.BlockAdded += this.RedditPostComponent_OnBlockAdded;
-                            redditPostComponent.HideClicked += this.RedditPostComponent_HideClicked;
+                            //redditPostComponent.BlockAdded += this.RedditPostComponent_OnBlockAdded;
+                            //redditPostComponent.HideClicked += this.RedditPostComponent_HideClicked;
 
                             view = redditPostComponent;
                         }
@@ -229,12 +233,12 @@ namespace Deaddit.Pages
                         // Handle ApiComment
                         if (thing is ApiComment comment)
                         {
-                            view = _appNavigator.CreateCommentComponent(comment, null, _selectionGroup);
+                            //view = _appNavigator.CreateCommentComponent(comment, null, _selectionGroup);
                         }
 
                         if (thing is ApiMessage message)
                         {
-                            view = _appNavigator.CreateMessageComponent(message, _selectionGroup);
+                            //view = _appNavigator.CreateMessageComponent(message, _selectionGroup);
                         }
 
                         // Add view to new components if created
@@ -262,10 +266,11 @@ namespace Deaddit.Pages
                 } while (newComponents.Count < _applicationHacks.PageSize);
 
                 // Add all new components to the scroll view
-                foreach (ContentView component in newComponents)
+                foreach (IWebComponent component in newComponents)
                 {
-                    scrollView.Add(component);
+                    await webElement.AddChild(component);
                 }
+
             }, _applicationStyling.HighlightColor.ToMauiColor());
         }
 
@@ -337,7 +342,7 @@ namespace Deaddit.Pages
 
         private void RedditPostComponent_HideClicked(object? sender, OnHideClickedEventArgs e)
         {
-            scrollView.Remove(e.Component);
+            //scrollView.Remove(e.Component);
         }
 
         private void RedditPostComponent_OnBlockAdded(object? sender, BlockRule e)
@@ -346,7 +351,7 @@ namespace Deaddit.Pages
             {
                 if (!e.IsAllowed(loadedPost.Post))
                 {
-                    scrollView.Remove(loadedPost.PostComponent);
+                    //scrollView.Remove(loadedPost.PostComponent);
                     _loadedPosts.Remove(loadedPost);
                 }
             }
@@ -358,8 +363,8 @@ namespace Deaddit.Pages
             _after = null;
 
             //Cheap Hack
-            scrollView.Clear();
-            scrollView.Add(_sortButtons);
+            //scrollView.Clear();
+            //scrollView.Add(_sortButtons);
 
             await this.TryLoad();
         }
