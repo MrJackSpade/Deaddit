@@ -34,6 +34,16 @@ namespace Deaddit.Core.Reddit
 
         private DateTime _tokenExpiration = DateTime.MinValue;
 
+        public bool CanLogIn => _redditCredentials.Valid;
+
+        public DateTime LastFired { get; private set; } = DateTime.MinValue;
+
+        public string? LoggedInUser { get; private set; }
+
+        public int MinimumDelayMs { get; set; } = 500;
+
+        private RedditUrlStandardizer UrlStandardizer => new(LoggedInUser);
+
         public RedditClient(RedditCredentials redditCredentials, IJsonClient jsonClient, IDisplayExceptions exceptionDisplay, HttpClient httpClient)
         {
             _redditCredentials = redditCredentials;
@@ -43,16 +53,7 @@ namespace Deaddit.Core.Reddit
             _jsonClient.SetDefaultHeader("User-Agent", "Deaddit");
         }
 
-        public bool CanLogIn => _redditCredentials.Valid;
-
-        public DateTime LastFired { get; private set; } = DateTime.MinValue;
-
-        public string? LoggedInUser { get; private set; }
-
-        public int MinimumDelayMs { get; set; } = 500; // Default to 500ms
-
-        private RedditUrlStandardizer UrlStandardizer => new(LoggedInUser);
-
+        // Default to 500ms
         public async Task<ApiSubReddit?> About(ThingCollectionName subreddit)
         {
             try

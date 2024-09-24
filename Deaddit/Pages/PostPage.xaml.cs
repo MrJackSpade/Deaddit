@@ -28,6 +28,16 @@ namespace Deaddit.Pages
 
         private readonly IRedditClient _redditClient;
 
+        public IAppNavigator AppNavigator { get; }
+
+        public BlockConfiguration BlockConfiguration { get; }
+
+        Layout IHasChildren.ChildContainer => mainStack;
+
+        public ApiPost Post { get; }
+
+        public SelectionGroup SelectionGroup { get; }
+
         public PostPage(ApiPost post, ApiComment? focus, IAppNavigator appNavigator, IConfigurationService configurationService, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration)
         {
             NavigationPage.SetHasNavigationBar(this, false);
@@ -43,7 +53,7 @@ namespace Deaddit.Pages
 
             this.InitializeComponent();
 
-            RedditPostComponent redditPostComponent = AppNavigator.CreatePostComponent(post, false, null);
+            //RedditPostComponent redditPostComponent = AppNavigator.CreatePostComponent(post, false, null);
 
             BackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
 
@@ -66,18 +76,8 @@ namespace Deaddit.Pages
 
             saveButton.Text = Post.Saved == true ? "Unsave" : "Save";
 
-            mainStack.Children.Insert(0, redditPostComponent);
+            //mainStack.Children.Insert(0, redditPostComponent);
         }
-
-        public IAppNavigator AppNavigator { get; }
-
-        public BlockConfiguration BlockConfiguration { get; }
-
-        Layout IHasChildren.ChildContainer => mainStack;
-
-        public ApiPost Post { get; }
-
-        public SelectionGroup SelectionGroup { get; }
 
         public void InitChildContainer()
         {

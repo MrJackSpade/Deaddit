@@ -5,6 +5,12 @@ namespace Deaddit.MAUI.Components.Partials
 {
     public partial class RedditCommentComponentTopBar : ContentView
     {
+        public event EventHandler? DoneClicked;
+
+        public event EventHandler? HideClicked;
+
+        public event EventHandler? ParentClicked;
+
         public RedditCommentComponentTopBar(ApplicationStyling applicationTheme)
         {
             BackgroundColor = applicationTheme.HighlightColor.ToMauiColor();
@@ -16,12 +22,6 @@ namespace Deaddit.MAUI.Components.Partials
             rootButton.TextColor = applicationTheme.TextColor.ToMauiColor();
             parentButton.TextColor = applicationTheme.TextColor.ToMauiColor();
         }
-
-        public event EventHandler? DoneClicked;
-
-        public event EventHandler? HideClicked;
-
-        public event EventHandler? ParentClicked;
 
         public void OnDoneClicked(object? sender, EventArgs e)
         {

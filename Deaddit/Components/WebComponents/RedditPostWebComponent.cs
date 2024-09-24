@@ -1,13 +1,18 @@
-﻿using Deaddit.Core.Configurations.Models;
+﻿using Deaddit.Core.Configurations.Interfaces;
+using Deaddit.Core.Configurations.Models;
+using Deaddit.Core.Exceptions;
 using Deaddit.Core.Extensions;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Extensions;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
+using Deaddit.Core.Reddit.Models.Options;
 using Deaddit.Core.Utils;
+using Deaddit.EventArguments;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
+using Deaddit.Pages;
 using Maui.WebComponents.Attributes;
 using Maui.WebComponents.Components;
 
@@ -16,6 +21,8 @@ namespace Deaddit.Components.WebComponents
     [HtmlEntity("reddit-post")]
     public class RedditPostWebComponent : DivComponent, ISelectionGroupItem
     {
+        public readonly ApiPost _post;
+
         private const string TXT_COMMENT = "🗨";
 
         private const string TXT_DOTS = "...";
@@ -30,9 +37,15 @@ namespace Deaddit.Components.WebComponents
 
         private readonly DivComponent _actionButtons;
 
+        private readonly ApplicationHacks _applicationHacks;
+
         private readonly ApplicationStyling _applicationStyling;
 
         private readonly IAppNavigator _appNavigator;
+
+        private readonly BlockConfiguration _blockConfiguration;
+
+        private readonly IConfigurationService _configurationService;
 
         private readonly SpanComponent _downvoteButton;
 
@@ -40,25 +53,36 @@ namespace Deaddit.Components.WebComponents
 
         private readonly IRedditClient _redditClient;
 
+        private readonly ButtonComponent _saveButton;
+
         private readonly SpanComponent _score;
 
         private readonly SelectionGroup? _selectionGroup;
+
+        private readonly SpanComponent _timeUser;
 
         private readonly SpanComponent _upvoteButton;
 
         private readonly IVisitTracker _visitTracker;
 
-        private readonly SpanComponent _timeUser;
+        public bool SelectEnabled => true;
 
-        public RedditPostWebComponent(ApiPost post, IAppNavigator appNavigator, IVisitTracker visitTracker, INavigation navigation, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup? selectionGroup)
+        public event EventHandler<BlockRule> BlockAdded;
+
+        public event EventHandler<OnHideClickedEventArgs> HideClicked;
+
+        public RedditPostWebComponent(ApiPost post, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration, IConfigurationService configurationService, IAppNavigator appNavigator, IVisitTracker visitTracker, INavigation navigation, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup? selectionGroup)
         {
-            Post = post;
+            _post = post;
             _applicationStyling = applicationStyling;
             _redditClient = redditClient;
             _selectionGroup = selectionGroup;
             _visitTracker = visitTracker;
             _navigation = navigation;
             _appNavigator = appNavigator;
+            _blockConfiguration = blockConfiguration;
+            _configurationService = configurationService;
+            _applicationHacks = applicationHacks;
 
             Display = "flex";
             FlexDirection = "column";
@@ -80,13 +104,13 @@ namespace Deaddit.Components.WebComponents
             };
 
             ButtonComponent shareButton = this.ActionButton(TXT_SHARE);
-            ButtonComponent saveButton = this.ActionButton(TXT_SAVE);
+            _saveButton = this.ActionButton(TXT_SAVE);
             ButtonComponent hideButton = this.ActionButton(TXT_HIDE);
             ButtonComponent moreButton = this.ActionButton(TXT_DOTS);
             ButtonComponent commentsButton = this.ActionButton(TXT_COMMENT);
 
             _actionButtons.Children.Add(shareButton);
-            _actionButtons.Children.Add(saveButton);
+            _actionButtons.Children.Add(_saveButton);
             _actionButtons.Children.Add(hideButton);
             _actionButtons.Children.Add(moreButton);
             _actionButtons.Children.Add(commentsButton);
@@ -129,7 +153,29 @@ namespace Deaddit.Components.WebComponents
                 Color = applicationStyling.SubTextColor.ToHex(),
             };
 
+            if (!post.IsSelf && Uri.TryCreate(post.Url, UriKind.Absolute, out Uri result))
+            {
+                metaData.InnerText += $" ({result.Host})";
+            }
+
+            FlairComponent? linkFlair = null;
+
+            string? cleanedLinkFlair = applicationHacks.CleanFlair(post.LinkFlairText);
+
+            if (!string.IsNullOrWhiteSpace(cleanedLinkFlair))
+            {
+                string color = post.LinkFlairBackgroundColor?.ToHex() ?? applicationStyling.TextColor.ToHex();
+                linkFlair = new FlairComponent(cleanedLinkFlair, color, applicationStyling);
+                linkFlair.AlignSelf = "flex-start";
+            }
+
             textContainer.Children.Add(title);
+
+            if (linkFlair != null)
+            {
+                textContainer.Children.Add(linkFlair);
+            }
+
             textContainer.Children.Add(metaData);
             textContainer.Children.Add(_timeUser);
 
@@ -167,6 +213,13 @@ namespace Deaddit.Components.WebComponents
 
             _downvoteButton.OnClick += this.Downvote;
             _upvoteButton.OnClick += this.Upvote;
+
+            _saveButton.OnClick += this.SaveButton_OnClick;
+            commentsButton.OnClick += this.CommentsButton_OnClick;
+            moreButton.OnClick += this.MoreButton_OnClick;
+            hideButton.OnClick += this.HideButton_OnClick;
+            shareButton.OnClick += this.ShareButton_OnClick;
+
             textContainer.OnClick += this.TextContainer_OnClick;
             thumbnail.OnClick += this.Thumbnail_OnClick;
 
@@ -181,15 +234,11 @@ namespace Deaddit.Components.WebComponents
             Children.Add(topContainer);
             Children.Add(_actionButtons);
 
-            if (visitTracker.HasVisited(Post))
+            if (visitTracker.HasVisited(_post))
             {
                 Opacity = _applicationStyling.VisitedOpacity.ToString("0.00");
             }
         }
-
-        public ApiPost Post { get; }
-
-        public bool SelectEnabled => true;
 
         public void Select()
         {
@@ -219,34 +268,202 @@ namespace Deaddit.Components.WebComponents
             };
         }
 
+        private void BlockRuleOnSave(object? sender, Deaddit.EventArguments.ObjectEditorSaveEventArgs e)
+        {
+            if (e.Saved is BlockRule blockRule)
+            {
+                _blockConfiguration.BlockRules.Add(blockRule);
+
+                _configurationService.Write(_blockConfiguration);
+
+                BlockAdded?.Invoke(this, blockRule);
+            }
+        }
+
+        private async void CommentsButton_OnClick(object? sender, EventArgs e)
+        {
+            if (_post.IsSelf)
+            {
+                Opacity = _applicationStyling.VisitedOpacity.ToString("0.00");
+                _visitTracker.Visit(_post);
+            }
+
+            await _appNavigator.OpenPost(_post);
+        }
+
         private void Downvote(object? sender, EventArgs e)
         {
-            switch (Post.Likes)
+            switch (_post.Likes)
             {
                 case UpvoteState.None:
-                    Post.Score--;
-                    Post.Likes = UpvoteState.Downvote;
+                    _post.Score--;
+                    _post.Likes = UpvoteState.Downvote;
                     _score.Color = _applicationStyling.DownvoteColor.ToHex();
                     _downvoteButton.Color = _applicationStyling.DownvoteColor.ToHex();
                     break;
 
                 case UpvoteState.Downvote:
-                    Post.Score++;
-                    Post.Likes = UpvoteState.None;
+                    _post.Score++;
+                    _post.Likes = UpvoteState.None;
                     _score.Color = _applicationStyling.TextColor.ToHex();
                     _downvoteButton.Color = _applicationStyling.TextColor.ToHex();
                     break;
 
                 case UpvoteState.Upvote:
-                    Post.Score -= 2;
-                    Post.Likes = UpvoteState.Downvote;
+                    _post.Score -= 2;
+                    _post.Likes = UpvoteState.Downvote;
                     _score.Color = _applicationStyling.DownvoteColor.ToHex();
                     _upvoteButton.Color = _applicationStyling.TextColor.ToHex();
                     _downvoteButton.Color = _applicationStyling.DownvoteColor.ToHex();
                     break;
             }
 
-            _score.InnerText = Post.Score.ToString();
+            _score.InnerText = _post.Score?.ToString() ?? string.Empty;
+            _redditClient.SetUpvoteState(_post, _post.Likes);
+        }
+
+        private async void HideButton_OnClick(object? sender, EventArgs e)
+        {
+            await _redditClient.ToggleVisibility(_post, false);
+            HideClicked?.Invoke(this, new OnHideClickedEventArgs(_post, this));
+        }
+
+        private async void MoreButton_OnClick(object? sender, EventArgs e)
+        {
+            Dictionary<PostMoreOptions, string?> options = [];
+
+            options.Add(PostMoreOptions.BlockAuthor, $"Block /u/{_post.Author}");
+            options.Add(PostMoreOptions.BlockSubreddit, $"Block /r/{_post.SubReddit}");
+            options.Add(PostMoreOptions.ViewAuthor, $"View /u/{_post.Author}");
+            options.Add(PostMoreOptions.ViewSubreddit, $"View /r/{_post.SubReddit}");
+
+            if (!string.IsNullOrWhiteSpace(_post.Domain))
+            {
+                options.Add(PostMoreOptions.BlockDomain, $"Block {_post.Domain}");
+            }
+            else
+            {
+                options.Add(PostMoreOptions.BlockDomain, null);
+            }
+
+            if (!string.IsNullOrWhiteSpace(_post.LinkFlairText))
+            {
+                options.Add(PostMoreOptions.BlockFlair, $"Block [{_post.LinkFlairText}]");
+            }
+            else
+            {
+                options.Add(PostMoreOptions.BlockFlair, null);
+            }
+
+            PostMoreOptions? postMoreOptions = await _navigation.NavigationStack[^1].DisplayActionSheet("Select:", null, null, options);
+
+            if (postMoreOptions is null)
+            {
+                return;
+            }
+
+            switch (postMoreOptions.Value)
+            {
+                case PostMoreOptions.ViewAuthor:
+                    await _appNavigator.OpenUser(_post.Author);
+                    break;
+
+                case PostMoreOptions.BlockFlair:
+                    await this.NewBlockRule(new BlockRule()
+                    {
+                        Flair = _post.LinkFlairText,
+                        SubReddit = _post.SubReddit,
+                        BlockType = BlockType.Post,
+                        RuleName = $"{_post.SubReddit} [{_post.LinkFlairText}]"
+                    });
+                    break;
+
+                case PostMoreOptions.BlockSubreddit:
+                    await this.NewBlockRule(new BlockRule()
+                    {
+                        SubReddit = _post.SubReddit,
+                        BlockType = BlockType.Post,
+                        RuleName = $"/r/{_post.SubReddit}"
+                    });
+                    break;
+
+                case PostMoreOptions.ViewSubreddit:
+                    await _appNavigator.OpenSubReddit(_post.SubReddit, ApiPostSort.Hot);
+                    break;
+
+                case PostMoreOptions.BlockAuthor:
+                    await this.NewBlockRule(new BlockRule()
+                    {
+                        Author = _post.Author,
+                        BlockType = BlockType.Post,
+                        RuleName = $"/u/{_post.Author}"
+                    });
+                    break;
+
+                case PostMoreOptions.BlockDomain:
+                    if (!string.IsNullOrWhiteSpace(_post.Domain))
+                    {
+                        await this.NewBlockRule(new BlockRule()
+                        {
+                            Domain = _post.Domain,
+                            BlockType = BlockType.Post,
+                            RuleName = $"({_post.Domain})"
+                        });
+                    }
+
+                    break;
+
+                default: throw new EnumNotImplementedException(postMoreOptions.Value);
+            }
+        }
+
+        private async Task NewBlockRule(BlockRule blockRule)
+        {
+            ObjectEditorPage objectEditorPage = await _appNavigator.OpenObjectEditor(blockRule);
+
+            objectEditorPage.OnSave += this.BlockRuleOnSave;
+        }
+
+        private async void SaveButton_OnClick(object? sender, EventArgs e)
+        {
+            if (_post.Saved == true)
+            {
+                await _redditClient.ToggleSave(_post, false);
+                _post.Saved = false;
+                _saveButton.InnerText = TXT_SAVE;
+            }
+            else
+            {
+                await _redditClient.ToggleSave(_post, true);
+                _post.Saved = true;
+                _saveButton.InnerText = TXT_UNSAVE;
+            }
+        }
+
+        private async void ShareButton_OnClick(object? sender, EventArgs e)
+        {
+            PostItems target = _post.GetPostItems();
+
+            switch (target.Kind)
+            {
+                case PostTargetKind.Video:
+                case PostTargetKind.Image:
+                case PostTargetKind.Audio:
+                    await Share.Default.ShareFiles(_post.Title, target);
+                    break;
+
+                case PostTargetKind.Undefined:
+                case PostTargetKind.Post:
+                case PostTargetKind.Url:
+                    await Share.Default.RequestAsync(new ShareTextRequest
+                    {
+                        Uri = _post.Url,
+                        Text = _post.Title
+                    });
+                    break;
+
+                default: throw new EnumNotImplementedException(target.Kind);
+            }
         }
 
         private void TextContainer_OnClick(object? sender, EventArgs e)
@@ -260,40 +477,41 @@ namespace Deaddit.Components.WebComponents
             {
                 Opacity = _applicationStyling.VisitedOpacity.ToString("0.00");
                 _selectionGroup?.Select(this);
-                _visitTracker.Visit(Post);
+                _visitTracker.Visit(_post);
             }
 
-            await _navigation.OpenPost(Post, _appNavigator);
+            await _navigation.OpenPost(_post, _appNavigator);
         }
 
         private void Upvote(object? sender, EventArgs e)
         {
-            switch (Post.Likes)
+            switch (_post.Likes)
             {
                 case UpvoteState.None:
-                    Post.Score++;
-                    Post.Likes = UpvoteState.Upvote;
+                    _post.Score++;
+                    _post.Likes = UpvoteState.Upvote;
                     _score.Color = _applicationStyling.UpvoteColor.ToHex();
                     _upvoteButton.Color = _applicationStyling.UpvoteColor.ToHex();
                     break;
 
                 case UpvoteState.Upvote:
-                    Post.Score--;
-                    Post.Likes = UpvoteState.None;
+                    _post.Score--;
+                    _post.Likes = UpvoteState.None;
                     _score.Color = _applicationStyling.TextColor.ToHex();
                     _upvoteButton.Color = _applicationStyling.TextColor.ToHex();
                     break;
 
                 case UpvoteState.Downvote:
-                    Post.Score += 2;
-                    Post.Likes = UpvoteState.Upvote;
+                    _post.Score += 2;
+                    _post.Likes = UpvoteState.Upvote;
                     _score.Color = _applicationStyling.UpvoteColor.ToHex();
                     _upvoteButton.Color = _applicationStyling.UpvoteColor.ToHex();
                     _downvoteButton.Color = _applicationStyling.TextColor.ToHex();
                     break;
             }
 
-            _score.InnerText = Post.Score.ToString();
+            _score.InnerText = _post.Score.ToString();
+            _redditClient.SetUpvoteState(_post, _post.Likes);
         }
     }
 }

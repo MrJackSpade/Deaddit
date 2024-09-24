@@ -62,7 +62,7 @@ namespace Deaddit.Pages
 
             this.InitializeComponent();
 
-            this.webElement.BodyStyle["background-color"] = applicationTheme.SecondaryColor.ToHex();
+            webElement.BodyStyle["background-color"] = applicationTheme.SecondaryColor.ToHex();
 
             if (subreddit.Kind == ThingKind.Account)
             {
@@ -70,25 +70,19 @@ namespace Deaddit.Pages
                 blockButton.TextColor = applicationTheme.TextColor.ToMauiColor();
             }
 
-            //scrollView.Add(_sortButtons, false);
-            //scrollView.Spacing = 1;
-            //scrollView.BackgroundColor = applicationTheme.SecondaryColor.ToMauiColor();
-            //scrollView.ScrolledDown = this.ScrollDown;
-            //scrollView.HeaderCount = 1;
+            webElement.OnScrollBottom += this.ScrollDown;
 
-            //navigationBar.BackgroundColor = applicationTheme.PrimaryColor.ToMauiColor();
-            //settingsButton.TextColor = applicationTheme.TextColor.ToMauiColor();
+            navigationBar.BackgroundColor = applicationTheme.PrimaryColor.ToMauiColor();
+            settingsButton.TextColor = applicationTheme.TextColor.ToMauiColor();
 
-            //subredditLabel.TextColor = applicationTheme.TextColor.ToMauiColor();
-            //subredditLabel.Text = subreddit.DisplayName;
+            subredditLabel.TextColor = applicationTheme.TextColor.ToMauiColor();
+            subredditLabel.Text = subreddit.DisplayName;
 
-            //reloadButton.TextColor = applicationTheme.TextColor.ToMauiColor();
-            //infoButton.TextColor = applicationTheme.TextColor.ToMauiColor();
+            reloadButton.TextColor = applicationTheme.TextColor.ToMauiColor();
+            infoButton.TextColor = applicationTheme.TextColor.ToMauiColor();
 
             this.InitSortButtons(sort);
         }
-
-        //private bool WindowInLoadRange => scrollView.ScrollY >= scrollView.ContentSize.Height - scrollView.Height - navigationBar.Height;
 
         public async void OnBlockClicked(object? sender, EventArgs e)
         {
@@ -125,21 +119,18 @@ namespace Deaddit.Pages
             await _appNavigator.OpenObjectEditor();
         }
 
-        //public async Task ScrollDown(ScrolledEventArgs e)
-        //{
-        //    if (WindowInLoadRange)
-        //    {
-        //        if (_loadsemaphore.Wait(0))
-        //        {
-        //            await this.TryLoad();
-        //            _loadsemaphore.Release();
-        //        }
-        //    }
-        //}
+        public async void ScrollDown(object? sender, EventArgs e)
+        {
+            if (_loadsemaphore.Wait(0))
+            {
+                await this.TryLoad();
+                _loadsemaphore.Release();
+            }
+        }
 
         public async Task TryLoad()
         {
-            // Wrap the loading process in a DataService call, likely for UI updates or error handling
+            // Wrap the loading process in a DataService call
             await DataService.LoadAsync(null, async () =>
             {
                 // Create a set of already loaded post names to avoid duplicates
@@ -221,11 +212,10 @@ namespace Deaddit.Pages
 
                             // Create post component
                             RedditPostWebComponent redditPostComponent = _appNavigator.CreatePostWebComponent(post, blocked, _selectionGroup);
-                            //RedditPostComponent redditPostComponent = _appNavigator.CreatePostComponent(post, blocked, _selectionGroup);
 
                             // Attach event handlers
-                            //redditPostComponent.BlockAdded += this.RedditPostComponent_OnBlockAdded;
-                            //redditPostComponent.HideClicked += this.RedditPostComponent_HideClicked;
+                            redditPostComponent.BlockAdded += this.RedditPostComponent_OnBlockAdded;
+                            redditPostComponent.HideClicked += this.RedditPostComponent_HideClicked;
 
                             view = redditPostComponent;
                         }
@@ -324,18 +314,18 @@ namespace Deaddit.Pages
             }
         }
 
-        private void RedditPostComponent_HideClicked(object? sender, OnHideClickedEventArgs e)
+        private async void RedditPostComponent_HideClicked(object? sender, OnHideClickedEventArgs e)
         {
-            //scrollView.Remove(e.Component);
+            await webElement.RemoveChild(e.Component);
         }
 
-        private void RedditPostComponent_OnBlockAdded(object? sender, BlockRule e)
+        private async void RedditPostComponent_OnBlockAdded(object? sender, BlockRule e)
         {
             foreach (LoadedThing loadedPost in _loadedPosts.ToList())
             {
                 if (!e.IsAllowed(loadedPost.Post))
                 {
-                    //scrollView.Remove(loadedPost.PostComponent);
+                    await webElement.RemoveChild(loadedPost.PostComponent);
                     _loadedPosts.Remove(loadedPost);
                 }
             }
@@ -346,16 +336,14 @@ namespace Deaddit.Pages
             _loadedPosts.Clear();
             _after = null;
 
-            //Cheap Hack
-            //scrollView.Clear();
-            //scrollView.Add(_sortButtons);
+            await webElement.Clear();
 
             await this.TryLoad();
         }
 
         private void UpdateSort(Enum sort)
         {
-            foreach (Button button in _sortButtons.Children)
+            foreach (Button button in _sortButtons.Children.Cast<Button>())
             {
                 if (button.Text == sort.ToString())
                 {

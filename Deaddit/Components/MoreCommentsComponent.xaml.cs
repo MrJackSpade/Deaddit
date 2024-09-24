@@ -15,6 +15,8 @@ namespace Deaddit.MAUI.Components
 
         private bool _clicked;
 
+        public event EventHandler<IMore>? OnClick;
+
         public MoreCommentsComponent(IMore comment, ApplicationStyling applicationTheme)
         {
             bool isContinueThread = !comment.ChildNames.NotNullAny();
@@ -37,8 +39,6 @@ namespace Deaddit.MAUI.Components
             BindingContext = new MoreCommentsComponentViewModel(display, applicationTheme);
             this.InitializeComponent();
         }
-
-        public event EventHandler<IMore>? OnClick;
 
         public void OnParentTapped(object? sender, EventArgs e)
         {

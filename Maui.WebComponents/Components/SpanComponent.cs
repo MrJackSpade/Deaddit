@@ -7,6 +7,12 @@ namespace Maui.WebComponents.Components
     [HtmlEntity("span")]
     public class SpanComponent : WebComponent
     {
+        public string? AlignSelf
+        {
+            get => this.Style("align-self");
+            set => this.Style("align-self", value);
+        }
+
         public string? BackgroundColor
         {
             get => this.Style("background-color");
@@ -17,6 +23,18 @@ namespace Maui.WebComponents.Components
         {
             get => this.Style("border");
             set => this.Style("border", value);
+        }
+
+        public string? BorderColor
+        {
+            get => this.Style("border-color");
+            set => this.Style("border-color", value);
+        }
+
+        public string? BorderRadius
+        {
+            get => this.Style("border-radius");
+            set => this.Style("border-radius", value);
         }
 
         public string? Color

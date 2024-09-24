@@ -7,6 +7,16 @@ namespace Deaddit.MAUI.Components.Partials
 {
     public partial class RedditCommentComponentBottomBar : ContentView
     {
+        public event EventHandler? DownvoteClicked;
+
+        public event EventHandler? MoreClicked;
+
+        public event EventHandler? ReplyClicked;
+
+        public event EventHandler? ShareClicked;
+
+        public event EventHandler? UpvoteClicked;
+
         public RedditCommentComponentBottomBar(ApiComment comment, ApplicationStyling applicationTheme)
         {
             this.InitializeComponent();
@@ -23,16 +33,6 @@ namespace Deaddit.MAUI.Components.Partials
             replyButton.TextColor = applicationTheme.TextColor.ToMauiColor();
             shareButton.TextColor = applicationTheme.TextColor.ToMauiColor();
         }
-
-        public event EventHandler? DownvoteClicked;
-
-        public event EventHandler? MoreClicked;
-
-        public event EventHandler? ReplyClicked;
-
-        public event EventHandler? ShareClicked;
-
-        public event EventHandler? UpvoteClicked;
 
         public void OnDownvoteClicked(object? sender, EventArgs e)
         {

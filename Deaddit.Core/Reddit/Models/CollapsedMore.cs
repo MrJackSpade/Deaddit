@@ -5,6 +5,12 @@ namespace Deaddit.Core.Reddit.Models
 {
     public class CollapsedMore : ApiThing, IMore
     {
+        public List<string?> ChildNames { get; }
+
+        public CollapsedReasonKind CollapsedReasonCode { get; }
+
+        public int? Count { get; }
+
         public CollapsedMore(IEnumerable<ApiComment> comments)
         {
             List<ApiComment> commentsList = comments.ToList();
@@ -14,11 +20,5 @@ namespace Deaddit.Core.Reddit.Models
             Parent = comments.Select(c => c.Parent).Distinct().Single();
             CollapsedReasonCode = commentsList.Select(c => c.CollapsedReasonCode).Distinct().Single();
         }
-
-        public List<string?> ChildNames { get; }
-
-        public CollapsedReasonKind CollapsedReasonCode { get; }
-
-        public int? Count { get; }
     }
 }

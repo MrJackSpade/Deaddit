@@ -4,6 +4,12 @@ namespace Deaddit.Core.Reddit.Models
 {
     public class ThingCollectionName
     {
+        public string DisplayName { get; private set; }
+
+        public ThingKind Kind { get; private set; }
+
+        public string RootedName { get; private set; }
+
         public ThingCollectionName(string name, string rootedname, ThingKind kind)
         {
             Ensure.NotNull(name);
@@ -65,12 +71,6 @@ namespace Deaddit.Core.Reddit.Models
                 throw new NotImplementedException($"Can not determine listing kind for {RootedName}");
             }
         }
-
-        public string DisplayName { get; private set; }
-
-        public ThingKind Kind { get; private set; }
-
-        public string RootedName { get; private set; }
 
         public static implicit operator ThingCollectionName(string name)
         {

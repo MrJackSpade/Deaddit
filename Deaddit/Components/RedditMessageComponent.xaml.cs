@@ -26,6 +26,18 @@ namespace Deaddit.MAUI.Components
 
         private readonly View messageBody;
 
+        public IAppNavigator AppNavigator { get; }
+
+        public BlockConfiguration BlockConfiguration { get; }
+
+        public ApiPost Post { get; }
+
+        public bool SelectEnabled { get; private set; }
+
+        public SelectionGroup SelectionGroup { get; }
+
+        public event EventHandler<OnDeleteClickedEventArgs>? OnDelete;
+
         public RedditMessageComponent(ApiMessage message, bool selectEnabled, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, SelectionGroup selectionTracker, BlockConfiguration blockConfiguration)
         {
             SelectEnabled = selectEnabled;
@@ -93,18 +105,6 @@ namespace Deaddit.MAUI.Components
                 messageBody = contentLabel;
             }
         }
-
-        public event EventHandler<OnDeleteClickedEventArgs>? OnDelete;
-
-        public IAppNavigator AppNavigator { get; }
-
-        public BlockConfiguration BlockConfiguration { get; }
-
-        public ApiPost Post { get; }
-
-        public bool SelectEnabled { get; private set; }
-
-        public SelectionGroup SelectionGroup { get; }
 
         public async void OnHyperLinkClicked(object? sender, LinkEventArgs e)
         {

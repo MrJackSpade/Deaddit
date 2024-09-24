@@ -23,6 +23,8 @@ namespace Deaddit.Pages
 
         private readonly ApiThing _toEdit;
 
+        public event EventHandler<ReplySubmittedEventArgs>? OnSubmitted;
+
         public ReplyPage(ApiThing? replyTo, ApiThing? toEdit, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme)
         {
             _redditClient = redditClient;
@@ -45,7 +47,7 @@ namespace Deaddit.Pages
                 }
                 else if (toRender is ApiPost post)
                 {
-                    RedditPostComponent redditPostComponent = _appNavigator.CreatePostComponent(post, false, null);
+                    //RedditPostComponent redditPostComponent = _appNavigator.CreatePostComponent(post, false, null);
 
                     if (!string.IsNullOrWhiteSpace(post.Body))
                     {
@@ -84,7 +86,7 @@ namespace Deaddit.Pages
                     }
 
                     // Add to the layout
-                    commentStack.Children.Insert(0, redditPostComponent);
+                    //commentStack.Children.Insert(0, redditPostComponent);
                 }
 
                 toRender = toRender.Parent;
@@ -95,8 +97,6 @@ namespace Deaddit.Pages
                 textEditor.Text = toEdit.Body;
             }
         }
-
-        public event EventHandler<ReplySubmittedEventArgs>? OnSubmitted;
 
         public async void OnCancelClicked(object? sender, EventArgs e)
         {

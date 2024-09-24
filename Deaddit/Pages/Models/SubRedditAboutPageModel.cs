@@ -5,19 +5,6 @@ namespace Deaddit.Pages.Models
 {
     internal class SubRedditAboutPageModel : BaseViewModel
     {
-        public SubRedditAboutPageModel(ApplicationStyling applicationTheme)
-        {
-            SecondaryColor = applicationTheme.SecondaryColor.ToMauiColor();
-            TextColor = applicationTheme.TextColor.ToMauiColor();
-            PrimaryColor = applicationTheme.PrimaryColor.ToMauiColor();
-            HighlightColor = applicationTheme.HighlightColor.ToMauiColor();
-            TertiaryColor = applicationTheme.TertiaryColor.ToMauiColor();
-            HyperlinkColor = applicationTheme.HyperlinkColor.ToMauiColor();
-            MinHeight = applicationTheme.ThumbnailSize;
-            FontSize = applicationTheme.FontSize;
-            SubTextColor = applicationTheme.SubTextColor.ToMauiColor();
-        }
-
         public string? Description
         {
             get => this.GetValue<string>();
@@ -94,6 +81,19 @@ namespace Deaddit.Pages.Models
         {
             get => this.GetValue<string>();
             set => this.SetValue(value);
+        }
+
+        public SubRedditAboutPageModel(ApplicationStyling applicationTheme)
+        {
+            SecondaryColor = applicationTheme.SecondaryColor.ToMauiColor();
+            TextColor = applicationTheme.TextColor.ToMauiColor();
+            PrimaryColor = applicationTheme.PrimaryColor.ToMauiColor();
+            HighlightColor = applicationTheme.HighlightColor.ToMauiColor();
+            TertiaryColor = applicationTheme.TertiaryColor.ToMauiColor();
+            HyperlinkColor = applicationTheme.HyperlinkColor.ToMauiColor();
+            MinHeight = applicationTheme.ThumbnailSize;
+            FontSize = applicationTheme.FontSize;
+            SubTextColor = applicationTheme.SubTextColor.ToMauiColor();
         }
     }
 }

@@ -7,9 +7,9 @@ namespace Maui.WebComponents.Classes
     {
         private readonly Dictionary<string, string> _styles = [];
 
-        internal event EventHandler<OnStyleChangedEventArgs>? OnStyleChanged;
-
         public int Count => _styles.Count;
+
+        internal event EventHandler<OnStyleChangedEventArgs>? OnStyleChanged;
 
         public string this[string key]
         {
