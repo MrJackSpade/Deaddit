@@ -49,7 +49,7 @@ namespace Deaddit.Extensions
                 else if (child is ApiMore more)
                 {
                     MoreCommentsWebComponent mcomponent = target.AppNavigator.CreateMoreCommentsWebComponent(more);
-                    mcomponent.OnClick += target.MoreCommentsClick;
+                    mcomponent.OnClick += (s, e) => target.MoreCommentsClick(mcomponent, mcomponent);
                     childComponent = mcomponent;
                 }
                 else if (child is ApiMessage message)
@@ -62,8 +62,6 @@ namespace Deaddit.Extensions
                 {
                     throw new NotImplementedException();
                 }
-
-                target.InitChildContainer();
 
                 target.ChildContainer.Children.Add(childComponent);
             }
@@ -79,9 +77,7 @@ namespace Deaddit.Extensions
 
                 MoreCommentsWebComponent mcomponent = target.AppNavigator.CreateMoreCommentsWebComponent(more);
 
-                mcomponent.OnClick += target.MoreCommentsClick;
-
-                target.InitChildContainer();
+                mcomponent.OnClick += (s,e) => target.MoreCommentsClick(mcomponent, mcomponent);
 
                 target.ChildContainer.Children.Add(mcomponent);
             }

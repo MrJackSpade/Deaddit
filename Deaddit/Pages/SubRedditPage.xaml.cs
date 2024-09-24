@@ -45,7 +45,7 @@ namespace Deaddit.Pages
 
         private Enum _sort;
 
-        public SubRedditPage(ThingCollectionName subreddit, Enum sort, ApplicationHacks applicationHacks, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme, BlockConfiguration blockConfiguration)
+        public SubRedditPage(ThingCollectionName subreddit, Enum sort, ApplicationHacks applicationHacks, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, BlockConfiguration blockConfiguration)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
@@ -55,7 +55,7 @@ namespace Deaddit.Pages
             _thingCollectionName = Ensure.NotNull(subreddit);
             _sort = Ensure.NotNull(sort);
             _redditClient = Ensure.NotNull(redditClient);
-            _applicationStyling = Ensure.NotNull(applicationTheme);
+            _applicationStyling = Ensure.NotNull(applicationStyling);
             _selectionGroup = new SelectionGroup();
             _sortButtons = new DivComponent()
             {
@@ -69,24 +69,24 @@ namespace Deaddit.Pages
 
             this.InitializeComponent();
 
-            webElement.BodyStyle["background-color"] = applicationTheme.SecondaryColor.ToHex();
+            webElement.BodyStyle["background-color"] = applicationStyling.SecondaryColor.ToHex();
 
             if (subreddit.Kind == ThingKind.Account)
             {
                 _isBlockEnabled = false;
-                blockButton.TextColor = applicationTheme.TextColor.ToMauiColor();
+                blockButton.TextColor = applicationStyling.TextColor.ToMauiColor();
             }
 
             webElement.OnScrollBottom += this.ScrollDown;
 
-            navigationBar.BackgroundColor = applicationTheme.PrimaryColor.ToMauiColor();
-            settingsButton.TextColor = applicationTheme.TextColor.ToMauiColor();
+            navigationBar.BackgroundColor = applicationStyling.PrimaryColor.ToMauiColor();
+            settingsButton.TextColor = applicationStyling.TextColor.ToMauiColor();
 
-            subredditLabel.TextColor = applicationTheme.TextColor.ToMauiColor();
+            subredditLabel.TextColor = applicationStyling.TextColor.ToMauiColor();
             subredditLabel.Text = subreddit.DisplayName;
 
-            reloadButton.TextColor = applicationTheme.TextColor.ToMauiColor();
-            infoButton.TextColor = applicationTheme.TextColor.ToMauiColor();
+            reloadButton.TextColor = applicationStyling.TextColor.ToMauiColor();
+            infoButton.TextColor = applicationStyling.TextColor.ToMauiColor();
 
             this.InitSortButtons(sort);
         }
@@ -230,7 +230,7 @@ namespace Deaddit.Pages
                         // Handle ApiComment
                         if (thing is ApiComment comment)
                         {
-                            //view = _appNavigator.CreateCommentComponent(comment, null, _selectionGroup);
+                            view = _appNavigator.CreateCommentWebComponent(comment, null, _selectionGroup);
                         }
 
                         if (thing is ApiMessage message)

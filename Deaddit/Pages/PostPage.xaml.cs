@@ -68,6 +68,10 @@ namespace Deaddit.Pages
 
             this.InitializeComponent();
 
+            webElement.BodyStyle["background-color"] = applicationStyling.SecondaryColor.ToHex();
+
+            commentContainer = new DivComponent();
+
             RedditPostWebComponent redditPostComponent = AppNavigator.CreatePostWebComponent(post, false, null);
 
             webElement.AddChild(redditPostComponent);
@@ -125,6 +129,7 @@ namespace Deaddit.Pages
 
             webElement.AddChild(actionButtons);
             webElement.AddChild(postBody);
+            webElement.AddChild(commentContainer);
         }
 
         public void InitChildContainer()

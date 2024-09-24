@@ -18,8 +18,6 @@ namespace Deaddit.Interfaces
 
         SelectionGroup SelectionGroup { get; }
 
-        void InitChildContainer();
-
         void MoreCommentsClick(object? sender, IMore e);
     }
 }
