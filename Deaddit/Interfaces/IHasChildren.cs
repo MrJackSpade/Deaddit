@@ -2,6 +2,7 @@
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
+using Maui.WebComponents.Components;
 
 namespace Deaddit.Interfaces
 {
@@ -11,7 +12,7 @@ namespace Deaddit.Interfaces
 
         BlockConfiguration BlockConfiguration { get; }
 
-        Layout ChildContainer { get; }
+        WebComponent ChildContainer { get; }
 
         ApiPost Post { get; }
 

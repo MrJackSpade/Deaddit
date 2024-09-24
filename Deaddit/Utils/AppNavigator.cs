@@ -9,6 +9,7 @@ using Deaddit.Core.Utils;
 using Deaddit.Interfaces;
 using Deaddit.MAUI.Components;
 using Deaddit.Pages;
+using Maui.WebComponents.Components;
 
 namespace Deaddit.Utils
 {
@@ -54,6 +55,18 @@ namespace Deaddit.Utils
             }
         }
 
+        public RedditCommentWebComponent CreateCommentWebComponent(ApiComment comment, ApiPost? post = null, SelectionGroup? selectionGroup = null)
+        {
+            if (selectionGroup is null)
+            {
+                return new RedditCommentWebComponent(comment, post, false, Navigation, this, _redditClient, _applicationStyling, selectionGroup ?? new SelectionGroup(), _blockConfiguration);
+            }
+            else
+            {
+                return new RedditCommentWebComponent(comment, post, true, Navigation, this, _redditClient, _applicationStyling, selectionGroup ?? new SelectionGroup(), _blockConfiguration);
+            }
+        }
+
         public RedditMessageComponent CreateMessageComponent(ApiMessage message, SelectionGroup? selectionGroup = null)
         {
             if (selectionGroup is null)
@@ -66,9 +79,19 @@ namespace Deaddit.Utils
             }
         }
 
+        public RedditMessageWebComponent CreateMessageWebComponent(ApiMessage message)
+        {
+            throw new NotImplementedException();
+        }
+
         public MoreCommentsComponent CreateMoreCommentsComponent(IMore more)
         {
             return new MoreCommentsComponent(more, _applicationStyling);
+        }
+
+        public MoreCommentsWebComponent CreateMoreCommentsWebComponent(IMore more)
+        {
+            throw new NotImplementedException();
         }
 
         public RedditPostWebComponent CreatePostWebComponent(ApiPost post, bool blocked, SelectionGroup? selectionGroup = null)

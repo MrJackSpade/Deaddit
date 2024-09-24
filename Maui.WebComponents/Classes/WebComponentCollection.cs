@@ -8,7 +8,11 @@ namespace Maui.WebComponents.Classes
     {
         private readonly List<WebComponent> _components = [];
 
+        public int Count => _components.Count;
+
         internal event EventHandler<OnWebComponentAddedEventArgs>? OnWebComponentAdded;
+
+        internal event EventHandler<OnWebComponentInsertEventArgs>? OnWebComponentInsert;
 
         internal event EventHandler<OnWebComponentRemovedEventArgs>? OnWebComponentRemoved;
 
@@ -22,6 +26,36 @@ namespace Maui.WebComponents.Classes
             _components.Add(component);
 
             OnWebComponentAdded?.Invoke(this, new OnWebComponentAddedEventArgs(component));
+        }
+
+        public void InsertAfter(WebComponent component, WebComponent after)
+        {
+            if (!_components.Contains(after))
+            {
+                throw new ArgumentException("Component does not exist in collection", nameof(after));
+            }
+
+            if (_components.Contains(component))
+            {
+                throw new ArgumentException("Component already exists in collection", nameof(component));
+            }
+
+            int index = _components.IndexOf(after);
+
+            _components.Insert(index + 1, component);
+
+            OnWebComponentInsert?.Invoke(this, new OnWebComponentInsertEventArgs(component, index + 1));
+        }
+
+        public void Clear()
+        {
+            List<WebComponent> list = [.. _components];
+            _components.Clear();
+
+            foreach (WebComponent component in list)
+            {
+                OnWebComponentRemoved?.Invoke(this, new OnWebComponentRemovedEventArgs(component));
+            }
         }
 
         public IEnumerator<WebComponent> GetEnumerator()

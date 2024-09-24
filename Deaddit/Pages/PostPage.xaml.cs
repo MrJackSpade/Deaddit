@@ -1,4 +1,5 @@
 using Deaddit.Components;
+using Deaddit.Components.WebComponents;
 using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Exceptions;
@@ -14,6 +15,8 @@ using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.MAUI.Components;
 using Deaddit.Utils;
+using Maui.WebComponents.Components;
+using Maui.WebComponents.Extensions;
 using System.Diagnostics;
 
 namespace Deaddit.Pages
@@ -28,17 +31,29 @@ namespace Deaddit.Pages
 
         private readonly IRedditClient _redditClient;
 
+        private readonly DivComponent commentContainer;
+
+        private readonly ButtonComponent moreButton;
+
+        private readonly DivComponent postBody;
+
+        private readonly ButtonComponent replyButton;
+
+        private readonly ButtonComponent saveButton;
+
+        private readonly ButtonComponent shareButton;
+
         public IAppNavigator AppNavigator { get; }
 
         public BlockConfiguration BlockConfiguration { get; }
 
-        Layout IHasChildren.ChildContainer => mainStack;
+        WebComponent IHasChildren.ChildContainer => commentContainer;
 
         public ApiPost Post { get; }
 
         public SelectionGroup SelectionGroup { get; }
 
-        public PostPage(ApiPost post, ApiComment? focus, IAppNavigator appNavigator, IConfigurationService configurationService, IRedditClient redditClient, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration)
+        public PostPage(ApiPost post, ApiComment? focus, IAppNavigator appNavigator, IConfigurationService configurationService, IRedditClient redditClient, ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
@@ -48,35 +63,68 @@ namespace Deaddit.Pages
             SelectionGroup = new SelectionGroup();
             Post = post;
             BlockConfiguration = blockConfiguration;
-            _applicationStyling = applicationTheme;
+            _applicationStyling = applicationStyling;
             _redditClient = redditClient;
 
             this.InitializeComponent();
 
-            //RedditPostComponent redditPostComponent = AppNavigator.CreatePostComponent(post, false, null);
+            RedditPostWebComponent redditPostComponent = AppNavigator.CreatePostWebComponent(post, false, null);
 
-            BackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
+            webElement.AddChild(redditPostComponent);
 
-            postBodyBorder.Stroke = _applicationStyling.TertiaryColor.ToMauiColor();
-            postBodyBorder.IsVisible = !string.IsNullOrWhiteSpace(post.Body);
-            postBodyBorder.BackgroundColor = _applicationStyling.PrimaryColor.ToMauiColor();
-            postBodyBorder.HorizontalOptions = LayoutOptions.Center;
+            postBody = new DivComponent()
+            {
+                BorderColor = _applicationStyling.TertiaryColor.ToHex(),
+                BorderWidth = "2px",
+                BackgroundColor = _applicationStyling.PrimaryColor.ToHex(),
+                InnerText = post.BodyHtml
+            };
 
-            postBody.HyperlinkColor = _applicationStyling.HyperlinkColor.ToMauiColor();
-            postBody.BlockQuoteBorderColor = _applicationStyling.TextColor.ToMauiColor();
-            postBody.TextColor = _applicationStyling.TextColor.ToMauiColor();
-            postBody.BlockQuoteBackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
-            postBody.BlockQuoteTextColor = _applicationStyling.TextColor.ToMauiColor();
-            postBody.MarkdownText = MarkDownHelper.Clean(applicationHacks.CleanBody(post.Body));
+            DivComponent actionButtons = new()
+            {
+                Display = "none",
+                FlexDirection = "row",
+                Width = "100%",
+                BackgroundColor = applicationStyling.HighlightColor.ToHex(),
+            };
 
-            shareButton.TextColor = _applicationStyling.TextColor.ToMauiColor();
-            saveButton.TextColor = _applicationStyling.TextColor.ToMauiColor();
-            moreButton.TextColor = _applicationStyling.TextColor.ToMauiColor();
-            replyButton.TextColor = _applicationStyling.TextColor.ToMauiColor();
+            shareButton = new ButtonComponent()
+            {
+                InnerText = "Share",
+                Color = _applicationStyling.TextColor.ToHex(),
+                FlexGrow = "1"
+            };
 
-            saveButton.Text = Post.Saved == true ? "Unsave" : "Save";
+            saveButton = new ButtonComponent()
+            {
+                InnerText = "Save",
+                Color = _applicationStyling.TextColor.ToHex(),
+                FlexGrow = "1"
+            };
 
-            //mainStack.Children.Insert(0, redditPostComponent);
+            moreButton = new ButtonComponent()
+            {
+                InnerText = "...",
+                Color = _applicationStyling.TextColor.ToHex(),
+                FlexGrow = "1"
+            };
+
+            replyButton = new ButtonComponent()
+            {
+                InnerText = "Reply",
+                Color = _applicationStyling.TextColor.ToHex(),
+                FlexGrow = "1"
+            };
+
+            saveButton.InnerText = Post.Saved == true ? "Unsave" : "Save";
+
+            actionButtons.Children.Add(shareButton);
+            actionButtons.Children.Add(saveButton);
+            actionButtons.Children.Add(moreButton);
+            actionButtons.Children.Add(replyButton);
+
+            webElement.AddChild(actionButtons);
+            webElement.AddChild(postBody);
         }
 
         public void InitChildContainer()
@@ -87,9 +135,7 @@ namespace Deaddit.Pages
         {
             MoreCommentsComponent mcomponent = sender as MoreCommentsComponent;
 
-            await DataService.LoadAsync(mainStack, async () => await this.LoadMoreAsync(Post, e), _applicationStyling.HighlightColor.ToMauiColor());
-
-            mainStack.Children.Remove(mcomponent);
+            await DataService.LoadAsync(null, async () => await this.LoadMoreAsync(Post, e), _applicationStyling.HighlightColor.ToMauiColor());
         }
 
         public virtual void OnBackClicked(object? sender, EventArgs e)
@@ -113,7 +159,7 @@ namespace Deaddit.Pages
 
         public virtual void OnImagesClicked(object? sender, EventArgs e)
         {
-            foreach (RedditCommentComponent commentComponent in mainStack.Children.OfType<RedditCommentComponent>())
+            foreach (RedditCommentWebComponent commentComponent in commentContainer.Children.OfType<RedditCommentWebComponent>())
             {
                 commentComponent.LoadImages(true);
             }
@@ -220,13 +266,13 @@ namespace Deaddit.Pages
             {
                 await _redditClient.ToggleSave(Post, false);
                 Post.Saved = false;
-                saveButton.Text = "Save";
+                saveButton.InnerText = "Save";
             }
             else
             {
                 await _redditClient.ToggleSave(Post, true);
                 Post.Saved = true;
-                saveButton.Text = "Unsave";
+                saveButton.InnerText = "Unsave";
             }
         }
 
@@ -241,7 +287,7 @@ namespace Deaddit.Pages
 
         public async Task TryLoad()
         {
-            await DataService.LoadAsync(mainStack, this.LoadDataAsync, _applicationStyling.HighlightColor.ToMauiColor());
+            await DataService.LoadAsync(null, this.LoadDataAsync, _applicationStyling.HighlightColor.ToMauiColor());
         }
 
         private void BlockRuleOnSave(object? sender, Deaddit.EventArguments.ObjectEditorSaveEventArgs e)
@@ -287,11 +333,11 @@ namespace Deaddit.Pages
         {
             Ensure.NotNull(e.NewComment, "New Comment Data");
 
-            RedditCommentComponent redditCommentComponent = AppNavigator.CreateCommentComponent(e.NewComment, Post, SelectionGroup);
+            RedditCommentWebComponent redditCommentComponent = AppNavigator.CreateCommentWebComponent(e.NewComment, Post, SelectionGroup);
 
-            redditCommentComponent.OnDelete += (s, e) => mainStack.Remove(redditCommentComponent);
+            redditCommentComponent.OnDelete += (s, e) => commentContainer.Children.Remove(redditCommentComponent);
 
-            mainStack.Children.InsertAfter(postBodyBorder, redditCommentComponent);
+            commentContainer.Children.InsertAfter(postBody, redditCommentComponent);
         }
     }
 }

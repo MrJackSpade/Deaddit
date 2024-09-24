@@ -2,71 +2,12 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:components="clr-namespace:Deaddit.Components"
-             x:Class="Deaddit.Pages.PostPage">
+             x:Class="Deaddit.Pages.PostPage"
+             xmlns:webComponents="clr-namespace:Maui.WebComponents;assembly=Maui.WebComponents">
     <ScrollView
         x:Name="scrollView">
-        <VerticalStackLayout
-            x:Name="mainStack"
-            VerticalOptions="Fill"
-            Padding="0"
-            Spacing="0">
-
-            <Grid
-                x:Name="actionButtonsGrid"
-                HorizontalOptions="FillAndExpand"
-                VerticalOptions="Start"
-                BackgroundColor="{Binding HighlightColor}"
-                Margin="0"
-                Padding="0"
-                ColumnDefinitions="*,*,*,*,*">
-
-                <Button
-                    Text="Share"
-                    x:Name="shareButton"
-                    Grid.Column="0"
-                    Clicked="OnShareClicked"
-                    BackgroundColor="Transparent" />
-
-                <Button
-                    Text="Save"
-                    x:Name="saveButton"
-                    Grid.Column="1"
-                    Clicked="OnSaveClicked"
-                    BackgroundColor="Transparent" />
-
-                <Button
-                    Text="..."
-                    x:Name="moreButton"
-                    Grid.Column="2"
-                    Clicked="OnMoreOptionsClicked"
-                    BackgroundColor="Transparent" />
-                <Button
-                    Text="&#128444;"
-                    x:Name="imagesButton"
-                    Grid.Column="3"
-                    Clicked="OnImagesClicked"
-                    BackgroundColor="Transparent" />
-                <Button
-                    Text="Reply"
-                    x:Name="replyButton"
-                    Grid.Column="4"
-                    Clicked="OnReplyClicked"
-                    BackgroundColor="Transparent" />
-            </Grid>
-
-            <Border
-                x:Name="postBodyBorder"
-                StrokeThickness="2"
-                StrokeShape="RoundRectangle 5,5,5,5"
-                Padding="10"
-                HorizontalOptions="Center">
-                <components:MarkdownView
-                    x:Name="postBody"
-                    Margin="5"
-                    BackgroundColor="Transparent"
-                    OnHyperLinkClicked="OnHyperLinkClicked">
-                </components:MarkdownView>
-            </Border>
-        </VerticalStackLayout>
+        <webComponents:WebElement x:Name="webElement">
+            
+        </webComponents:WebElement>
     </ScrollView>
 </ContentPage>

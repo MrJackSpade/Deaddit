@@ -2,9 +2,8 @@
 using Maui.WebComponents.Classes;
 using Maui.WebComponents.Components;
 using Maui.WebComponents.Events;
+using Maui.WebComponents.Exceptions;
 using Maui.WebComponents.Extensions;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Reflection;
 using System.Text;
 
@@ -56,7 +55,7 @@ namespace Maui.WebComponents
 
         public async Task RemoveChild(WebComponent child)
         {
-            await this.RemoveChild(child);
+            await this.RemoveChild(child, true);
         }
 
         private static string RenderComponent(WebComponent component)
@@ -87,7 +86,7 @@ namespace Maui.WebComponents
                 sb.Append(" style=\"");
                 foreach (KeyValuePair<string, string> style in component.Style)
                 {
-                    sb.Append($"{style.Key}: {style.Value};");
+                    sb.Append($" {style.Key}: {style.Value};");
                 }
 
                 sb.Append('"');
@@ -142,6 +141,11 @@ namespace Maui.WebComponents
             return sb.ToString();
         }
 
+        public bool IsRendered(WebComponent component)
+        {
+            return _componentMap.ContainsKey(component.Id);
+        }
+
         private void HandleInvokeMethod(string componentId, string methodName, string argsJson)
         {
             if (_componentMap.TryGetValue(componentId, out WebComponent? component))
@@ -154,7 +158,7 @@ namespace Maui.WebComponents
             }
         }
 
-        private async Task InjectChildElement(WebComponent component, int index)
+        private async Task InjectChildElement(WebComponent component, int index, WebComponent? parent = null)
         {
             this.RegisterChildren(component);
 
@@ -164,12 +168,16 @@ namespace Maui.WebComponents
             string base64Html = Convert.ToBase64String(Encoding.UTF8.GetBytes(elementHtml));
 
             // Build the JavaScript code to execute
-            string script = $"addElement('{base64Html}', {index});";
+            string script = parent is null ? 
+                            $"addElement('{base64Html}', {index});" :
+                            $"addElement('{base64Html}', {index}, '{parent.Id}');";
 
             try
             {
                 // Execute the JavaScript code
                 string result = await this.EvaluateJavaScriptAsync(script);
+
+                component.IsRendered = true;
             }
             catch (Exception ex)
             {
@@ -183,10 +191,19 @@ namespace Maui.WebComponents
             {
                 e.Cancel = true;
 
+                Uri uri = new(e.Url);
+
                 if (string.Equals(e.Url, "webcomponent://loaded/", StringComparison.OrdinalIgnoreCase))
                 {
                     _loadedTask.SetResult();
                     return;
+                }
+
+                if (e.Url.StartsWith("webcomponent://error/", StringComparison.OrdinalIgnoreCase))
+                {
+                    var queryDictionary = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                    string message = queryDictionary["message"];
+                    throw new JavascriptException(message);
                 }
 
                 if (string.Equals(e.Url, "webcomponent://scroll-bottom/", StringComparison.OrdinalIgnoreCase))
@@ -195,13 +212,23 @@ namespace Maui.WebComponents
                     return;
                 }
 
-                Uri uri = new(e.Url);
-
                 string componentId = uri.Host;
                 string methodName = uri.AbsolutePath.TrimStart('/');
                 string? args = System.Web.HttpUtility.ParseQueryString(uri.Query).Get("args");
                 this.HandleInvokeMethod(componentId, methodName, args);
             }
+        }
+
+        public async Task InsertChild(WebComponent parent, int index, WebComponent child)
+        {
+            await _loadedTask.Task;
+
+            if (index == -1 || index >= parent.Children.Count)
+            {
+                index = parent.Children.Count - 1;
+            }
+
+            await this.InjectChildElement(child, index, parent);
         }
 
         private void RegisterChildren(WebComponent component)
@@ -210,7 +237,8 @@ namespace Maui.WebComponents
 
             component.Style.OnStyleChanged += async (s, e) => await this.EvaluateJavaScriptAsync($"updateElementStyle('{component.Id}', '{e.Key}', '{e.Value}')");
             component.OnInnerTextChanged += async (s, e) => await this.EvaluateJavaScriptAsync($"updateTextNode('{component.Id}', '{e.InnerText}')");
-            component.Children.OnWebComponentAdded += async (s, e) => await this.AddChild(e.Added);
+            component.Children.OnWebComponentAdded += async (s, e) => await this.InsertChild(component, -1, e.Added);
+            component.Children.OnWebComponentInsert += async (s, e) => await this.InsertChild(component, e.Index, e.Added);
             component.Children.OnWebComponentRemoved += async (s, e) => await this.RemoveChild(e.Removed);
 
             foreach (WebComponent child in component.Children)
@@ -225,9 +253,15 @@ namespace Maui.WebComponents
             {
                 _children.Remove(component);
 
+                component.Style.RemoveEventHandlers(nameof(StyleCollection.OnStyleChanged));
+                component.RemoveEventHandlers(nameof(WebComponent.OnInnerTextChanged));
+                component.Children.RemoveEventHandlers(nameof(WebComponentCollection.OnWebComponentAdded));
+                component.Children.RemoveEventHandlers(nameof(WebComponentCollection.OnWebComponentRemoved));
+                component.Children.RemoveEventHandlers(nameof(WebComponentCollection.OnWebComponentInsert));
+
                 if (top)
                 {
-                    await this.RemoveChildElement(component.Id);
+                    await this.RemoveChildElement(component);
                 }
 
                 foreach (WebComponent child in component.Children)
@@ -237,9 +271,10 @@ namespace Maui.WebComponents
             }
         }
 
-        private async Task RemoveChildElement(string componentId)
+        private async Task RemoveChildElement(WebComponent component)
         {
-            string script = $"removeElement('{componentId}');";
+            string script = $"removeElement('{component.Id}');";
+            component.IsRendered = false;
             await this.EvaluateJavaScriptAsync(script);
         }
 

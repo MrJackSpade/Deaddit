@@ -13,91 +13,184 @@
     </style>
     <script>
         function invokeMethod(componentId, methodName, args) {
-            window.location.href = `webcomponent://${componentId}/${methodName}?args=${JSON.stringify(args)}`;
+            try {
+                if (!componentId || typeof componentId !== 'string') {
+                    throw new Error('Invalid componentId.');
+                }
+                if (!methodName || typeof methodName !== 'string') {
+                    throw new Error('Invalid methodName.');
+                }
+                let argsStr = '';
+                try {
+                    argsStr = JSON.stringify(args);
+                } catch (e) {
+                    throw new Error('Invalid args: ' + e.message);
+                }
+                window.location.href = `webcomponent://${componentId}/${methodName}?args=${argsStr}`;
+            } catch (error) {
+                window.location.href = `webcomponent://error/?message=${encodeURIComponent(error.message)}`;
+            }
         }
 
         window.onscroll = function (ev) {
-            if ((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight) {
-                window.location.href = `webcomponent://scroll-bottom`;
+            try {
+                if ((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight) {
+                    window.location.href = `webcomponent://scroll-bottom`;
+                }
+            } catch (error) {
+                window.location.href = `webcomponent://error/?message=${encodeURIComponent(error.message)}`;
             }
         };
 
         function updateTextNode(elementId, newText) {
-            const element = document.getElementById(elementId);
-
-            if (element) {
-                // Loop through the child nodes
-                for (let i = 0; i < element.childNodes.length; i++) {
-                    const node = element.childNodes[i];
-
-                    // Check if the node is a text node (nodeType === 3)
-                    if (node.nodeType === Node.TEXT_NODE) {
-                        node.nodeValue = newText;
-                        break; // Exit after changing the first text node
-                    }
+            try {
+                if (!elementId || typeof elementId !== 'string') {
+                    throw new Error('Invalid elementId.');
                 }
-            } else {
-                console.error(`Element with ID "${elementId}" not found.`);
+                if (typeof newText !== 'string') {
+                    throw new Error('Invalid newText.');
+                }
+                const element = document.getElementById(elementId);
+
+                if (element) {
+                    let textNodeFound = false;
+                    for (let i = 0; i < element.childNodes.length; i++) {
+                        const node = element.childNodes[i];
+                        if (node.nodeType === Node.TEXT_NODE) {
+                            node.nodeValue = newText;
+                            textNodeFound = true;
+                            break;
+                        }
+                    }
+                    if (!textNodeFound) {
+                        throw new Error(`No text node found in element with ID "${elementId}".`);
+                    }
+                } else {
+                    throw new Error(`Element with ID "${elementId}" not found.`);
+                }
+            } catch (error) {
+                window.location.href = `webcomponent://error/?message=${encodeURIComponent(error.message)}`;
             }
         }
 
         function updateElementStyle(elementId, styleKey, value) {
-            const element = document.getElementById(elementId);
-            if (element) {
-                element.style[styleKey] = value;
-            } else {
-                console.error(`Element with ID "${elementId}" not found.`);
+            try {
+                if (!elementId || typeof elementId !== 'string') {
+                    throw new Error('Invalid elementId.');
+                }
+                if (!styleKey || typeof styleKey !== 'string') {
+                    throw new Error('Invalid styleKey.');
+                }
+                if (typeof value !== 'string') {
+                    throw new Error('Invalid value for style.');
+                }
+
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.style[styleKey] = value;
+                } else {
+                    throw new Error(`Element with ID "${elementId}" not found.`);
+                }
+            } catch (error) {
+                window.location.href = `webcomponent://error/?message=${encodeURIComponent(error.message)}`;
             }
         }
 
         function base64ToUtf8(base64Str) {
-            // Decode base64 to bytes
-            var binaryStr = atob(base64Str);
+            try {
+                if (!base64Str || typeof base64Str !== 'string') {
+                    throw new Error('Invalid base64Str.');
+                }
+                // Decode base64 to bytes
+                var binaryStr = atob(base64Str);
 
-            // Convert binary string to an array of bytes
-            var bytes = new Uint8Array(binaryStr.length);
-            for (var i = 0; i < binaryStr.length; i++) {
-                bytes[i] = binaryStr.charCodeAt(i);
+                // Convert binary string to an array of bytes
+                var bytes = new Uint8Array(binaryStr.length);
+                for (var i = 0; i < binaryStr.length; i++) {
+                    bytes[i] = binaryStr.charCodeAt(i);
+                }
+
+                // Decode bytes to a UTF-8 string
+                var decodedStr = new TextDecoder('utf-8').decode(bytes);
+                return decodedStr;
+            } catch (error) {
+                window.location.href = `webcomponent://error/?message=${encodeURIComponent('Error decoding base64 string: ' + error.message)}`;
+                return null;
             }
-
-            // Decode bytes to a UTF-8 string
-            var decodedStr = new TextDecoder('utf-8').decode(bytes);
-            return decodedStr;
         }
 
-        function addElement(base64Html, index) {
-            var container = document.getElementById('body');
+        function addElement(base64Html, index, parentid) {
+            try {
+                if (!base64Html || typeof base64Html !== 'string') {
+                    throw new Error('Invalid base64Html.');
+                }
+                if (typeof index !== 'number' || index < 0) {
+                    throw new Error('Invalid index.');
+                }
 
-            // Save the current scroll position
-            var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                var container;
+                if (parentid) {
+                    container = document.getElementById(parentid);
+                    if (!container) {
+                        throw new Error(`Parent element with ID "${parentid}" not found.`);
+                    }
+                } else {
+                    container = document.body;
+                }
 
-            // Decode the base64-encoded HTML string using UTF-8
-            var decodedHtml = base64ToUtf8(base64Html);
+                // Save the current scroll position
+                var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
-            var div = document.createElement('div');
-            div.innerHTML = decodedHtml;
-            var newElement = div.firstChild;
+                // Decode the base64-encoded HTML string using UTF-8
+                var decodedHtml = base64ToUtf8(base64Html);
+                if (!decodedHtml) {
+                    throw new Error('Decoded HTML is empty.');
+                }
 
-            if (index >= container.children.length) {
-                container.appendChild(newElement);
-            } else {
-                container.insertBefore(newElement, container.children[index]);
+                var div = document.createElement('div');
+                div.innerHTML = decodedHtml;
+                var newElement = div.firstChild;
+                if (!newElement) {
+                    throw new Error('Failed to create new element from decoded HTML.');
+                }
+
+                if (index >= container.children.length) {
+                    container.appendChild(newElement);
+                } else {
+                    container.insertBefore(newElement, container.children[index]);
+                }
+
+                // Restore the previous scroll position
+                window.scrollTo(0, scrollTop);
+            } catch (error) {
+                window.location.href = `webcomponent://error/?message=${encodeURIComponent(error.message)}`;
             }
-
-            // Restore the previous scroll position
-            window.scrollTo(0, scrollTop);
         }
 
         function removeElement(componentId) {
-            var element = document.getElementById(componentId);
-            if (element) {
-                element.parentNode.removeChild(element);
+            try {
+                if (!componentId || typeof componentId !== 'string') {
+                    throw new Error('Invalid componentId.');
+                }
+                var element = document.getElementById(componentId);
+                if (element) {
+                    element.parentNode.removeChild(element);
+                } else {
+                    throw new Error(`Element with ID "${componentId}" not found.`);
+                }
+            } catch (error) {
+                window.location.href = `webcomponent://error/?message=${encodeURIComponent(error.message)}`;
             }
         }
 
         window.onload = function () {
-            window.location.href = `webcomponent://Loaded`;
+            try {
+                window.location.href = `webcomponent://Loaded`;
+            } catch (error) {
+                window.location.href = `webcomponent://error/?message=${encodeURIComponent(error.message)}`;
+            }
         };
+
     </script>
 </head>
 <body id="body">

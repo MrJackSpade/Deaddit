@@ -1,10 +1,12 @@
-﻿using Deaddit.Core.Extensions;
+﻿using Deaddit.Components.WebComponents;
+using Deaddit.Core.Extensions;
 using Deaddit.Core.Reddit.Extensions;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Interfaces;
 using Deaddit.MAUI.Components;
+using Maui.WebComponents.Components;
 
 namespace Deaddit.Extensions
 {
@@ -35,24 +37,24 @@ namespace Deaddit.Extensions
                     continue;
                 }
 
-                ContentView? childComponent = null;
+                WebComponent? childComponent = null;
 
                 if (renderChild is ApiComment comment)
                 {
-                    RedditCommentComponent commentComponent = target.AppNavigator.CreateCommentComponent(comment, target.Post, target.SelectionGroup);
+                    RedditCommentWebComponent commentComponent = target.AppNavigator.CreateCommentWebComponent(comment, target.Post, target.SelectionGroup);
                     commentComponent.AddChildren(comment.GetReplies());
-                    commentComponent.OnDelete += (s, e) => target.ChildContainer.Remove(commentComponent);
+                    commentComponent.OnDelete += (s, e) => target.ChildContainer.Children.Remove(commentComponent);
                     childComponent = commentComponent;
                 }
                 else if (child is ApiMore more)
                 {
-                    MoreCommentsComponent mcomponent = target.AppNavigator.CreateMoreCommentsComponent(more);
+                    MoreCommentsWebComponent mcomponent = target.AppNavigator.CreateMoreCommentsWebComponent(more);
                     mcomponent.OnClick += target.MoreCommentsClick;
                     childComponent = mcomponent;
                 }
                 else if (child is ApiMessage message)
                 {
-                    RedditMessageComponent mcomponent = target.AppNavigator.CreateMessageComponent(message);
+                    RedditMessageWebComponent mcomponent = target.AppNavigator.CreateMessageWebComponent(message);
                     childComponent = mcomponent;
                 }
 
@@ -63,7 +65,7 @@ namespace Deaddit.Extensions
 
                 target.InitChildContainer();
 
-                target.ChildContainer.Add(childComponent);
+                target.ChildContainer.Children.Add(childComponent);
             }
 
             foreach (KeyValuePair<CollapsedReasonKind, List<ApiThing>> collapsedComments in toRender)
@@ -75,13 +77,13 @@ namespace Deaddit.Extensions
 
                 IMore more = new CollapsedMore(collapsedComments.Value.OfType<ApiComment>());
 
-                MoreCommentsComponent mcomponent = target.AppNavigator.CreateMoreCommentsComponent(more);
+                MoreCommentsWebComponent mcomponent = target.AppNavigator.CreateMoreCommentsWebComponent(more);
 
                 mcomponent.OnClick += target.MoreCommentsClick;
 
                 target.InitChildContainer();
 
-                target.ChildContainer.Add(mcomponent);
+                target.ChildContainer.Children.Add(mcomponent);
             }
         }
 

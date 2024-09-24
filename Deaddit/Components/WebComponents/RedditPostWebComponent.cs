@@ -529,5 +529,12 @@ namespace Deaddit.Components.WebComponents
             _score.InnerText = _post.Score.ToString();
             _redditClient.SetUpvoteState(_post, _post.Likes);
         }
+
+        private bool _isDisposed = false;
+
+        public void Dispose()
+        {
+            _isDisposed = true;
+        }
     }
 }
