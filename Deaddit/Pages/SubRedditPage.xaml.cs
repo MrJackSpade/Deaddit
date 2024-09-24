@@ -62,6 +62,8 @@ namespace Deaddit.Pages
 
             this.InitializeComponent();
 
+            this.webElement.BodyStyle["background-color"] = applicationTheme.SecondaryColor.ToHex();
+
             if (subreddit.Kind == ThingKind.Account)
             {
                 _isBlockEnabled = false;

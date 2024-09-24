@@ -6,6 +6,8 @@ using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
+using Deaddit.Extensions;
+using Deaddit.Interfaces;
 using Maui.WebComponents.Attributes;
 using Maui.WebComponents.Components;
 
@@ -30,7 +32,11 @@ namespace Deaddit.Components.WebComponents
 
         private readonly ApplicationStyling _applicationStyling;
 
+        private readonly IAppNavigator _appNavigator;
+
         private readonly SpanComponent _downvoteButton;
+
+        private readonly INavigation _navigation;
 
         private readonly IRedditClient _redditClient;
 
@@ -40,16 +46,19 @@ namespace Deaddit.Components.WebComponents
 
         private readonly SpanComponent _upvoteButton;
 
-        public event EventHandler? OnThumbnailClick;
+        private readonly IVisitTracker _visitTracker;
 
-        public event EventHandler? OnTitleClick;
+        private readonly SpanComponent _timeUser;
 
-        public RedditPostWebComponent(ApiPost post, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup? selectionGroup)
+        public RedditPostWebComponent(ApiPost post, IAppNavigator appNavigator, IVisitTracker visitTracker, INavigation navigation, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup? selectionGroup)
         {
             Post = post;
             _applicationStyling = applicationStyling;
             _redditClient = redditClient;
             _selectionGroup = selectionGroup;
+            _visitTracker = visitTracker;
+            _navigation = navigation;
+            _appNavigator = appNavigator;
 
             Display = "flex";
             FlexDirection = "column";
@@ -105,7 +114,7 @@ namespace Deaddit.Components.WebComponents
                 Color = applicationStyling.TextColor.ToHex(),
             };
 
-            SpanComponent timeUser = new()
+            _timeUser = new()
             {
                 InnerText = $"{post.CreatedUtc.Elapsed()} by {post.Author}",
                 FontSize = $"{(int)(applicationStyling.FontSize * 0.75)}px",
@@ -121,8 +130,8 @@ namespace Deaddit.Components.WebComponents
             };
 
             textContainer.Children.Add(title);
-            textContainer.Children.Add(timeUser);
             textContainer.Children.Add(metaData);
+            textContainer.Children.Add(_timeUser);
 
             DivComponent voteContainer = new()
             {
@@ -159,8 +168,7 @@ namespace Deaddit.Components.WebComponents
             _downvoteButton.OnClick += this.Downvote;
             _upvoteButton.OnClick += this.Upvote;
             textContainer.OnClick += this.TextContainer_OnClick;
-            thumbnail.OnClick += (sender, e) => this.OnThumbnailClick?.Invoke(this, e);
-            title.OnClick += (sender, e) => this.OnTitleClick?.Invoke(this, e);
+            thumbnail.OnClick += this.Thumbnail_OnClick;
 
             voteContainer.Children.Add(_upvoteButton);
             voteContainer.Children.Add(_score);
@@ -172,6 +180,11 @@ namespace Deaddit.Components.WebComponents
 
             Children.Add(topContainer);
             Children.Add(_actionButtons);
+
+            if (visitTracker.HasVisited(Post))
+            {
+                Opacity = _applicationStyling.VisitedOpacity.ToString("0.00");
+            }
         }
 
         public ApiPost Post { get; }
@@ -181,12 +194,14 @@ namespace Deaddit.Components.WebComponents
         public void Select()
         {
             BackgroundColor = _applicationStyling.HighlightColor.ToHex();
+            _timeUser.Display = "block";
             _actionButtons.Display = "flex";
         }
 
         public void Unselect()
         {
             BackgroundColor = _applicationStyling.SecondaryColor.ToHex();
+            _timeUser.Display = "none";
             _actionButtons.Display = "none";
         }
 
@@ -237,6 +252,18 @@ namespace Deaddit.Components.WebComponents
         private void TextContainer_OnClick(object? sender, EventArgs e)
         {
             _selectionGroup?.Toggle(this);
+        }
+
+        private async void Thumbnail_OnClick(object? sender, EventArgs e)
+        {
+            if (_selectionGroup != null)
+            {
+                Opacity = _applicationStyling.VisitedOpacity.ToString("0.00");
+                _selectionGroup?.Select(this);
+                _visitTracker.Visit(Post);
+            }
+
+            await _navigation.OpenPost(Post, _appNavigator);
         }
 
         private void Upvote(object? sender, EventArgs e)
