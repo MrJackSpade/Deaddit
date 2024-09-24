@@ -130,11 +130,20 @@ namespace Deaddit.Components.WebComponents
             shareButton.OnClick += this.OnShareClicked;
             replyButton.OnClick += this.OnReplyClicked;
 
+            _bottomBar.Children.Add(upvoteButton);
+            _bottomBar.Children.Add(downvoteButton);
+            _bottomBar.Children.Add(moreButton);
+            _bottomBar.Children.Add(shareButton);
+            _bottomBar.Children.Add(replyButton);
+
             _commentHeader.Children.Add(voteIndicator);
             _commentHeader.Children.Add(authorSpan);
             _commentHeader.Children.Add(_commentMeta);
+
+            _commentContainer.Children.Add(_topBar);
             _commentContainer.Children.Add(_commentHeader);
             _commentContainer.Children.Add(_commentBody);
+            _commentContainer.Children.Add(_bottomBar); 
 
             Children.Add(_commentContainer);
             Children.Add(_replies);
@@ -147,6 +156,7 @@ namespace Deaddit.Components.WebComponents
             _commentContainer.OnClick += this.SelectClick;
 
             this.UpdateMetaData();
+            this.SetIndicatorState(_comment.Likes);
         }
 
         public async void MoreCommentsClick(object? sender, IMore e)
@@ -298,11 +308,15 @@ namespace Deaddit.Components.WebComponents
         public void Select()
         {
             _commentContainer.BackgroundColor = _applicationStyling.HighlightColor.ToHex();
+            _topBar.Display = "flex";
+            _bottomBar.Display = "flex";
         }
 
         public void Unselect()
         {
             _commentContainer.BackgroundColor = null;
+            _topBar.Display = "none";
+            _bottomBar.Display = "none";
         }
 
         internal void LoadImages(bool recursive = false)
@@ -333,7 +347,7 @@ namespace Deaddit.Components.WebComponents
             await AppNavigator.OpenPost(Post, comment);
         }
 
-        private async void EditPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
+        private void EditPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
         {
             _comment.Body = e.NewComment.Body;
 
@@ -415,14 +429,14 @@ namespace Deaddit.Components.WebComponents
                     _comment.Likes = UpvoteState.Upvote;
                     voteIndicator.InnerText = "▲";
                     voteIndicator.Color = _applicationStyling.UpvoteColor.ToHex();
-                    voteIndicator.Display = "block";
+                    voteIndicator.Display = "inline-block";
                     break;
 
                 case UpvoteState.Downvote:
                     _comment.Likes = UpvoteState.Downvote;
                     voteIndicator.InnerText = "▼";
                     voteIndicator.Color = _applicationStyling.DownvoteColor.ToHex();
-                    voteIndicator.Display = "block";
+                    voteIndicator.Display = "inline-block";
                     break;
 
                 default:

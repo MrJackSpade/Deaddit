@@ -33,9 +33,9 @@ namespace Deaddit.Pages
 
         private readonly IRedditClient _redditClient;
 
-        private readonly DivComponent _sortButtons = new();
-
         private readonly SelectionGroup _selectionGroup;
+
+        private readonly DivComponent _sortButtons = new();
 
         private readonly ThingCollectionName _thingCollectionName;
 
