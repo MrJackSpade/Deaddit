@@ -79,7 +79,7 @@ namespace Deaddit.Utils
 
         public RedditPostWebComponent CreatePostWebComponent(ApiPost post, bool blocked, SelectionGroup? selectionGroup = null)
         {
-            RedditPostWebComponent postComponent = new(post, _redditClient, _applicationStyling, selectionGroup);
+            RedditPostWebComponent postComponent = new(post, this, _visitTracker, Navigation, _redditClient, _applicationStyling, selectionGroup);
             return postComponent;
         }
 

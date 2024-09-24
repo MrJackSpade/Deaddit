@@ -97,7 +97,6 @@ namespace Deaddit.MAUI.Components
             _isListView = isListView;
 
             this.InitializePostComponent(_isListView);
-            this.SetImageThumbnail(_post, _applicationStyling);
             this.SetTitleLabel(_post, _applicationHacks, _applicationStyling);
             this.SetLinkFlair(_post, _applicationHacks, _applicationStyling);
             this.SetMetaDataLabel(_post, _applicationStyling);
@@ -315,18 +314,6 @@ namespace Deaddit.MAUI.Components
 
                 default: throw new EnumNotImplementedException(target.Kind);
             }
-        }
-
-        public async void OnThumbnailImageClicked(object? sender, EventArgs e)
-        {
-            if (_isListView)
-            {
-                Opacity = _applicationStyling.VisitedOpacity;
-                _selectionGroup.Select(this);
-                _visitTracker.Visit(_post);
-            }
-
-            await Navigation.OpenPost(_post, _appNavigator);
         }
 
         public void OnUpvoteClicked(object? sender, EventArgs e)
@@ -655,19 +642,6 @@ namespace Deaddit.MAUI.Components
                 mainStack.Children.Remove(_actionButtonsGrid);
                 _actionButtonsGrid = null;
             }
-        }
-
-        private void SetImageThumbnail(ApiPost post, ApplicationStyling applicationTheme)
-        {
-            thumbnailImage.HeightRequest = applicationTheme.ThumbnailSize;
-            thumbnailImage.WidthRequest = applicationTheme.ThumbnailSize;
-
-            if (!post.IsSelf || _isListView)
-            {
-                thumbnailImage.Clicked += this.OnThumbnailImageClicked;
-            }
-
-            thumbnailImage.Source = ImageSource.FromStream(this.GetImageStream);
         }
 
         private void SetLinkFlair(ApiPost post, ApplicationHacks applicationHacks, ApplicationStyling applicationTheme)

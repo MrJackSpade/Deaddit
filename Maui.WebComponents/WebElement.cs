@@ -1,5 +1,7 @@
 ﻿using Maui.WebComponents.Attributes;
+using Maui.WebComponents.Classes;
 using Maui.WebComponents.Components;
+using Maui.WebComponents.Events;
 using System.Reflection;
 using System.Text;
 
@@ -13,8 +15,11 @@ namespace Maui.WebComponents
 
         private readonly TaskCompletionSource _loadedTask = new();
 
+        public StyleCollection BodyStyle { get; } = [];
+
         public WebElement()
         {
+            BodyStyle.OnStyleChanged += this.UpdateStyle;
             Source = new HtmlWebViewSource { Html = RenderInitialHtml() };
             Navigating += this.OnNavigating;
         }
@@ -114,8 +119,8 @@ namespace Maui.WebComponents
         {
             StringBuilder sb = new();
 
-            var assembly = Assembly.GetExecutingAssembly();
-            var resourceName = "Maui.WebComponents.WebElement.html";
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            string resourceName = "Maui.WebComponents.WebElement.html";
 
             using (Stream stream = assembly.GetManifestResourceStream(resourceName))
 
@@ -180,7 +185,7 @@ namespace Maui.WebComponents
             }
         }
 
-        private void OnNavigating(object sender, WebNavigatingEventArgs e)
+        private void OnNavigating(object? sender, WebNavigatingEventArgs e)
         {
             if (e.Url.StartsWith("webcomponent://"))
             {
@@ -218,6 +223,13 @@ namespace Maui.WebComponents
         {
             string script = $"removeElement('{componentId}');";
             await this.EvaluateJavaScriptAsync(script);
+        }
+
+        private async void UpdateStyle(object? sender, OnStyleChangedEventArgs? args)
+        {
+            await _loadedTask.Task;
+
+            await this.EvaluateJavaScriptAsync($"updateElementStyle('body', '{args.Key}', '{args.Value}')");
         }
     }
 }
