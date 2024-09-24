@@ -91,7 +91,7 @@ namespace Deaddit.Utils
 
         public MoreCommentsWebComponent CreateMoreCommentsWebComponent(IMore more)
         {
-            throw new NotImplementedException();
+            return new MoreCommentsWebComponent(more, _applicationStyling);
         }
 
         public RedditPostWebComponent CreatePostWebComponent(ApiPost post, bool blocked, SelectionGroup? selectionGroup = null)

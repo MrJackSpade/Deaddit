@@ -6,13 +6,11 @@ using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
-using Deaddit.Core.Utils.Extensions;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.MAUI.Components.Partials;
 using Deaddit.Pages;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Deaddit.MAUI.Components
@@ -29,11 +27,11 @@ namespace Deaddit.MAUI.Components
 
         private readonly View commentBody;
 
-        private RedditCommentComponentBottomBar? _bottomBar;
+        private readonly RedditCommentComponentBottomBar? _bottomBar;
 
         private VerticalStackLayout? _replies;
 
-        private RedditCommentComponentTopBar? _topBar;
+        private readonly RedditCommentComponentTopBar? _topBar;
 
         public IAppNavigator AppNavigator { get; }
 
@@ -226,7 +224,6 @@ namespace Deaddit.MAUI.Components
             }
         }
 
-      
         private void ReplyPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
         {
             Ensure.NotNull(e.NewComment, "New comment data");
@@ -279,6 +276,16 @@ namespace Deaddit.MAUI.Components
             {
                 metaDataLabel.Text = _comment.CreatedUtc.Elapsed();
             }
+        }
+
+        public void Select()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Unselect()
+        {
+            throw new NotImplementedException();
         }
     }
 }

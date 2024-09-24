@@ -27,8 +27,6 @@ namespace Deaddit.Components.WebComponents
 
         private readonly INavigation _navigation;
 
-        private readonly ApiPost? _post;
-
         private readonly IRedditClient _redditClient;
 
         private readonly DivComponent _replies;
@@ -43,16 +41,16 @@ namespace Deaddit.Components.WebComponents
 
         WebComponent IHasChildren.ChildContainer => _replies;
 
-        public Func<object, object, bool> OnDelete { get; internal set; }
-
-        public ApiPost Post { get; }
+        public ApiPost? Post { get; }
 
         public SelectionGroup SelectionGroup { get; }
+
+        public event EventHandler<OnDeleteClickedEventArgs> OnDelete;
 
         public RedditCommentWebComponent(ApiComment comment, ApiPost? post, bool selectEnabled, INavigation navigation, AppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup selectionGroup, BlockConfiguration blockConfiguration)
         {
             _comment = comment;
-            _post = post;
+            Post = post;
             _selectEnabled = selectEnabled;
             AppNavigator = appNavigator;
             _redditClient = redditClient;
@@ -60,11 +58,16 @@ namespace Deaddit.Components.WebComponents
             _selectionGroup = selectionGroup;
             BlockConfiguration = blockConfiguration;
             _navigation = navigation;
-        }
 
-        public void InitChildContainer()
-        {
-            throw new NotImplementedException();
+            _commentBody = new DivComponent()
+            {
+                InnerText = comment.BodyHtml
+            };
+
+            _replies = new DivComponent();
+
+            this.Children.Add(_commentBody);
+            this.Children.Add(_replies);
         }
 
         public async void MoreCommentsClick(object? sender, IMore e)
@@ -185,6 +188,11 @@ namespace Deaddit.Components.WebComponents
             }
         }
 
+        internal void LoadImages(bool recursive = false)
+        {
+            throw new NotImplementedException();
+        }
+
         private void BlockRuleOnSave(object? sender, ObjectEditorSaveEventArgs e)
         {
             throw new NotImplementedException();
@@ -200,11 +208,6 @@ namespace Deaddit.Components.WebComponents
             _comment.Body = e.NewComment.Body;
 
             _commentBody.InnerText = e.NewComment.Body;
-        }
-
-        internal void LoadImages(bool recursive = false)
-        {
-            throw new NotImplementedException();
         }
 
         private async Task LoadMoreCommentsAsync(IMore comment)
