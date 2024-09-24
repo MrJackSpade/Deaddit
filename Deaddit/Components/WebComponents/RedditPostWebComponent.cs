@@ -165,8 +165,10 @@ namespace Deaddit.Components.WebComponents
             if (!string.IsNullOrWhiteSpace(cleanedLinkFlair))
             {
                 string color = post.LinkFlairBackgroundColor?.ToHex() ?? applicationStyling.TextColor.ToHex();
-                linkFlair = new FlairComponent(cleanedLinkFlair, color, applicationStyling);
-                linkFlair.AlignSelf = "flex-start";
+                linkFlair = new FlairComponent(cleanedLinkFlair, color, applicationStyling)
+                {
+                    AlignSelf = "flex-start"
+                };
             }
 
             textContainer.Children.Add(title);
@@ -210,6 +212,20 @@ namespace Deaddit.Components.WebComponents
                 FontSize = $"{applicationStyling.FontSize}px",
                 Color = applicationStyling.TextColor.ToHex(),
             };
+
+            switch (post.Likes)
+            {
+                case UpvoteState.Upvote:
+                    _upvoteButton.Color = applicationStyling.UpvoteColor.ToHex();
+                    _score.Color = applicationStyling.UpvoteColor.ToHex();
+                    break;
+                case UpvoteState.Downvote:
+                    _downvoteButton.Color = applicationStyling.DownvoteColor.ToHex();
+                    _score.Color = applicationStyling.DownvoteColor.ToHex();
+                    break;
+                case UpvoteState.None:
+                    break;
+            }
 
             _downvoteButton.OnClick += this.Downvote;
             _upvoteButton.OnClick += this.Upvote;

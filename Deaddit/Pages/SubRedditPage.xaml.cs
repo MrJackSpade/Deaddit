@@ -13,6 +13,7 @@ using Deaddit.Pages.Models;
 using Deaddit.Utils;
 using Maui.WebComponents.Components;
 using System.Diagnostics;
+using Maui.WebComponents.Extensions;
 
 namespace Deaddit.Pages
 {
