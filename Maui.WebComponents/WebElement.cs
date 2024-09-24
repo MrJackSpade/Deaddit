@@ -2,6 +2,9 @@
 using Maui.WebComponents.Classes;
 using Maui.WebComponents.Components;
 using Maui.WebComponents.Events;
+using Maui.WebComponents.Extensions;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Reflection;
 using System.Text;
 
@@ -26,11 +29,6 @@ namespace Maui.WebComponents
             Navigating += this.OnNavigating;
         }
 
-        public async Task AddChild(WebComponent child)
-        {
-            await this.AddChild(child, -1);
-        }
-
         public async Task Clear()
         {
             await _loadedTask.Task;
@@ -41,28 +39,24 @@ namespace Maui.WebComponents
 
         public async Task InsertChild(int index, WebComponent child)
         {
-            await this.AddChild(child, index);
+            await _loadedTask.Task;
+
+            if (index == -1 || index >= _children.Count)
+            {
+                _children.Add(child);
+                index = _children.Count - 1;
+            }
+            else
+            {
+                _children.Insert(index, child);
+            }
+
+            await this.InjectChildElement(child, index);
         }
 
         public async Task RemoveChild(WebComponent child)
         {
-            await this.RemoveChild(child.Id);
-        }
-
-        public async Task RemoveChild(string componentId)
-        {
-            await _loadedTask.Task;
-
-            if (_componentMap.TryGetValue(componentId, out WebComponent? component))
-            {
-                int index = _children.IndexOf(component);
-                if (index != -1)
-                {
-                    _children.RemoveAt(index);
-                    _componentMap.Remove(componentId);
-                    await this.RemoveChildElement(componentId);
-                }
-            }
+            await this.RemoveChild(child);
         }
 
         private static string RenderComponent(WebComponent component)
@@ -148,23 +142,6 @@ namespace Maui.WebComponents
             return sb.ToString();
         }
 
-        private async Task AddChild(WebComponent child, int index)
-        {
-            await _loadedTask.Task;
-
-            if (index == -1 || index >= _children.Count)
-            {
-                _children.Add(child);
-                index = _children.Count - 1;
-            }
-            else
-            {
-                _children.Insert(index, child);
-            }
-
-            await this.InjectChildElement(child, index);
-        }
-
         private void HandleInvokeMethod(string componentId, string methodName, string argsJson)
         {
             if (_componentMap.TryGetValue(componentId, out WebComponent? component))
@@ -233,10 +210,30 @@ namespace Maui.WebComponents
 
             component.Style.OnStyleChanged += async (s, e) => await this.EvaluateJavaScriptAsync($"updateElementStyle('{component.Id}', '{e.Key}', '{e.Value}')");
             component.OnInnerTextChanged += async (s, e) => await this.EvaluateJavaScriptAsync($"updateTextNode('{component.Id}', '{e.InnerText}')");
+            component.Children.OnWebComponentAdded += async (s, e) => await this.AddChild(e.Added);
+            component.Children.OnWebComponentRemoved += async (s, e) => await this.RemoveChild(e.Removed);
 
             foreach (WebComponent child in component.Children)
             {
                 this.RegisterChildren(child);
+            }
+        }
+
+        private async Task RemoveChild(WebComponent component, bool top)
+        {
+            if (_componentMap.Remove(component.Id))
+            {
+                _children.Remove(component);
+
+                if (top)
+                {
+                    await this.RemoveChildElement(component.Id);
+                }
+
+                foreach (WebComponent child in component.Children)
+                {
+                    await this.RemoveChild(child, false);
+                }
             }
         }
 

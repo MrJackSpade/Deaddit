@@ -23,7 +23,10 @@ namespace Maui.WebComponents.Classes
             OnStyleChanged?.Invoke(this, new OnStyleChangedEventArgs { Key = key, Value = value });
         }
 
-        public bool ContainsKey(string key) => _styles.ContainsKey(key);
+        public bool ContainsKey(string key)
+        {
+            return _styles.ContainsKey(key);
+        }
 
         public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
         {

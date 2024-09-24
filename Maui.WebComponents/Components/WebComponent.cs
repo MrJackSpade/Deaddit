@@ -8,7 +8,7 @@ namespace Maui.WebComponents.Components
     {
         private string _innerText = string.Empty;
 
-        public List<WebComponent> Children { get; } = [];
+        public WebComponentCollection Children { get; } = [];
 
         [HtmlAttribute]
         public string Id { get; } = Guid.NewGuid().ToString();
