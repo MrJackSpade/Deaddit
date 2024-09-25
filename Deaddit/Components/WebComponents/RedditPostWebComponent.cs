@@ -1,4 +1,5 @@
-﻿using Deaddit.Core.Configurations.Interfaces;
+﻿using Deaddit.Components.WebComponents.Partials.Post;
+using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Exceptions;
 using Deaddit.Core.Extensions;
@@ -35,7 +36,7 @@ namespace Deaddit.Components.WebComponents
 
         private const string TXT_UNSAVE = "Unsave";
 
-        private readonly DivComponent _actionButtons;
+        private readonly ActionButtonsComponent _actionButtons;
 
         private readonly ApplicationHacks _applicationHacks;
 
@@ -47,21 +48,13 @@ namespace Deaddit.Components.WebComponents
 
         private readonly IConfigurationService _configurationService;
 
-        private readonly SpanComponent _downvoteButton;
-
         private readonly INavigation _navigation;
 
         private readonly IRedditClient _redditClient;
 
-        private readonly ButtonComponent _saveButton;
-
-        private readonly SpanComponent _score;
-
         private readonly SelectionGroup? _selectionGroup;
 
-        private readonly SpanComponent _timeUser;
-
-        private readonly SpanComponent _upvoteButton;
+        private readonly TextContainerComponent _textContainer;
 
         private readonly IVisitTracker _visitTracker;
 
@@ -97,25 +90,12 @@ namespace Deaddit.Components.WebComponents
                 Width = "100%",
             };
 
-            _actionButtons = new()
-            {
-                Display = "none",
-                FlexDirection = "row",
-                Width = "100%",
-                BackgroundColor = applicationStyling.HighlightColor.ToHex(),
-            };
-
-            ButtonComponent shareButton = this.ActionButton(TXT_SHARE);
-            _saveButton = this.ActionButton(TXT_SAVE);
-            ButtonComponent hideButton = this.ActionButton(TXT_HIDE);
-            ButtonComponent moreButton = this.ActionButton(TXT_DOTS);
-            ButtonComponent commentsButton = this.ActionButton(TXT_COMMENT);
-
-            _actionButtons.Children.Add(shareButton);
-            _actionButtons.Children.Add(_saveButton);
-            _actionButtons.Children.Add(hideButton);
-            _actionButtons.Children.Add(moreButton);
-            _actionButtons.Children.Add(commentsButton);
+            _actionButtons = new ActionButtonsComponent(applicationStyling, _post);
+            _actionButtons.SaveClicked += this.SaveButton_OnClick;
+            _actionButtons.ShareClicked += this.ShareButton_OnClick;
+            _actionButtons.MoreClicked += this.MoreButton_OnClick;
+            _actionButtons.HideClicked += this.HideButton_OnClick;
+            _actionButtons.CommentsClicked += this.CommentsButton_OnClick;
 
             ImgComponent thumbnail = new()
             {
@@ -125,13 +105,7 @@ namespace Deaddit.Components.WebComponents
                 ObjectFit = "cover"
             };
 
-            DivComponent textContainer = new()
-            {
-                Display = "flex",
-                FlexDirection = "column",
-                Padding = "10px",
-                FlexGrow = "1"
-            };
+            _textContainer = new(post, applicationStyling, applicationHacks);
 
             SpanComponent title = new()
             {
@@ -140,115 +114,13 @@ namespace Deaddit.Components.WebComponents
                 Color = applicationStyling.TextColor.ToHex(),
             };
 
-            _timeUser = new()
-            {
-                InnerText = $"{post.CreatedUtc.Elapsed()} by {post.Author}",
-                FontSize = $"{(int)(applicationStyling.FontSize * 0.75)}px",
-                Color = applicationStyling.SubTextColor.ToHex(),
-                Display = "none"
-            };
+            VoteContainerComponent voteContainer = new(applicationStyling, post, _redditClient);
 
-            SpanComponent metaData = new()
-            {
-                InnerText = $"{post.NumComments} comments {post.SubReddit}",
-                FontSize = $"{(int)(applicationStyling.FontSize * 0.75)}px",
-                Color = applicationStyling.SubTextColor.ToHex(),
-            };
-
-            if (!post.IsSelf && Uri.TryCreate(post.Url, UriKind.Absolute, out Uri result))
-            {
-                metaData.InnerText += $" ({result.Host})";
-            }
-
-            FlairComponent? linkFlair = null;
-
-            string? cleanedLinkFlair = applicationHacks.CleanFlair(post.LinkFlairText);
-
-            if (!string.IsNullOrWhiteSpace(cleanedLinkFlair))
-            {
-                string color = post.LinkFlairBackgroundColor?.ToHex() ?? applicationStyling.TextColor.ToHex();
-                linkFlair = new FlairComponent(cleanedLinkFlair, color, applicationStyling)
-                {
-                    AlignSelf = "flex-start"
-                };
-            }
-
-            textContainer.Children.Add(title);
-
-            if (linkFlair != null)
-            {
-                textContainer.Children.Add(linkFlair);
-            }
-
-            textContainer.Children.Add(metaData);
-            textContainer.Children.Add(_timeUser);
-
-            DivComponent voteContainer = new()
-            {
-                Display = "flex",
-                FlexGrow = "0",
-                FlexDirection = "column",
-                Padding = "10px"
-            };
-
-            _upvoteButton = new()
-            {
-                TextAlign = "center",
-                InnerText = "▲",
-                FontSize = $"{applicationStyling.FontSize}px",
-                Color = applicationStyling.TextColor.ToHex(),
-            };
-
-            _score = new()
-            {
-                TextAlign = "center",
-                InnerText = post.Score.ToString(),
-                FontSize = $"{applicationStyling.FontSize}px",
-                Color = applicationStyling.TextColor.ToHex(),
-            };
-
-            _downvoteButton = new()
-            {
-                TextAlign = "center",
-                InnerText = "▼",
-                FontSize = $"{applicationStyling.FontSize}px",
-                Color = applicationStyling.TextColor.ToHex(),
-            };
-
-            switch (post.Likes)
-            {
-                case UpvoteState.Upvote:
-                    _upvoteButton.Color = applicationStyling.UpvoteColor.ToHex();
-                    _score.Color = applicationStyling.UpvoteColor.ToHex();
-                    break;
-
-                case UpvoteState.Downvote:
-                    _downvoteButton.Color = applicationStyling.DownvoteColor.ToHex();
-                    _score.Color = applicationStyling.DownvoteColor.ToHex();
-                    break;
-
-                case UpvoteState.None:
-                    break;
-            }
-
-            _downvoteButton.OnClick += this.Downvote;
-            _upvoteButton.OnClick += this.Upvote;
-
-            _saveButton.OnClick += this.SaveButton_OnClick;
-            commentsButton.OnClick += this.CommentsButton_OnClick;
-            moreButton.OnClick += this.MoreButton_OnClick;
-            hideButton.OnClick += this.HideButton_OnClick;
-            shareButton.OnClick += this.ShareButton_OnClick;
-
-            textContainer.OnClick += this.TextContainer_OnClick;
+            _textContainer.OnClick += this.TextContainer_OnClick;
             thumbnail.OnClick += this.Thumbnail_OnClick;
 
-            voteContainer.Children.Add(_upvoteButton);
-            voteContainer.Children.Add(_score);
-            voteContainer.Children.Add(_downvoteButton);
-
             topContainer.Children.Add(thumbnail);
-            topContainer.Children.Add(textContainer);
+            topContainer.Children.Add(_textContainer);
             topContainer.Children.Add(voteContainer);
 
             Children.Add(topContainer);
@@ -268,14 +140,14 @@ namespace Deaddit.Components.WebComponents
         public void Select()
         {
             BackgroundColor = _applicationStyling.HighlightColor.ToHex();
-            _timeUser.Display = "block";
+            _textContainer.ShowTimeUser(true);
             _actionButtons.Display = "flex";
         }
 
         public void Unselect()
         {
             BackgroundColor = _applicationStyling.SecondaryColor.ToHex();
-            _timeUser.Display = "none";
+            _textContainer.ShowTimeUser(false);
             _actionButtons.Display = "none";
         }
 
@@ -314,37 +186,6 @@ namespace Deaddit.Components.WebComponents
             }
 
             await _appNavigator.OpenPost(_post);
-        }
-
-        private void Downvote(object? sender, EventArgs e)
-        {
-            switch (_post.Likes)
-            {
-                case UpvoteState.None:
-                    _post.Score--;
-                    _post.Likes = UpvoteState.Downvote;
-                    _score.Color = _applicationStyling.DownvoteColor.ToHex();
-                    _downvoteButton.Color = _applicationStyling.DownvoteColor.ToHex();
-                    break;
-
-                case UpvoteState.Downvote:
-                    _post.Score++;
-                    _post.Likes = UpvoteState.None;
-                    _score.Color = _applicationStyling.TextColor.ToHex();
-                    _downvoteButton.Color = _applicationStyling.TextColor.ToHex();
-                    break;
-
-                case UpvoteState.Upvote:
-                    _post.Score -= 2;
-                    _post.Likes = UpvoteState.Downvote;
-                    _score.Color = _applicationStyling.DownvoteColor.ToHex();
-                    _upvoteButton.Color = _applicationStyling.TextColor.ToHex();
-                    _downvoteButton.Color = _applicationStyling.DownvoteColor.ToHex();
-                    break;
-            }
-
-            _score.InnerText = _post.Score?.ToString() ?? string.Empty;
-            _redditClient.SetUpvoteState(_post, _post.Likes);
         }
 
         private async void HideButton_OnClick(object? sender, EventArgs e)
@@ -455,13 +296,13 @@ namespace Deaddit.Components.WebComponents
             {
                 await _redditClient.ToggleSave(_post, false);
                 _post.Saved = false;
-                _saveButton.InnerText = TXT_SAVE;
+                _actionButtons.UpdateSaveButtonText();
             }
             else
             {
                 await _redditClient.ToggleSave(_post, true);
                 _post.Saved = true;
-                _saveButton.InnerText = TXT_UNSAVE;
+                _actionButtons.UpdateSaveButtonText();
             }
         }
 
@@ -506,37 +347,6 @@ namespace Deaddit.Components.WebComponents
             }
 
             await _navigation.OpenPost(_post, _appNavigator);
-        }
-
-        private void Upvote(object? sender, EventArgs e)
-        {
-            switch (_post.Likes)
-            {
-                case UpvoteState.None:
-                    _post.Score++;
-                    _post.Likes = UpvoteState.Upvote;
-                    _score.Color = _applicationStyling.UpvoteColor.ToHex();
-                    _upvoteButton.Color = _applicationStyling.UpvoteColor.ToHex();
-                    break;
-
-                case UpvoteState.Upvote:
-                    _post.Score--;
-                    _post.Likes = UpvoteState.None;
-                    _score.Color = _applicationStyling.TextColor.ToHex();
-                    _upvoteButton.Color = _applicationStyling.TextColor.ToHex();
-                    break;
-
-                case UpvoteState.Downvote:
-                    _post.Score += 2;
-                    _post.Likes = UpvoteState.Upvote;
-                    _score.Color = _applicationStyling.UpvoteColor.ToHex();
-                    _upvoteButton.Color = _applicationStyling.UpvoteColor.ToHex();
-                    _downvoteButton.Color = _applicationStyling.TextColor.ToHex();
-                    break;
-            }
-
-            _score.InnerText = _post.Score.ToString();
-            _redditClient.SetUpvoteState(_post, _post.Likes);
         }
     }
 }
