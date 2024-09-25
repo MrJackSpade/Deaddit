@@ -1,4 +1,5 @@
-﻿using Deaddit.Core.Configurations.Models;
+﻿using Deaddit.Components.WebComponents.Partials.Comment;
+using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Exceptions;
 using Deaddit.Core.Extensions;
 using Deaddit.Core.Interfaces;
@@ -23,27 +24,23 @@ namespace Deaddit.Components.WebComponents
     {
         private readonly ApplicationStyling _applicationStyling;
 
-        private readonly DivComponent _bottomBar;
+        private readonly BottomBarComponent _bottomBar;
 
         private readonly ApiComment _comment;
 
-        private readonly DivComponent _commentBody;
+        private readonly CommentBodyComponent _commentBody;
 
         private readonly DivComponent _commentContainer;
 
-        private readonly DivComponent _commentHeader;
-
-        private readonly SpanComponent _commentMeta;
+        private readonly CommentHeaderComponent _commentHeader;
 
         private readonly INavigation _navigation;
 
         private readonly IRedditClient _redditClient;
 
-        private readonly DivComponent _replies;
+        private readonly RepliesContainerComponent _replies;
 
-        private readonly DivComponent _topBar;
-
-        private readonly SpanComponent voteIndicator;
+        private readonly TopBarComponent _topBar;
 
         public IAppNavigator AppNavigator { get; }
 
@@ -77,21 +74,11 @@ namespace Deaddit.Components.WebComponents
                 FlexDirection = "column",
             };
 
-            _commentBody = new DivComponent()
-            {
-                InnerText = comment.BodyHtml,
-                Color = _applicationStyling.TextColor.ToHex(),
-                FontSize = $"{(int)(_applicationStyling.FontSize * .75)}px",
-                PaddingLeft = "10px"
-            };
+            _commentBody = new CommentBodyComponent(comment, applicationStyling);
 
-            _replies = new DivComponent()
-            {
-                PaddingLeft = "25px",
-                BorderLeft = $"1px solid {_applicationStyling.SubTextColor.ToHex()}"
-            };
+            _replies = new RepliesContainerComponent(_applicationStyling);
 
-            _commentHeader = new DivComponent();
+            _commentHeader = new CommentHeaderComponent(applicationStyling, comment);
 
             SpanComponent authorSpan = new()
             {
@@ -100,50 +87,20 @@ namespace Deaddit.Components.WebComponents
                 MarginRight = "5px"
             };
 
-            _commentMeta = new SpanComponent()
-            {
-                Color = _applicationStyling.SubTextColor.ToHex(),
-                FontSize = $"{(int)(_applicationStyling.FontSize * .75)}px",
-            };
+            _topBar = new TopBarComponent();
 
-            voteIndicator = new SpanComponent();
+            _bottomBar = new BottomBarComponent(applicationStyling);
 
-            _topBar = new DivComponent()
-            {
-                Display = "none"
-            };
-
-            _bottomBar = new DivComponent()
-            {
-                Display = "none"
-            };
-
-            ButtonComponent upvoteButton = this.ActionButton("▲");
-            ButtonComponent downvoteButton = this.ActionButton("▼");
-            ButtonComponent moreButton = this.ActionButton("...");
-            ButtonComponent shareButton = this.ActionButton("⢔");
-            ButtonComponent replyButton = this.ActionButton("↩");
-
-            upvoteButton.OnClick += this.OnUpvoteClicked;
-            downvoteButton.OnClick += this.OnDownvoteClicked;
-            moreButton.OnClick += this.OnMoreClicked;
-            shareButton.OnClick += this.OnShareClicked;
-            replyButton.OnClick += this.OnReplyClicked;
-
-            _bottomBar.Children.Add(upvoteButton);
-            _bottomBar.Children.Add(downvoteButton);
-            _bottomBar.Children.Add(moreButton);
-            _bottomBar.Children.Add(shareButton);
-            _bottomBar.Children.Add(replyButton);
-
-            _commentHeader.Children.Add(voteIndicator);
-            _commentHeader.Children.Add(authorSpan);
-            _commentHeader.Children.Add(_commentMeta);
+            _bottomBar.OnUpvoteClicked += this.OnUpvoteClicked;
+            _bottomBar.OnDownvoteClicked += this.OnDownvoteClicked;
+            _bottomBar.OnMoreClicked += this.OnMoreClicked;
+            _bottomBar.OnShareClicked += this.OnShareClicked;
+            _bottomBar.OnReplyClicked += this.OnReplyClicked;
 
             _commentContainer.Children.Add(_topBar);
             _commentContainer.Children.Add(_commentHeader);
             _commentContainer.Children.Add(_commentBody);
-            _commentContainer.Children.Add(_bottomBar); 
+            _commentContainer.Children.Add(_bottomBar);
 
             Children.Add(_commentContainer);
             Children.Add(_replies);
@@ -154,9 +111,6 @@ namespace Deaddit.Components.WebComponents
             FlexDirection = "column";
 
             _commentContainer.OnClick += this.SelectClick;
-
-            this.UpdateMetaData();
-            this.SetIndicatorState(_comment.Likes);
         }
 
         public async void MoreCommentsClick(object? sender, IMore e)
@@ -288,19 +242,19 @@ namespace Deaddit.Components.WebComponents
             if (_comment.Likes == UpvoteState.Upvote)
             {
                 _comment.Score--;
-                this.SetIndicatorState(UpvoteState.None);
+                _commentHeader.SetIndicatorState(UpvoteState.None);
                 _redditClient.SetUpvoteState(_comment, UpvoteState.None);
             }
             else if (_comment.Likes == UpvoteState.Downvote)
             {
                 _comment.Score += 2;
-                this.SetIndicatorState(UpvoteState.Upvote);
+                _commentHeader.SetIndicatorState(UpvoteState.Upvote);
                 _redditClient.SetUpvoteState(_comment, UpvoteState.Upvote);
             }
             else
             {
                 _comment.Score++;
-                this.SetIndicatorState(UpvoteState.Upvote);
+                _commentHeader.SetIndicatorState(UpvoteState.Upvote);
                 _redditClient.SetUpvoteState(_comment, UpvoteState.Upvote);
             }
         }
@@ -373,19 +327,19 @@ namespace Deaddit.Components.WebComponents
             if (_comment.Likes == UpvoteState.Downvote)
             {
                 _comment.Score++;
-                this.SetIndicatorState(UpvoteState.None);
+                _commentHeader.SetIndicatorState(UpvoteState.None);
                 _redditClient.SetUpvoteState(_comment, UpvoteState.None);
             }
             else if (_comment.Likes == UpvoteState.Upvote)
             {
                 _comment.Score -= 2;
-                this.SetIndicatorState(UpvoteState.Downvote);
+                _commentHeader.SetIndicatorState(UpvoteState.Downvote);
                 _redditClient.SetUpvoteState(_comment, UpvoteState.Downvote);
             }
             else
             {
                 _comment.Score--;
-                this.SetIndicatorState(UpvoteState.Downvote);
+                _commentHeader.SetIndicatorState(UpvoteState.Downvote);
                 _redditClient.SetUpvoteState(_comment, UpvoteState.Downvote);
             }
         }
@@ -419,45 +373,6 @@ namespace Deaddit.Components.WebComponents
         private void SelectClick(object? sender, EventArgs e)
         {
             SelectionGroup?.Select(this);
-        }
-
-        private void SetIndicatorState(UpvoteState state)
-        {
-            switch (state)
-            {
-                case UpvoteState.Upvote:
-                    _comment.Likes = UpvoteState.Upvote;
-                    voteIndicator.InnerText = "▲";
-                    voteIndicator.Color = _applicationStyling.UpvoteColor.ToHex();
-                    voteIndicator.Display = "inline-block";
-                    break;
-
-                case UpvoteState.Downvote:
-                    _comment.Likes = UpvoteState.Downvote;
-                    voteIndicator.InnerText = "▼";
-                    voteIndicator.Color = _applicationStyling.DownvoteColor.ToHex();
-                    voteIndicator.Display = "inline-block";
-                    break;
-
-                default:
-                    _comment.Likes = UpvoteState.None;
-                    voteIndicator.InnerText = string.Empty;
-                    voteIndicator.Color = _applicationStyling.TextColor.ToHex();
-                    voteIndicator.Display = "none";
-                    break;
-            }
-        }
-
-        private void UpdateMetaData()
-        {
-            if (!_comment.ScoreHidden == true)
-            {
-                _commentMeta.InnerText = $"{_comment.Score} points {_comment.CreatedUtc.Elapsed()}";
-            }
-            else
-            {
-                _commentMeta.InnerText = _comment.CreatedUtc.Elapsed();
-            }
         }
     }
 }
