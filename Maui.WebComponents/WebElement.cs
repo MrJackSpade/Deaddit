@@ -6,6 +6,7 @@ using Maui.WebComponents.Exceptions;
 using Maui.WebComponents.Extensions;
 using System.Reflection;
 using System.Text;
+using System.Web;
 
 namespace Maui.WebComponents
 {
@@ -199,6 +200,8 @@ namespace Maui.WebComponents
             }
         }
 
+        private string _lastDifferentiator;
+
         private void OnNavigating(object? sender, WebNavigatingEventArgs e)
         {
             if (e.Url.StartsWith("webcomponent://"))
@@ -207,34 +210,66 @@ namespace Maui.WebComponents
 
                 Uri uri = new(e.Url);
 
-                if (string.Equals(e.Url, "webcomponent://loaded/", StringComparison.OrdinalIgnoreCase))
+                string componentId = uri.Host;
+
+                // Extract the path segments: [methodName, differentiator]
+                string[] pathSegments = uri.AbsolutePath.Trim('/').Split('/');
+                string methodName = pathSegments.Length > 0 ? pathSegments[0] : string.Empty;
+                string differentiator = pathSegments.Length > 1 ? pathSegments[1] : string.Empty;
+
+                // If the differentiator is the same as the last one, cancel processing
+                if (!string.IsNullOrEmpty(differentiator))
+                {
+                    if (differentiator == _lastDifferentiator)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        _lastDifferentiator = differentiator;
+                    }
+                }
+
+                // Handle special cases
+                if (componentId.Equals("system", StringComparison.OrdinalIgnoreCase) && methodName.Equals("Loaded", StringComparison.OrdinalIgnoreCase))
                 {
                     _loadedTask.SetResult();
                     return;
                 }
 
-                if (e.Url.StartsWith("webcomponent://error/", StringComparison.OrdinalIgnoreCase))
+                if (componentId.Equals("error", StringComparison.OrdinalIgnoreCase))
                 {
-                    System.Collections.Specialized.NameValueCollection queryDictionary = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                    System.Collections.Specialized.NameValueCollection queryDictionary = HttpUtility.ParseQueryString(uri.Query);
                     string message = queryDictionary["message"];
                     throw new JavascriptException(message);
                 }
 
-                if (string.Equals(e.Url, "webcomponent://scroll-bottom/", StringComparison.OrdinalIgnoreCase))
+                if (componentId.Equals("scroll", StringComparison.OrdinalIgnoreCase) && methodName.Equals("bottom", StringComparison.OrdinalIgnoreCase))
                 {
                     OnScrollBottom?.Invoke(this, EventArgs.Empty);
                     return;
                 }
 
-                if (e.Url.StartsWith("webcomponent://href/", StringComparison.OrdinalIgnoreCase))
+                if (componentId.Equals("navigation", StringComparison.OrdinalIgnoreCase) && methodName.Equals("href", StringComparison.OrdinalIgnoreCase))
                 {
+                    System.Collections.Specialized.NameValueCollection queryDictionary = HttpUtility.ParseQueryString(uri.Query);
+                    string targetUrl = queryDictionary["href"];
+                    targetUrl = HttpUtility.UrlDecode(targetUrl);
+                    ClickUrl?.Invoke(this, targetUrl);
                     return;
                 }
 
-                string componentId = uri.Host;
-                string methodName = uri.AbsolutePath.TrimStart('/');
-                string? args = System.Web.HttpUtility.ParseQueryString(uri.Query).Get("args");
-                this.HandleInvokeMethod(componentId, methodName, args);
+                // Parse arguments from the query string
+                System.Collections.Specialized.NameValueCollection queryDictionaryArgs = HttpUtility.ParseQueryString(uri.Query);
+                Dictionary<string, string?> args = queryDictionaryArgs.AllKeys
+                    .Where(key => key != null)
+                    .ToDictionary(key => key!, key => queryDictionaryArgs[key])!;
+
+                // Convert args dictionary to JSON string
+                string argsJson = System.Text.Json.JsonSerializer.Serialize(args);
+
+                // Handle the method invocation
+                this.HandleInvokeMethod(componentId, methodName, argsJson);
             }
         }
 

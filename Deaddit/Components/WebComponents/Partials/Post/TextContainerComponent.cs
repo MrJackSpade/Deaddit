@@ -13,7 +13,7 @@ namespace Deaddit.Components.WebComponents.Partials.Post
         {
             Display = "flex";
             FlexDirection = "column";
-            Padding = "10px";
+            Padding = "5px";
             FlexGrow = "1";
 
             SpanComponent title = new()
@@ -43,6 +43,8 @@ namespace Deaddit.Components.WebComponents.Partials.Post
                 metaData.InnerText += $" ({result.Host})";
             }
 
+            Children.Add(title);
+
             var cleanedLinkFlair = applicationHacks.CleanFlair(post.LinkFlairText);
             if (!string.IsNullOrWhiteSpace(cleanedLinkFlair))
             {
@@ -54,7 +56,6 @@ namespace Deaddit.Components.WebComponents.Partials.Post
                 Children.Add(linkFlair);
             }
 
-            Children.Add(title);
             Children.Add(metaData);
             Children.Add(timeUser);
 

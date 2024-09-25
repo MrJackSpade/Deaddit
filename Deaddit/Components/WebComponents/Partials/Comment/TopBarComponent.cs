@@ -10,5 +10,4 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
             // Additional initialization if needed
         }
     }
-
 }
