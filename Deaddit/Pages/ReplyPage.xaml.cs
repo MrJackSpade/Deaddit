@@ -1,4 +1,6 @@
 using Deaddit.Components;
+using Deaddit.Components.WebComponents;
+using Deaddit.Components.WebComponents.Partials.Post;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
@@ -24,15 +26,18 @@ namespace Deaddit.Pages
 
         public event EventHandler<ReplySubmittedEventArgs>? OnSubmitted;
 
-        public ReplyPage(ApiThing? replyTo, ApiThing? toEdit, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme)
+        public ReplyPage(ApiThing? replyTo, ApiThing? toEdit, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling)
         {
             _redditClient = redditClient;
             _replyTo = replyTo ?? toEdit.Parent;
             _toEdit = toEdit;
             _appNavigator = appNavigator;
 
-            BindingContext = new ReplyPageViewModel(applicationTheme);
+            BindingContext = new ReplyPageViewModel(applicationStyling);
+
             this.InitializeComponent();
+
+            webElement.BodyStyle["background-color"] = applicationStyling.SecondaryColor.ToHex();
 
             ApiThing? toRender = _replyTo;
             SelectionGroup unused = new();
@@ -40,52 +45,20 @@ namespace Deaddit.Pages
             {
                 if (toRender is ApiComment rc)
                 {
-                    //RedditCommentWebComponent redditCommentComponent = _appNavigator.CreateCommentWebComponent(rc, null, unused);
+                    RedditCommentWebComponent redditCommentComponent = _appNavigator.CreateCommentWebComponent(rc, null, unused);
 
-                    //commentStack.Children.Insert(0, redditCommentComponent);
+                    webElement.InsertChild(0, redditCommentComponent);
                 }
                 else if (toRender is ApiPost post)
                 {
-                    //RedditPostComponent redditPostComponent = _appNavigator.CreatePostComponent(post, false, null);
+                    RedditPostWebComponent redditPostComponent = _appNavigator.CreatePostWebComponent(post, false, null);
 
                     if (!string.IsNullOrWhiteSpace(post.Body))
                     {
-                        Border border = new()
-                        {
-                            Stroke = applicationTheme.TertiaryColor.ToMauiColor(),
-                            BackgroundColor = applicationTheme.PrimaryColor.ToMauiColor(),
-                            HorizontalOptions = LayoutOptions.Center,
-                            Margin = new Thickness(10),
-                            StrokeThickness = 2,
-                            Padding = new Thickness(10),
-                            StrokeShape = new RoundRectangle
-                            {
-                                CornerRadius = new CornerRadius(5, 5, 5, 5)
-                            },
-                        };
-
-                        // Content Text as Markdown
-                        MarkdownView markdownView = new()
-                        {
-                            MarkdownText = MarkDownHelper.Clean(post.Body),
-                            HyperlinkColor = applicationTheme.HyperlinkColor.ToMauiColor(),
-                            TextColor = applicationTheme.TextColor.ToMauiColor(),
-                            TextFontSize = applicationTheme.FontSize,
-                            BlockQuoteBorderColor = applicationTheme.TextColor.ToMauiColor(),
-                            BlockQuoteBackgroundColor = applicationTheme.SecondaryColor.ToMauiColor(),
-                            BlockQuoteTextColor = applicationTheme.TextColor.ToMauiColor(),
-                            Margin = new Thickness(5)
-                        };
-
-                        border.Content = markdownView;
-
-                        markdownView.OnHyperLinkClicked += this.OnHyperLinkClicked;
-
-                        commentStack.Children.Insert(0, border);
+                        webElement.InsertChild(0, new PostBodyComponent(post, applicationStyling));
                     }
 
-                    // Add to the layout
-                    //commentStack.Children.Insert(0, redditPostComponent);
+                    webElement.InsertChild(0, redditPostComponent);
                 }
 
                 toRender = toRender.Parent;

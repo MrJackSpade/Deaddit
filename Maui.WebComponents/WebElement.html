@@ -17,6 +17,47 @@
         }
     </style>
     <script>
+        // Function to generate a GUID
+        function generateGUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                var r = Math.random() * 16 | 0,
+                    v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // Standard navigation function
+        function navigate(componentId, method, args) {
+            try {
+                if (!componentId || typeof componentId !== 'string') {
+                    throw new Error('Invalid componentId.');
+                }
+
+                if (method === undefined || typeof method !== 'string') {
+                    throw new Error('Invalid method.');
+                }
+
+                var differentiator = generateGUID();
+
+                var argsStr = '';
+                if (args && typeof args === 'object') {
+                    var kvps = Object.entries(args).map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`).join('&');
+                    argsStr = kvps;
+                }
+
+                var url = `webcomponent://${componentId}/${method}/${differentiator}`;
+                if (argsStr) {
+                    url += `?${argsStr}`;
+                }
+
+                window.location.href = url;
+            } catch (error) {
+                // In case of error within navigate, we attempt to navigate to an error URL
+                var errorDifferentiator = generateGUID();
+                window.location.href = `webcomponent://error//${errorDifferentiator}?message=${encodeURIComponent(error.message)}`;
+            }
+        }
+
         function invokeMethod(componentId, methodName, args) {
             try {
                 if (!componentId || typeof componentId !== 'string') {
@@ -25,25 +66,33 @@
                 if (!methodName || typeof methodName !== 'string') {
                     throw new Error('Invalid methodName.');
                 }
-                let argsStr = '';
-                try {
-                    argsStr = JSON.stringify(args);
-                } catch (e) {
-                    throw new Error('Invalid args: ' + e.message);
+
+                // Check if args.target is an "a" element with an "href" attribute
+                if (args && args.target && args.target.tagName === 'A' && args.target.href) {
+                    const href = args.target.href;
+
+                    // Prevent the default navigation behavior
+                    if (typeof args.preventDefault === 'function') {
+                        args.preventDefault();
+                    }
+
+                    navigate('navigation', 'href', { href: href });
+                    return; // Exit the function if redirecting
                 }
-                window.location.href = `webcomponent://${componentId}/${methodName}?args=${argsStr}`;
+
+                navigate(componentId, methodName, args);
             } catch (error) {
-                window.location.href = `webcomponent://error/?message=${encodeURIComponent(error.message)}`;
+                navigate('error', '', { message: error.message });
             }
         }
 
         window.onscroll = function (ev) {
             try {
                 if ((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight) {
-                    window.location.href = `webcomponent://scroll-bottom`;
+                    navigate('scroll', 'bottom', {});
                 }
             } catch (error) {
-                window.location.href = `webcomponent://error/?message=${encodeURIComponent(error.message)}`;
+                navigate('error', '', { message: error.message });
             }
         };
 
@@ -76,7 +125,7 @@
                     throw new Error(`Element with ID "${elementId}" not found.`);
                 }
             } catch (error) {
-                window.location.href = `webcomponent://error/?message=${encodeURIComponent(error.message)}`;
+                navigate('error', '', { message: error.message });
             }
         }
 
@@ -99,7 +148,7 @@
                     throw new Error(`Element with ID "${elementId}" not found.`);
                 }
             } catch (error) {
-                window.location.href = `webcomponent://error/?message=${encodeURIComponent(error.message)}`;
+                navigate('error', '', { message: error.message });
             }
         }
 
@@ -121,7 +170,7 @@
                 var decodedStr = new TextDecoder('utf-8').decode(bytes);
                 return decodedStr;
             } catch (error) {
-                window.location.href = `webcomponent://error/?message=${encodeURIComponent('Error decoding base64 string: ' + error.message)}`;
+                navigate('error', '', { message: 'Error decoding base64 string: ' + error.message });
                 return null;
             }
         }
@@ -170,7 +219,7 @@
                 // Restore the previous scroll position
                 window.scrollTo(0, scrollTop);
             } catch (error) {
-                window.location.href = `webcomponent://error/?message=${encodeURIComponent(error.message)}`;
+                navigate('error', '', { message: error.message });
             }
         }
 
@@ -186,29 +235,19 @@
                     throw new Error(`Element with ID "${componentId}" not found.`);
                 }
             } catch (error) {
-                window.location.href = `webcomponent://error/?message=${encodeURIComponent(error.message)}`;
+                navigate('error', '', { message: error.message });
             }
         }
 
         window.onload = function () {
             try {
-                window.location.href = `webcomponent://Loaded`;
+                navigate('system', 'Loaded', {});
             } catch (error) {
-                window.location.href = `webcomponent://error/?message=${encodeURIComponent(error.message)}`;
+                navigate('error', '', { message: error.message });
             }
         };
 
-        document.addEventListener('click', (e) => {
-            let target = e.target.closest('a');
-            if (target) { // if the click was on or within an <a>
-                // then based on some condition...
-                if (target.getAttribute("href")) {
-                    e.preventDefault(); // tell the browser not to respond to the link click
-                    // then maybe do something else
-                    window.location.href = `webcomponent://href/${encodeURIComponent(error.message)}`;
-                }
-            }
-        });
+        //# sourceURL=head.js
     </script>
 </head>
 <body id="body">

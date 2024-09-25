@@ -1,5 +1,6 @@
 using Deaddit.Components;
 using Deaddit.Components.WebComponents;
+using Deaddit.Components.WebComponents.Partials.Post;
 using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Exceptions;
@@ -73,13 +74,7 @@ namespace Deaddit.Pages
 
             webElement.AddChild(redditPostComponent);
 
-            postBody = new DivComponent()
-            {
-                BorderColor = _applicationStyling.TertiaryColor.ToHex(),
-                BorderWidth = "2px",
-                BackgroundColor = _applicationStyling.PrimaryColor.ToHex(),
-                InnerText = post.BodyHtml
-            };
+            postBody = new PostBodyComponent(post, applicationStyling);
 
             DivComponent actionButtons = new()
             {

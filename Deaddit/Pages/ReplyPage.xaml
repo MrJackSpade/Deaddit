@@ -2,17 +2,13 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Deaddit.Pages.ReplyPage"
+             xmlns:webComponents="clr-namespace:Maui.WebComponents;assembly=Maui.WebComponents"
              BackgroundColor="{Binding SecondaryColor}">
     <Grid RowDefinitions="*, Auto">
         <!-- Comment Container -->
-        <ScrollView Grid.Row="0">
-            <VerticalStackLayout
-                VerticalOptions="FillAndExpand"
-                BackgroundColor="{Binding SecondaryColor}"
-                x:Name="commentStack">
-            </VerticalStackLayout>
-        </ScrollView>
-
+        <webComponents:WebElement x:Name="webElement">
+            
+        </webComponents:WebElement>
         <!-- Reply Box -->
         <VerticalStackLayout
             x:Name="replyBox"
