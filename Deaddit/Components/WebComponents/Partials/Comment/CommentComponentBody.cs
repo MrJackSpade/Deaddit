@@ -10,7 +10,7 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
         {
             InnerText = comment.BodyHtml;
             Color = applicationStyling.TextColor.ToHex();
-            FontSize = $"{(int)(applicationStyling.FontSize * .75)}px";
+            FontSize = $"{(int)(applicationStyling.FontSize * .90)}px";
             PaddingLeft = "10px";
         }
     }

@@ -7,7 +7,7 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
     {
         public RepliesContainerComponent(ApplicationStyling applicationStyling)
         {
-            PaddingLeft = "25px";
+            PaddingLeft = "8px";
             BorderLeft = $"1px solid {applicationStyling.SubTextColor.ToHex()}";
         }
     }

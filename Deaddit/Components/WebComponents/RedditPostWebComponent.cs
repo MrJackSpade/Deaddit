@@ -107,12 +107,10 @@ namespace Deaddit.Components.WebComponents
 
             _textContainer = new(post, applicationStyling, applicationHacks);
 
-            SpanComponent title = new()
+            if(selectionGroup is null)
             {
-                InnerText = post.Title,
-                FontSize = $"{applicationStyling.FontSize}px",
-                Color = applicationStyling.TextColor.ToHex(),
-            };
+                _textContainer.ShowTimeUser(true);
+            }
 
             VoteContainerComponent voteContainer = new(applicationStyling, post, _redditClient);
 
@@ -126,7 +124,7 @@ namespace Deaddit.Components.WebComponents
             Children.Add(topContainer);
             Children.Add(_actionButtons);
 
-            if (visitTracker.HasVisited(_post))
+            if (visitTracker.HasVisited(_post) && selectionGroup != null)
             {
                 Opacity = _applicationStyling.VisitedOpacity.ToString("0.00");
             }
@@ -179,7 +177,7 @@ namespace Deaddit.Components.WebComponents
 
         private async void CommentsButton_OnClick(object? sender, EventArgs e)
         {
-            if (_post.IsSelf)
+            if (_post.IsSelf && _selectionGroup is null)
             {
                 Opacity = _applicationStyling.VisitedOpacity.ToString("0.00");
                 _visitTracker.Visit(_post);

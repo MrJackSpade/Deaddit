@@ -78,7 +78,7 @@ namespace Deaddit.Components.WebComponents
 
             _replies = new RepliesContainerComponent(_applicationStyling);
 
-            _commentHeader = new CommentHeaderComponent(applicationStyling, comment);
+            _commentHeader = new CommentHeaderComponent(applicationStyling, comment, post);
 
             SpanComponent authorSpan = new()
             {
@@ -106,7 +106,10 @@ namespace Deaddit.Components.WebComponents
             Children.Add(_replies);
 
             BoxSizing = "border-box";
-            Padding = "5px";
+            PaddingLeft = "5px";
+            PaddingTop = "5px";
+            PaddingBottom = "5px";
+
             Display = "flex";
             FlexDirection = "column";
 
