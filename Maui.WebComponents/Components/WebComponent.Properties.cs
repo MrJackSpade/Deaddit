@@ -202,10 +202,28 @@ namespace Maui.WebComponents.Components
             set => this.Style("padding", value);
         }
 
+        public string? PaddingBottom
+        {
+            get => this.Style("padding-bottom");
+            set => this.Style("padding-bottom", value);
+        }
+
         public string? PaddingLeft
         {
             get => this.Style("padding-left");
             set => this.Style("padding-left", value);
+        }
+
+        public string? PaddingRight
+        {
+            get => this.Style("padding-right");
+            set => this.Style("padding-right", value);
+        }
+
+        public string? PaddingTop
+        {
+            get => this.Style("padding-top");
+            set => this.Style("padding-top", value);
         }
 
         public string? Position

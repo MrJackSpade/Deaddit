@@ -88,7 +88,7 @@
 
         window.onscroll = function (ev) {
             try {
-                if ((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight) {
+                if ((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight - 5) {
                     navigate('scroll', 'bottom', {});
                 }
             } catch (error) {

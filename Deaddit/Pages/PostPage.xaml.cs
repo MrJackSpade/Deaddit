@@ -74,7 +74,10 @@ namespace Deaddit.Pages
 
             webElement.AddChild(redditPostComponent);
 
-            postBody = new PostBodyComponent(post, applicationStyling);
+            if (!string.IsNullOrWhiteSpace(post.BodyHtml))
+            {
+                postBody = new PostBodyComponent(post, applicationStyling);
+            }
 
             DivComponent actionButtons = new()
             {
@@ -102,7 +105,13 @@ namespace Deaddit.Pages
             actionButtons.Children.Add(replyButton);
 
             webElement.AddChild(actionButtons);
-            webElement.AddChild(postBody);
+
+            if (postBody is not null)
+            {
+                webElement.AddChild(postBody);
+            }
+
+
             webElement.AddChild(commentContainer);
         }
 
@@ -330,7 +339,7 @@ namespace Deaddit.Pages
 
             redditCommentComponent.OnDelete += (s, e) => commentContainer.Children.Remove(redditCommentComponent);
 
-            commentContainer.Children.InsertAfter(postBody, redditCommentComponent);
+            commentContainer.Children.Insert(0, redditCommentComponent);
         }
     }
 }

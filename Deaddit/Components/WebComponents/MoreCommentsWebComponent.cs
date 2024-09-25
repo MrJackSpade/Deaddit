@@ -54,7 +54,10 @@ namespace Deaddit.Components.WebComponents
             Width = "100%";
             Color = _applicationStyling.TextColor.ToHex();
             Display = "block";
-            Padding = "5px";
+            FontSize = $"{(int)(applicationStyling.FontSize * .90)}px";
+            PaddingLeft = "5px";
+            PaddingTop = "5px";
+            PaddingBottom = "5px";
             OnClick += this.Clicked;
         }
 

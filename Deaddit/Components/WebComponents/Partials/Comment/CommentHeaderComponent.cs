@@ -3,6 +3,7 @@ using Deaddit.Core.Extensions;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Maui.WebComponents.Components;
+using Microsoft.Maui.Handlers;
 
 namespace Deaddit.Components.WebComponents.Partials.Comment
 {
@@ -14,15 +15,52 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
 
         private readonly SpanComponent _voteIndicator;
 
-        private SpanComponent _commentMeta;
+        private readonly SpanComponent _commentMeta;
 
-        public CommentHeaderComponent(ApplicationStyling applicationStyling, ApiComment comment)
+        public CommentHeaderComponent(ApplicationStyling applicationStyling, ApiComment comment, ApiPost parentPost)
         {
             _applicationStyling = applicationStyling;
             _comment = comment;
             _voteIndicator = new SpanComponent();
 
-            this.InitializeHeader();
+            SpanComponent authorSpan = new()
+            {
+                InnerText = _comment.Author,
+                Color = _applicationStyling.SubTextColor.ToHex(),
+                MarginRight = "5px"
+            };
+
+            switch (comment.Distinguished)
+            {
+                case DistinguishedKind.None:
+                    if (comment.Author == parentPost?.Author)
+                    {
+                        authorSpan.BackgroundColor = _applicationStyling.OpBackgroundColor.ToHex();
+                        authorSpan.Color = _applicationStyling.OpTextColor.ToHex();
+                    }
+
+                    break;
+                case DistinguishedKind.Moderator:
+                    authorSpan.BackgroundColor = _applicationStyling.ModeratorAuthorBackgroundColor.ToHex();
+                    authorSpan.Color = _applicationStyling.ModeratorAuthorTextColor.ToHex();
+                    break;
+                case DistinguishedKind.Admin:
+                    authorSpan.BackgroundColor = _applicationStyling.AdminAuthorBackgroundColor.ToHex();
+                    authorSpan.Color = _applicationStyling.AdminAuthorBackgroundColor.ToHex();
+                    break;
+            }
+
+            _commentMeta = new()
+            {
+                Color = _applicationStyling.SubTextColor.ToHex(),
+                FontSize = $"{(int)(_applicationStyling.FontSize * .75)}px",
+                InnerText = this.GetMetaData()
+            };
+
+            Children.Add(_voteIndicator);
+            Children.Add(authorSpan);
+            Children.Add(_commentMeta);
+
             this.SetIndicatorState(_comment.Likes);
         }
 
@@ -68,27 +106,6 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
             {
                 return _comment.CreatedUtc.Elapsed();
             }
-        }
-
-        private void InitializeHeader()
-        {
-            SpanComponent authorSpan = new()
-            {
-                InnerText = _comment.Author,
-                Color = _applicationStyling.SubTextColor.ToHex(),
-                MarginRight = "5px"
-            };
-
-            _commentMeta = new()
-            {
-                Color = _applicationStyling.SubTextColor.ToHex(),
-                FontSize = $"{(int)(_applicationStyling.FontSize * .75)}px",
-                InnerText = this.GetMetaData()
-            };
-
-            Children.Add(_voteIndicator);
-            Children.Add(authorSpan);
-            Children.Add(_commentMeta);
         }
     }
 }
