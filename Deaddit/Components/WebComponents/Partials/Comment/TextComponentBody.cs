@@ -14,7 +14,6 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
             PaddingLeft = "10px";
             WordWrap = "break-word";
             OverflowWrap = "break-word";
-            WordBreak = "break-all";
         }
     }
 }
