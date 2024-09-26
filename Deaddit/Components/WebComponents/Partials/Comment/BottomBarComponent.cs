@@ -33,7 +33,7 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
             return new ButtonComponent
             {
                 InnerText = text,
-                FontSize = $"{_applicationStyling.FontSize}px",
+                FontSize = $"{_applicationStyling.TitleFontSize}px",
                 Color = _applicationStyling.TextColor.ToHex(),
                 BackgroundColor = _applicationStyling.HighlightColor.ToHex(),
                 Padding = "10px",

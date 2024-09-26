@@ -23,7 +23,7 @@ namespace Deaddit.Components.WebComponents
 
         public int? Count { get; }
 
-        public ApiThing Parent { get; }
+        public ApiThing Parent => _more.Parent;
 
         public event EventHandler<IMore>? LoadMore;
 
@@ -54,7 +54,7 @@ namespace Deaddit.Components.WebComponents
             Width = "100%";
             Color = _applicationStyling.TextColor.ToHex();
             Display = "block";
-            FontSize = $"{(int)(applicationStyling.FontSize * .90)}px";
+            FontSize = $"{(int)(applicationStyling.TitleFontSize * .90)}px";
             PaddingLeft = "5px";
             PaddingTop = "5px";
             PaddingBottom = "5px";

@@ -20,8 +20,14 @@ namespace Deaddit.Core.Configurations.Models
         [EditorDisplay(Name = "Downvote Color", Order = 10)]
         public DynamicColor DownvoteColor { get; set; } = DynamicColor.Parse("#7193ff");
 
-        [EditorDisplay(Name = "Font Size", Order = 11)]
-        public double FontSize { get; set; } = 12;
+        [EditorDisplay(Name = "Title Font Size", Order = 11)]
+        public double TitleFontSize { get; set; } = 16;
+
+        [EditorDisplay(Name = "SubText Font Size", Order = 11)]
+        public double SubTextFontSize { get; set; } = 12;
+
+        [EditorDisplay(Name = "Comment Font Size", Order = 11)]
+        public double CommentFontSize { get; set; } = 12;
 
         [EditorDisplay(Name = "Highlight Color", Order = 5)]
         public DynamicColor HighlightColor { get; set; } = DynamicColor.Parse("#313E4F");

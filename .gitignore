@@ -15,3 +15,4 @@ Release/bin/Deaddit/release_net8.0-android/Deaddit.runtimeconfig.json
 Release/bin/Deaddit/release_net8.0-android/Deaddit.xml
 Maui.WebComponents/obj/
 Maui.WebComponents/bin/
+Release/bin/Maui.WebComponents/

@@ -15,9 +15,6 @@
     <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>
   </PropertyGroup>
   <ItemGroup>
-    <MauiXaml Update="Components\RedditMessageComponent.xaml">
-      <SubType>Designer</SubType>
-    </MauiXaml>
     <MauiXaml Update="Pages\ObjectEditorPage.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>

@@ -19,14 +19,14 @@ namespace Deaddit.Components.WebComponents.Partials.Post
             SpanComponent title = new()
             {
                 InnerText = post.Title,
-                FontSize = $"{applicationStyling.FontSize}px",
+                FontSize = $"{applicationStyling.TitleFontSize}px",
                 Color = applicationStyling.TextColor.ToHex(),
             };
 
             SpanComponent timeUser = new()
             {
                 InnerText = $"{post.CreatedUtc.Elapsed()} by {post.Author}",
-                FontSize = $"{(int)(applicationStyling.FontSize * 0.75)}px",
+                FontSize = $"{applicationStyling.SubTextFontSize}px",
                 Color = applicationStyling.SubTextColor.ToHex(),
                 Display = "none"
             };
@@ -34,7 +34,7 @@ namespace Deaddit.Components.WebComponents.Partials.Post
             SpanComponent metaData = new()
             {
                 InnerText = $"{post.NumComments} comments {post.SubReddit}",
-                FontSize = $"{(int)(applicationStyling.FontSize * 0.75)}px",
+                FontSize = $"{applicationStyling.SubTextFontSize}px",
                 Color = applicationStyling.SubTextColor.ToHex(),
             };
 

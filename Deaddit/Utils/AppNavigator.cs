@@ -54,19 +54,7 @@ namespace Deaddit.Utils
             }
         }
 
-        public RedditMessageComponent CreateMessageComponent(ApiMessage message, SelectionGroup? selectionGroup = null)
-        {
-            if (selectionGroup is null)
-            {
-                return new RedditMessageComponent(message, false, this, _redditClient, _applicationStyling, selectionGroup ?? new SelectionGroup(), _blockConfiguration);
-            }
-            else
-            {
-                return new RedditMessageComponent(message, true, this, _redditClient, _applicationStyling, selectionGroup ?? new SelectionGroup(), _blockConfiguration);
-            }
-        }
-
-        public RedditMessageWebComponent CreateMessageWebComponent(ApiMessage message)
+        public RedditMessageWebComponent CreateMessageWebComponent(ApiComment message)
         {
             throw new NotImplementedException();
         }

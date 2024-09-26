@@ -92,7 +92,7 @@ namespace Deaddit.Pages.Models
             TertiaryColor = applicationTheme.TertiaryColor.ToMauiColor();
             HyperlinkColor = applicationTheme.HyperlinkColor.ToMauiColor();
             MinHeight = applicationTheme.ThumbnailSize;
-            FontSize = applicationTheme.FontSize;
+            FontSize = applicationTheme.TitleFontSize;
             SubTextColor = applicationTheme.SubTextColor.ToMauiColor();
         }
     }

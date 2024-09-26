@@ -233,7 +233,7 @@ namespace Deaddit.Pages
                             view = _appNavigator.CreateCommentWebComponent(comment, null, _selectionGroup);
                         }
 
-                        if (thing is ApiMessage message)
+                        if (thing is ApiComment message)
                         {
                             //view = _appNavigator.CreateMessageComponent(message, _selectionGroup);
                         }
@@ -285,7 +285,7 @@ namespace Deaddit.Pages
                 {
                     InnerText = sortValue.ToString(),
                     Color = _applicationStyling.TextColor.ToHex(),
-                    FontSize = $"{_applicationStyling.FontSize}px",
+                    FontSize = $"{_applicationStyling.TitleFontSize}px",
                     BackgroundColor = _applicationStyling.SecondaryColor.ToHex(),
                     Border = "0",
                     FlexGrow = "1",

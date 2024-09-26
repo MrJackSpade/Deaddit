@@ -39,7 +39,7 @@ namespace Deaddit.Components.WebComponents.Partials.Post
             {
                 TextAlign = "center",
                 InnerText = "▲",
-                FontSize = $"{applicationStyling.FontSize}px",
+                FontSize = $"{applicationStyling.TitleFontSize}px",
                 Color = applicationStyling.TextColor.ToHex(),
             };
 
@@ -47,7 +47,7 @@ namespace Deaddit.Components.WebComponents.Partials.Post
             {
                 TextAlign = "center",
                 InnerText = _post.Score.ToString(),
-                FontSize = $"{applicationStyling.FontSize}px",
+                FontSize = $"{applicationStyling.TitleFontSize}px",
                 Color = applicationStyling.TextColor.ToHex(),
             };
 
@@ -55,7 +55,7 @@ namespace Deaddit.Components.WebComponents.Partials.Post
             {
                 TextAlign = "center",
                 InnerText = "▼",
-                FontSize = $"{applicationStyling.FontSize}px",
+                FontSize = $"{applicationStyling.TitleFontSize}px",
                 Color = applicationStyling.TextColor.ToHex(),
             };
 
