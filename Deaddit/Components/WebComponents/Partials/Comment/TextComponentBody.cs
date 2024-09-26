@@ -12,6 +12,9 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
             Color = applicationStyling.TextColor.ToHex();
             FontSize = $"{applicationStyling.CommentFontSize}px";
             PaddingLeft = "10px";
+            WordWrap = "break-word";
+            OverflowWrap = "break-word";
+            WordBreak = "break-all";
         }
     }
 }

@@ -202,6 +202,12 @@ namespace Maui.WebComponents.Components
             set => this.Style("overflow", value);
         }
 
+        public string? OverflowWrap
+        {
+            get => this.Style("overflow-wrap");
+            set => this.Style("overflow-wrap", value);
+        }
+
         public string? Padding
         {
             get => this.Style("padding");
@@ -260,6 +266,18 @@ namespace Maui.WebComponents.Components
         {
             get => this.Style("width");
             set => this.Style("width", value);
+        }
+
+        public string? WordBreak
+        {
+            get => this.Style("word-break");
+            set => this.Style("word-break", value);
+        }
+
+        public string? WordWrap
+        {
+            get => this.Style("word-wrap");
+            set => this.Style("word-wrap", value);
         }
 
         public string? ZIndex
