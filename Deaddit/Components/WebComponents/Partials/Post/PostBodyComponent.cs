@@ -20,7 +20,8 @@ namespace Deaddit.Components.WebComponents.Partials.Post
             BorderColor = applicationStyling.TertiaryColor.ToHex();
             BorderWidth = "2px";
             Color = applicationStyling.TextColor.ToHex();
-            Padding = "5px";
+            PaddingLeft = "5px";
+            PaddingRight = "5px";
             BoxSizing = "border-box";
             FontSize = $"{applicationStyling.TitleFontSize}px";
             Border = $"1px solid {applicationStyling.TextColor.ToHex()}";

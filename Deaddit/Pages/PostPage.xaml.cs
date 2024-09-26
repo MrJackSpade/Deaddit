@@ -68,7 +68,11 @@ namespace Deaddit.Pages
 
             webElement.BodyStyle["background-color"] = applicationStyling.SecondaryColor.ToHex();
 
-            commentContainer = new DivComponent();
+            commentContainer = new DivComponent()
+            {
+                PaddingRight = "5px",
+                BoxSizing = "border-box"
+            };
 
             RedditPostWebComponent redditPostComponent = AppNavigator.CreatePostWebComponent(post, false, null);
 
