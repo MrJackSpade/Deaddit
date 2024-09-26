@@ -100,6 +100,12 @@ namespace Maui.WebComponents.Components
             set => this.Style("flex-grow", value);
         }
 
+        public string? FlexShrink
+        {
+            get => this.Style("flex-shrink");
+            set => this.Style("flex-shrink", value);
+        }
+
         public string? FontSize
         {
             get => this.Style("font-size");

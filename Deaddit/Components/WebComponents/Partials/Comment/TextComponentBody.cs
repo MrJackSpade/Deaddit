@@ -4,13 +4,13 @@ using Maui.WebComponents.Components;
 
 namespace Deaddit.Components.WebComponents.Partials.Comment
 {
-    public class CommentBodyComponent : DivComponent
+    public class TextBodyComponent : DivComponent
     {
-        public CommentBodyComponent(ApiComment comment, ApplicationStyling applicationStyling)
+        public TextBodyComponent(string html, ApplicationStyling applicationStyling)
         {
-            InnerText = comment.BodyHtml;
+            InnerText = html;
             Color = applicationStyling.TextColor.ToHex();
-            FontSize = $"{(int)(applicationStyling.FontSize * .90)}px";
+            FontSize = $"{applicationStyling.CommentFontSize}px";
             PaddingLeft = "10px";
         }
     }

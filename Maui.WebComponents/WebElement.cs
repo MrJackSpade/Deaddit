@@ -112,7 +112,7 @@ namespace Maui.WebComponents
                 sb.Append('"');
             }
 
-            // Render events
+            // Existing code to process methods with HtmlEventAttribute
             foreach (MethodInfo method in type.GetMethods())
             {
                 HtmlEventAttribute? eventAttr = method.GetCustomAttribute<HtmlEventAttribute>();
@@ -122,6 +122,19 @@ namespace Maui.WebComponents
                     string eventName = eventAttr.Name ?? method.Name.ToLowerInvariant();
 
                     sb.Append($" {eventName}=\"invokeMethod('{component.Id}', '{method.Name}', event)\"");
+                }
+            }
+
+            // New code to process events with HtmlEventAttribute
+            foreach (EventInfo eventInfo in type.GetEvents())
+            {
+                HtmlEventAttribute? eventAttr = eventInfo.GetCustomAttribute<HtmlEventAttribute>();
+
+                if (eventAttr != null)
+                {
+                    string eventName = eventAttr.Name ?? eventInfo.Name.ToLowerInvariant();
+
+                    sb.Append($" {eventName}=\"invokeMethod('{component.Id}', '{eventInfo.Name}', event)\"");
                 }
             }
 
@@ -167,9 +180,59 @@ namespace Maui.WebComponents
             {
                 MethodInfo? method = component.GetType().GetMethod(methodName);
 
-                // For simplicity, we're just invoking the method without args
-                // You might want to deserialize argsJson and pass it to the method
-                method?.Invoke(component, [null, EventArgs.Empty]);
+                if (method != null)
+                {
+                    // Invoke the method (existing functionality)
+                    method.Invoke(component, [null, EventArgs.Empty]);
+                }
+                else
+                {
+                    // Attempt to find an event with the specified name
+                    EventInfo? eventInfo = component.GetType().GetEvent(methodName);
+
+                    if (eventInfo != null)
+                    {
+                        // Raise the event via reflection
+                        this.RaiseEvent(component, eventInfo, argsJson);
+                    }
+                    else
+                    {
+                        // No method or event found
+                        throw new InvalidOperationException($"Method or event '{methodName}' not found on component '{component.GetType().Name}'.");
+                    }
+                }
+            }
+        }
+
+        private void RaiseEvent(WebComponent component, EventInfo eventInfo, string argsJson)
+        {
+            // Deserialize argsJson if necessary
+            EventArgs eventArgs = EventArgs.Empty; // Replace with actual deserialization if needed
+
+            // Get the backing field of the event (this relies on the field name matching the event name)
+            FieldInfo? field = null;
+            
+            Type? searchType = component.GetType();
+
+            while (field == null && searchType != null)
+            {
+                field = searchType.GetField(eventInfo.Name, BindingFlags.Instance | BindingFlags.NonPublic);
+                searchType = searchType.BaseType;
+            }
+
+            if (field != null)
+            {
+                if (field.GetValue(component) is MulticastDelegate eventDelegate)
+                {
+                    // Prepare arguments for the event handler
+                    object[] invokeArgs = [component, eventArgs];
+
+                    // Invoke each subscribed event handler
+                    foreach (Delegate handler in eventDelegate.GetInvocationList())
+                    {
+                        handler.DynamicInvoke(invokeArgs);
+                    }
+                }
             }
         }
 

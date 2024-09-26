@@ -111,7 +111,6 @@ namespace Deaddit.Pages
                 webElement.AddChild(postBody);
             }
 
-
             webElement.AddChild(commentContainer);
         }
 
@@ -283,7 +282,7 @@ namespace Deaddit.Pages
             return new ButtonComponent
             {
                 InnerText = text,
-                FontSize = $"{_applicationStyling.FontSize}px",
+                FontSize = $"{_applicationStyling.TitleFontSize}px",
                 Color = _applicationStyling.TextColor.ToHex(),
                 BackgroundColor = _applicationStyling.SecondaryColor.ToHex(),
                 Padding = "10px",

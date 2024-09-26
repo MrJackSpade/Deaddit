@@ -30,14 +30,9 @@ namespace Maui.WebComponents.Components
 
         public StyleCollection Style { get; } = [];
 
+        [HtmlEvent("onclick", true)]
         public event EventHandler? OnClick;
 
         internal event EventHandler<OnInnerTextChangedEventArgs>? OnInnerTextChanged;
-
-        [HtmlEvent("onclick")]
-        public void Click(object sender, EventArgs args)
-        {
-            OnClick?.Invoke(this, EventArgs.Empty);
-        }
     }
 }

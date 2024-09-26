@@ -13,9 +13,7 @@ namespace Deaddit.Interfaces
     {
         RedditCommentWebComponent CreateCommentWebComponent(ApiComment newComment, ApiPost post, SelectionGroup selectionGroup);
 
-        RedditMessageComponent CreateMessageComponent(ApiMessage message, SelectionGroup? selectionGroup = null);
-
-        RedditMessageWebComponent CreateMessageWebComponent(ApiMessage message);
+        RedditMessageWebComponent CreateMessageWebComponent(ApiComment message);
 
         MoreCommentsWebComponent CreateMoreCommentsWebComponent(IMore more);
 

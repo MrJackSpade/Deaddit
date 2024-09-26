@@ -28,7 +28,7 @@ namespace Deaddit.Components.WebComponents
 
         private readonly ApiComment _comment;
 
-        private readonly CommentBodyComponent _commentBody;
+        private readonly TextBodyComponent _commentBody;
 
         private readonly DivComponent _commentContainer;
 
@@ -74,7 +74,7 @@ namespace Deaddit.Components.WebComponents
                 FlexDirection = "column",
             };
 
-            _commentBody = new CommentBodyComponent(comment, applicationStyling);
+            _commentBody = new TextBodyComponent(comment.BodyHtml, applicationStyling);
 
             _replies = new RepliesContainerComponent(_applicationStyling);
 
@@ -267,6 +267,7 @@ namespace Deaddit.Components.WebComponents
             _commentContainer.BackgroundColor = _applicationStyling.HighlightColor.ToHex();
             _topBar.Display = "flex";
             _bottomBar.Display = "flex";
+            _replies.BorderLeft = $"1px solid {_applicationStyling.HighlightColor.ToHex()}";
         }
 
         public void Unselect()
@@ -274,25 +275,12 @@ namespace Deaddit.Components.WebComponents
             _commentContainer.BackgroundColor = null;
             _topBar.Display = "none";
             _bottomBar.Display = "none";
+            _replies.BorderLeft = $"1px solid {_applicationStyling.TextColor.ToHex()}";
         }
 
         internal void LoadImages(bool recursive = false)
         {
             throw new NotImplementedException();
-        }
-
-        private ButtonComponent ActionButton(string text)
-        {
-            return new ButtonComponent
-            {
-                InnerText = text,
-                FontSize = $"{_applicationStyling.FontSize}px",
-                Color = _applicationStyling.TextColor.ToHex(),
-                BackgroundColor = _applicationStyling.HighlightColor.ToHex(),
-                Padding = "10px",
-                FlexGrow = "1",
-                Border = "0",
-            };
         }
 
         private void BlockRuleOnSave(object? sender, ObjectEditorSaveEventArgs e)

@@ -403,7 +403,7 @@ namespace Deaddit.Core.Json
                 ThingKind.Subreddit => (ApiSubReddit)DeserializeObject(data, typeof(ApiSubReddit)),
                 ThingKind.More => (ApiMore)DeserializeObject(data, typeof(ApiMore)),
                 ThingKind.Link => (ApiPost)DeserializeObject(data, typeof(ApiPost)),
-                ThingKind.Message => (ApiMessage)DeserializeObject(data, typeof(ApiMessage)),
+                ThingKind.Message => (ApiComment)DeserializeObject(data, typeof(ApiComment)),
                 _ => throw new EnumNotImplementedException(kind),
             };
         }

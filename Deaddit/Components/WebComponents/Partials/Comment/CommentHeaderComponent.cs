@@ -53,7 +53,7 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
             _commentMeta = new()
             {
                 Color = _applicationStyling.SubTextColor.ToHex(),
-                FontSize = $"{(int)(_applicationStyling.FontSize * .75)}px",
+                FontSize = $"{_applicationStyling.SubTextFontSize}px",
                 InnerText = this.GetMetaData()
             };
 

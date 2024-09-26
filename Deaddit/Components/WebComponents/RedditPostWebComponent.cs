@@ -102,6 +102,7 @@ namespace Deaddit.Components.WebComponents
                 Src = post.TryGetPreview(),
                 Width = $"{applicationStyling.ThumbnailSize}px",
                 Height = $"{applicationStyling.ThumbnailSize}px",
+                FlexShrink = "0",
                 ObjectFit = "cover"
             };
 
@@ -154,7 +155,7 @@ namespace Deaddit.Components.WebComponents
             return new ButtonComponent
             {
                 InnerText = text,
-                FontSize = $"{_applicationStyling.FontSize}px",
+                FontSize = $"{_applicationStyling.TitleFontSize}px",
                 Color = _applicationStyling.TextColor.ToHex(),
                 BackgroundColor = _applicationStyling.HighlightColor.ToHex(),
                 Padding = "10px",

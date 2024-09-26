@@ -8,7 +8,7 @@ namespace Deaddit.Components.WebComponents
         public FlairComponent(string text, string highlightColor, ApplicationStyling applicationStyling)
         {
             InnerText = text;
-            FontSize = $"{applicationStyling.FontSize * 0.75}px";
+            FontSize = $"{applicationStyling.SubTextFontSize}px";
             Color = highlightColor;
             BackgroundColor = applicationStyling.PrimaryColor.ToHex();
             Display = "inline";
