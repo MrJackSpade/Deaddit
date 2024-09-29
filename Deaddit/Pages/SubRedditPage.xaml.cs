@@ -70,6 +70,7 @@ namespace Deaddit.Pages
             this.InitializeComponent();
 
             webElement.SetBackgroundColor(applicationStyling.SecondaryColor);
+            webElement.SetBlockQuoteColor(applicationStyling.TextColor);
 
             if (subreddit.Kind == ThingKind.Account)
             {

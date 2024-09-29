@@ -76,5 +76,18 @@ namespace Deaddit.Components
             }
         );
         }
+
+        public void SetBlockQuoteColor(DynamicColor hex)
+        {
+            DocumentStyles.Add(new StyleRule()
+            {
+                CssSelector = "blockquote",
+                Styles =
+                {
+                    ["border-left"] = $"1px solid {hex.ToHex()}",
+                    ["padding-left"] = "5px"
+                }
+            });
+        }
     }
 }

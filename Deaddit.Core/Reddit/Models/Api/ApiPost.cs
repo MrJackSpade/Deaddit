@@ -23,10 +23,10 @@ namespace Deaddit.Core.Reddit.Models.Api
         public bool ContestMode { get; init; }
 
         [JsonPropertyName("crosspost_parent")]
-        public string CrossPostParent { get; init; }
+        public string? CrossPostParent { get; init; }
 
         [JsonPropertyName("crosspost_parent_list")]
-        public List<ApiPost> CrossPostParentList { get; init; }
+        public List<ApiPost> CrossPostParentList { get; init; } = [];
 
         [JsonPropertyName("discussion_type")]
         public object? DiscussionType { get; init; }
