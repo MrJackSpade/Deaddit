@@ -1,26 +1,65 @@
 <html>
 <head>
     <meta charset="" UTF-8"">
-    <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        pre {
-            overflow-x:scroll;
-        }
-    </style>
+    <style></style>
     <script>
+
+        function addStyle(selector, base64Rules) {
+            try {
+                if (typeof selector !== 'string' || typeof base64Rules !== 'string') {
+                    throw new Error('Invalid arguments.');
+                }
+
+                // Decode the Base64-encoded rules using base64ToUtf8
+                const jsonString = base64ToUtf8(base64Rules);
+                if (!jsonString) {
+                    throw new Error('Decoded rules are empty.');
+                }
+
+                const rules = JSON.parse(jsonString);
+
+                // Helper function to convert camelCase to kebab-case
+                function camelToKebab(str) {
+                    return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+                }
+
+                // Generate CSS rules from the object
+                let cssRules = '';
+                for (let property in rules) {
+                    if (rules.hasOwnProperty(property)) {
+                        const cssProperty = camelToKebab(property);
+                        cssRules += `${cssProperty}: ${rules[property]};\n`;
+                    }
+                }
+
+                // Create the complete CSS string
+                const css = `${selector} {\n${cssRules}}`;
+
+                // Create a new <style> element
+                const styleElement = document.createElement('style');
+                styleElement.type = 'text/css';
+
+                // Add the CSS string to the <style> element
+                styleElement.appendChild(document.createTextNode(css));
+
+                // Append the <style> element to the <head>
+                document.head.appendChild(styleElement);
+            } catch (error) {
+                // Handle errors
+                console.error('Error in addStyle:', error.message);
+                navigate('error', '', { message: error.message });
+            }
+        }
+        function addScript(src) {
+            // Create a new <script> element
+            let scriptElement = document.createElement('script');
+            scriptElement.type = 'text/javascript';
+            scriptElement.src = src;
+
+            // Append the <script> element to the <head>
+            document.head.appendChild(scriptElement);
+        }
+
         // Function to generate a GUID
         function generateGUID() {
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -100,17 +139,47 @@
             }
         };
 
-        function updateTextNode(elementId, newText) {
+        function updateInnerHTML(elementId, base64NewText) {
             try {
                 if (!elementId || typeof elementId !== 'string') {
                     throw new Error('Invalid elementId.');
                 }
-                if (typeof newText !== 'string') {
-                    throw new Error('Invalid newText.');
+                if (typeof base64NewText !== 'string') {
+                    throw new Error('Invalid base64NewText.');
                 }
                 const element = document.getElementById(elementId);
 
                 if (element) {
+                    // Decode the base64-encoded newText
+                    var newText = base64ToUtf8(base64NewText);
+                    if (!newText) {
+                        throw new Error('Decoded newText is empty.');
+                    }
+                    element.innerHTML = newText;
+                } else {
+                    throw new Error(`Element with ID "${elementId}" not found.`);
+                }
+            } catch (error) {
+                navigate('error', '', { message: error.message });
+            }
+        }
+
+        function updateTextNode(elementId, base64NewText) {
+            try {
+                if (!elementId || typeof elementId !== 'string') {
+                    throw new Error('Invalid elementId.');
+                }
+                if (typeof base64NewText !== 'string') {
+                    throw new Error('Invalid base64NewText.');
+                }
+                const element = document.getElementById(elementId);
+
+                if (element) {
+                    // Decode the base64-encoded newText
+                    var newText = base64ToUtf8(base64NewText);
+                    if (!newText) {
+                        throw new Error('Decoded newText is empty.');
+                    }
                     let textNodeFound = false;
                     for (let i = 0; i < element.childNodes.length; i++) {
                         const node = element.childNodes[i];
@@ -207,17 +276,26 @@
                     throw new Error('Decoded HTML is empty.');
                 }
 
+                // Create a temporary container to hold the decoded HTML
                 var div = document.createElement('div');
                 div.innerHTML = decodedHtml;
-                var newElement = div.firstChild;
-                if (!newElement) {
-                    throw new Error('Failed to create new element from decoded HTML.');
+
+                // Create a DocumentFragment to hold the new elements
+                var fragment = document.createDocumentFragment();
+                var childNodes = Array.from(div.childNodes);
+                if (childNodes.length === 0) {
+                    throw new Error('Failed to create new elements from decoded HTML.');
                 }
 
+                childNodes.forEach(function (node) {
+                    fragment.appendChild(node);
+                });
+
+                // Insert the fragment at the specified index
                 if (index >= container.children.length) {
-                    container.appendChild(newElement);
+                    container.appendChild(fragment);
                 } else {
-                    container.insertBefore(newElement, container.children[index]);
+                    container.insertBefore(fragment, container.children[index]);
                 }
 
                 // Restore the previous scroll position

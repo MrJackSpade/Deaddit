@@ -8,6 +8,8 @@ namespace Deaddit.Components.WebComponents.Partials.Post
     {
         private readonly ApplicationStyling _applicationStyling;
 
+        private readonly ApiPost _post;
+
         private readonly ButtonComponent _saveButton;
 
         public event EventHandler CommentsClicked;
@@ -19,8 +21,6 @@ namespace Deaddit.Components.WebComponents.Partials.Post
         public event EventHandler SaveClicked;
 
         public event EventHandler ShareClicked;
-
-        private readonly ApiPost _post;
 
         public ActionButtonsComponent(ApplicationStyling applicationStyling, ApiPost post)
         {
@@ -63,7 +63,7 @@ namespace Deaddit.Components.WebComponents.Partials.Post
                 InnerText = text,
                 FontSize = $"{_applicationStyling.TitleFontSize}px",
                 Color = _applicationStyling.TextColor.ToHex(),
-                BackgroundColor = _applicationStyling.HighlightColor.ToHex(),
+                BackgroundColor = "transparent",
                 Padding = "10px",
                 FlexGrow = "1",
                 Border = "0",

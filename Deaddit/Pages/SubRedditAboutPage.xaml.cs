@@ -1,9 +1,7 @@
-using Deaddit.Components;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
-using Deaddit.Core.Utils;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.Pages.Models;
@@ -86,15 +84,6 @@ namespace Deaddit.Pages
             _subRedditAboutPageModel.VisibleMetaData = $"{_apiSubReddit.Subscribers} subscribers, {_apiSubReddit.ActiveUserCount} online";
 
             this.SetSubscribeButtonState(_apiSubReddit.UserIsSubscriber);
-        }
-
-        private async void OnHyperLinkClicked(object? sender, LinkEventArgs e)
-        {
-            Ensure.NotNullOrWhiteSpace(e.Url);
-
-            PostItems resource = UrlHelper.Resolve(e.Url);
-
-            await Navigation.OpenResource(resource, _appNavigator);
         }
 
         private void SetSubscribeButtonState(bool state)

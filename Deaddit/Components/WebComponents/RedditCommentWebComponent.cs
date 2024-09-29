@@ -1,7 +1,6 @@
 ﻿using Deaddit.Components.WebComponents.Partials.Comment;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Exceptions;
-using Deaddit.Core.Extensions;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
@@ -16,6 +15,7 @@ using Deaddit.Pages;
 using Deaddit.Utils;
 using Maui.WebComponents.Attributes;
 using Maui.WebComponents.Components;
+using System.Web;
 
 namespace Deaddit.Components.WebComponents
 {
@@ -28,7 +28,7 @@ namespace Deaddit.Components.WebComponents
 
         private readonly ApiComment _comment;
 
-        private readonly TextBodyComponent _commentBody;
+        private readonly HtmlBodyComponent _commentBody;
 
         private readonly DivComponent _commentContainer;
 
@@ -74,7 +74,7 @@ namespace Deaddit.Components.WebComponents
                 FlexDirection = "column",
             };
 
-            _commentBody = new TextBodyComponent(comment.BodyHtml, applicationStyling);
+            _commentBody = new HtmlBodyComponent(comment.BodyHtml, applicationStyling);
 
             _replies = new RepliesContainerComponent(_applicationStyling);
 
@@ -280,7 +280,45 @@ namespace Deaddit.Components.WebComponents
 
         internal void LoadImages(bool recursive = false)
         {
-            throw new NotImplementedException();
+            // Parse the InnerText as HTML
+            HtmlAgilityPack.HtmlDocument doc = new();
+            doc.LoadHtml(_commentBody.InnerHTML);
+
+            bool modified = false;
+
+            // Find all <a> elements with href attributes
+            HtmlAgilityPack.HtmlNodeCollection links = doc.DocumentNode.SelectNodes("//a[@href]");
+            if (links != null)
+            {
+                foreach (HtmlAgilityPack.HtmlNode? link in links)
+                {
+                    string href = HttpUtility.HtmlDecode(link.GetAttributeValue("href", string.Empty));
+                    // Use UrlHelper.Resolve to determine if it's an image
+                    PostItems items = UrlHelper.Resolve(href);
+                    if (items.Kind == PostTargetKind.Image)
+                    {
+                        modified = true;
+                        // Create a new <img> element
+                        HtmlAgilityPack.HtmlNode img = HtmlAgilityPack.HtmlNode.CreateNode($"<a href=\"{href}\"><img src=\"{href}\" /></a>");
+                        // Replace the <a> element with the <img> element
+                        link.ParentNode.ReplaceChild(img, link);
+                    }
+                }
+            }
+
+            if (modified)
+            {
+                // Update the InnerText with the modified HTML
+                _commentBody.InnerHTML = doc.DocumentNode.InnerHtml;
+            }
+
+            if (recursive)
+            {
+                foreach (RedditCommentWebComponent redditCommentWebComponent in _replies.Children.OfType<RedditCommentWebComponent>())
+                {
+                    redditCommentWebComponent.LoadImages(true);
+                }
+            }
         }
 
         private void BlockRuleOnSave(object? sender, ObjectEditorSaveEventArgs e)

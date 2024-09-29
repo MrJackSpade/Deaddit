@@ -1,5 +1,4 @@
-using Deaddit.Components;
-using Deaddit.Components.WebComponents;
+﻿using Deaddit.Components.WebComponents;
 using Deaddit.Components.WebComponents.Partials.Post;
 using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
@@ -30,6 +29,8 @@ namespace Deaddit.Pages
         private readonly IRedditClient _redditClient;
 
         private readonly DivComponent commentContainer;
+
+        private readonly ButtonComponent loadImageButton;
 
         private readonly ButtonComponent moreButton;
 
@@ -66,7 +67,7 @@ namespace Deaddit.Pages
 
             this.InitializeComponent();
 
-            webElement.BodyStyle["background-color"] = applicationStyling.SecondaryColor.ToHex();
+            webElement.SetBackgroundColor(applicationStyling.SecondaryColor);
 
             commentContainer = new DivComponent()
             {
@@ -94,18 +95,21 @@ namespace Deaddit.Pages
             shareButton = this.ActionButton("Share");
             saveButton = this.ActionButton("Save");
             moreButton = this.ActionButton("...");
+            loadImageButton = this.ActionButton("🖼");
             replyButton = this.ActionButton("Reply");
 
             shareButton.OnClick += this.OnShareClicked;
             saveButton.OnClick += this.OnSaveClicked;
             moreButton.OnClick += this.OnMoreOptionsClicked;
             replyButton.OnClick += this.OnReplyClicked;
+            loadImageButton.OnClick += this.OnLoadImageClicked;
 
             saveButton.InnerText = Post.Saved == true ? "Unsave" : "Save";
 
             actionButtons.Children.Add(shareButton);
             actionButtons.Children.Add(saveButton);
             actionButtons.Children.Add(moreButton);
+            actionButtons.Children.Add(loadImageButton);
             actionButtons.Children.Add(replyButton);
 
             webElement.AddChild(actionButtons);
@@ -137,15 +141,6 @@ namespace Deaddit.Pages
         public virtual async void OnHideClicked(object? sender, EventArgs e)
         {
             await _redditClient.ToggleVisibility(Post, false);
-        }
-
-        public virtual async void OnHyperLinkClicked(object? sender, LinkEventArgs e)
-        {
-            Ensure.NotNullOrWhiteSpace(e.Url);
-
-            PostItems resource = UrlHelper.Resolve(e.Url);
-
-            await Navigation.OpenResource(resource, AppNavigator);
         }
 
         public virtual void OnImagesClicked(object? sender, EventArgs e)
@@ -332,6 +327,14 @@ namespace Deaddit.Pages
             ObjectEditorPage objectEditorPage = await AppNavigator.OpenObjectEditor(blockRule);
 
             objectEditorPage.OnSave += this.BlockRuleOnSave;
+        }
+
+        private void OnLoadImageClicked(object? sender, EventArgs e)
+        {
+            foreach (RedditCommentWebComponent commentComponent in commentContainer.Children.OfType<RedditCommentWebComponent>())
+            {
+                commentComponent.LoadImages(true);
+            }
         }
 
         private void ReplyPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)

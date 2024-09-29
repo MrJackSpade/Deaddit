@@ -63,7 +63,7 @@ namespace Deaddit.Core.Utils
                 testUrl = testUrl[..testUrl.IndexOf('?')];
             }
 
-            string mimeType = UrlHelper.GetMimeTypeFromUri(new Uri(testUrl));
+            string mimeType = GetMimeTypeFromUri(new Uri(testUrl));
 
             PostItems items;
             // Switch based on the type

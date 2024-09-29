@@ -3,7 +3,6 @@ using Deaddit.Core.Extensions;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Maui.WebComponents.Components;
-using Microsoft.Maui.Handlers;
 
 namespace Deaddit.Components.WebComponents.Partials.Comment
 {
@@ -13,9 +12,9 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
 
         private readonly ApiComment _comment;
 
-        private readonly SpanComponent _voteIndicator;
-
         private readonly SpanComponent _commentMeta;
+
+        private readonly SpanComponent _voteIndicator;
 
         public CommentHeaderComponent(ApplicationStyling applicationStyling, ApiComment comment, ApiPost parentPost)
         {
@@ -40,10 +39,12 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
                     }
 
                     break;
+
                 case DistinguishedKind.Moderator:
                     authorSpan.BackgroundColor = _applicationStyling.ModeratorAuthorBackgroundColor.ToHex();
                     authorSpan.Color = _applicationStyling.ModeratorAuthorTextColor.ToHex();
                     break;
+
                 case DistinguishedKind.Admin:
                     authorSpan.BackgroundColor = _applicationStyling.AdminAuthorBackgroundColor.ToHex();
                     authorSpan.Color = _applicationStyling.AdminAuthorBackgroundColor.ToHex();

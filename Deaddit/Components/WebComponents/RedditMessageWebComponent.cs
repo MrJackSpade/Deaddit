@@ -1,4 +1,5 @@
 ﻿using Deaddit.Components.WebComponents.Partials.Comment;
+using Deaddit.Components.WebComponents.Partials.Post;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Exceptions;
 using Deaddit.Core.Interfaces;
@@ -19,16 +20,15 @@ namespace Deaddit.Components.WebComponents
     [HtmlEntity("reddit-message")]
     public class RedditMessageWebComponent : DivComponent, ISelectionGroupItem
     {
-
         private readonly ApplicationStyling _applicationStyling;
 
         private readonly BottomBarComponent _bottomBar;
 
-        private readonly ApiMessage _message;
-
-        private readonly TextBodyComponent _commentBody;
+        private readonly HtmlBodyComponent _commentBody;
 
         private readonly DivComponent _commentContainer;
+
+        private readonly ApiMessage _message;
 
         private readonly MessageHeaderComponent _messageHeader;
 
@@ -70,7 +70,7 @@ namespace Deaddit.Components.WebComponents
                 FlexDirection = "column",
             };
 
-            _commentBody = new TextBodyComponent(message.BodyHtml, applicationStyling);
+            _commentBody = new HtmlBodyComponent(message.BodyHtml, applicationStyling);
 
             _replies = new RepliesContainerComponent(_applicationStyling);
 

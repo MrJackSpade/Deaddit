@@ -6,7 +6,7 @@
              xmlns:webComponents="clr-namespace:Maui.WebComponents;assembly=Maui.WebComponents">
     <ScrollView
         x:Name="scrollView">
-        <webComponents:WebElement x:Name="webElement">
-        </webComponents:WebElement>
+        <components:RedditWebElement x:Name="webElement">
+        </components:RedditWebElement>
     </ScrollView>
 </ContentPage>
