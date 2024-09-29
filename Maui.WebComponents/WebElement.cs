@@ -39,7 +39,7 @@ namespace Maui.WebComponents
             await _loadedTask.Task;
             _children.Clear();
             _componentMap.Clear();
-            await this.EvaluateJavaScriptAsync($"document.body.replaceChildren();");
+            await this.EvaluateJavaScriptWithResultAsync($"document.body.replaceChildren();");
         }
 
         public async Task InsertChild(int index, WebComponent child)
@@ -122,7 +122,7 @@ namespace Maui.WebComponents
         {
             Type type = component.GetType();
             HtmlEntityAttribute? entityAttr = type.GetCustomAttribute<HtmlEntityAttribute>()
-                                              ?? throw new InvalidOperationException($"Component {type.Name} is missing HtmlEntity attribute.");
+                                                  ?? throw new InvalidOperationException($"Component {type.Name} is missing HtmlEntity attribute.");
 
             StringBuilder sb = new();
             sb.Append($"<{entityAttr.Tag}");
@@ -248,7 +248,7 @@ namespace Maui.WebComponents
             try
             {
                 // Execute the JavaScript code
-                string result = await this.EvaluateJavaScriptAsync(script);
+                await this.EvaluateJavaScriptWithResultAsync(script);
 
                 component.IsRendered = true;
             }
@@ -333,9 +333,9 @@ namespace Maui.WebComponents
         {
             _componentMap[component.Id] = component;
 
-            component.Style.OnStyleChanged += async (s, e) => await this.EvaluateJavaScriptAsync($"updateElementStyle('{component.Id}', '{e.Key}', '{e.Value}')");
-            component.OnInnerTextChanged += async (s, e) => await this.EvaluateJavaScriptAsync($"updateTextNode('{component.Id}', '{EncodeHtml(e.Text)}')");
-            component.OnInnerHTMLChanged += async (s, e) => await this.EvaluateJavaScriptAsync($"updateInnerHTML('{component.Id}', '{EncodeHtml(e.Text)}')");
+            component.Style.OnStyleChanged += async (s, e) => await this.EvaluateJavaScriptWithResultAsync($"updateElementStyle('{component.Id}', '{e.Key}', '{e.Value}')");
+            component.OnInnerTextChanged += async (s, e) => await this.EvaluateJavaScriptWithResultAsync($"updateTextNode('{component.Id}', '{EncodeHtml(e.Text)}')");
+            component.OnInnerHTMLChanged += async (s, e) => await this.EvaluateJavaScriptWithResultAsync($"updateInnerHTML('{component.Id}', '{EncodeHtml(e.Text)}')");
             component.Children.OnWebComponentAdded += async (s, e) => await this.InsertChild(component, -1, e.Added);
             component.Children.OnWebComponentInsert += async (s, e) => await this.InsertChild(component, e.Index, e.Added);
             component.Children.OnWebComponentRemoved += async (s, e) => await this.RemoveChild(e.Removed);
@@ -375,7 +375,7 @@ namespace Maui.WebComponents
         {
             string script = $"removeElement('{component.Id}');";
             component.IsRendered = false;
-            await this.EvaluateJavaScriptAsync(script);
+            await this.EvaluateJavaScriptWithResultAsync(script);
         }
 
         private string RenderInitialHtml()
@@ -431,7 +431,31 @@ namespace Maui.WebComponents
             string script = $"addStyle('{escapedSelector}', '{escapedBase64Rules}');";
 
             // Execute the JavaScript
-            await this.EvaluateJavaScriptAsync(script);
+            await this.EvaluateJavaScriptWithResultAsync(script);
+        }
+
+        private async Task EvaluateJavaScriptWithResultAsync(string script)
+        {
+            string result = await this.EvaluateJavaScriptAsync(script);
+
+            try
+            {
+                OperationResult resultObj = JsonSerializer.Deserialize<OperationResult>(result);
+
+                if (resultObj.Success)
+                {
+                    // success
+                    return;
+                }
+                else
+                {
+                    throw new Exception(resultObj.Message);
+                }
+            }
+            catch (JsonException ex)
+            {
+                throw new Exception("Failed to parse JavaScript result: " + ex.Message);
+            }
         }
     }
 }
