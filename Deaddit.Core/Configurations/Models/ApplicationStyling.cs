@@ -14,20 +14,14 @@ namespace Deaddit.Core.Configurations.Models
         [EditorDisplay(Name = "Blocked Background Color", Order = 13)]
         public DynamicColor BlockedBackgroundColor { get; set; } = DynamicColor.Parse("#3b1f1f");
 
+        [EditorDisplay(Name = "Comment Font Size", Order = 11)]
+        public double CommentFontSize { get; set; } = 12;
+
         [EditorDisplay(Name = "Distinguished Title Color", Order = 4)]
         public DynamicColor DistinguishedTitleColor { get; set; } = DynamicColor.Parse("#287F24");
 
         [EditorDisplay(Name = "Downvote Color", Order = 10)]
         public DynamicColor DownvoteColor { get; set; } = DynamicColor.Parse("#7193ff");
-
-        [EditorDisplay(Name = "Title Font Size", Order = 11)]
-        public double TitleFontSize { get; set; } = 16;
-
-        [EditorDisplay(Name = "SubText Font Size", Order = 11)]
-        public double SubTextFontSize { get; set; } = 12;
-
-        [EditorDisplay(Name = "Comment Font Size", Order = 11)]
-        public double CommentFontSize { get; set; } = 12;
 
         [EditorDisplay(Name = "Highlight Color", Order = 5)]
         public DynamicColor HighlightColor { get; set; } = DynamicColor.Parse("#313E4F");
@@ -56,6 +50,9 @@ namespace Deaddit.Core.Configurations.Models
         [EditorDisplay(Name = "Subtext Color", Order = 7)]
         public DynamicColor SubTextColor { get; set; } = DynamicColor.Parse("#CCCCCC");
 
+        [EditorDisplay(Name = "SubText Font Size", Order = 11)]
+        public double SubTextFontSize { get; set; } = 12;
+
         [EditorDisplay(Name = "Tertiary Color", Order = 3)]
         public DynamicColor TertiaryColor { get; set; } = DynamicColor.Parse("#434343");
 
@@ -64,6 +61,9 @@ namespace Deaddit.Core.Configurations.Models
 
         [EditorDisplay(Name = "Thumbnail Size", Order = 12)]
         public int ThumbnailSize { get; set; } = 75;
+
+        [EditorDisplay(Name = "Title Font Size", Order = 11)]
+        public double TitleFontSize { get; set; } = 16;
 
         [EditorDisplay(Name = "Upvote Color", Order = 9)]
         public DynamicColor UpvoteColor { get; set; } = DynamicColor.Parse("#ff4500");

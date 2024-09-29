@@ -3,58 +3,28 @@ using System.Collections;
 
 namespace Maui.WebComponents.Classes
 {
-    public class StyleCollection : IEnumerable<KeyValuePair<string, string>>
+    public class StyleRuleCollection : IEnumerable<StyleRule>
     {
-        private readonly Dictionary<string, string> _styles = [];
+        private readonly List<StyleRule> _styles = [];
 
         public int Count => _styles.Count;
 
-        internal event EventHandler<OnStyleChangedEventArgs>? OnStyleChanged;
+        internal event EventHandler<OnStyleRuleAddedEventArgs>? OnStyleRuleAdded;
 
-        public string this[string key]
+        public void Add(StyleRule styleRule)
         {
-            get => _styles[key];
-            set => this.SetValue(key, value);
+            _styles.Add(styleRule);
+            OnStyleRuleAdded?.Invoke(this, new OnStyleRuleAddedEventArgs(styleRule));
         }
 
-        public void Add(string key, string value)
+        public IEnumerator<StyleRule> GetEnumerator()
         {
-            _styles.Add(key, value);
-            OnStyleChanged?.Invoke(this, new OnStyleChangedEventArgs { Key = key, Value = value });
-        }
-
-        public bool ContainsKey(string key)
-        {
-            return _styles.ContainsKey(key);
-        }
-
-        public IEnumerator<KeyValuePair<string, string>> GetEnumerator()
-        {
-            return ((IEnumerable<KeyValuePair<string, string>>)_styles).GetEnumerator();
+            return ((IEnumerable<StyleRule>)_styles).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
             return ((IEnumerable)_styles).GetEnumerator();
-        }
-
-        public void Remove(string key)
-        {
-            if (_styles.Remove(key))
-            {
-                OnStyleChanged?.Invoke(this, new OnStyleChangedEventArgs { Key = key, Value = null });
-            }
-        }
-
-        private void SetValue(string key, string value)
-        {
-            _styles.TryGetValue(key, out string existingValue);
-
-            if (value != existingValue)
-            {
-                _styles[key] = value;
-                OnStyleChanged?.Invoke(this, new OnStyleChangedEventArgs { Key = key, Value = value });
-            }
         }
     }
 }

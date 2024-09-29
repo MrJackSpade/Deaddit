@@ -69,7 +69,7 @@ namespace Deaddit.Pages
 
             this.InitializeComponent();
 
-            webElement.BodyStyle["background-color"] = applicationStyling.SecondaryColor.ToHex();
+            webElement.SetBackgroundColor(applicationStyling.SecondaryColor);
 
             if (subreddit.Kind == ThingKind.Account)
             {
@@ -329,6 +329,7 @@ namespace Deaddit.Pages
         {
             _loadedPosts.Clear();
             _after = null;
+            _selectionGroup.Unselect();
 
             await webElement.Clear();
 

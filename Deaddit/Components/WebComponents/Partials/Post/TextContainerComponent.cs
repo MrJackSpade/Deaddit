@@ -45,7 +45,7 @@ namespace Deaddit.Components.WebComponents.Partials.Post
 
             Children.Add(title);
 
-            var cleanedLinkFlair = applicationHacks.CleanFlair(post.LinkFlairText);
+            string? cleanedLinkFlair = applicationHacks.CleanFlair(post.LinkFlairText);
             if (!string.IsNullOrWhiteSpace(cleanedLinkFlair))
             {
                 string color = post.LinkFlairBackgroundColor?.ToHex() ?? applicationStyling.TextColor.ToHex();

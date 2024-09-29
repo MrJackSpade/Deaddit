@@ -43,5 +43,11 @@ namespace Deaddit.Core.Utils
                 _selected = null;
             }
         }
+
+        public void Unselect()
+        {
+            _selected?.Unselect();
+            _selected = null;
+        }
     }
 }

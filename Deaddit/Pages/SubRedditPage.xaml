@@ -47,7 +47,7 @@
                     Clicked="OnSettingsClicked" />
         </Grid>
         <!-- Main Content -->
-        <webComponents:WebElement Grid.Row="1" x:Name="webElement">
-        </webComponents:WebElement>
+        <components:RedditWebElement Grid.Row="1" x:Name="webElement">
+        </components:RedditWebElement>
     </Grid>
 </ContentPage>

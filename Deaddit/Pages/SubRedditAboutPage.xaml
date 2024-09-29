@@ -88,18 +88,6 @@
                 Margin="20"
                 BackgroundColor="{Binding PrimaryColor}"
                 HorizontalOptions="Center">
-            <components:MarkdownView
-            VerticalOptions="FillAndExpand"
-            HorizontalOptions="FillAndExpand"
-            Margin="20"
-            Padding="20"
-            OnHyperLinkClicked="OnHyperLinkClicked"
-            HyperlinkColor="{Binding HyperlinkColor}"
-            TextColor="{Binding TextColor}"
-            BackgroundColor="{Binding PrimaryColor}"
-            TextFontSize="{Binding FontSize}"
-            MarkdownText="{Binding Description}">
-            </components:MarkdownView>
         </Border>
     </VerticalStackLayout>
 </ContentPage>

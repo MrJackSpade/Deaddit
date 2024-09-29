@@ -6,12 +6,27 @@ namespace Maui.WebComponents.Components
 {
     public partial class WebComponent
     {
+        private string _innerHTML = string.Empty;
+
         private string _innerText = string.Empty;
 
         public WebComponentCollection Children { get; } = [];
 
         [HtmlAttribute]
         public string Id { get; } = Guid.NewGuid().ToString();
+
+        public string InnerHTML
+        {
+            get => _innerHTML;
+            set
+            {
+                if (_innerHTML != value)
+                {
+                    _innerHTML = value;
+                    OnInnerHTMLChanged?.Invoke(this, new OnTextChangedEventArgs { Text = value });
+                }
+            }
+        }
 
         public string InnerText
         {
@@ -21,7 +36,7 @@ namespace Maui.WebComponents.Components
                 if (_innerText != value)
                 {
                     _innerText = value;
-                    OnInnerTextChanged?.Invoke(this, new OnInnerTextChangedEventArgs { InnerText = value });
+                    OnInnerTextChanged?.Invoke(this, new OnTextChangedEventArgs { Text = value });
                 }
             }
         }
@@ -33,6 +48,8 @@ namespace Maui.WebComponents.Components
         [HtmlEvent("onclick", true)]
         public event EventHandler? OnClick;
 
-        internal event EventHandler<OnInnerTextChangedEventArgs>? OnInnerTextChanged;
+        internal event EventHandler<OnTextChangedEventArgs>? OnInnerHTMLChanged;
+
+        internal event EventHandler<OnTextChangedEventArgs>? OnInnerTextChanged;
     }
 }

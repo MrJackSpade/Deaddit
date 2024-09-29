@@ -2,7 +2,6 @@
 using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Exceptions;
-using Deaddit.Core.Extensions;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Extensions;
 using Deaddit.Core.Reddit.Interfaces;
@@ -44,9 +43,13 @@ namespace Deaddit.Components.WebComponents
 
         private readonly IAppNavigator _appNavigator;
 
+        private readonly string _backgroundColor;
+
         private readonly BlockConfiguration _blockConfiguration;
 
         private readonly IConfigurationService _configurationService;
+
+        private readonly string _highlightColor;
 
         private readonly INavigation _navigation;
 
@@ -66,7 +69,7 @@ namespace Deaddit.Components.WebComponents
 
         public event EventHandler<OnHideClickedEventArgs> HideClicked;
 
-        public RedditPostWebComponent(ApiPost post, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration, IConfigurationService configurationService, IAppNavigator appNavigator, IVisitTracker visitTracker, INavigation navigation, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup? selectionGroup)
+        public RedditPostWebComponent(ApiPost post, bool blocked, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration, IConfigurationService configurationService, IAppNavigator appNavigator, IVisitTracker visitTracker, INavigation navigation, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup? selectionGroup)
         {
             _post = post;
             _applicationStyling = applicationStyling;
@@ -79,9 +82,20 @@ namespace Deaddit.Components.WebComponents
             _configurationService = configurationService;
             _applicationHacks = applicationHacks;
 
+            if (blocked)
+            {
+                _backgroundColor = applicationStyling.BlockedBackgroundColor.ToHex();
+                _highlightColor = applicationStyling.BlockedBackgroundColor.ToHex();
+            }
+            else
+            {
+                _backgroundColor = applicationStyling.SecondaryColor.ToHex();
+                _highlightColor = applicationStyling.HighlightColor.ToHex();
+            }
+
             Display = "flex";
             FlexDirection = "column";
-            BackgroundColor = applicationStyling.SecondaryColor.ToHex();
+            BackgroundColor = _backgroundColor;
 
             DivComponent topContainer = new()
             {
@@ -108,7 +122,7 @@ namespace Deaddit.Components.WebComponents
 
             _textContainer = new(post, applicationStyling, applicationHacks);
 
-            if(selectionGroup is null)
+            if (selectionGroup is null)
             {
                 _textContainer.ShowTimeUser(true);
             }
@@ -138,14 +152,16 @@ namespace Deaddit.Components.WebComponents
 
         public void Select()
         {
-            BackgroundColor = _applicationStyling.HighlightColor.ToHex();
+            BackgroundColor = _highlightColor;
+            _actionButtons.BackgroundColor = _highlightColor;
             _textContainer.ShowTimeUser(true);
             _actionButtons.Display = "flex";
         }
 
         public void Unselect()
         {
-            BackgroundColor = _applicationStyling.SecondaryColor.ToHex();
+            BackgroundColor = _backgroundColor;
+            _actionButtons.BackgroundColor = _backgroundColor;
             _textContainer.ShowTimeUser(false);
             _actionButtons.Display = "none";
         }

@@ -6,19 +6,22 @@ using Maui.WebComponents.Exceptions;
 using Maui.WebComponents.Extensions;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
 using System.Web;
 
 namespace Maui.WebComponents
 {
     public class WebElement : WebView
     {
+        public StyleRuleCollection DocumentStyles = [];
+
         private readonly List<WebComponent> _children = [];
 
         private readonly Dictionary<string, WebComponent> _componentMap = [];
 
         private readonly TaskCompletionSource _loadedTask = new();
 
-        public StyleCollection BodyStyle { get; } = [];
+        private string _lastDifferentiator;
 
         public event EventHandler<string> ClickUrl;
 
@@ -26,8 +29,8 @@ namespace Maui.WebComponents
 
         public WebElement()
         {
-            BodyStyle.OnStyleChanged += this.UpdateStyle;
-            Source = new HtmlWebViewSource { Html = RenderInitialHtml() };
+            DocumentStyles.OnStyleRuleAdded += this.UpdateStyle;
+            Source = new HtmlWebViewSource { Html = this.RenderInitialHtml() };
             Navigating += this.OnNavigating;
         }
 
@@ -76,6 +79,43 @@ namespace Maui.WebComponents
         public async Task RemoveChild(WebComponent child)
         {
             await this.RemoveChild(child, true);
+        }
+
+        private static string EncodeHtml(string html)
+        {
+            return Convert.ToBase64String(Encoding.UTF8.GetBytes(html));
+        }
+
+        private static void RaiseEvent(WebComponent component, EventInfo eventInfo, string argsJson)
+        {
+            // Deserialize argsJson if necessary
+            EventArgs eventArgs = EventArgs.Empty; // Replace with actual deserialization if needed
+
+            // Get the backing field of the event (this relies on the field name matching the event name)
+            FieldInfo? field = null;
+
+            Type? searchType = component.GetType();
+
+            while (field == null && searchType != null)
+            {
+                field = searchType.GetField(eventInfo.Name, BindingFlags.Instance | BindingFlags.NonPublic);
+                searchType = searchType.BaseType;
+            }
+
+            if (field != null)
+            {
+                if (field.GetValue(component) is MulticastDelegate eventDelegate)
+                {
+                    // Prepare arguments for the event handler
+                    object[] invokeArgs = [component, eventArgs];
+
+                    // Invoke each subscribed event handler
+                    foreach (Delegate handler in eventDelegate.GetInvocationList())
+                    {
+                        handler.DynamicInvoke(invokeArgs);
+                    }
+                }
+            }
         }
 
         private static string RenderComponent(WebComponent component)
@@ -145,6 +185,11 @@ namespace Maui.WebComponents
                 sb.Append(component.InnerText);
             }
 
+            if (component.InnerHTML != null)
+            {
+                sb.Append(component.InnerHTML);
+            }
+
             // Render children
             foreach (WebComponent child in component.Children)
             {
@@ -152,24 +197,6 @@ namespace Maui.WebComponents
             }
 
             sb.Append($"</{entityAttr.Tag}>");
-
-            return sb.ToString();
-        }
-
-        private static string RenderInitialHtml()
-        {
-            StringBuilder sb = new();
-
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            string resourceName = "Maui.WebComponents.WebElement.html";
-
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-
-            using (StreamReader reader = new(stream))
-            {
-                string result = reader.ReadToEnd();
-                sb.Append(result);
-            }
 
             return sb.ToString();
         }
@@ -193,44 +220,12 @@ namespace Maui.WebComponents
                     if (eventInfo != null)
                     {
                         // Raise the event via reflection
-                        this.RaiseEvent(component, eventInfo, argsJson);
+                        RaiseEvent(component, eventInfo, argsJson);
                     }
                     else
                     {
                         // No method or event found
                         throw new InvalidOperationException($"Method or event '{methodName}' not found on component '{component.GetType().Name}'.");
-                    }
-                }
-            }
-        }
-
-        private void RaiseEvent(WebComponent component, EventInfo eventInfo, string argsJson)
-        {
-            // Deserialize argsJson if necessary
-            EventArgs eventArgs = EventArgs.Empty; // Replace with actual deserialization if needed
-
-            // Get the backing field of the event (this relies on the field name matching the event name)
-            FieldInfo? field = null;
-            
-            Type? searchType = component.GetType();
-
-            while (field == null && searchType != null)
-            {
-                field = searchType.GetField(eventInfo.Name, BindingFlags.Instance | BindingFlags.NonPublic);
-                searchType = searchType.BaseType;
-            }
-
-            if (field != null)
-            {
-                if (field.GetValue(component) is MulticastDelegate eventDelegate)
-                {
-                    // Prepare arguments for the event handler
-                    object[] invokeArgs = [component, eventArgs];
-
-                    // Invoke each subscribed event handler
-                    foreach (Delegate handler in eventDelegate.GetInvocationList())
-                    {
-                        handler.DynamicInvoke(invokeArgs);
                     }
                 }
             }
@@ -243,7 +238,7 @@ namespace Maui.WebComponents
             string elementHtml = RenderComponent(component);
 
             // Base64 encode the HTML string
-            string base64Html = Convert.ToBase64String(Encoding.UTF8.GetBytes(elementHtml));
+            string base64Html = EncodeHtml(elementHtml);
 
             // Build the JavaScript code to execute
             string script = parent is null ?
@@ -262,8 +257,6 @@ namespace Maui.WebComponents
                 Console.WriteLine(ex.Message);
             }
         }
-
-        private string _lastDifferentiator;
 
         private void OnNavigating(object? sender, WebNavigatingEventArgs e)
         {
@@ -329,7 +322,7 @@ namespace Maui.WebComponents
                     .ToDictionary(key => key!, key => queryDictionaryArgs[key])!;
 
                 // Convert args dictionary to JSON string
-                string argsJson = System.Text.Json.JsonSerializer.Serialize(args);
+                string argsJson = JsonSerializer.Serialize(args);
 
                 // Handle the method invocation
                 this.HandleInvokeMethod(componentId, methodName, argsJson);
@@ -341,7 +334,8 @@ namespace Maui.WebComponents
             _componentMap[component.Id] = component;
 
             component.Style.OnStyleChanged += async (s, e) => await this.EvaluateJavaScriptAsync($"updateElementStyle('{component.Id}', '{e.Key}', '{e.Value}')");
-            component.OnInnerTextChanged += async (s, e) => await this.EvaluateJavaScriptAsync($"updateTextNode('{component.Id}', '{e.InnerText}')");
+            component.OnInnerTextChanged += async (s, e) => await this.EvaluateJavaScriptAsync($"updateTextNode('{component.Id}', '{EncodeHtml(e.Text)}')");
+            component.OnInnerHTMLChanged += async (s, e) => await this.EvaluateJavaScriptAsync($"updateInnerHTML('{component.Id}', '{EncodeHtml(e.Text)}')");
             component.Children.OnWebComponentAdded += async (s, e) => await this.InsertChild(component, -1, e.Added);
             component.Children.OnWebComponentInsert += async (s, e) => await this.InsertChild(component, e.Index, e.Added);
             component.Children.OnWebComponentRemoved += async (s, e) => await this.RemoveChild(e.Removed);
@@ -360,6 +354,7 @@ namespace Maui.WebComponents
 
                 component.Style.RemoveEventHandlers(nameof(StyleCollection.OnStyleChanged));
                 component.RemoveEventHandlers(nameof(WebComponent.OnInnerTextChanged));
+                component.RemoveEventHandlers(nameof(WebComponent.OnInnerHTMLChanged));
                 component.Children.RemoveEventHandlers(nameof(WebComponentCollection.OnWebComponentAdded));
                 component.Children.RemoveEventHandlers(nameof(WebComponentCollection.OnWebComponentRemoved));
                 component.Children.RemoveEventHandlers(nameof(WebComponentCollection.OnWebComponentInsert));
@@ -383,11 +378,60 @@ namespace Maui.WebComponents
             await this.EvaluateJavaScriptAsync(script);
         }
 
-        private async void UpdateStyle(object? sender, OnStyleChangedEventArgs? args)
+        private string RenderInitialHtml()
+        {
+            StringBuilder sb = new();
+
+            Assembly assembly = Assembly.GetExecutingAssembly();
+
+            string resourceName = "Maui.WebComponents.WebElement.html";
+
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+
+            using (StreamReader reader = new(stream))
+            {
+                string result = reader.ReadToEnd();
+                sb.Append(result);
+            }
+
+            string html = sb.ToString();
+
+            if (!html.Contains("<style></style>"))
+            {
+                throw new InvalidOperationException("The initial HTML must contain an empty <style> tag to render initial styles");
+            }
+
+            StringBuilder cssBuilder = new();
+
+            foreach (StyleRule styleRule in DocumentStyles)
+            {
+                cssBuilder.Append(styleRule.ToString());
+            }
+
+            html = html.Replace("<style></style>", $"<style>{cssBuilder}</style>");
+
+            return html;
+        }
+
+        private async void UpdateStyle(object? sender, OnStyleRuleAddedEventArgs? args)
         {
             await _loadedTask.Task;
 
-            await this.EvaluateJavaScriptAsync($"updateElementStyle('body', '{args.Key}', '{args.Value}')");
+            // Serialize the styles object to JSON
+            string jsonString = JsonSerializer.Serialize(args.StyleRule.Styles);
+
+            // Encode the JSON string to Base64
+            string base64Rules = Convert.ToBase64String(Encoding.UTF8.GetBytes(jsonString));
+
+            // Escape the CSS selector and Base64 string for JavaScript
+            string escapedSelector = args.StyleRule.CssSelector.Replace("'", "\\'");
+            string escapedBase64Rules = base64Rules.Replace("'", "\\'");
+
+            // Construct the JavaScript call
+            string script = $"addStyle('{escapedSelector}', '{escapedBase64Rules}');";
+
+            // Execute the JavaScript
+            await this.EvaluateJavaScriptAsync(script);
         }
     }
 }
