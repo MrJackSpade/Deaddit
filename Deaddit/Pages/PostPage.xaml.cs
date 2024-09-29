@@ -138,6 +138,8 @@ namespace Deaddit.Pages
         {
             MoreCommentsWebComponent mcomponent = sender as MoreCommentsWebComponent;
 
+            await webElement.RemoveChild(mcomponent);
+
             await DataService.LoadAsync(null, async () => await this.LoadMoreAsync(Post, e), _applicationStyling.HighlightColor.ToMauiColor());
         }
 

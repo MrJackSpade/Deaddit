@@ -3,7 +3,6 @@
     <meta charset="" UTF-8"">
     <style></style>
     <script>
-
         function addStyle(selector, base64Rules) {
             try {
                 if (typeof selector !== 'string' || typeof base64Rules !== 'string') {
@@ -11,12 +10,14 @@
                 }
 
                 // Decode the Base64-encoded rules using base64ToUtf8
-                const jsonString = base64ToUtf8(base64Rules);
-                if (!jsonString) {
-                    throw new Error('Decoded rules are empty.');
+                const decodeResult = base64ToUtf8(base64Rules);
+                if (!decodeResult.success) {
+                    throw new Error(decodeResult.message);
                 }
 
-                const rules = JSON.parse(jsonString);
+                const jsonString = decodeResult.data;
+
+                const rules = jsonString ? JSON.parse(jsonString) : {};
 
                 // Helper function to convert camelCase to kebab-case
                 function camelToKebab(str) {
@@ -44,27 +45,39 @@
 
                 // Append the <style> element to the <head>
                 document.head.appendChild(styleElement);
+
+                return { success: true };
             } catch (error) {
-                // Handle errors
                 console.error('Error in addStyle:', error.message);
-                navigate('error', '', { message: error.message });
+                return { success: false, message: error.message };
             }
         }
-        function addScript(src) {
-            // Create a new <script> element
-            let scriptElement = document.createElement('script');
-            scriptElement.type = 'text/javascript';
-            scriptElement.src = src;
 
-            // Append the <script> element to the <head>
-            document.head.appendChild(scriptElement);
+        function addScript(src) {
+            try {
+                if (typeof src !== 'string') {
+                    throw new Error('Invalid src.');
+                }
+
+                // Create a new <script> element
+                let scriptElement = document.createElement('script');
+                scriptElement.type = 'text/javascript';
+                scriptElement.src = src;
+
+                // Append the <script> element to the <head>
+                document.head.appendChild(scriptElement);
+
+                return { success: true };
+            } catch (error) {
+                return { success: false, message: error.message };
+            }
         }
 
         // Function to generate a GUID
         function generateGUID() {
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-                var r = Math.random() * 16 | 0,
-                    v = c === 'x' ? r : (r & 0x3 | 0x8);
+                var r = (Math.random() * 16) | 0,
+                    v = c === 'x' ? r : (r & 0x3) | 0x8;
                 return v.toString(16);
             });
         }
@@ -84,7 +97,9 @@
 
                 var argsStr = '';
                 if (args && typeof args === 'object') {
-                    var kvps = Object.entries(args).map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`).join('&');
+                    var kvps = Object.entries(args)
+                        .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+                        .join('&');
                     argsStr = kvps;
                 }
 
@@ -94,35 +109,41 @@
                 }
 
                 window.location.href = url;
+
+                return { success: true };
             } catch (error) {
-                // In case of error within navigate, we attempt to navigate to an error URL
-                var errorDifferentiator = generateGUID();
-                window.location.href = `webcomponent://error//${errorDifferentiator}?message=${encodeURIComponent(error.message)}`;
+                return { success: false, message: error.message };
             }
         }
 
-        document.addEventListener('click', function (event) {
-            // Get the element that was clicked
-            var target = event.target;
+        document.addEventListener(
+            'click',
+            function (event) {
+                try {
+                    var target = event.target;
 
-            // Traverse up the DOM tree to find an <a> tag (useful if the click is on a child element)
-            while (target && target !== document) {
-                if (target.tagName === 'A' && target.href) {
-                    // Prevent the default navigation behavior
-                    event.preventDefault();
+                    while (target && target !== document) {
+                        if (target.tagName === 'A' && target.href) {
+                            event.preventDefault();
 
-                    // Extract the href attribute
-                    var href = target.getAttribute('href');
+                            var href = target.getAttribute('href');
 
-                    navigate('navigation', 'href', { href: href });
+                            var navResult = navigate('navigation', 'href', { href: href });
+                            if (!navResult.success) {
+                                console.error('Navigation failed:', navResult.message);
+                            }
 
-                    // Exit the loop once the <a> tag is handled
-                    break;
+                            break;
+                        }
+
+                        target = target.parentNode;
+                    }
+                } catch (error) {
+                    console.error('Error in click event handler:', error.message);
                 }
-
-                target = target.parentNode;
-            }
-        }, true);
+            },
+            true
+        );
 
         function invokeMethod(componentId, methodName, args) {
             try {
@@ -133,31 +154,37 @@
                     throw new Error('Invalid methodName.');
                 }
 
-                // Check if args.target is an "a" element with an "href" attribute
                 if (args && args.target && args.target.tagName === 'A' && args.target.href) {
                     const href = args.target.href;
 
-                    // Prevent the default navigation behavior
                     if (typeof args.preventDefault === 'function') {
                         args.preventDefault();
                     }
 
-                    return; // Exit the function if redirecting
+                    return { success: true };
                 }
 
-                navigate(componentId, methodName, args);
+                var navResult = navigate(componentId, methodName, args);
+                if (!navResult.success) {
+                    throw new Error(navResult.message);
+                }
+
+                return { success: true };
             } catch (error) {
-                navigate('error', '', { message: error.message });
+                return { success: false, message: error.message };
             }
         }
 
         window.onscroll = function (ev) {
             try {
-                if ((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight - 5) {
-                    navigate('scroll', 'bottom', {});
+                if (window.innerHeight + window.pageYOffset >= document.body.offsetHeight - 5) {
+                    var navResult = navigate('scroll', 'bottom', {});
+                    if (!navResult.success) {
+                        console.error('Navigation failed:', navResult.message);
+                    }
                 }
             } catch (error) {
-                navigate('error', '', { message: error.message });
+                console.error('Error in onscroll:', error.message);
             }
         };
 
@@ -172,17 +199,19 @@
                 const element = document.getElementById(elementId);
 
                 if (element) {
-                    // Decode the base64-encoded newText
-                    var newText = base64ToUtf8(base64NewText);
-                    if (!newText) {
-                        throw new Error('Decoded newText is empty.');
+                    var decodeResult = base64ToUtf8(base64NewText);
+                    if (!decodeResult.success) {
+                        throw new Error(decodeResult.message);
                     }
+                    var newText = decodeResult.data; // This can be empty string
+
                     element.innerHTML = newText;
+                    return { success: true };
                 } else {
                     throw new Error(`Element with ID "${elementId}" not found.`);
                 }
             } catch (error) {
-                navigate('error', '', { message: error.message });
+                return { success: false, message: error.message };
             }
         }
 
@@ -197,11 +226,12 @@
                 const element = document.getElementById(elementId);
 
                 if (element) {
-                    // Decode the base64-encoded newText
-                    var newText = base64ToUtf8(base64NewText);
-                    if (!newText) {
-                        throw new Error('Decoded newText is empty.');
+                    var decodeResult = base64ToUtf8(base64NewText);
+                    if (!decodeResult.success) {
+                        throw new Error(decodeResult.message);
                     }
+                    var newText = decodeResult.data; // This can be empty string
+
                     let textNodeFound = false;
                     for (let i = 0; i < element.childNodes.length; i++) {
                         const node = element.childNodes[i];
@@ -212,15 +242,15 @@
                         }
                     }
                     if (!textNodeFound) {
-                        // Add a new text node if none are found
                         const textNode = document.createTextNode(newText);
                         element.appendChild(textNode);
                     }
+                    return { success: true };
                 } else {
                     throw new Error(`Element with ID "${elementId}" not found.`);
                 }
             } catch (error) {
-                navigate('error', '', { message: error.message });
+                return { success: false, message: error.message };
             }
         }
 
@@ -239,40 +269,43 @@
                 const element = document.getElementById(elementId);
                 if (element) {
                     element.style[styleKey] = value;
+                    return { success: true };
                 } else {
                     throw new Error(`Element with ID "${elementId}" not found.`);
                 }
             } catch (error) {
-                navigate('error', '', { message: error.message });
+                return { success: false, message: error.message };
             }
         }
 
         function base64ToUtf8(base64Str) {
             try {
-                if (!base64Str || typeof base64Str !== 'string') {
+                if (base64Str === null || base64Str === undefined || typeof base64Str !== 'string') {
                     throw new Error('Invalid base64Str.');
                 }
-                // Decode base64 to bytes
+
+                // Handle empty string
+                if (base64Str === '') {
+                    return { success: true, data: '' };
+                }
+
                 var binaryStr = atob(base64Str);
 
-                // Convert binary string to an array of bytes
                 var bytes = new Uint8Array(binaryStr.length);
                 for (var i = 0; i < binaryStr.length; i++) {
                     bytes[i] = binaryStr.charCodeAt(i);
                 }
 
-                // Decode bytes to a UTF-8 string
                 var decodedStr = new TextDecoder('utf-8').decode(bytes);
-                return decodedStr;
+                return { success: true, data: decodedStr };
             } catch (error) {
-                navigate('error', '', { message: 'Error decoding base64 string: ' + error.message });
-                return null;
+                return { success: false, message: 'Error decoding base64 string: ' + error.message };
             }
         }
 
         function addElement(base64Html, index, parentid) {
             try {
-                if (!base64Html || typeof base64Html !== 'string') {
+                if (typeof base64Html !== 'string') {
                     throw new Error('Invalid base64Html.');
                 }
                 if (typeof index !== 'number' || index < 0) {
@@ -289,20 +322,22 @@
                     container = document.body;
                 }
 
-                // Save the current scroll position
                 var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
-                // Decode the base64-encoded HTML string using UTF-8
-                var decodedHtml = base64ToUtf8(base64Html);
-                if (!decodedHtml) {
+                var decodeResult = base64ToUtf8(base64Html);
+                if (!decodeResult.success) {
+                    throw new Error(decodeResult.message);
+                }
+                var decodedHtml = decodeResult.data;
+
+                // Handle empty decodedHtml
+                if (decodedHtml === '') {
                     throw new Error('Decoded HTML is empty.');
                 }
 
-                // Create a temporary container to hold the decoded HTML
                 var div = document.createElement('div');
                 div.innerHTML = decodedHtml;
 
-                // Create a DocumentFragment to hold the new elements
                 var fragment = document.createDocumentFragment();
                 var childNodes = Array.from(div.childNodes);
                 if (childNodes.length === 0) {
@@ -313,17 +348,17 @@
                     fragment.appendChild(node);
                 });
 
-                // Insert the fragment at the specified index
                 if (index >= container.children.length) {
                     container.appendChild(fragment);
                 } else {
                     container.insertBefore(fragment, container.children[index]);
                 }
 
-                // Restore the previous scroll position
                 window.scrollTo(0, scrollTop);
+
+                return { success: true };
             } catch (error) {
-                navigate('error', '', { message: error.message });
+                return { success: false, message: error.message };
             }
         }
 
@@ -335,19 +370,23 @@
                 var element = document.getElementById(componentId);
                 if (element) {
                     element.parentNode.removeChild(element);
+                    return { success: true };
                 } else {
                     throw new Error(`Element with ID "${componentId}" not found.`);
                 }
             } catch (error) {
-                navigate('error', '', { message: error.message });
+                return { success: false, message: error.message };
             }
         }
 
         window.onload = function () {
             try {
-                navigate('system', 'Loaded', {});
+                var navResult = navigate('system', 'Loaded', {});
+                if (!navResult.success) {
+                    console.error('Navigation failed:', navResult.message);
+                }
             } catch (error) {
-                navigate('error', '', { message: error.message });
+                console.error('Error in onload:', error.message);
             }
         };
 
