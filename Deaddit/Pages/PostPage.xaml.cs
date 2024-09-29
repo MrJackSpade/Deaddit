@@ -68,6 +68,8 @@ namespace Deaddit.Pages
             this.InitializeComponent();
 
             webElement.SetBackgroundColor(applicationStyling.SecondaryColor);
+            webElement.SetBlockQuoteColor(applicationStyling.TextColor);
+            webElement.ClickUrl += this.WebElement_ClickUrl;
 
             commentContainer = new DivComponent()
             {
@@ -120,6 +122,12 @@ namespace Deaddit.Pages
             }
 
             webElement.AddChild(commentContainer);
+        }
+
+        private async void WebElement_ClickUrl(object? sender, string e)
+        {
+            PostItems items = UrlHelper.Resolve(e);
+            await AppNavigator.OpenBrowser(items);
         }
 
         public void InitChildContainer()

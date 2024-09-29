@@ -1,17 +1,20 @@
 ﻿using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Deaddit.Core.Reddit.Extensions
 {
     public static class RedditPostExtensions
     {
-        public static PostItems GetPostItems(this ApiPost post)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="post"></param>
+        /// <param name="resolveUrl">if false, returns null instead of browser</param>
+        /// <returns></returns>
+        public static PostItems? GetPostItems(this ApiPost post, [NotNullWhen(true)] bool resolveUrl = true)
         {
-            //v.reddit links won't currently resolve if not uploaded as part of
-            //the original post, as reddit isn't smart enough to copy over
-            //media metadata for its own links.
-
             if (post.IsSelf)
             {
                 return new PostItems(PostTargetKind.Post);
@@ -57,9 +60,27 @@ namespace Deaddit.Core.Reddit.Extensions
                 return items;
             }
 
+            //Recurse up parent tree to see if we can find more information
+            //before falling back on the browser
+            foreach(ApiPost crossPost in post.CrossPostParentList)
+            {
+                PostItems? checkCrossPost = crossPost.GetPostItems(false);
+
+                if(checkCrossPost is not null)
+                {
+                    return checkCrossPost;
+                }
+            }
+
             Ensure.NotNullOrWhiteSpace(post.Url);
 
-            return UrlHelper.Resolve(post.Url);
+            if(resolveUrl)
+            {
+                return UrlHelper.Resolve(post.Url);
+            } else
+            {
+                return null;
+            }
         }
 
         public static string? TryGetPreview(this ApiPost redditPost)

@@ -101,6 +101,29 @@
             }
         }
 
+        document.addEventListener('click', function (event) {
+            // Get the element that was clicked
+            var target = event.target;
+
+            // Traverse up the DOM tree to find an <a> tag (useful if the click is on a child element)
+            while (target && target !== document) {
+                if (target.tagName === 'A' && target.href) {
+                    // Prevent the default navigation behavior
+                    event.preventDefault();
+
+                    // Extract the href attribute
+                    var href = target.getAttribute('href');
+
+                    navigate('navigation', 'href', { href: href });
+
+                    // Exit the loop once the <a> tag is handled
+                    break;
+                }
+
+                target = target.parentNode;
+            }
+        }, true);
+
         function invokeMethod(componentId, methodName, args) {
             try {
                 if (!componentId || typeof componentId !== 'string') {
@@ -119,7 +142,6 @@
                         args.preventDefault();
                     }
 
-                    navigate('navigation', 'href', { href: href });
                     return; // Exit the function if redirecting
                 }
 

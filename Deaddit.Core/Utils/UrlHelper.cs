@@ -88,7 +88,7 @@ namespace Deaddit.Core.Utils
             {
                 DownloadUrl = url,
                 LaunchUrl = url,
-                FileName = UrlHelper.GetFileName(url)
+                FileName = GetFileName(url)
             });
 
             return items;
