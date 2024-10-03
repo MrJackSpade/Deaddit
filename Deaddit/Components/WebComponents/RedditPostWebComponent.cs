@@ -348,6 +348,13 @@ namespace Deaddit.Components.WebComponents
                 return;
             }
 
+            if (_selectionGroup != null)
+            {
+                Opacity = _applicationStyling.VisitedOpacity.ToString("0.00");
+                _selectionGroup?.Select(this);
+                _visitTracker.Visit(_post);
+            }
+
             await _apiPostHandler.Launch(_post);
         }
     }

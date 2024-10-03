@@ -71,7 +71,7 @@ namespace Deaddit.Handlers.Post
 
             foreach (ApiPost crossPost in apiPost.CrossPostParentList)
             {
-                if (caller.CanDownload(crossPost))
+                if (caller.CanLaunch(crossPost))
                 {
                     await caller.Launch(crossPost);
                     return;
@@ -85,7 +85,7 @@ namespace Deaddit.Handlers.Post
 
             foreach (ApiPost crossPost in apiPost.CrossPostParentList)
             {
-                if (caller.CanDownload(crossPost))
+                if (caller.CanShare(crossPost))
                 {
                     await caller.Share(crossPost);
                     return;
