@@ -37,6 +37,8 @@ namespace Deaddit.Components.WebComponents
 
         private readonly ActionButtonsComponent _actionButtons;
 
+        private readonly IAggregatePostHandler _apiPostHandler;
+
         private readonly ApplicationHacks _applicationHacks;
 
         private readonly ApplicationStyling _applicationStyling;
@@ -69,7 +71,7 @@ namespace Deaddit.Components.WebComponents
 
         public event EventHandler<OnHideClickedEventArgs> HideClicked;
 
-        public RedditPostWebComponent(ApiPost post, bool blocked, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration, IConfigurationService configurationService, IAppNavigator appNavigator, IVisitTracker visitTracker, INavigation navigation, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup? selectionGroup)
+        public RedditPostWebComponent(ApiPost post, bool blocked, IAggregatePostHandler apiPostHandler, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration, IConfigurationService configurationService, IAppNavigator appNavigator, IVisitTracker visitTracker, INavigation navigation, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup? selectionGroup)
         {
             _post = post;
             _applicationStyling = applicationStyling;
@@ -81,6 +83,7 @@ namespace Deaddit.Components.WebComponents
             _blockConfiguration = blockConfiguration;
             _configurationService = configurationService;
             _applicationHacks = applicationHacks;
+            _apiPostHandler = apiPostHandler;
 
             if (blocked)
             {
@@ -323,28 +326,13 @@ namespace Deaddit.Components.WebComponents
 
         private async void ShareButton_OnClick(object? sender, EventArgs e)
         {
-            PostItems target = _post.GetPostItems();
-
-            switch (target.Kind)
+            if (!_apiPostHandler.CanShare(_post))
             {
-                case PostTargetKind.Video:
-                case PostTargetKind.Image:
-                case PostTargetKind.Audio:
-                    await Share.Default.ShareFiles(_post.Title, target);
-                    break;
-
-                case PostTargetKind.Undefined:
-                case PostTargetKind.Post:
-                case PostTargetKind.Url:
-                    await Share.Default.RequestAsync(new ShareTextRequest
-                    {
-                        Uri = _post.Url,
-                        Text = _post.Title
-                    });
-                    break;
-
-                default: throw new EnumNotImplementedException(target.Kind);
+                await _navigation.NavigationStack[^1].DisplayAlert("Alert", $"Can not handle post", "OK");
+                return;
             }
+
+            await _apiPostHandler.Share(_post);
         }
 
         private void TextContainer_OnClick(object? sender, EventArgs e)
@@ -354,14 +342,13 @@ namespace Deaddit.Components.WebComponents
 
         private async void Thumbnail_OnClick(object? sender, EventArgs e)
         {
-            if (_selectionGroup != null)
+            if (!_apiPostHandler.CanLaunch(_post))
             {
-                Opacity = _applicationStyling.VisitedOpacity.ToString("0.00");
-                _selectionGroup?.Select(this);
-                _visitTracker.Visit(_post);
+                await _navigation.NavigationStack[^1].DisplayAlert("Alert", $"Can not handle post", "OK");
+                return;
             }
 
-            await _navigation.OpenPost(_post, _appNavigator);
+            await _apiPostHandler.Launch(_post);
         }
     }
 }

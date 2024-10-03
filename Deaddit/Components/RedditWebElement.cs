@@ -58,6 +58,15 @@ namespace Deaddit.Components
 
             DocumentStyles.Add(new StyleRule()
             {
+                CssSelector = "p:not(:first-child)",
+                Styles =
+                {
+                    ["margin-top"] = "10px"
+                }
+            });
+
+            DocumentStyles.Add(new StyleRule()
+            {
                 CssSelector = "img",
                 Styles =
                 {
@@ -85,7 +94,21 @@ namespace Deaddit.Components
                 Styles =
                 {
                     ["border-left"] = $"1px solid {hex.ToHex()}",
-                    ["padding-left"] = "5px"
+                    ["padding-left"] = "5px",
+                    ["margin"] = "0 0px 10px 20px"
+                }
+            });
+        }
+
+        public void SetSpoilerColor(DynamicColor hex)
+        {
+            DocumentStyles.Add(new StyleRule()
+            {
+                CssSelector = ".md-spoiler-text",
+                Styles =
+                {
+                    ["color"] = hex.ToHex(),
+                    ["background-color"] = hex.ToHex()
                 }
             });
         }

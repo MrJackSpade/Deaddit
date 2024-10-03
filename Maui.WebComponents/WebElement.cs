@@ -201,6 +201,30 @@ namespace Maui.WebComponents
             return sb.ToString();
         }
 
+        private async Task EvaluateJavaScriptWithResultAsync(string script)
+        {
+            string result = await this.EvaluateJavaScriptAsync(script) ?? "{ }";
+
+            try
+            {
+                OperationResult resultObj = JsonSerializer.Deserialize<OperationResult>(result);
+
+                if (resultObj.Success)
+                {
+                    // success
+                    return;
+                }
+                else
+                {
+                    throw new Exception(resultObj.Message);
+                }
+            }
+            catch (JsonException ex)
+            {
+                throw new Exception("Failed to parse JavaScript result: " + ex.Message);
+            }
+        }
+
         private void HandleInvokeMethod(string componentId, string methodName, string argsJson)
         {
             if (_componentMap.TryGetValue(componentId, out WebComponent? component))
@@ -432,30 +456,6 @@ namespace Maui.WebComponents
 
             // Execute the JavaScript
             await this.EvaluateJavaScriptWithResultAsync(script);
-        }
-
-        private async Task EvaluateJavaScriptWithResultAsync(string script)
-        {
-            string result = await this.EvaluateJavaScriptAsync(script);
-
-            try
-            {
-                OperationResult resultObj = JsonSerializer.Deserialize<OperationResult>(result);
-
-                if (resultObj.Success)
-                {
-                    // success
-                    return;
-                }
-                else
-                {
-                    throw new Exception(resultObj.Message);
-                }
-            }
-            catch (JsonException ex)
-            {
-                throw new Exception("Failed to parse JavaScript result: " + ex.Message);
-            }
         }
     }
 }

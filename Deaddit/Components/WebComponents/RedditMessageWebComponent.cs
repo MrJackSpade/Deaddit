@@ -1,4 +1,5 @@
 ﻿using Deaddit.Components.WebComponents.Partials.Comment;
+using Deaddit.Components.WebComponents.Partials.Message;
 using Deaddit.Components.WebComponents.Partials.Post;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Exceptions;
@@ -22,7 +23,7 @@ namespace Deaddit.Components.WebComponents
     {
         private readonly ApplicationStyling _applicationStyling;
 
-        private readonly BottomBarComponent _bottomBar;
+        private readonly MessageBarComponent _bottomBar;
 
         private readonly HtmlBodyComponent _commentBody;
 
@@ -85,7 +86,7 @@ namespace Deaddit.Components.WebComponents
 
             _topBar = new TopBarComponent();
 
-            _bottomBar = new BottomBarComponent(applicationStyling);
+            _bottomBar = new MessageBarComponent(applicationStyling);
 
             _bottomBar.OnMoreClicked += this.OnMoreClicked;
             _bottomBar.OnReplyClicked += this.OnReplyClicked;

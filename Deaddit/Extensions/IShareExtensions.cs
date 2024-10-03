@@ -1,4 +1,4 @@
-﻿using Deaddit.Core.Reddit.Models;
+﻿using Deaddit.Core.Models;
 
 namespace Deaddit.Extensions
 {
@@ -21,12 +21,17 @@ namespace Deaddit.Extensions
             return fname;
         }
 
-        public static async Task ShareFiles(this IShare share, string title, PostItems items)
+        public static async Task ShareFiles(this IShare share, string title, FileDownload item)
+        {
+            await share.ShareFiles(title, [item]);
+        }
+
+        public static async Task ShareFiles(this IShare share, string title, IEnumerable<FileDownload> items)
         {
             List<ShareFile> files = [];
             HttpClient client = new();
 
-            foreach (PostItem uri in items)
+            foreach (FileDownload uri in items)
             {
                 string file = Path.Combine(FileSystem.CacheDirectory, uri.FileName);
                 byte[] fileBytes = await client.GetByteArrayAsync(uri.DownloadUrl);

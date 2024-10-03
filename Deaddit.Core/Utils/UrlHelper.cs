@@ -1,5 +1,4 @@
-﻿using Deaddit.Core.Reddit.Models;
-using MimeKit;
+﻿using MimeKit;
 
 namespace Deaddit.Core.Utils
 {
@@ -52,46 +51,6 @@ namespace Deaddit.Core.Utils
             string mimeType = MimeTypes.GetMimeType(fileExtension);
 
             return mimeType ?? "application/octet-stream"; // Return a generic MIME type if not found
-        }
-
-        public static PostItems Resolve(string url)
-        {
-            string testUrl = url;
-
-            if (testUrl.Contains('?'))
-            {
-                testUrl = testUrl[..testUrl.IndexOf('?')];
-            }
-
-            string mimeType = GetMimeTypeFromUri(new Uri(testUrl));
-
-            PostItems items;
-            // Switch based on the type
-            if (mimeType.StartsWith("image/"))
-            {
-                items = new(PostTargetKind.Image);
-            }
-            else if (mimeType.StartsWith("audio/"))
-            {
-                items = new(PostTargetKind.Audio);
-            }
-            else if (mimeType.StartsWith("video/"))
-            {
-                items = new(PostTargetKind.Video);
-            }
-            else
-            {
-                items = new(PostTargetKind.Url);
-            }
-
-            items.Add(new PostItem()
-            {
-                DownloadUrl = url,
-                LaunchUrl = url,
-                FileName = GetFileName(url)
-            });
-
-            return items;
         }
     }
 }

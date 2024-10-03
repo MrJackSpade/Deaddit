@@ -1,5 +1,5 @@
 ﻿using Deaddit.Core.Configurations.Models;
-using Deaddit.Core.Reddit.Models;
+using Deaddit.Core.Models;
 using Deaddit.Extensions;
 using Deaddit.Utils;
 using System.Diagnostics;
@@ -10,12 +10,12 @@ namespace Deaddit
     {
         private readonly ApplicationStyling _applicationStyling;
 
-        private readonly PostItems _postItems;
+        private readonly FileDownload _postItems;
 
-        public EmbeddedVideo(PostItems items, ApplicationStyling applicationTheme)
+        public EmbeddedVideo(FileDownload fileDownload, ApplicationStyling applicationTheme)
         {
             _applicationStyling = applicationTheme;
-            _postItems = items;
+            _postItems = fileDownload;
 
             this.InitializeComponent();
             navigationBar.BackgroundColor = _applicationStyling.PrimaryColor.ToMauiColor();
@@ -23,11 +23,7 @@ namespace Deaddit
             saveButton.TextColor = applicationTheme.TextColor.ToMauiColor();
             shareButton.TextColor = applicationTheme.TextColor.ToMauiColor();
 
-            PostItem item = items.Items.Single();
-
-            string url = item.LaunchUrl;
-
-            mediaView.Source = new Uri(url);
+            mediaView.Source = new Uri(fileDownload.LaunchUrl);
         }
 
         public async void OnShareClicked(object? sender, EventArgs e)

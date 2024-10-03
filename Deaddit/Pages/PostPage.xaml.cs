@@ -3,6 +3,7 @@ using Deaddit.Components.WebComponents.Partials.Post;
 using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Exceptions;
+using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
@@ -20,6 +21,8 @@ namespace Deaddit.Pages
 {
     public partial class PostPage : ContentPage, IHasChildren
     {
+        private readonly IAggregatePostHandler _aggregatePostHandler;
+
         private readonly ApplicationStyling _applicationStyling;
 
         private readonly ApiComment? _commentFocus;
@@ -27,6 +30,8 @@ namespace Deaddit.Pages
         private readonly IConfigurationService _configurationService;
 
         private readonly IRedditClient _redditClient;
+
+        private readonly IAggregateUrlHandler _urlHandler;
 
         private readonly DivComponent commentContainer;
 
@@ -52,10 +57,12 @@ namespace Deaddit.Pages
 
         public SelectionGroup SelectionGroup { get; }
 
-        public PostPage(ApiPost post, ApiComment? focus, IAppNavigator appNavigator, IConfigurationService configurationService, IRedditClient redditClient, ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration)
+        public PostPage(ApiPost post, ApiComment? focus, IAggregateUrlHandler urlHandler, IAggregatePostHandler aggregatePostHandler, IAppNavigator appNavigator, IConfigurationService configurationService, IRedditClient redditClient, ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
+            _urlHandler = urlHandler;
+            _aggregatePostHandler = aggregatePostHandler;
             _configurationService = configurationService;
             AppNavigator = appNavigator;
             _commentFocus = focus;
@@ -69,6 +76,8 @@ namespace Deaddit.Pages
 
             webElement.SetBackgroundColor(applicationStyling.SecondaryColor);
             webElement.SetBlockQuoteColor(applicationStyling.TextColor);
+            webElement.SetSpoilerColor(applicationStyling.TextColor);
+
             webElement.ClickUrl += this.WebElement_ClickUrl;
 
             commentContainer = new DivComponent()
@@ -122,12 +131,6 @@ namespace Deaddit.Pages
             }
 
             webElement.AddChild(commentContainer);
-        }
-
-        private async void WebElement_ClickUrl(object? sender, string e)
-        {
-            PostItems items = UrlHelper.Resolve(e);
-            await AppNavigator.OpenBrowser(items);
         }
 
         public void InitChildContainer()
@@ -356,6 +359,17 @@ namespace Deaddit.Pages
             redditCommentComponent.OnDelete += (s, e) => commentContainer.Children.Remove(redditCommentComponent);
 
             commentContainer.Children.Insert(0, redditCommentComponent);
+        }
+
+        private async void WebElement_ClickUrl(object? sender, string e)
+        {
+            if (!_urlHandler.CanLaunch(e, _aggregatePostHandler))
+            {
+                await this.DisplayAlert("Alert", $"Can not handle url {e}", "OK");
+                return;
+            }
+
+            await _urlHandler.Launch(e, _aggregatePostHandler);
         }
     }
 }
