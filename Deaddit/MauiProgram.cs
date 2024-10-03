@@ -22,7 +22,7 @@ namespace Deaddit
         {
             MauiAppBuilder builder = MauiApp.CreateBuilder();
 
-            builder.Services.AddTransient<IRedditClient>(s =>
+            builder.Services.AddSingleton<IRedditClient>(s =>
             {
                 RedditCredentials ApplicationTheme = s.GetRequiredService<RedditCredentials>();
                 IJsonClient jsonClient = s.GetRequiredService<IJsonClient>();
