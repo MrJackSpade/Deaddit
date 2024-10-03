@@ -102,6 +102,26 @@ namespace Deaddit.Pages
             this.InitSortButtons(sort);
         }
 
+        protected override bool OnBackButtonPressed()
+        {
+            if(_loadedPosts.Count < _applicationHacks.PageSize * 2)
+            {
+                return false;
+            }
+
+            Task<bool> answer = this.DisplayAlert("Confirm", "Do you want to exit?", "Yes", "No");
+
+            answer.ContinueWith(async task =>
+            {
+                if (task.Result)
+                {
+                    await Navigation.PopAsync();
+                }
+            });
+
+            return true;
+        }
+
         public async void OnBlockClicked(object? sender, EventArgs e)
         {
             _isBlockEnabled = !_isBlockEnabled;
