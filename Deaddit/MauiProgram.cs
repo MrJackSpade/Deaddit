@@ -7,6 +7,8 @@ using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Utils;
+using Deaddit.Handlers.Post;
+using Deaddit.Handlers.Url;
 using Deaddit.Interfaces;
 using Deaddit.Pages;
 using Deaddit.Utils;
@@ -29,6 +31,26 @@ namespace Deaddit
 
                 return new RedditClient(ApplicationTheme, jsonClient, displayExceptions, httpClient);
             });
+
+            // Register individual handlers as transient
+            builder.Services.AddTransient<IUrlHandler, RedditPostUrlHandler>();
+            builder.Services.AddTransient<IUrlHandler, SubredditUrlHandler>();
+            builder.Services.AddTransient<IUrlHandler, UserUrlHandler>();
+            builder.Services.AddTransient<IUrlHandler, GenericImageHandler>();
+            builder.Services.AddTransient<IUrlHandler, GenericVideoHandler>();
+            builder.Services.AddTransient<IUrlHandler, GenericUrlHandler>();
+
+            // Register the aggregate handler that takes IEnumerable<IUrlHandler>
+            builder.Services.AddTransient<IAggregateUrlHandler, AggregateUrlHandler>();
+
+            // Register individual API post handlers as transient
+            builder.Services.AddTransient<IApiPostHandler, SelfPostHandler>();
+            builder.Services.AddTransient<IApiPostHandler, RedditGalleryHandler>();
+            builder.Services.AddTransient<IApiPostHandler, RedditVideoHandler>();
+            builder.Services.AddTransient<IApiPostHandler, CrossPostHandler>();
+
+            // Register the aggregate API post handler that takes IEnumerable<IApiPostHandler>
+            builder.Services.AddTransient<IAggregatePostHandler, AggregatePostHandler>();
 
             builder.Services.AddConfiguration<ApplicationStyling>();
             builder.Services.AddConfiguration<RedditCredentials>();

@@ -1,5 +1,5 @@
 using Deaddit.Core.Configurations.Models;
-using Deaddit.Core.Reddit.Models;
+using Deaddit.Core.Models;
 using Deaddit.Extensions;
 using Deaddit.Utils;
 using System.Text;
@@ -63,9 +63,9 @@ namespace Deaddit
 
         private readonly ApplicationStyling _applicationStyling;
 
-        private readonly PostItems _postItems;
+        private readonly FileDownload[] _postItems;
 
-        public EmbeddedImage(ApplicationStyling applicationTheme, PostItems items)
+        public EmbeddedImage(ApplicationStyling applicationTheme, FileDownload[] items)
         {
             this.InitializeComponent();
             _applicationStyling = applicationTheme;
@@ -77,7 +77,7 @@ namespace Deaddit
 
             StringBuilder images = new();
 
-            foreach (PostItem s in items)
+            foreach (FileDownload s in items)
             {
                 images.Append($"<img src='{s.LaunchUrl}' alt='Image' />");
             }

@@ -1,5 +1,6 @@
 ﻿using Deaddit.Components.WebComponents;
 using Deaddit.Core.Configurations.Models;
+using Deaddit.Core.Models;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
@@ -21,11 +22,11 @@ namespace Deaddit.Interfaces
 
         SubRedditComponent CreateSubRedditComponent(SubRedditSubscription subscription, SelectionGroup? group = null);
 
-        Task<EmbeddedBrowser> OpenBrowser(PostItems resource);
+        Task<EmbeddedBrowser> OpenBrowser(string url);
 
         Task<ReplyPage> OpenEditPage(ApiThing toEdit);
 
-        Task<EmbeddedImage> OpenImage(PostItems resource);
+        Task<EmbeddedImage> OpenImages(FileDownload[] urls);
 
         Task<SubRedditPage> OpenMessages(InboxSort sort = InboxSort.Unread);
 
@@ -47,6 +48,6 @@ namespace Deaddit.Interfaces
 
         Task<SubRedditPage> OpenUser(string username, UserProfileSort userProfileSort = UserProfileSort.New);
 
-        Task<EmbeddedVideo> OpenVideo(PostItems resource);
+        Task<EmbeddedVideo> OpenVideo(FileDownload url);
     }
 }

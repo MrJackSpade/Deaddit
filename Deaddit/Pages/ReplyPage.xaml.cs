@@ -35,6 +35,7 @@ namespace Deaddit.Pages
 
             webElement.SetBackgroundColor(applicationStyling.SecondaryColor);
             webElement.SetBlockQuoteColor(applicationStyling.TextColor);
+            webElement.SetSpoilerColor(applicationStyling.TextColor);
 
             ApiThing? toRender = _replyTo;
             SelectionGroup unused = new();

@@ -89,7 +89,7 @@ namespace Deaddit.Components.WebComponents
 
             _topBar = new TopBarComponent();
 
-            _bottomBar = new BottomBarComponent(applicationStyling);
+            _bottomBar = new BottomBarComponent(applicationStyling, comment.Likes);
 
             _bottomBar.OnUpvoteClicked += this.OnUpvoteClicked;
             _bottomBar.OnDownvoteClicked += this.OnDownvoteClicked;
@@ -247,18 +247,21 @@ namespace Deaddit.Components.WebComponents
                 _comment.Score--;
                 _commentHeader.SetIndicatorState(UpvoteState.None);
                 _redditClient.SetUpvoteState(_comment, UpvoteState.None);
+                _bottomBar.SetUpvoteState(UpvoteState.None);
             }
             else if (_comment.Likes == UpvoteState.Downvote)
             {
                 _comment.Score += 2;
                 _commentHeader.SetIndicatorState(UpvoteState.Upvote);
                 _redditClient.SetUpvoteState(_comment, UpvoteState.Upvote);
+                _bottomBar.SetUpvoteState(UpvoteState.Upvote);
             }
             else
             {
                 _comment.Score++;
                 _commentHeader.SetIndicatorState(UpvoteState.Upvote);
                 _redditClient.SetUpvoteState(_comment, UpvoteState.Upvote);
+                _bottomBar.SetUpvoteState(UpvoteState.Upvote);
             }
         }
 
@@ -293,9 +296,10 @@ namespace Deaddit.Components.WebComponents
                 foreach (HtmlAgilityPack.HtmlNode? link in links)
                 {
                     string href = HttpUtility.HtmlDecode(link.GetAttributeValue("href", string.Empty));
-                    // Use UrlHelper.Resolve to determine if it's an image
-                    PostItems items = UrlHelper.Resolve(href);
-                    if (items.Kind == PostTargetKind.Image)
+
+                    string mimeType = UrlHelper.GetMimeTypeFromUri(new Uri(href));
+
+                    if (mimeType.StartsWith("image/"))
                     {
                         modified = true;
                         // Create a new <img> element
@@ -358,18 +362,21 @@ namespace Deaddit.Components.WebComponents
                 _comment.Score++;
                 _commentHeader.SetIndicatorState(UpvoteState.None);
                 _redditClient.SetUpvoteState(_comment, UpvoteState.None);
+                _bottomBar.SetUpvoteState(UpvoteState.None);
             }
             else if (_comment.Likes == UpvoteState.Upvote)
             {
                 _comment.Score -= 2;
                 _commentHeader.SetIndicatorState(UpvoteState.Downvote);
                 _redditClient.SetUpvoteState(_comment, UpvoteState.Downvote);
+                _bottomBar.SetUpvoteState(UpvoteState.Downvote);
             }
             else
             {
                 _comment.Score--;
                 _commentHeader.SetIndicatorState(UpvoteState.Downvote);
                 _redditClient.SetUpvoteState(_comment, UpvoteState.Downvote);
+                _bottomBar.SetUpvoteState(UpvoteState.Downvote);
             }
         }
 

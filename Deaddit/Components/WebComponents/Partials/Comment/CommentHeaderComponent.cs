@@ -90,6 +90,8 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
                     _voteIndicator.Display = "none";
                     break;
             }
+
+            this.UpdateMeta();
         }
 
         public void UpdateMeta()

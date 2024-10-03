@@ -1,6 +1,7 @@
 ﻿using Deaddit.Components.WebComponents;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Extensions;
+using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
@@ -19,6 +20,10 @@ namespace Deaddit.Pages
 {
     public partial class SubRedditPage : ContentPage
     {
+        private readonly IAggregatePostHandler _aggregatePostHandler;
+
+        private readonly IAggregateUrlHandler _aggregateUrlHandler;
+
         private readonly ApplicationHacks _applicationHacks;
 
         private readonly ApplicationStyling _applicationStyling;
@@ -45,7 +50,7 @@ namespace Deaddit.Pages
 
         private Enum _sort;
 
-        public SubRedditPage(ThingCollectionName subreddit, Enum sort, ApplicationHacks applicationHacks, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, BlockConfiguration blockConfiguration)
+        public SubRedditPage(ThingCollectionName subreddit, Enum sort, ApplicationHacks applicationHacks, IAggregatePostHandler aggregatePostHandler, IAggregateUrlHandler aggregateUrlHandler, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, BlockConfiguration blockConfiguration)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
@@ -56,6 +61,9 @@ namespace Deaddit.Pages
             _sort = Ensure.NotNull(sort);
             _redditClient = Ensure.NotNull(redditClient);
             _applicationStyling = Ensure.NotNull(applicationStyling);
+            _aggregatePostHandler = Ensure.NotNull(aggregatePostHandler);
+            _aggregateUrlHandler = Ensure.NotNull(aggregateUrlHandler);
+
             _selectionGroup = new SelectionGroup();
             _sortButtons = new DivComponent()
             {
@@ -71,6 +79,8 @@ namespace Deaddit.Pages
 
             webElement.SetBackgroundColor(applicationStyling.SecondaryColor);
             webElement.SetBlockQuoteColor(applicationStyling.TextColor);
+            webElement.SetSpoilerColor(applicationStyling.TextColor);
+            webElement.ClickUrl += this.WebElement_ClickUrl;
 
             if (subreddit.Kind == ThingKind.Account)
             {
@@ -352,6 +362,17 @@ namespace Deaddit.Pages
                     button.BackgroundColor = _applicationStyling.SecondaryColor.ToHex();
                 }
             }
+        }
+
+        private async void WebElement_ClickUrl(object? sender, string e)
+        {
+            if (!_aggregateUrlHandler.CanLaunch(e, _aggregatePostHandler))
+            {
+                await this.DisplayAlert("Alert", $"Can not handle url {e}", "OK");
+                return;
+            }
+
+            await _aggregateUrlHandler.Launch(e, _aggregatePostHandler);
         }
     }
 }

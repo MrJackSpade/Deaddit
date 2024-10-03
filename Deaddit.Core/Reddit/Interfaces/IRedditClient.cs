@@ -17,6 +17,8 @@ namespace Deaddit.Core.Reddit.Interfaces
 
         Task Delete(ApiThing thing);
 
+        Task<ApiPost> GetPost(string id);
+
         Task<List<ApiThing>> GetPosts<T>(ThingCollectionName subreddit, T sort, int pageSize, string? after = null, Region region = Region.GLOBAL) where T : Enum;
 
         Task<Stream> GetStream(string url);

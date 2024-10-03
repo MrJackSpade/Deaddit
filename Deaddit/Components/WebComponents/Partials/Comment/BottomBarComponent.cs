@@ -1,4 +1,5 @@
 ﻿using Deaddit.Core.Configurations.Models;
+using Deaddit.Core.Reddit.Models;
 using Maui.WebComponents.Components;
 
 namespace Deaddit.Components.WebComponents.Partials.Comment
@@ -6,6 +7,10 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
     public class BottomBarComponent : DivComponent
     {
         private readonly ApplicationStyling _applicationStyling;
+
+        private ButtonComponent _downvoteButton;
+
+        private ButtonComponent _upvoteButton;
 
         public event EventHandler? OnDownvoteClicked;
 
@@ -17,12 +22,34 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
 
         public event EventHandler? OnUpvoteClicked;
 
-        public BottomBarComponent(ApplicationStyling applicationStyling)
+        public BottomBarComponent(ApplicationStyling applicationStyling, UpvoteState initialState)
         {
             _applicationStyling = applicationStyling;
 
             Display = "none";
             this.InitializeButtons();
+            this.SetUpvoteState(initialState);
+        }
+
+        public void SetUpvoteState(UpvoteState upvote)
+        {
+            switch (upvote)
+            {
+                case UpvoteState.None:
+                    _upvoteButton.Color = _applicationStyling.TextColor.ToHex();
+                    _downvoteButton.Color = _applicationStyling.TextColor.ToHex();
+                    break;
+
+                case UpvoteState.Upvote:
+                    _upvoteButton.Color = _applicationStyling.UpvoteColor.ToHex();
+                    _downvoteButton.Color = _applicationStyling.TextColor.ToHex();
+                    break;
+
+                case UpvoteState.Downvote:
+                    _upvoteButton.Color = _applicationStyling.TextColor.ToHex();
+                    _downvoteButton.Color = _applicationStyling.DownvoteColor.ToHex();
+                    break;
+            }
         }
 
         private ButtonComponent CreateActionButton(string text)
@@ -46,20 +73,20 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
 
         private void InitializeButtons()
         {
-            ButtonComponent upvoteButton = this.CreateActionButton("▲");
-            ButtonComponent downvoteButton = this.CreateActionButton("▼");
+            _upvoteButton = this.CreateActionButton("▲");
+            _downvoteButton = this.CreateActionButton("▼");
             ButtonComponent moreButton = this.CreateActionButton("...");
             ButtonComponent shareButton = this.CreateActionButton("⢔");
             ButtonComponent replyButton = this.CreateActionButton("↩");
 
-            upvoteButton.OnClick += this.UpvoteClicked;
-            downvoteButton.OnClick += this.DownvoteClicked;
+            _upvoteButton.OnClick += this.UpvoteClicked;
+            _downvoteButton.OnClick += this.DownvoteClicked;
             moreButton.OnClick += this.MoreClicked;
             shareButton.OnClick += this.ShareClicked;
             replyButton.OnClick += this.ReplyClicked;
 
-            Children.Add(upvoteButton);
-            Children.Add(downvoteButton);
+            Children.Add(_upvoteButton);
+            Children.Add(_downvoteButton);
             Children.Add(moreButton);
             Children.Add(shareButton);
             Children.Add(replyButton);

@@ -208,6 +208,12 @@ namespace Maui.WebComponents.Components
             set => this.Style("overflow-wrap", value);
         }
 
+        public string OverflowX
+        {
+            get => this.Style("overflow-x");
+            set => this.Style("overflow-x", value);
+        }
+
         public string? Padding
         {
             get => this.Style("padding");

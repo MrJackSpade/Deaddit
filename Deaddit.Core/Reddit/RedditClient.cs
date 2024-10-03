@@ -232,6 +232,58 @@ namespace Deaddit.Core.Reddit
             }
         }
 
+        public async Task<ApiPost> GetPost(string id)
+        {
+            try
+            {
+                // Ensure the user is authenticated before making the request
+                await this.EnsureAuthenticated();
+                await this.ThrottleAsync();
+
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
+
+                // Format the ID to include the 't3_' prefix if not already present
+                string fullname = id.StartsWith("t3_") ? id : $"t3_{id}";
+
+                // Construct the full URL for the API request
+                string fullUrl = $"{API_ROOT}/api/info?id={fullname}";
+
+                // Make the API call to get the post data
+                ApiThingCollection response = await _jsonClient.Get<ApiThingCollection>(fullUrl);
+
+                stopwatch.Stop();
+                Debug.WriteLine($"[DEBUG] Time spent in GetPost method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+
+                // Check if the response contains any data
+                if (response.Children.NotNullAny())
+                {
+                    // Retrieve the first item from the response
+                    ApiThing apiThing = response.Children.First();
+
+                    // Return the ApiPost object from the retrieved data
+                    return apiThing as ApiPost;
+                }
+                else
+                {
+                    // Return null if no data is found
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle exceptions using the provided exception display mechanism
+                if (!await _exceptionDisplay.DisplayException(ex))
+                {
+                    throw;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
         public async Task<List<ApiThing>> GetPosts<T>(ThingCollectionName subreddit, T sort, int pageSize, string? after = null, Models.Region region = Models.Region.GLOBAL) where T : Enum
         {
             //TODO: This makes way more sense as an IEnumerable

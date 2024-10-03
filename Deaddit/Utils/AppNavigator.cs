@@ -2,6 +2,8 @@
 using Deaddit.Configurations;
 using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
+using Deaddit.Core.Interfaces;
+using Deaddit.Core.Models;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
@@ -18,39 +20,39 @@ namespace Deaddit.Utils
     /// that wonky fucking magic like this is the better option. Since components cant
     /// be reasonably unit tested to begin with, code cleanliness is actually better
     /// </summary>
-    public class AppNavigator(IRedditClient redditClient,
-                              RedditCredentials redditCredentials,
-                              ApplicationStyling applicationTheme,
-                              ApplicationHacks applicationHacks,
-                              IVisitTracker visitTracker,
-                              BlockConfiguration blockConfiguration,
-                              IConfigurationService configurationService) : IAppNavigator
+    public class AppNavigator(IServiceProvider serviceProvider) : IAppNavigator
     {
-        private readonly ApplicationHacks _applicationHacks = Ensure.NotNull(applicationHacks);
-
-        private readonly ApplicationStyling _applicationStyling = Ensure.NotNull(applicationTheme);
-
-        private readonly BlockConfiguration _blockConfiguration = Ensure.NotNull(blockConfiguration);
-
-        private readonly IConfigurationService _configurationService = Ensure.NotNull(configurationService);
-
-        private readonly IRedditClient _redditClient = Ensure.NotNull(redditClient);
-
-        private readonly RedditCredentials _redditCredentials = Ensure.NotNull(redditCredentials);
-
-        private readonly IVisitTracker _visitTracker = Ensure.NotNull(visitTracker);
+        private readonly IServiceProvider _serviceProvider = Ensure.NotNull(serviceProvider);
 
         private static INavigation Navigation => Shell.Current.Navigation;
+
+        private IAggregatePostHandler ApiPostHandler => _serviceProvider.GetService<IAggregatePostHandler>()!;
+
+        private ApplicationHacks ApplicationHacks => _serviceProvider.GetService<ApplicationHacks>()!;
+
+        private ApplicationStyling ApplicationStyling => _serviceProvider.GetService<ApplicationStyling>()!;
+
+        private BlockConfiguration BlockConfiguration => _serviceProvider.GetService<BlockConfiguration>()!;
+
+        private IConfigurationService ConfigurationService => _serviceProvider.GetService<IConfigurationService>()!;
+
+        private IRedditClient RedditClient => _serviceProvider.GetService<IRedditClient>()!;
+
+        private RedditCredentials RedditCredentials => _serviceProvider.GetService<RedditCredentials>()!;
+
+        private IAggregateUrlHandler UrlHandler => _serviceProvider.GetService<IAggregateUrlHandler>()!;
+
+        private IVisitTracker VisitTracker => _serviceProvider.GetService<IVisitTracker>()!;
 
         public RedditCommentWebComponent CreateCommentWebComponent(ApiComment comment, ApiPost? post = null, SelectionGroup? selectionGroup = null)
         {
             if (selectionGroup is null)
             {
-                return new RedditCommentWebComponent(comment, post, false, Navigation, this, _redditClient, _applicationStyling, selectionGroup ?? new SelectionGroup(), _blockConfiguration);
+                return new RedditCommentWebComponent(comment, post, false, Navigation, this, RedditClient, ApplicationStyling, selectionGroup ?? new SelectionGroup(), BlockConfiguration);
             }
             else
             {
-                return new RedditCommentWebComponent(comment, post, true, Navigation, this, _redditClient, _applicationStyling, selectionGroup ?? new SelectionGroup(), _blockConfiguration);
+                return new RedditCommentWebComponent(comment, post, true, Navigation, this, RedditClient, ApplicationStyling, selectionGroup ?? new SelectionGroup(), BlockConfiguration);
             }
         }
 
@@ -61,44 +63,44 @@ namespace Deaddit.Utils
 
         public MoreCommentsWebComponent CreateMoreCommentsWebComponent(IMore more)
         {
-            return new MoreCommentsWebComponent(more, _applicationStyling);
+            return new MoreCommentsWebComponent(more, ApplicationStyling);
         }
 
         public RedditPostWebComponent CreatePostWebComponent(ApiPost post, bool blocked, SelectionGroup? selectionGroup = null)
         {
-            RedditPostWebComponent postComponent = new(post, blocked, _applicationHacks, _blockConfiguration, _configurationService, this, _visitTracker, Navigation, _redditClient, _applicationStyling, selectionGroup);
+            RedditPostWebComponent postComponent = new(post, blocked, ApiPostHandler, ApplicationHacks, BlockConfiguration, ConfigurationService, this, VisitTracker, Navigation, RedditClient, ApplicationStyling, selectionGroup);
             return postComponent;
         }
 
         public SubRedditComponent CreateSubRedditComponent(SubRedditSubscription subscription, SelectionGroup? group = null)
         {
-            return new SubRedditComponent(subscription, group is not null, this, _applicationStyling, group ?? new SelectionGroup());
+            return new SubRedditComponent(subscription, group is not null, this, ApplicationStyling, group ?? new SelectionGroup());
         }
 
-        public async Task<EmbeddedBrowser> OpenBrowser(PostItems resource)
+        public async Task<EmbeddedBrowser> OpenBrowser(string resource)
         {
-            EmbeddedBrowser browser = new(resource, _applicationStyling);
+            EmbeddedBrowser browser = new(resource, ApplicationStyling);
             await Navigation.PushAsync(browser);
             return browser;
         }
 
         public async Task<ReplyPage> OpenEditPage(ApiThing toEdit)
         {
-            ReplyPage replyPage = new(null, toEdit, this, _redditClient, _applicationStyling);
+            ReplyPage replyPage = new(null, toEdit, this, RedditClient, ApplicationStyling);
             await Navigation.PushAsync(replyPage);
             return replyPage;
         }
 
-        public async Task<EmbeddedImage> OpenImage(PostItems resource)
+        public async Task<EmbeddedImage> OpenImages(FileDownload[] resource)
         {
-            EmbeddedImage browser = new(_applicationStyling, resource);
+            EmbeddedImage browser = new(ApplicationStyling, resource);
             await Navigation.PushAsync(browser);
             return browser;
         }
 
         public async Task<SubRedditPage> OpenMessages(InboxSort sort = InboxSort.Unread)
         {
-            SubRedditPage page = new(new ThingCollectionName("Messages", "/message", ThingKind.Message), sort, _applicationHacks, this, _redditClient, _applicationStyling, _blockConfiguration);
+            SubRedditPage page = new(new ThingCollectionName("Messages", "/message", ThingKind.Message), sort, ApplicationHacks, ApiPostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
             await Navigation.PushAsync(page);
             await page.TryLoad();
             return page;
@@ -106,7 +108,7 @@ namespace Deaddit.Utils
 
         public async Task<ObjectEditorPage> OpenObjectEditor(object original)
         {
-            ObjectEditorPage page = new(original, applicationTheme);
+            ObjectEditorPage page = new(original, ApplicationStyling);
             await Navigation.PushAsync(page);
             return page;
         }
@@ -115,20 +117,20 @@ namespace Deaddit.Utils
         {
             EditorConfiguration editorConfiguration = new()
             {
-                BlockConfiguration = blockConfiguration,
-                Credentials = _redditCredentials,
-                Styling = applicationTheme,
-                ApplicationHacks = applicationHacks
+                BlockConfiguration = BlockConfiguration,
+                Credentials = RedditCredentials,
+                Styling = ApplicationStyling,
+                ApplicationHacks = ApplicationHacks
             };
 
             ObjectEditorPage editorPage = await this.OpenObjectEditor(editorConfiguration);
 
             editorPage.OnSave += (s, e) =>
             {
-                _configurationService.Write(editorConfiguration.ApplicationHacks);
-                _configurationService.Write(editorConfiguration.Credentials);
-                _configurationService.Write(editorConfiguration.BlockConfiguration);
-                _configurationService.Write(editorConfiguration.Styling);
+                ConfigurationService.Write(editorConfiguration.ApplicationHacks);
+                ConfigurationService.Write(editorConfiguration.Credentials);
+                ConfigurationService.Write(editorConfiguration.BlockConfiguration);
+                ConfigurationService.Write(editorConfiguration.Styling);
             };
 
             onSave?.Invoke();
@@ -141,7 +143,7 @@ namespace Deaddit.Utils
 
         public async Task<PostPage> OpenPost(ApiPost post, ApiComment focus)
         {
-            PostPage postPage = new(post, focus, this, _configurationService, _redditClient, _applicationStyling, _applicationHacks, _blockConfiguration);
+            PostPage postPage = new(post, focus, UrlHandler, ApiPostHandler, this, ConfigurationService, RedditClient, ApplicationStyling, ApplicationHacks, BlockConfiguration);
             await Navigation.PushAsync(postPage);
             postPage.TryLoad();
             return postPage;
@@ -149,7 +151,7 @@ namespace Deaddit.Utils
 
         public async Task<ReplyPage> OpenReplyPage(ApiThing comment)
         {
-            ReplyPage replyPage = new(comment, null, this, _redditClient, _applicationStyling);
+            ReplyPage replyPage = new(comment, null, this, RedditClient, ApplicationStyling);
             await Navigation.PushAsync(replyPage);
             return replyPage;
         }
@@ -161,7 +163,7 @@ namespace Deaddit.Utils
 
         public async Task<SubRedditPage> OpenSubReddit(ThingCollectionName subRedditName, ApiPostSort sort = ApiPostSort.Hot)
         {
-            SubRedditPage page = new(subRedditName, sort, _applicationHacks, this, _redditClient, _applicationStyling, _blockConfiguration);
+            SubRedditPage page = new(subRedditName, sort, ApplicationHacks, ApiPostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
             await Navigation.PushAsync(page);
             await page.TryLoad();
             return page;
@@ -169,7 +171,7 @@ namespace Deaddit.Utils
 
         public async Task<SubRedditAboutPage> OpenSubRedditAbout(ThingCollectionName subredditName)
         {
-            SubRedditAboutPage page = new(subredditName, this, _redditClient, _applicationStyling);
+            SubRedditAboutPage page = new(subredditName, this, RedditClient, ApplicationStyling);
             await Navigation.PushAsync(page);
             await page.TryLoad();
             return page;
@@ -177,15 +179,15 @@ namespace Deaddit.Utils
 
         public async Task<SubRedditPage> OpenUser(string username, UserProfileSort userProfileSort = UserProfileSort.New)
         {
-            SubRedditPage page = new(new ThingCollectionName($"u/{username}"), userProfileSort, _applicationHacks, this, _redditClient, _applicationStyling, _blockConfiguration);
+            SubRedditPage page = new(new ThingCollectionName($"u/{username}"), userProfileSort, ApplicationHacks, ApiPostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
             await Navigation.PushAsync(page);
             await page.TryLoad();
             return page;
         }
 
-        public async Task<EmbeddedVideo> OpenVideo(PostItems resource)
+        public async Task<EmbeddedVideo> OpenVideo(FileDownload url)
         {
-            EmbeddedVideo browser = new(resource, _applicationStyling);
+            EmbeddedVideo browser = new(url, ApplicationStyling);
             await Navigation.PushAsync(browser);
             return browser;
         }

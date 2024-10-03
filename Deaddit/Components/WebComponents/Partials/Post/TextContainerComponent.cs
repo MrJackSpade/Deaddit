@@ -15,12 +15,14 @@ namespace Deaddit.Components.WebComponents.Partials.Post
             FlexDirection = "column";
             Padding = "5px";
             FlexGrow = "1";
+            OverflowX = "hidden";
 
             SpanComponent title = new()
             {
                 InnerText = post.Title,
                 FontSize = $"{applicationStyling.TitleFontSize}px",
                 Color = applicationStyling.TextColor.ToHex(),
+                OverflowWrap = "break-word"
             };
 
             SpanComponent timeUser = new()
