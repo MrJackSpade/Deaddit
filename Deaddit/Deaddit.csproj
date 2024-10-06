@@ -117,8 +117,8 @@
 	  <Compile Update="Pages\SubRedditAboutPage.xaml.cs">
 	    <DependentUpon>SubRedditAboutPage.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="Pages\SubRedditPage.xaml.cs">
-	    <DependentUpon>SubRedditPage.xaml</DependentUpon>
+	  <Compile Update="Pages\ThingCollectionPage.xaml.cs">
+	    <DependentUpon>ThingCollectionPage.xaml</DependentUpon>
 	  </Compile>
 	</ItemGroup>
 

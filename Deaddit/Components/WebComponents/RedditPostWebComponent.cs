@@ -63,15 +63,13 @@ namespace Deaddit.Components.WebComponents
 
         private readonly IVisitTracker _visitTracker;
 
-        private bool _isDisposed = false;
-
         public bool SelectEnabled => true;
 
         public event EventHandler<BlockRule> BlockAdded;
 
         public event EventHandler<OnHideClickedEventArgs> HideClicked;
 
-        public RedditPostWebComponent(ApiPost post, bool blocked, IAggregatePostHandler apiPostHandler, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration, IConfigurationService configurationService, IAppNavigator appNavigator, IVisitTracker visitTracker, INavigation navigation, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup? selectionGroup)
+        public RedditPostWebComponent(ApiPost post, PostState postHandling, IAggregatePostHandler apiPostHandler, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration, IConfigurationService configurationService, IAppNavigator appNavigator, IVisitTracker visitTracker, INavigation navigation, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup? selectionGroup)
         {
             _post = post;
             _applicationStyling = applicationStyling;
@@ -85,7 +83,7 @@ namespace Deaddit.Components.WebComponents
             _applicationHacks = applicationHacks;
             _apiPostHandler = apiPostHandler;
 
-            if (blocked)
+            if (postHandling == PostState.Block)
             {
                 _backgroundColor = applicationStyling.BlockedBackgroundColor.ToHex();
                 _highlightColor = applicationStyling.BlockedBackgroundColor.ToHex();
@@ -142,15 +140,13 @@ namespace Deaddit.Components.WebComponents
             Children.Add(topContainer);
             Children.Add(_actionButtons);
 
-            if (visitTracker.HasVisited(_post) && selectionGroup != null)
+            if (selectionGroup != null)
             {
-                Opacity = _applicationStyling.VisitedOpacity.ToString("0.00");
+                if (visitTracker.HasVisited(_post) || postHandling == PostState.Visited)
+                {
+                    Opacity = _applicationStyling.VisitedOpacity.ToString("0.00");
+                }
             }
-        }
-
-        public void Dispose()
-        {
-            _isDisposed = true;
         }
 
         public void Select()
