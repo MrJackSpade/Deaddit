@@ -18,7 +18,7 @@ namespace Deaddit.Interfaces
 
         MoreCommentsWebComponent CreateMoreCommentsWebComponent(IMore more);
 
-        RedditPostWebComponent CreatePostWebComponent(ApiPost post, bool blocked, SelectionGroup? selectionGroup = null);
+        RedditPostWebComponent CreatePostWebComponent(ApiPost post, PostState postHandling, SelectionGroup? selectionGroup = null);
 
         SubRedditComponent CreateSubRedditComponent(SubRedditSubscription subscription, SelectionGroup? group = null);
 
@@ -28,7 +28,7 @@ namespace Deaddit.Interfaces
 
         Task<EmbeddedImage> OpenImages(FileDownload[] urls);
 
-        Task<SubRedditPage> OpenMessages(InboxSort sort = InboxSort.Unread);
+        Task<ThingCollectionPage> OpenMessages(InboxSort sort = InboxSort.Unread);
 
         Task<ObjectEditorPage> OpenObjectEditor(object original);
 
@@ -40,13 +40,13 @@ namespace Deaddit.Interfaces
 
         Task<ReplyPage> OpenReplyPage(ApiThing replyTo);
 
-        Task<SubRedditPage> OpenSubReddit(ThingCollectionName subRedditName, ApiPostSort sort = ApiPostSort.Hot);
+        Task<ThingCollectionPage> OpenSubReddit(ThingCollectionName subRedditName, ApiPostSort sort = ApiPostSort.Hot);
 
-        Task<SubRedditPage> OpenSubReddit(string subRedditName, ApiPostSort sort = ApiPostSort.Hot);
+        Task<ThingCollectionPage> OpenSubReddit(string subRedditName, ApiPostSort sort = ApiPostSort.Hot);
 
         Task<SubRedditAboutPage> OpenSubRedditAbout(ThingCollectionName subreddit);
 
-        Task<SubRedditPage> OpenUser(string username, UserProfileSort userProfileSort = UserProfileSort.New);
+        Task<ThingCollectionPage> OpenUser(string username, UserProfileSort userProfileSort = UserProfileSort.New);
 
         Task<EmbeddedVideo> OpenVideo(FileDownload url);
     }

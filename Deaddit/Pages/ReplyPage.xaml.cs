@@ -49,7 +49,7 @@ namespace Deaddit.Pages
                 }
                 else if (toRender is ApiPost post)
                 {
-                    RedditPostWebComponent redditPostComponent = _appNavigator.CreatePostWebComponent(post, false, null);
+                    RedditPostWebComponent redditPostComponent = _appNavigator.CreatePostWebComponent(post, PostState.None, null);
 
                     if (!string.IsNullOrWhiteSpace(post.Body))
                     {

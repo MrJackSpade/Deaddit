@@ -66,9 +66,9 @@ namespace Deaddit.Utils
             return new MoreCommentsWebComponent(more, ApplicationStyling);
         }
 
-        public RedditPostWebComponent CreatePostWebComponent(ApiPost post, bool blocked, SelectionGroup? selectionGroup = null)
+        public RedditPostWebComponent CreatePostWebComponent(ApiPost post, PostState postHandling, SelectionGroup? selectionGroup = null)
         {
-            RedditPostWebComponent postComponent = new(post, blocked, ApiPostHandler, ApplicationHacks, BlockConfiguration, ConfigurationService, this, VisitTracker, Navigation, RedditClient, ApplicationStyling, selectionGroup);
+            RedditPostWebComponent postComponent = new(post, postHandling, ApiPostHandler, ApplicationHacks, BlockConfiguration, ConfigurationService, this, VisitTracker, Navigation, RedditClient, ApplicationStyling, selectionGroup);
             return postComponent;
         }
 
@@ -98,9 +98,9 @@ namespace Deaddit.Utils
             return browser;
         }
 
-        public async Task<SubRedditPage> OpenMessages(InboxSort sort = InboxSort.Unread)
+        public async Task<ThingCollectionPage> OpenMessages(InboxSort sort = InboxSort.Unread)
         {
-            SubRedditPage page = new(new ThingCollectionName("Messages", "/message", ThingKind.Message), sort, ApplicationHacks, ApiPostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
+            ThingCollectionPage page = new(new ThingCollectionName("Messages", "/message", ThingKind.Message), sort, ApplicationHacks, ApiPostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
             await Navigation.PushAsync(page);
             await page.TryLoad();
             return page;
@@ -156,14 +156,14 @@ namespace Deaddit.Utils
             return replyPage;
         }
 
-        public async Task<SubRedditPage> OpenSubReddit(string subRedditName, ApiPostSort sort = ApiPostSort.Hot)
+        public async Task<ThingCollectionPage> OpenSubReddit(string subRedditName, ApiPostSort sort = ApiPostSort.Hot)
         {
             return await this.OpenSubReddit(new ThingCollectionName(subRedditName), sort);
         }
 
-        public async Task<SubRedditPage> OpenSubReddit(ThingCollectionName subRedditName, ApiPostSort sort = ApiPostSort.Hot)
+        public async Task<ThingCollectionPage> OpenSubReddit(ThingCollectionName subRedditName, ApiPostSort sort = ApiPostSort.Hot)
         {
-            SubRedditPage page = new(subRedditName, sort, ApplicationHacks, ApiPostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
+            ThingCollectionPage page = new(subRedditName, sort, ApplicationHacks, ApiPostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
             await Navigation.PushAsync(page);
             await page.TryLoad();
             return page;
@@ -177,9 +177,9 @@ namespace Deaddit.Utils
             return page;
         }
 
-        public async Task<SubRedditPage> OpenUser(string username, UserProfileSort userProfileSort = UserProfileSort.New)
+        public async Task<ThingCollectionPage> OpenUser(string username, UserProfileSort userProfileSort = UserProfileSort.New)
         {
-            SubRedditPage page = new(new ThingCollectionName($"u/{username}"), userProfileSort, ApplicationHacks, ApiPostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
+            ThingCollectionPage page = new(new ThingCollectionName($"u/{username}"), userProfileSort, ApplicationHacks, ApiPostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
             await Navigation.PushAsync(page);
             await page.TryLoad();
             return page;

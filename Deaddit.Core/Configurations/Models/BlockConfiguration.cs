@@ -4,11 +4,14 @@ namespace Deaddit.Core.Configurations.Models
 {
     public class BlockConfiguration
     {
-        [EditorDisplay(Name = "Block Duplicates")]
-        public bool BlockDuplicates { get; set; }
-
         [EditorDisplay(Name = "Block Rules", Order = 1)]
         public List<BlockRule> BlockRules { get; set; } = [];
+
+        [EditorDisplay(Name = "Duplicate Link Handling")]
+        public PostState DuplicateLinkHandling { get; set; }
+
+        [EditorDisplay(Name = "Duplicate Title Handling")]
+        public PostState DuplicateTitleHandling { get; set; }
 
         [EditorDisplay(Name = "Maximum Link Karma")]
         public int MaxLinkKarma { get; set; }

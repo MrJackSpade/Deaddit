@@ -86,7 +86,7 @@ namespace Deaddit.Pages
                 BoxSizing = "border-box"
             };
 
-            RedditPostWebComponent redditPostComponent = AppNavigator.CreatePostWebComponent(post, false, null);
+            RedditPostWebComponent redditPostComponent = AppNavigator.CreatePostWebComponent(post, PostState.None, null);
 
             webElement.AddChild(redditPostComponent);
 

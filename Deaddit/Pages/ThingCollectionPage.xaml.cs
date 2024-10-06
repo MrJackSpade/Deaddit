@@ -18,7 +18,7 @@ using System.Diagnostics;
 
 namespace Deaddit.Pages
 {
-    public partial class SubRedditPage : ContentPage
+    public partial class ThingCollectionPage : ContentPage
     {
         private readonly IAggregatePostHandler _aggregatePostHandler;
 
@@ -50,7 +50,7 @@ namespace Deaddit.Pages
 
         private Enum _sort;
 
-        public SubRedditPage(ThingCollectionName subreddit, Enum sort, ApplicationHacks applicationHacks, IAggregatePostHandler aggregatePostHandler, IAggregateUrlHandler aggregateUrlHandler, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, BlockConfiguration blockConfiguration)
+        public ThingCollectionPage(ThingCollectionName subreddit, Enum sort, ApplicationHacks applicationHacks, IAggregatePostHandler aggregatePostHandler, IAggregateUrlHandler aggregateUrlHandler, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, BlockConfiguration blockConfiguration)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
@@ -105,6 +105,12 @@ namespace Deaddit.Pages
         protected override bool OnBackButtonPressed()
         {
             if(_loadedPosts.Count < _applicationHacks.PageSize * 2)
+            {
+                return false;
+            }
+
+            //Why does this not pop if there are more than 2 pages in the stack?
+            if (Navigation.NavigationStack.Count > 2)
             {
                 return false;
             }
@@ -173,6 +179,15 @@ namespace Deaddit.Pages
             {
                 // Create a set of already loaded post names to avoid duplicates
                 HashSet<string> loadedNames = _loadedPosts.Select(_loadedPosts => _loadedPosts.Post.Name).ToHashSet();
+               
+
+                HashSet<string> loadedTitles = _loadedPosts.Select(p => p.Post.GetTitleOrEmpty())
+                                                           .Where(s => !string.IsNullOrWhiteSpace(s))
+                                                           .ToHashSet()!;
+
+                HashSet<string> loadedUrls = _loadedPosts.Select(p => p.Post.GetUrlOrEmpty())
+                                                           .Where(s => !string.IsNullOrWhiteSpace(s))
+                                                           .ToHashSet()!;
 
                 List<WebComponent> newComponents = [];
 
@@ -209,10 +224,9 @@ namespace Deaddit.Pages
                         // Update the 'after' cursor for pagination
                         _after = thing.Name;
 
-                        bool blocked = !_blockConfiguration.IsAllowed(thing, userData);
+                        PostState postState = this.GetPostState(loadedTitles, loadedUrls, userData, thing);
 
-                        // Skip if not allowed by block configuration
-                        if (blocked && _isBlockEnabled)
+                        if(postState == PostState.Block && _isBlockEnabled)
                         {
                             continue;
                         }
@@ -249,7 +263,7 @@ namespace Deaddit.Pages
                             }
 
                             // Create post component
-                            RedditPostWebComponent redditPostComponent = _appNavigator.CreatePostWebComponent(post, blocked, _selectionGroup);
+                            RedditPostWebComponent redditPostComponent = _appNavigator.CreatePostWebComponent(post, postState, _selectionGroup);
 
                             // Attach event handlers
                             redditPostComponent.BlockAdded += this.RedditPostComponent_OnBlockAdded;
@@ -292,6 +306,44 @@ namespace Deaddit.Pages
                     await webElement.AddChild(component);
                 }
             }, _applicationStyling.HighlightColor.ToHex());
+        }
+
+        private PostState GetPostState(HashSet<string> loadedTitles, HashSet<string> loadedUrls, Dictionary<string, UserPartial>? userData, ApiThing thing)
+        {
+            bool blocked = !_blockConfiguration.IsAllowed(thing, userData);
+
+            // Skip if not allowed by block configuration
+            if (blocked)
+            {
+               return PostState.Block;
+            }
+
+            if (_blockConfiguration.DuplicateTitleHandling == PostState.Block &&
+                loadedTitles.Contains(thing.GetTitleOrEmpty()))
+            {
+                return PostState.Block;
+            }
+
+            if (_blockConfiguration.DuplicateLinkHandling == PostState.Block &&
+                loadedUrls.Contains(thing.GetUrlOrEmpty()))
+            {
+                return PostState.Block;
+            }
+
+            // Code looks weird but these come last as a set because block takes precedence
+            if (_blockConfiguration.DuplicateTitleHandling == PostState.Visited &&
+                loadedTitles.Contains(thing.GetTitleOrEmpty()))
+            {
+                return PostState.Visited;
+            }
+
+            if (_blockConfiguration.DuplicateLinkHandling == PostState.Visited &&
+                loadedUrls.Contains(thing.GetUrlOrEmpty()))
+            {
+                return PostState.Visited;
+            }
+
+            return PostState.None;
         }
 
         private async Task InitSortButtons(Enum sort)

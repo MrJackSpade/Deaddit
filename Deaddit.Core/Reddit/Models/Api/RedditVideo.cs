@@ -17,7 +17,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public string? FallbackUrl { get; init; }
 
         [JsonPropertyName("has_audio")]
-        public bool HasAudio { get; init; }
+        public bool? HasAudio { get; init; }
 
         [JsonPropertyName("height")]
         public int Height { get; init; }

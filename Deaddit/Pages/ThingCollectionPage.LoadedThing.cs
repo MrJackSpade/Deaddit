@@ -3,7 +3,7 @@ using Maui.WebComponents.Components;
 
 namespace Deaddit.Pages
 {
-    public partial class SubRedditPage
+    public partial class ThingCollectionPage
     {
         private class LoadedThing
         {
