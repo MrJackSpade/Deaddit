@@ -76,6 +76,34 @@ namespace Maui.WebComponents
             return _componentMap.ContainsKey(component.Id);
         }
 
+        public async Task LoadResource(string resourceName, Assembly assembly)
+        {
+            StringBuilder sb = new();
+
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+
+            using (StreamReader reader = new(stream))
+            {
+                string result = reader.ReadToEnd();
+                sb.Append(result);
+            }
+
+            string html = sb.ToString();
+
+            if (resourceName.EndsWith(".css", StringComparison.OrdinalIgnoreCase))
+            {
+                html = $"<style>{html}</style>";
+            }
+
+            if (resourceName.EndsWith(".js", StringComparison.OrdinalIgnoreCase))
+            {
+                html = $"<script>{html}</script>";
+            }
+
+            // Build the JavaScript code to execute
+            await this.AddElement(html, 0, "head");
+        }
+
         public async Task RemoveChild(WebComponent child)
         {
             await this.RemoveChild(child, true);
@@ -201,6 +229,20 @@ namespace Maui.WebComponents
             return sb.ToString();
         }
 
+        private async Task AddElement(string html, int index, string? parentSelector = null)
+        {
+            // Base64 encode the HTML string
+            string base64Html = EncodeHtml(html);
+
+            // Build the JavaScript code to execute
+            string script = string.IsNullOrWhiteSpace(parentSelector) ?
+                            $"addElement('{base64Html}', {index});" :
+                            $"addElement('{base64Html}', {index}, '{parentSelector}');";
+
+            // Execute the JavaScript code
+            await this.EvaluateJavaScriptWithResultAsync(script);
+        }
+
         private async Task EvaluateJavaScriptWithResultAsync(string script)
         {
             string result = await this.EvaluateJavaScriptAsync(script) ?? "{ }";
@@ -261,18 +303,18 @@ namespace Maui.WebComponents
 
             string elementHtml = RenderComponent(component);
 
-            // Base64 encode the HTML string
-            string base64Html = EncodeHtml(elementHtml);
-
-            // Build the JavaScript code to execute
-            string script = parent is null ?
-                            $"addElement('{base64Html}', {index});" :
-                            $"addElement('{base64Html}', {index}, '{parent.Id}');";
-
             try
             {
-                // Execute the JavaScript code
-                await this.EvaluateJavaScriptWithResultAsync(script);
+                // Build the JavaScript code to execute
+
+                if (parent?.Id is not null)
+                {
+                    await this.AddElement(elementHtml, index, $"#{parent?.Id}");
+                }
+                else
+                {
+                    await this.AddElement(elementHtml, index);
+                }
 
                 component.IsRendered = true;
             }
@@ -282,7 +324,7 @@ namespace Maui.WebComponents
             }
         }
 
-        private void OnNavigating(object? sender, WebNavigatingEventArgs e)
+        private async void OnNavigating(object? sender, WebNavigatingEventArgs e)
         {
             if (e.Url.StartsWith("webcomponent://"))
             {
@@ -314,6 +356,7 @@ namespace Maui.WebComponents
                 if (componentId.Equals("system", StringComparison.OrdinalIgnoreCase) && methodName.Equals("Loaded", StringComparison.OrdinalIgnoreCase))
                 {
                     _loadedTask.SetResult();
+                    await this.OnDocumentLoaded();
                     return;
                 }
 
@@ -351,6 +394,11 @@ namespace Maui.WebComponents
                 // Handle the method invocation
                 this.HandleInvokeMethod(componentId, methodName, argsJson);
             }
+        }
+
+        public virtual Task OnDocumentLoaded()
+        {
+            return Task.CompletedTask;
         }
 
         private void RegisterChildren(WebComponent component)

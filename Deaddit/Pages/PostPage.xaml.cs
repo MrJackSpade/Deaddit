@@ -143,7 +143,7 @@ namespace Deaddit.Pages
 
             await webElement.RemoveChild(mcomponent);
 
-            await DataService.LoadAsync(null, async () => await this.LoadMoreAsync(Post, e), _applicationStyling.HighlightColor.ToMauiColor());
+            await DataService.LoadAsync(mcomponent, async () => await this.LoadMoreAsync(Post, e), _applicationStyling.HighlightColor.ToHex());
         }
 
         public virtual void OnBackClicked(object? sender, EventArgs e)
@@ -286,7 +286,7 @@ namespace Deaddit.Pages
 
         public async Task TryLoad()
         {
-            await DataService.LoadAsync(null, this.LoadDataAsync, _applicationStyling.HighlightColor.ToMauiColor());
+            await DataService.LoadAsync(commentContainer, this.LoadDataAsync, _applicationStyling.HighlightColor.ToHex());
         }
 
         private ButtonComponent ActionButton(string text)

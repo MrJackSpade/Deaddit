@@ -6,74 +6,9 @@ namespace Deaddit.Components
 {
     internal class RedditWebElement : WebElement
     {
-        public RedditWebElement() : base()
+        public async override Task OnDocumentLoaded()
         {
-            DocumentStyles.Add(new StyleRule()
-            {
-                CssSelector = "html, body",
-                Styles =
-                {
-                    ["margin"] = "0",
-                    ["padding"] = "0",
-                    ["box-sizing"] = "border-box"
-                }
-            });
-
-            DocumentStyles.Add(new StyleRule()
-            {
-                CssSelector = "body",
-                Styles =
-                {
-                    ["font-family"] = "Arial, sans-serif"
-                }
-            });
-
-            DocumentStyles.Add(new StyleRule()
-            {
-                CssSelector = "*",
-                Styles =
-                {
-                    ["box-sizing"] = "border-box"
-                }
-            });
-
-            DocumentStyles.Add(new StyleRule()
-            {
-                CssSelector = "pre",
-                Styles =
-                {
-                    ["overflow-x"] = "scroll"
-                }
-            });
-
-            DocumentStyles.Add(new StyleRule()
-            {
-                CssSelector = "p",
-                Styles =
-                {
-                    ["margin"] = "0",
-                    ["padding"] = "0"
-                }
-            });
-
-            DocumentStyles.Add(new StyleRule()
-            {
-                CssSelector = "p:not(:first-child)",
-                Styles =
-                {
-                    ["margin-top"] = "10px"
-                }
-            });
-
-            DocumentStyles.Add(new StyleRule()
-            {
-                CssSelector = "img",
-                Styles =
-                {
-                    ["max-width"] = "100%",
-                    ["max-height"] = "100vh"
-                }
-            });
+            await this.LoadResource("Deaddit.Resources.Embedded.site.css", typeof(RedditWebElement).Assembly);
         }
 
         public void SetBackgroundColor(DynamicColor hex)

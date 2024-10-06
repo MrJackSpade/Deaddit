@@ -62,7 +62,7 @@ namespace Deaddit.Pages
 
         public async Task TryLoad()
         {
-            await DataService.LoadAsync(mainStack, this.LoadAbout, _applicationStyling.HighlightColor.ToMauiColor());
+            await DataService.LoadAsync(this.LoadAbout);
         }
 
         private async Task LoadAbout()

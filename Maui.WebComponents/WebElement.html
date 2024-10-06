@@ -1,5 +1,5 @@
 <html>
-<head>
+<head id="head">
     <meta charset="" UTF-8"">
     <style></style>
     <script>
@@ -314,9 +314,9 @@
 
                 var container;
                 if (parentid) {
-                    container = document.getElementById(parentid);
+                    container = document.querySelector(parentid);
                     if (!container) {
-                        throw new Error(`Parent element with ID "${parentid}" not found.`);
+                        throw new Error(`Parent element with query selector "${parentid}" not found.`);
                     }
                 } else {
                     container = document.body;

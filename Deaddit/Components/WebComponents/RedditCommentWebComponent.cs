@@ -122,7 +122,7 @@ namespace Deaddit.Components.WebComponents
 
             if (e.ChildNames.NotNullAny())
             {
-                await DataService.LoadAsync(null, async () => await this.LoadMoreCommentsAsync(e), _applicationStyling.HighlightColor.ToMauiColor());
+                await DataService.LoadAsync(async () => await this.LoadMoreCommentsAsync(e));
 
                 _replies.Children.Remove(mcomponent);
             }

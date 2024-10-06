@@ -1,5 +1,10 @@
-﻿using Deaddit.Core.Extensions;
+﻿using Deaddit.Components.WebComponents.Partials;
+using Deaddit.Core.Extensions;
+using Maui.WebComponents;
+using Maui.WebComponents.Components;
 using System.Diagnostics;
+using Maui.WebComponents.Extensions;
+using Deaddit.Core.Utils;
 
 namespace Deaddit.Utils
 {
@@ -9,23 +14,8 @@ namespace Deaddit.Utils
 
         private static readonly List<Task> _tasks = [];
 
-        public static async Task LoadAsync(Layout activityContainer, Func<Task> toExecute, Color? indicatorColor = null, bool top = false)
+        public static async Task LoadAsync(Func<Task> toExecute)
         {
-            ActivityIndicator activityIndicator = new()
-            {
-                IsRunning = true,
-                Color = indicatorColor,
-            };
-
-            if (top)
-            {
-                activityContainer?.Children?.Insert(0, activityIndicator);
-            }
-            else
-            {
-                activityContainer?.Children?.Add(activityIndicator);
-            }
-
             Task executing = toExecute();
 
             Debug.WriteLine("--Starting async Task");
@@ -37,6 +27,44 @@ namespace Deaddit.Utils
             Debug.WriteLine("--Completed async Task");
 
             _semaphore.Wait(() => _tasks.Remove(executing));
+        }
+
+        public static async Task LoadAsync(WebElement activityContainer, Func<Task> toExecute, string indicatorColor, bool top = false)
+        {
+            Ensure.NotNull(activityContainer);
+
+            WebComponent activityIndicator = new Spinner(indicatorColor);
+
+            if (top)
+            {
+                activityContainer?.InsertChild(0, activityIndicator);
+            }
+            else
+            {
+                activityContainer?.AddChild(activityIndicator);
+            }
+
+            await LoadAsync(toExecute);
+
+            activityContainer?.RemoveChild(activityIndicator);
+        }
+
+        public static async Task LoadAsync(WebComponent activityContainer, Func<Task> toExecute, string indicatorColor, bool top = false)
+        {
+            Ensure.NotNull(activityContainer);
+
+            WebComponent activityIndicator = new Spinner(indicatorColor);
+
+            if (top)
+            {
+                activityContainer?.Children?.Insert(0, activityIndicator);
+            }
+            else
+            {
+                activityContainer?.Children?.Add(activityIndicator);
+            }
+
+            await LoadAsync(toExecute);
 
             activityContainer?.Children?.Remove(activityIndicator);
         }

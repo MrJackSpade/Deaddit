@@ -13,7 +13,7 @@ namespace Maui.WebComponents.Components
         public WebComponentCollection Children { get; } = [];
 
         [HtmlAttribute]
-        public string Id { get; } = Guid.NewGuid().ToString();
+        public string Id { get; } = "_" + Guid.NewGuid().ToString().Replace("-", "");
 
         public string InnerHTML
         {

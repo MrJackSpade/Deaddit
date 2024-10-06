@@ -52,7 +52,7 @@ namespace Deaddit.Pages
                 mainStack.Add(subRedditComponent);
             }
 
-            DataService.LoadAsync(mainStack, this.LoadMultis, applicationTheme.HighlightColor.ToMauiColor());
+            DataService.LoadAsync(this.LoadMultis);
         }
 
         public async void OnAddClicked(object? sender, EventArgs e)
