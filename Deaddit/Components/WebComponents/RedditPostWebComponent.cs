@@ -149,20 +149,22 @@ namespace Deaddit.Components.WebComponents
             }
         }
 
-        public void Select()
+        public Task Select()
         {
             BackgroundColor = _highlightColor;
             _actionButtons.BackgroundColor = _highlightColor;
             _textContainer.ShowTimeUser(true);
             _actionButtons.Display = "flex";
+            return Task.CompletedTask;
         }
 
-        public void Unselect()
+        public Task Unselect()
         {
             BackgroundColor = _backgroundColor;
             _actionButtons.BackgroundColor = _backgroundColor;
             _textContainer.ShowTimeUser(false);
             _actionButtons.Display = "none";
+            return Task.CompletedTask;
         }
 
         private ButtonComponent ActionButton(string text)
@@ -331,9 +333,12 @@ namespace Deaddit.Components.WebComponents
             await _apiPostHandler.Share(_post);
         }
 
-        private void TextContainer_OnClick(object? sender, EventArgs e)
+        private async void TextContainer_OnClick(object? sender, EventArgs e)
         {
-            _selectionGroup?.Toggle(this);
+            if (_selectionGroup != null)
+            {
+                await _selectionGroup.Toggle(this);
+            }
         }
 
         private async void Thumbnail_OnClick(object? sender, EventArgs e)
@@ -347,7 +352,7 @@ namespace Deaddit.Components.WebComponents
             if (_selectionGroup != null)
             {
                 Opacity = _applicationStyling.VisitedOpacity.ToString("0.00");
-                _selectionGroup?.Select(this);
+                await _selectionGroup.Select(this);
                 _visitTracker.Visit(_post);
             }
 

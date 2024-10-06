@@ -265,20 +265,22 @@ namespace Deaddit.Components.WebComponents
             }
         }
 
-        public void Select()
+        public Task Select()
         {
             _commentContainer.BackgroundColor = _applicationStyling.HighlightColor.ToHex();
             _topBar.Display = "flex";
             _bottomBar.Display = "flex";
             _replies.BorderLeft = $"1px solid {_applicationStyling.HighlightColor.ToHex()}";
+            return Task.CompletedTask;
         }
 
-        public void Unselect()
+        public Task Unselect()
         {
             _commentContainer.BackgroundColor = null;
             _topBar.Display = "none";
             _bottomBar.Display = "none";
             _replies.BorderLeft = $"1px solid {_applicationStyling.TextColor.ToHex()}";
+            return Task.CompletedTask;
         }
 
         internal void LoadImages(bool recursive = false)
@@ -337,8 +339,8 @@ namespace Deaddit.Components.WebComponents
         private void EditPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
         {
             _comment.Body = e.NewComment.Body;
-
-            _commentBody.InnerText = e.NewComment.Body;
+            _comment.BodyHtml = e.NewComment.BodyHtml;
+            _commentBody.InnerHTML = e.NewComment.BodyHtml;
         }
 
         private async Task LoadMoreCommentsAsync(IMore comment)
@@ -406,9 +408,12 @@ namespace Deaddit.Components.WebComponents
             _replies.Children.Insert(0, redditCommentComponent);
         }
 
-        private void SelectClick(object? sender, EventArgs e)
+        private async void SelectClick(object? sender, EventArgs e)
         {
-            SelectionGroup?.Select(this);
+            if (SelectionGroup != null)
+            {
+                await SelectionGroup.Select(this);
+            }
         }
     }
 }

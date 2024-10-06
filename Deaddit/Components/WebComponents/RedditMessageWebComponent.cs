@@ -45,19 +45,16 @@ namespace Deaddit.Components.WebComponents
 
         public BlockConfiguration BlockConfiguration { get; }
 
-        public ApiPost Post { get; }
-
         public bool SelectEnabled { get; private set; }
 
         public SelectionGroup SelectionGroup { get; private set; }
 
         public event EventHandler<OnDeleteClickedEventArgs> OnDelete;
 
-        public RedditMessageWebComponent(ApiMessage message, ApiPost? post, bool selectEnabled, INavigation navigation, AppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup selectionGroup, BlockConfiguration blockConfiguration)
+        public RedditMessageWebComponent(ApiMessage message,  INavigation navigation, AppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup selectionGroup, BlockConfiguration blockConfiguration)
         {
             _message = message;
-            Post = post;
-            SelectEnabled = selectEnabled;
+            SelectEnabled = selectionGroup != null;
             AppNavigator = appNavigator;
             _redditClient = redditClient;
             _applicationStyling = applicationStyling;
@@ -114,17 +111,12 @@ namespace Deaddit.Components.WebComponents
         {
             if (!string.Equals(_redditClient.LoggedInUser, _message.Author, StringComparison.OrdinalIgnoreCase))
             {
-                Dictionary<CommentMoreOptions, string> overrides = [];
+                Dictionary<MessageMoreOptions, string> overrides = [];
 
-                overrides.Add(CommentMoreOptions.BlockAuthor, $"Block /u/{_message.Author}");
-                overrides.Add(CommentMoreOptions.ViewAuthor, $"View /u/{_message.Author}");
+                overrides.Add(MessageMoreOptions.BlockAuthor, $"Block /u/{_message.Author}");
+                overrides.Add(MessageMoreOptions.ViewAuthor, $"View /u/{_message.Author}");
 
-                if (_message.Saved == true)
-                {
-                    overrides.Add(CommentMoreOptions.Save, $"Unsave");
-                }
-
-                CommentMoreOptions? postMoreOptions = await _navigation.NavigationStack[^1].DisplayActionSheet<CommentMoreOptions>("Select:", null, null, overrides);
+                MessageMoreOptions? postMoreOptions = await _navigation.NavigationStack[^1].DisplayActionSheet<MessageMoreOptions>("Select:", null, null, overrides);
 
                 if (postMoreOptions is null)
                 {
@@ -133,75 +125,24 @@ namespace Deaddit.Components.WebComponents
 
                 switch (postMoreOptions.Value)
                 {
-                    case CommentMoreOptions.Save:
-                        if (_message.Saved == true)
-                        {
-                            await _redditClient.ToggleSave(_message, false);
-                            _message.Saved = false;
-                        }
-                        else
-                        {
-                            await _redditClient.ToggleSave(_message, true);
-                            _message.Saved = true;
-                        }
-
-                        break;
-
-                    case CommentMoreOptions.BlockAuthor:
+                    case MessageMoreOptions.BlockAuthor:
                         await this.NewBlockRule(new BlockRule()
                         {
-                            Author = Post.Author,
+                            Author = _message.Author,
                             BlockType = BlockType.Post,
-                            RuleName = $"/u/{Post.Author}"
+                            RuleName = $"/u/{_message.Author}"
                         });
                         break;
 
-                    case CommentMoreOptions.ViewAuthor:
+                    case MessageMoreOptions.ViewAuthor:
                         Ensure.NotNull(_message.Author);
                         await AppNavigator.OpenUser(_message.Author);
-                        break;
-
-                    case CommentMoreOptions.CopyRaw:
-                        await Clipboard.SetTextAsync(_message.Body);
-                        break;
-
-                    case CommentMoreOptions.CopyPermalink:
-                        await Clipboard.SetTextAsync(_message.Permalink);
                         break;
                 }
             }
             else
             {
-                Dictionary<MyCommentMoreOptions, string> overrideText = [];
-                bool replyState = _message.SendReplies != false;
-                overrideText.Add(MyCommentMoreOptions.ToggleReplies, $"{(replyState ? "Disable" : "Enable")} Replies");
-
-                MyCommentMoreOptions? postMoreOptions = await _navigation.NavigationStack[^1].DisplayActionSheet("Select:", null, null, overrideText);
-
-                if (postMoreOptions is null)
-                {
-                    return;
-                }
-
-                switch (postMoreOptions.Value)
-                {
-                    case MyCommentMoreOptions.ToggleReplies:
-                        await _redditClient.ToggleInboxReplies(_message, !replyState);
-                        _message.SendReplies = !replyState;
-                        break;
-
-                    case MyCommentMoreOptions.Delete:
-                        await _redditClient.Delete(_message);
-                        OnDelete?.Invoke(this, new OnDeleteClickedEventArgs(_message, this));
-                        break;
-
-                    case MyCommentMoreOptions.Edit:
-                        ReplyPage replyPage = await AppNavigator.OpenEditPage(_message);
-                        replyPage.OnSubmitted += this.EditPage_OnSubmitted;
-                        break;
-
-                    default: throw new EnumNotImplementedException(postMoreOptions.Value);
-                }
+               
             }
         }
 
@@ -211,18 +152,21 @@ namespace Deaddit.Components.WebComponents
             replyPage.OnSubmitted += this.ReplyPage_OnSubmitted;
         }
 
-        public void Select()
+        public async Task Select()
         {
             _commentContainer.BackgroundColor = _applicationStyling.HighlightColor.ToHex();
             _topBar.Display = "flex";
             _bottomBar.Display = "flex";
+
+            await _redditClient.MarkRead(_message, true);
         }
 
-        public void Unselect()
+        public Task Unselect()
         {
             _commentContainer.BackgroundColor = null;
             _topBar.Display = "none";
             _bottomBar.Display = "none";
+            return Task.CompletedTask;
         }
 
         internal void LoadImages(bool recursive = false)
@@ -232,11 +176,6 @@ namespace Deaddit.Components.WebComponents
 
         private void BlockRuleOnSave(object? sender, ObjectEditorSaveEventArgs e)
         {
-        }
-
-        private async Task ContinueThread(ApiComment comment)
-        {
-            await AppNavigator.OpenPost(Post, comment);
         }
 
         private void EditPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
@@ -260,19 +199,15 @@ namespace Deaddit.Components.WebComponents
 
         private void ReplyPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
         {
-            Ensure.NotNull(e.NewComment, "New comment data");
 
-            e.NewComment.ParentId = _message.Id;
-            e.NewComment.Parent = _message;
-
-            RedditCommentWebComponent redditCommentComponent = AppNavigator.CreateCommentWebComponent(e.NewComment, Post, SelectionGroup);
-            redditCommentComponent.OnDelete += (s, e) => _replies.Children.Remove(redditCommentComponent);
-            _replies.Children.Insert(0, redditCommentComponent);
         }
 
-        private void SelectClick(object? sender, EventArgs e)
+        private async void SelectClick(object? sender, EventArgs e)
         {
-            SelectionGroup?.Select(this);
+            if (SelectionGroup != null)
+            {
+                await SelectionGroup.Select(this);
+            }
         }
     }
 }

@@ -4,8 +4,8 @@
     {
         bool SelectEnabled { get; }
 
-        void Select();
+        Task Select();
 
-        void Unselect();
+        Task Unselect();
     }
 }

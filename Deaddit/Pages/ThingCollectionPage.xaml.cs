@@ -278,9 +278,9 @@ namespace Deaddit.Pages
                             view = _appNavigator.CreateCommentWebComponent(comment, null, _selectionGroup);
                         }
 
-                        if (thing is ApiComment message)
+                        if (thing is ApiMessage message)
                         {
-                            //view = _appNavigator.CreateMessageComponent(message, _selectionGroup);
+                            view = _appNavigator.CreateMessageWebComponent(message, _selectionGroup);
                         }
 
                         // Add view to new components if created

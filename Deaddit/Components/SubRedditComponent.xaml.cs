@@ -46,23 +46,25 @@ namespace Deaddit.MAUI.Components
             // Handle the Share button click
         }
 
-        public void OnSettingsClick(object? sender, EventArgs e)
+        public async void OnSettingsClick(object? sender, EventArgs e)
         {
-            _selectionGroup.Toggle(this);
+            await _selectionGroup.Toggle(this);
         }
 
-        void ISelectionGroupItem.Select()
+        Task ISelectionGroupItem.Select()
         {
             Selected = true;
             BackgroundColor = _applicationStyling.HighlightColor.ToMauiColor();
             actionButtonsStack.IsVisible = true;
+            return Task.CompletedTask;
         }
 
-        void ISelectionGroupItem.Unselect()
+        Task ISelectionGroupItem.Unselect()
         {
             Selected = false;
             BackgroundColor = _applicationStyling.SecondaryColor.ToMauiColor();
             actionButtonsStack.IsVisible = false;
+            return Task.CompletedTask;
         }
 
         private async void OnParentTapped(object? sender, TappedEventArgs e)

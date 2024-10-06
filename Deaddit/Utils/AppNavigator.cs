@@ -56,9 +56,9 @@ namespace Deaddit.Utils
             }
         }
 
-        public RedditMessageWebComponent CreateMessageWebComponent(ApiComment message)
+        public RedditMessageWebComponent CreateMessageWebComponent(ApiMessage message, SelectionGroup selectionGroup)
         {
-            throw new NotImplementedException();
+            return new RedditMessageWebComponent(message, Navigation, this, RedditClient, ApplicationStyling, selectionGroup, BlockConfiguration);
         }
 
         public MoreCommentsWebComponent CreateMoreCommentsWebComponent(IMore more)

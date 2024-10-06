@@ -40,5 +40,7 @@ namespace Deaddit.Core.Reddit.Interfaces
         Task ToggleVisibility(ApiThing thing, bool visible);
 
         Task<ApiComment> Update(ApiThing thing);
+
+        Task MarkRead(ApiMessage message, bool state);
     }
 }
