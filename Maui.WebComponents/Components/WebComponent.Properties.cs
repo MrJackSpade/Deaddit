@@ -10,6 +10,17 @@ namespace Maui.WebComponents.Components
             set => this.Style("align-items", value);
         }
 
+        public string? BorderBottomColor
+        {
+            get => this.Style("border-bottom-color");
+            set => this.Style("border-bottom-color", value);
+        }
+
+        public string? AlignContent
+        {
+            get => this.Style("align-content");
+            set => this.Style("align-content", value);
+        }
         public string? AlignSelf
         {
             get => this.Style("align-self");

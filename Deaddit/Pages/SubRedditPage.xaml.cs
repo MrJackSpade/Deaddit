@@ -169,7 +169,7 @@ namespace Deaddit.Pages
         public async Task TryLoad()
         {
             // Wrap the loading process in a DataService call
-            await DataService.LoadAsync(null, async () =>
+            await DataService.LoadAsync(this.webElement, async () =>
             {
                 // Create a set of already loaded post names to avoid duplicates
                 HashSet<string> loadedNames = _loadedPosts.Select(_loadedPosts => _loadedPosts.Post.Name).ToHashSet();
@@ -291,7 +291,7 @@ namespace Deaddit.Pages
                 {
                     await webElement.AddChild(component);
                 }
-            }, _applicationStyling.HighlightColor.ToMauiColor());
+            }, _applicationStyling.HighlightColor.ToHex());
         }
 
         private async Task InitSortButtons(Enum sort)
