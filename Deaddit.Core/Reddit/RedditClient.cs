@@ -8,6 +8,7 @@ using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Extensions;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Text.Json;
@@ -362,7 +363,7 @@ namespace Deaddit.Core.Reddit
 
                 List<string> userNames = usernames.ToList();
 
-                if (!userNames.Any())
+                if (userNames.Count == 0)
                 {
                     return [];
                 }
@@ -402,6 +403,11 @@ namespace Deaddit.Core.Reddit
                     return [];
                 }
             }
+        }
+
+        public async Task MarkRead(ApiMessage message, bool state)
+        {
+            await this.SimpleToggle(message, state, $"{API_ROOT}/api/read_message", $"{API_ROOT}/api/unread_message");
         }
 
         public async Task<List<ApiThing>> MoreComments(ApiPost post, IMore moreItem)
@@ -601,75 +607,12 @@ namespace Deaddit.Core.Reddit
 
         public async Task ToggleInboxReplies(ApiThing thing, bool enabled)
         {
-            try
-            {
-                await this.EnsureAuthenticated();
-                await this.ThrottleAsync();
-
-                Stopwatch stopwatch = new();
-                stopwatch.Start();
-
-                string url = $"{API_ROOT}/api/sendreplies";
-
-                // Prepare the form values as a dictionary
-                Dictionary<string, string> formValues = new()
-            {
-                { "id", thing.Name },
-                { "state", $"{enabled}" }
-            };
-
-                await _jsonClient.Post(url, formValues);
-
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in ToggleInboxReplies method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
-            }
-            catch (Exception ex)
-            {
-                if (!await _exceptionDisplay.DisplayException(ex))
-                {
-                    throw;
-                }
-                else
-                {
-                    return;
-                }
-            }
+            await this.SimpleToggle(thing, enabled, $"{API_ROOT}/api/sendreplies", $"{API_ROOT}/api/sendreplies");
         }
 
         public async Task ToggleSave(ApiThing thing, bool saved)
         {
-            try
-            {
-                await this.EnsureAuthenticated();
-                await this.ThrottleAsync();
-
-                Stopwatch stopwatch = new();
-                stopwatch.Start();
-
-                string url = !saved ? $"{API_ROOT}/api/unsave" : $"{API_ROOT}/api/save";
-
-                // Prepare the form values as a dictionary
-                Dictionary<string, string> formValues = new()
-            {
-                { "id", thing.Name }
-            };
-
-                await _jsonClient.Post(url, formValues);
-
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in Save method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
-            }
-            catch (Exception ex)
-            {
-                if (!await _exceptionDisplay.DisplayException(ex))
-                {
-                    throw;
-                }
-                else
-                {
-                    return;
-                }
-            }
+            await this.SimpleToggle(thing, saved, $"{API_ROOT}/api/save", $"{API_ROOT}/api/unsave");
         }
 
         public async Task ToggleSubScription(ApiSubReddit thing, bool subscribed)
@@ -686,10 +629,10 @@ namespace Deaddit.Core.Reddit
 
                 // Prepare the form values as a dictionary
                 Dictionary<string, string> formValues = new()
-            {
-                { "action", subscribed ? "sub" : "unsub" },
-                { "sr", $"{thing.Name}" }
-            };
+                {
+                    { "action", subscribed ? "sub" : "unsub" },
+                    { "sr", $"{thing.Name}" }
+                };
 
                 await _jsonClient.Post(url, formValues);
 
@@ -711,38 +654,7 @@ namespace Deaddit.Core.Reddit
 
         public async Task ToggleVisibility(ApiThing thing, bool visible)
         {
-            try
-            {
-                await this.EnsureAuthenticated();
-                await this.ThrottleAsync();
-
-                Stopwatch stopwatch = new();
-                stopwatch.Start();
-
-                string url = !visible ? $"{API_ROOT}/api/hide" : $"{API_ROOT}/api/unhide";
-
-                // Prepare the form values as a dictionary
-                Dictionary<string, string> formValues = new()
-            {
-                { "id", thing.Name }
-            };
-
-                await _jsonClient.Post(url, formValues);
-
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in ToggleVisibility method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
-            }
-            catch (Exception ex)
-            {
-                if (!await _exceptionDisplay.DisplayException(ex))
-                {
-                    throw;
-                }
-                else
-                {
-                    return;
-                }
-            }
+            await this.SimpleToggle(thing, visible, $"{API_ROOT}/api/unhide", $"{API_ROOT}/api/hide");
         }
 
         public async Task<ApiComment> Update(ApiThing thing)
@@ -879,6 +791,44 @@ namespace Deaddit.Core.Reddit
                 _jsonClient.SetDefaultHeader("Authorization", _oAuthToken.TokenType + " " + _oAuthToken.AccessToken);
 
                 LoggedInUser = _redditCredentials.UserName;
+            }
+        }
+
+        private async Task SimpleToggle(ApiThing thing, bool state, string trueUrl, string falseUrl, [CallerMemberName] string logName = null)
+        {
+            try
+            {
+                await this.EnsureAuthenticated();
+                await this.ThrottleAsync();
+
+                Stopwatch stopwatch = new();
+
+                stopwatch.Start();
+
+                string url = !state ? falseUrl : trueUrl;
+
+                // Prepare the form values as a dictionary
+                Dictionary<string, string> formValues = new()
+                {
+                    { "id", thing.Name },
+                    { "state", $"{state}" }
+                };
+
+                await _jsonClient.Post(url, formValues);
+
+                stopwatch.Stop();
+                Debug.WriteLine($"[DEBUG] Time spent in {logName} method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+            }
+            catch (Exception ex)
+            {
+                if (!await _exceptionDisplay.DisplayException(ex))
+                {
+                    throw;
+                }
+                else
+                {
+                    return;
+                }
             }
         }
     }

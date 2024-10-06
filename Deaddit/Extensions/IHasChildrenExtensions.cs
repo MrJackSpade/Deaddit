@@ -51,9 +51,9 @@ namespace Deaddit.Extensions
                     mcomponent.LoadMore += target.MoreCommentsClick;
                     childComponent = mcomponent;
                 }
-                else if (child is ApiComment message)
+                else if (child is ApiMessage message)
                 {
-                    RedditMessageWebComponent mcomponent = target.AppNavigator.CreateMessageWebComponent(message);
+                    RedditMessageWebComponent mcomponent = target.AppNavigator.CreateMessageWebComponent(message, target.SelectionGroup);
                     childComponent = mcomponent;
                 }
 

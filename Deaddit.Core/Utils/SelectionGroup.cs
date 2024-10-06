@@ -11,7 +11,7 @@ namespace Deaddit.Core.Utils
             return _selected == selected;
         }
 
-        public void Select(ISelectionGroupItem selected)
+        public async Task Select(ISelectionGroupItem selected)
         {
             if (!selected.SelectEnabled)
             {
@@ -20,34 +20,42 @@ namespace Deaddit.Core.Utils
 
             _selected?.Unselect();
             _selected = selected;
-            selected.Select();
+            await selected.Select();
         }
 
-        public void Toggle(ISelectionGroupItem item)
+        public async Task Toggle(ISelectionGroupItem item)
         {
             if (this.IsSelected(item))
             {
-                this.Unselect(item);
+                await this.Unselect(item);
             }
             else
             {
-                this.Select(item);
+                await this.Select(item);
             }
         }
 
-        public void Unselect(ISelectionGroupItem selected)
+        public async Task Unselect(ISelectionGroupItem selected)
         {
             if (this.IsSelected(selected))
             {
-                _selected?.Unselect();
+                if (_selected != null)
+                {
+                    await _selected.Unselect();
+                    _selected = null;
+                }
+
                 _selected = null;
             }
         }
 
-        public void Unselect()
+        public async Task Unselect()
         {
-            _selected?.Unselect();
-            _selected = null;
+            if(_selected != null)
+            {
+                await _selected.Unselect();
+                _selected = null;
+            }
         }
     }
 }

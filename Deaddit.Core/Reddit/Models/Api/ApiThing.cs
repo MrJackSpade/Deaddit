@@ -67,7 +67,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public string? Body { get; set; }
 
         [JsonPropertyNames("body_html", "selftext_html")]
-        public string? BodyHtml { get; init; }
+        public string? BodyHtml { get; set; }
 
         [JsonPropertyName("can_gild")]
         public bool? CanGild { get; init; }
