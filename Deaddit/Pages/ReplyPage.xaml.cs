@@ -1,6 +1,7 @@
 using Deaddit.Components.WebComponents;
 using Deaddit.Components.WebComponents.Partials.Post;
 using Deaddit.Core.Configurations.Models;
+using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
@@ -14,6 +15,8 @@ namespace Deaddit.Pages
     {
         private readonly IAppNavigator _appNavigator;
 
+        private readonly IDisplayExceptions _displayExceptions;
+
         private readonly IRedditClient _redditClient;
 
         private readonly ApiThing _replyTo;
@@ -22,10 +25,11 @@ namespace Deaddit.Pages
 
         public event EventHandler<ReplySubmittedEventArgs>? OnSubmitted;
 
-        public ReplyPage(ApiThing? replyTo, ApiThing? toEdit, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling)
+        public ReplyPage(ApiThing? replyTo, ApiThing? toEdit, IDisplayExceptions displayExceptions, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling)
         {
             _redditClient = redditClient;
             _replyTo = replyTo ?? toEdit.Parent;
+            _displayExceptions = displayExceptions;
             _toEdit = toEdit;
             _appNavigator = appNavigator;
 
@@ -36,6 +40,7 @@ namespace Deaddit.Pages
             webElement.SetBackgroundColor(applicationStyling.SecondaryColor);
             webElement.SetBlockQuoteColor(applicationStyling.TextColor);
             webElement.SetSpoilerColor(applicationStyling.TextColor);
+            webElement.OnJavascriptError += this.WebElement_OnJavascriptError;
 
             ApiThing? toRender = _replyTo;
             SelectionGroup unused = new();
@@ -95,6 +100,11 @@ namespace Deaddit.Pages
             OnSubmitted?.Invoke(this, new ReplySubmittedEventArgs(_replyTo, meta));
 
             await Navigation.PopAsync();
+        }
+
+        private void WebElement_OnJavascriptError(object? sender, Exception e)
+        {
+            _displayExceptions.DisplayException(e);
         }
     }
 }

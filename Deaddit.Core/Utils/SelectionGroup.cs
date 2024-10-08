@@ -51,7 +51,7 @@ namespace Deaddit.Core.Utils
 
         public async Task Unselect()
         {
-            if(_selected != null)
+            if (_selected != null)
             {
                 await _selected.Unselect();
                 _selected = null;

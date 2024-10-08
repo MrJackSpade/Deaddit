@@ -29,6 +29,8 @@ namespace Deaddit.Pages
 
         private readonly IConfigurationService _configurationService;
 
+        private readonly IDisplayExceptions _displayExceptions;
+
         private readonly IRedditClient _redditClient;
 
         private readonly IAggregateUrlHandler _urlHandler;
@@ -57,12 +59,13 @@ namespace Deaddit.Pages
 
         public SelectionGroup SelectionGroup { get; }
 
-        public PostPage(ApiPost post, ApiComment? focus, IAggregateUrlHandler urlHandler, IAggregatePostHandler aggregatePostHandler, IAppNavigator appNavigator, IConfigurationService configurationService, IRedditClient redditClient, ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration)
+        public PostPage(ApiPost post, ApiComment? focus, IDisplayExceptions displayExceptions, IAggregateUrlHandler urlHandler, IAggregatePostHandler aggregatePostHandler, IAppNavigator appNavigator, IConfigurationService configurationService, IRedditClient redditClient, ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
             _urlHandler = urlHandler;
             _aggregatePostHandler = aggregatePostHandler;
+            _displayExceptions = displayExceptions;
             _configurationService = configurationService;
             AppNavigator = appNavigator;
             _commentFocus = focus;
@@ -77,6 +80,7 @@ namespace Deaddit.Pages
             webElement.SetBackgroundColor(applicationStyling.SecondaryColor);
             webElement.SetBlockQuoteColor(applicationStyling.TextColor);
             webElement.SetSpoilerColor(applicationStyling.TextColor);
+            webElement.OnJavascriptError += this.WebElement_OnJavascriptError;
 
             webElement.ClickUrl += this.WebElement_ClickUrl;
 
@@ -370,6 +374,11 @@ namespace Deaddit.Pages
             }
 
             await _urlHandler.Launch(e, _aggregatePostHandler);
+        }
+
+        private void WebElement_OnJavascriptError(object? sender, Exception e)
+        {
+            _displayExceptions.DisplayException(e);
         }
     }
 }

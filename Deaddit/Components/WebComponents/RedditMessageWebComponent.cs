@@ -2,7 +2,6 @@
 using Deaddit.Components.WebComponents.Partials.Message;
 using Deaddit.Components.WebComponents.Partials.Post;
 using Deaddit.Core.Configurations.Models;
-using Deaddit.Core.Exceptions;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models.Api;
@@ -51,7 +50,7 @@ namespace Deaddit.Components.WebComponents
 
         public event EventHandler<OnDeleteClickedEventArgs> OnDelete;
 
-        public RedditMessageWebComponent(ApiMessage message,  INavigation navigation, AppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup selectionGroup, BlockConfiguration blockConfiguration)
+        public RedditMessageWebComponent(ApiMessage message, INavigation navigation, AppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup selectionGroup, BlockConfiguration blockConfiguration)
         {
             _message = message;
             SelectEnabled = selectionGroup != null;
@@ -142,7 +141,6 @@ namespace Deaddit.Components.WebComponents
             }
             else
             {
-               
             }
         }
 
@@ -199,7 +197,6 @@ namespace Deaddit.Components.WebComponents
 
         private void ReplyPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
         {
-
         }
 
         private async void SelectClick(object? sender, EventArgs e)

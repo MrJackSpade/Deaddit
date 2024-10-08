@@ -405,7 +405,7 @@ namespace Deaddit.Core.Reddit
             }
         }
 
-        public async Task MarkRead(ApiMessage message, bool state)
+        public async Task MarkRead(ApiThing message, bool state)
         {
             await this.SimpleToggle(message, state, $"{API_ROOT}/api/read_message", $"{API_ROOT}/api/unread_message");
         }

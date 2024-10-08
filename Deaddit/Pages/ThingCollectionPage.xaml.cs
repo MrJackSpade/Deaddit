@@ -32,6 +32,8 @@ namespace Deaddit.Pages
 
         private readonly BlockConfiguration _blockConfiguration;
 
+        private readonly IDisplayExceptions _displayExceptions;
+
         private readonly List<LoadedThing> _loadedPosts = [];
 
         private readonly SemaphoreSlim _loadsemaphore = new(1);
@@ -50,7 +52,7 @@ namespace Deaddit.Pages
 
         private Enum _sort;
 
-        public ThingCollectionPage(ThingCollectionName subreddit, Enum sort, ApplicationHacks applicationHacks, IAggregatePostHandler aggregatePostHandler, IAggregateUrlHandler aggregateUrlHandler, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, BlockConfiguration blockConfiguration)
+        public ThingCollectionPage(ThingCollectionName subreddit, Enum sort, ApplicationHacks applicationHacks, IDisplayExceptions displayExceptions, IAggregatePostHandler aggregatePostHandler, IAggregateUrlHandler aggregateUrlHandler, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, BlockConfiguration blockConfiguration)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
@@ -63,6 +65,7 @@ namespace Deaddit.Pages
             _applicationStyling = Ensure.NotNull(applicationStyling);
             _aggregatePostHandler = Ensure.NotNull(aggregatePostHandler);
             _aggregateUrlHandler = Ensure.NotNull(aggregateUrlHandler);
+            _displayExceptions = Ensure.NotNull(displayExceptions);
 
             _selectionGroup = new SelectionGroup();
             _sortButtons = new DivComponent()
@@ -81,6 +84,7 @@ namespace Deaddit.Pages
             webElement.SetBlockQuoteColor(applicationStyling.TextColor);
             webElement.SetSpoilerColor(applicationStyling.TextColor);
             webElement.ClickUrl += this.WebElement_ClickUrl;
+            webElement.OnJavascriptError += this.WebElement_OnJavascriptError;
 
             if (subreddit.Kind == ThingKind.Account)
             {
@@ -100,32 +104,6 @@ namespace Deaddit.Pages
             infoButton.TextColor = applicationStyling.TextColor.ToMauiColor();
 
             this.InitSortButtons(sort);
-        }
-
-        protected override bool OnBackButtonPressed()
-        {
-            if(_loadedPosts.Count < _applicationHacks.PageSize * 2)
-            {
-                return false;
-            }
-
-            //Why does this not pop if there are more than 2 pages in the stack?
-            if (Navigation.NavigationStack.Count > 2)
-            {
-                return false;
-            }
-
-            Task<bool> answer = this.DisplayAlert("Confirm", "Do you want to exit?", "Yes", "No");
-
-            answer.ContinueWith(async task =>
-            {
-                if (task.Result)
-                {
-                    await Navigation.PopAsync();
-                }
-            });
-
-            return true;
         }
 
         public async void OnBlockClicked(object? sender, EventArgs e)
@@ -179,7 +157,6 @@ namespace Deaddit.Pages
             {
                 // Create a set of already loaded post names to avoid duplicates
                 HashSet<string> loadedNames = _loadedPosts.Select(_loadedPosts => _loadedPosts.Post.Name).ToHashSet();
-               
 
                 HashSet<string> loadedTitles = _loadedPosts.Select(p => p.Post.GetTitleOrEmpty())
                                                            .Where(s => !string.IsNullOrWhiteSpace(s))
@@ -226,7 +203,7 @@ namespace Deaddit.Pages
 
                         PostState postState = this.GetPostState(loadedTitles, loadedUrls, userData, thing);
 
-                        if(postState == PostState.Block && _isBlockEnabled)
+                        if (postState == PostState.Block && _isBlockEnabled)
                         {
                             continue;
                         }
@@ -269,6 +246,9 @@ namespace Deaddit.Pages
                             redditPostComponent.BlockAdded += this.RedditPostComponent_OnBlockAdded;
                             redditPostComponent.HideClicked += this.RedditPostComponent_HideClicked;
 
+                            loadedTitles.Add(post.GetTitleOrEmpty());
+                            loadedUrls.Add(post.GetUrlOrEmpty());
+
                             view = redditPostComponent;
                         }
 
@@ -308,6 +288,32 @@ namespace Deaddit.Pages
             }, _applicationStyling.HighlightColor.ToHex());
         }
 
+        protected override bool OnBackButtonPressed()
+        {
+            if (_loadedPosts.Count < _applicationHacks.PageSize * 2)
+            {
+                return false;
+            }
+
+            //Why does this not pop if there are more than 2 pages in the stack?
+            if (Navigation.NavigationStack.Count > 2)
+            {
+                return false;
+            }
+
+            Task<bool> answer = this.DisplayAlert("Confirm", "Do you want to exit?", "Yes", "No");
+
+            answer.ContinueWith(async task =>
+            {
+                if (task.Result)
+                {
+                    await Navigation.PopAsync();
+                }
+            });
+
+            return true;
+        }
+
         private PostState GetPostState(HashSet<string> loadedTitles, HashSet<string> loadedUrls, Dictionary<string, UserPartial>? userData, ApiThing thing)
         {
             bool blocked = !_blockConfiguration.IsAllowed(thing, userData);
@@ -315,11 +321,11 @@ namespace Deaddit.Pages
             // Skip if not allowed by block configuration
             if (blocked)
             {
-               return PostState.Block;
+                return PostState.Block;
             }
 
             if (_blockConfiguration.DuplicateTitleHandling == PostState.Block &&
-                loadedTitles.Contains(thing.GetTitleOrEmpty()))
+                loadedTitles.Contains(thing.GetTitleOrEmpty().Trim(), StringComparer.OrdinalIgnoreCase))
             {
                 return PostState.Block;
             }
@@ -332,7 +338,7 @@ namespace Deaddit.Pages
 
             // Code looks weird but these come last as a set because block takes precedence
             if (_blockConfiguration.DuplicateTitleHandling == PostState.Visited &&
-                loadedTitles.Contains(thing.GetTitleOrEmpty()))
+                loadedTitles.Contains(thing.GetTitleOrEmpty().Trim(), StringComparer.OrdinalIgnoreCase))
             {
                 return PostState.Visited;
             }
@@ -445,6 +451,11 @@ namespace Deaddit.Pages
             }
 
             await _aggregateUrlHandler.Launch(e, _aggregatePostHandler);
+        }
+
+        private void WebElement_OnJavascriptError(object? sender, Exception e)
+        {
+            _displayExceptions.DisplayException(e);
         }
     }
 }

@@ -6,7 +6,7 @@ namespace Deaddit.Components
 {
     internal class RedditWebElement : WebElement
     {
-        public async override Task OnDocumentLoaded()
+        public override async Task OnDocumentLoaded()
         {
             await this.LoadResource("Deaddit.Resources.Embedded.site.css", typeof(RedditWebElement).Assembly);
         }
