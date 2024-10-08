@@ -23,23 +23,9 @@ namespace Deaddit.Components.WebComponents
     {
         public readonly ApiPost _post;
 
-        private const string TXT_COMMENT = "🗨";
-
-        private const string TXT_DOTS = "...";
-
-        private const string TXT_HIDE = "Hide";
-
-        private const string TXT_SAVE = "Save";
-
-        private const string TXT_SHARE = "Share";
-
-        private const string TXT_UNSAVE = "Unsave";
-
         private readonly ActionButtonsComponent _actionButtons;
 
         private readonly IAggregatePostHandler _apiPostHandler;
-
-        private readonly ApplicationHacks _applicationHacks;
 
         private readonly ApplicationStyling _applicationStyling;
 
@@ -80,7 +66,6 @@ namespace Deaddit.Components.WebComponents
             _appNavigator = appNavigator;
             _blockConfiguration = blockConfiguration;
             _configurationService = configurationService;
-            _applicationHacks = applicationHacks;
             _apiPostHandler = apiPostHandler;
 
             if (postHandling == PostState.Block)

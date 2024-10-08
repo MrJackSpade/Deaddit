@@ -25,6 +25,8 @@ namespace Deaddit.Core.Reddit.Interfaces
 
         Task<Dictionary<string, UserPartial>> GetUserData(IEnumerable<string> usernames);
 
+        Task MarkRead(ApiThing message, bool state);
+
         Task<List<ApiThing>> MoreComments(ApiPost thing, IMore comment);
 
         Task<List<ApiMulti>> Multis();
@@ -40,7 +42,5 @@ namespace Deaddit.Core.Reddit.Interfaces
         Task ToggleVisibility(ApiThing thing, bool visible);
 
         Task<ApiComment> Update(ApiThing thing);
-
-        Task MarkRead(ApiMessage message, bool state);
     }
 }

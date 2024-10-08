@@ -38,6 +38,8 @@ namespace Deaddit.Utils
 
         private IRedditClient RedditClient => _serviceProvider.GetService<IRedditClient>()!;
 
+        private IDisplayExceptions DisplayExceptions => _serviceProvider.GetService<IDisplayExceptions>()!;
+
         private RedditCredentials RedditCredentials => _serviceProvider.GetService<RedditCredentials>()!;
 
         private IAggregateUrlHandler UrlHandler => _serviceProvider.GetService<IAggregateUrlHandler>()!;
@@ -86,7 +88,7 @@ namespace Deaddit.Utils
 
         public async Task<ReplyPage> OpenEditPage(ApiThing toEdit)
         {
-            ReplyPage replyPage = new(null, toEdit, this, RedditClient, ApplicationStyling);
+            ReplyPage replyPage = new(null, toEdit, DisplayExceptions, this, RedditClient, ApplicationStyling);
             await Navigation.PushAsync(replyPage);
             return replyPage;
         }
@@ -100,7 +102,7 @@ namespace Deaddit.Utils
 
         public async Task<ThingCollectionPage> OpenMessages(InboxSort sort = InboxSort.Unread)
         {
-            ThingCollectionPage page = new(new ThingCollectionName("Messages", "/message", ThingKind.Message), sort, ApplicationHacks, ApiPostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
+            ThingCollectionPage page = new(new ThingCollectionName("Messages", "/message", ThingKind.Message), sort, ApplicationHacks, DisplayExceptions, ApiPostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
             await Navigation.PushAsync(page);
             await page.TryLoad();
             return page;
@@ -143,15 +145,15 @@ namespace Deaddit.Utils
 
         public async Task<PostPage> OpenPost(ApiPost post, ApiComment focus)
         {
-            PostPage postPage = new(post, focus, UrlHandler, ApiPostHandler, this, ConfigurationService, RedditClient, ApplicationStyling, ApplicationHacks, BlockConfiguration);
+            PostPage postPage = new(post, focus, DisplayExceptions, UrlHandler, ApiPostHandler, this, ConfigurationService, RedditClient, ApplicationStyling, ApplicationHacks, BlockConfiguration);
             await Navigation.PushAsync(postPage);
-            postPage.TryLoad();
+            await postPage.TryLoad();
             return postPage;
         }
 
         public async Task<ReplyPage> OpenReplyPage(ApiThing comment)
         {
-            ReplyPage replyPage = new(comment, null, this, RedditClient, ApplicationStyling);
+            ReplyPage replyPage = new(comment, null, DisplayExceptions, this, RedditClient, ApplicationStyling);
             await Navigation.PushAsync(replyPage);
             return replyPage;
         }
@@ -163,7 +165,7 @@ namespace Deaddit.Utils
 
         public async Task<ThingCollectionPage> OpenSubReddit(ThingCollectionName subRedditName, ApiPostSort sort = ApiPostSort.Hot)
         {
-            ThingCollectionPage page = new(subRedditName, sort, ApplicationHacks, ApiPostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
+            ThingCollectionPage page = new(subRedditName, sort, ApplicationHacks, DisplayExceptions, ApiPostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
             await Navigation.PushAsync(page);
             await page.TryLoad();
             return page;
@@ -179,7 +181,7 @@ namespace Deaddit.Utils
 
         public async Task<ThingCollectionPage> OpenUser(string username, UserProfileSort userProfileSort = UserProfileSort.New)
         {
-            ThingCollectionPage page = new(new ThingCollectionName($"u/{username}"), userProfileSort, ApplicationHacks, ApiPostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
+            ThingCollectionPage page = new(new ThingCollectionName($"u/{username}"), userProfileSort, ApplicationHacks, DisplayExceptions, ApiPostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
             await Navigation.PushAsync(page);
             await page.TryLoad();
             return page;

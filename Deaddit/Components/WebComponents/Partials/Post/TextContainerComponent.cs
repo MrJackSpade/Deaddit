@@ -21,9 +21,23 @@ namespace Deaddit.Components.WebComponents.Partials.Post
             {
                 InnerText = post.Title,
                 FontSize = $"{applicationStyling.TitleFontSize}px",
-                Color = applicationStyling.TextColor.ToHex(),
                 OverflowWrap = "break-word"
             };
+
+            switch (post.Distinguished)
+            {
+                case DistinguishedKind.None:
+                    Color = applicationStyling.TextColor.ToHex();
+                    break;
+
+                case DistinguishedKind.Moderator:
+                    Color = applicationStyling.ModeratorTitleTextColor.ToHex();
+                    break;
+
+                case DistinguishedKind.Admin:
+                    Color = applicationStyling.AdminTitleTextColor.ToHex();
+                    break;
+            }
 
             SpanComponent timeUser = new()
             {

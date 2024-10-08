@@ -2,7 +2,6 @@ using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
-using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.Pages.Models;
 using Deaddit.Utils;

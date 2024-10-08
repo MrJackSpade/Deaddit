@@ -265,13 +265,18 @@ namespace Deaddit.Components.WebComponents
             }
         }
 
-        public Task Select()
+        public async Task Select()
         {
             _commentContainer.BackgroundColor = _applicationStyling.HighlightColor.ToHex();
             _topBar.Display = "flex";
             _bottomBar.Display = "flex";
             _replies.BorderLeft = $"1px solid {_applicationStyling.HighlightColor.ToHex()}";
-            return Task.CompletedTask;
+
+            if (_comment.Unread == true)
+            {
+                await _redditClient.MarkRead(_comment, true);
+                _comment.Unread = false;
+            }
         }
 
         public Task Unselect()

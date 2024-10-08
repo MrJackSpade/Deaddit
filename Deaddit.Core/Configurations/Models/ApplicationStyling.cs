@@ -11,6 +11,9 @@ namespace Deaddit.Core.Configurations.Models
         [EditorDisplay(Name = "Admin Author Text Color", Order = 4)]
         public DynamicColor AdminAuthorTextColor { get; set; } = DynamicColor.Parse("#FFFFFF");
 
+        [EditorDisplay(Name = "Admin Title Text Color", Order = 4)]
+        public DynamicColor AdminTitleTextColor { get; set; } = DynamicColor.Parse("#ff4500");
+
         [EditorDisplay(Name = "Blocked Background Color", Order = 13)]
         public DynamicColor BlockedBackgroundColor { get; set; } = DynamicColor.Parse("#3b1f1f");
 
@@ -29,11 +32,14 @@ namespace Deaddit.Core.Configurations.Models
         [EditorDisplay(Name = "Hyperlink Color", Order = 8)]
         public DynamicColor HyperlinkColor { get; set; } = DynamicColor.Parse("#75AEB1");
 
-        [EditorDisplay(Name = "Moderator Autho Background Color", Order = 4)]
+        [EditorDisplay(Name = "Moderator Author Background Color", Order = 4)]
         public DynamicColor ModeratorAuthorBackgroundColor { get; set; } = DynamicColor.Parse("#287F24");
 
         [EditorDisplay(Name = "Moderator Author Text Color", Order = 4)]
         public DynamicColor ModeratorAuthorTextColor { get; set; } = DynamicColor.Parse("#FFFFFF");
+
+        [EditorDisplay(Name = "Moderator Title Text Color", Order = 4)]
+        public DynamicColor ModeratorTitleTextColor { get; set; } = DynamicColor.Parse("#287F24");
 
         [EditorDisplay(Name = "Op Background Color")]
         public DynamicColor OpBackgroundColor { get; set; } = DynamicColor.Parse("#0055df");

@@ -10,6 +10,12 @@ namespace Deaddit.Core.Reddit.Models.Api
         [JsonPropertyName("associated_award")]
         public object? AssociatedAward { get; init; }
 
+        /// <summary>
+        /// If inbox message, otherwise null
+        /// </summary>
+        [JsonPropertyName("associated_awarding_id")]
+        public string? AssociatedAwardingId { get; set; }
+
         [JsonPropertyName("before")]
         public string? Before { get; init; }
 
@@ -28,14 +34,38 @@ namespace Deaddit.Core.Reddit.Models.Api
         [JsonPropertyName("comment_type")]
         public object? CommentType { get; init; }
 
+        /// <summary>
+        /// If inbox message, otherwise null
+        /// </summary>
+        [JsonPropertyName("context")]
+        public string? Context { get; set; }
+
         [JsonPropertyName("controversiality")]
         public int? Controversiality { get; init; }
 
         [JsonPropertyName("depth")]
         public int? Depth { get; init; }
 
+        /// <summary>
+        /// If inbox message, otherwise null
+        /// </summary>
+        [JsonPropertyName("dest")]
+        public string? Dest { get; set; }
+
         [JsonPropertyName("dist")]
         public long? Dist { get; init; }
+
+        /// <summary>
+        /// If inbox message, otherwise null
+        /// </summary>
+        [JsonPropertyName("first_message")]
+        public string? FirstMessage { get; set; }
+
+        /// <summary>
+        /// If inbox message, otherwise null
+        /// </summary>
+        [JsonPropertyName("first_message_name")]
+        public string? FirstMessageName { get; set; }
 
         [JsonPropertyName("geo_filter")]
         public string? GeoFilter { get; init; }
@@ -94,8 +124,32 @@ namespace Deaddit.Core.Reddit.Models.Api
         [JsonPropertyName("score_hidden")]
         public bool? ScoreHidden { get; init; }
 
+        /// <summary>
+        /// If inbox message, otherwise null
+        /// </summary>
+        [JsonPropertyName("subject")]
+        public string? Subject { get; set; }
+
+        /// <summary>
+        /// If inbox message, otherwise null
+        /// </summary>
+        [JsonPropertyName("type")]
+        public string? Type { get; set; }
+
+        /// <summary>
+        /// If inbox message, otherwise null
+        /// </summary>
+        [JsonPropertyName("new")]
+        public bool? Unread { get; set; }
+
         [JsonPropertyName("unrepliable_reason")]
         public UnrepliableReason UnrepliableReason { get; init; }
+
+        /// <summary>
+        /// If inbox message, otherwise null
+        /// </summary>
+        [JsonPropertyName("was_comment")]
+        public bool? WasComment { get; set; }
 
         public override string ToString()
         {

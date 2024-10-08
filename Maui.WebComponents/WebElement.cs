@@ -19,6 +19,8 @@ namespace Maui.WebComponents
 
         private readonly Dictionary<string, WebComponent> _componentMap = [];
 
+        public event EventHandler<Exception>? OnJavascriptError;
+
         private readonly TaskCompletionSource _loadedTask = new();
 
         private string _lastDifferentiator;
@@ -243,7 +245,7 @@ namespace Maui.WebComponents
             await this.EvaluateJavaScriptWithResultAsync(script);
         }
 
-        private async Task EvaluateJavaScriptWithResultAsync(string script)
+        protected async Task EvaluateJavaScriptWithResultAsync(string script)
         {
             string result = await this.EvaluateJavaScriptAsync(script) ?? "{ }";
 
@@ -258,7 +260,16 @@ namespace Maui.WebComponents
                 }
                 else
                 {
-                    throw new Exception(resultObj.Message);
+                    Exception exception = new (resultObj.Message);
+
+                    if(OnJavascriptError != null)
+                    {
+                        OnJavascriptError(this, exception);
+                    }
+                    else
+                    {
+                        throw exception;
+                    }
                 }
             }
             catch (JsonException ex)
