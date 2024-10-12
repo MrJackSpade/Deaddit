@@ -6,7 +6,6 @@ using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Extensions;
 using Deaddit.EventArguments;
-using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.MAUI.Components;
 using Deaddit.Pages.Models;

@@ -1,18 +1,25 @@
 using Deaddit.Core.Configurations.Models;
+using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Interfaces;
 using Deaddit.Pages.Models;
 using Deaddit.Utils;
+using Maui.WebComponents.Components;
+using Maui.WebComponents.Extensions;
 
 namespace Deaddit.Pages
 {
     public partial class SubRedditAboutPage : ContentPage
     {
+        private readonly IAggregatePostHandler _aggregatePostHandler;
+
         private readonly ApplicationStyling _applicationStyling;
 
         private readonly IAppNavigator _appNavigator;
+
+        private readonly DivComponent _bodyDiv;
 
         private readonly IRedditClient _redditClient;
 
@@ -20,19 +27,28 @@ namespace Deaddit.Pages
 
         private readonly ThingCollectionName _subredditName;
 
+        private readonly DivComponent _wrapperDiv;
+
         private ApiSubReddit? _apiSubReddit;
 
-        public SubRedditAboutPage(ThingCollectionName subredditName, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme)
+        public SubRedditAboutPage(ThingCollectionName subredditName, IAggregatePostHandler aggregatePostHandler, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
             _appNavigator = appNavigator;
             _applicationStyling = applicationTheme;
             _redditClient = redditClient;
+            _aggregatePostHandler = aggregatePostHandler;
             _subredditName = subredditName;
-
             BindingContext = _subRedditAboutPageModel = new SubRedditAboutPageModel(applicationTheme);
+
             this.InitializeComponent();
+
+            _bodyDiv = new();
+            _wrapperDiv = new();
+            _wrapperDiv.Children.Add(_bodyDiv);
+            webElement.AddChild(_wrapperDiv);
+            webElement.ClickUrl += this.WebElement_ClickUrl;
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
@@ -61,14 +77,17 @@ namespace Deaddit.Pages
 
         public async Task TryLoad()
         {
-            await DataService.LoadAsync(this.LoadAbout);
+            await DataService.LoadAsync(_wrapperDiv, this.LoadAbout, _applicationStyling.HighlightColor.ToHex());
         }
 
         private async Task LoadAbout()
         {
+            webElement.SetColors(_applicationStyling);
+
             _apiSubReddit = await _redditClient.About(_subredditName);
 
-            _subRedditAboutPageModel.Description = _apiSubReddit.Description;
+            _bodyDiv.InnerHTML = _apiSubReddit.DescriptionHtml ?? string.Empty;
+
             _subRedditAboutPageModel.Name = _apiSubReddit.DisplayName;
 
             if (!string.IsNullOrWhiteSpace(_apiSubReddit.IconImg))
@@ -95,6 +114,17 @@ namespace Deaddit.Pages
             {
                 subscribeButton.Text = "Subscribe";
             }
+        }
+
+        private async void WebElement_ClickUrl(object? sender, string e)
+        {
+            if (!_aggregatePostHandler.UrlHandler.CanLaunch(e, _aggregatePostHandler))
+            {
+                await this.DisplayAlert("Alert", $"Can not handle url {e}", "OK");
+                return;
+            }
+
+            await _aggregatePostHandler.UrlHandler.Launch(e, _aggregatePostHandler);
         }
     }
 }

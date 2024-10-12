@@ -7,7 +7,7 @@ namespace Deaddit.Handlers.Post
     {
         private readonly List<IApiPostHandler> _handlers = handlers.ToList();
 
-        private readonly IAggregateUrlHandler _urlHandler = urlHandler;
+        public IAggregateUrlHandler UrlHandler { get; } = urlHandler;
 
         public bool CanDownload(ApiPost apiPost)
         {
@@ -16,7 +16,7 @@ namespace Deaddit.Handlers.Post
 
         public bool CanLaunch(ApiPost apiPost)
         {
-            return _urlHandler.CanLaunch(apiPost.Url, this) || _handlers.Any(h => h.CanLaunch(apiPost, this));
+            return UrlHandler.CanLaunch(apiPost.Url, this) || _handlers.Any(h => h.CanLaunch(apiPost, this));
         }
 
         public bool CanShare(ApiPost apiPost)
@@ -48,9 +48,9 @@ namespace Deaddit.Handlers.Post
                 }
             }
 
-            if (_urlHandler.CanLaunch(apiPost.Url, this))
+            if (UrlHandler.CanLaunch(apiPost.Url, this))
             {
-                await _urlHandler.Launch(apiPost.Url, this);
+                await UrlHandler.Launch(apiPost.Url, this);
                 return;
             }
 

@@ -1,4 +1,6 @@
-﻿using Deaddit.Components.WebComponents;
+﻿using CommunityToolkit.Maui.Alerts;
+using CommunityToolkit.Maui.Core;
+using Deaddit.Components.WebComponents;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Extensions;
 using Deaddit.Core.Interfaces;
@@ -48,6 +50,8 @@ namespace Deaddit.Pages
 
         private string? _after = null;
 
+        private bool? _bufferBack;
+
         private bool _isBlockEnabled = true;
 
         private Enum _sort;
@@ -80,9 +84,7 @@ namespace Deaddit.Pages
 
             this.InitializeComponent();
 
-            webElement.SetBackgroundColor(applicationStyling.SecondaryColor);
-            webElement.SetBlockQuoteColor(applicationStyling.TextColor);
-            webElement.SetSpoilerColor(applicationStyling.TextColor);
+            webElement.SetColors(applicationStyling);
             webElement.ClickUrl += this.WebElement_ClickUrl;
             webElement.OnJavascriptError += this.WebElement_OnJavascriptError;
 
@@ -285,33 +287,43 @@ namespace Deaddit.Pages
                 {
                     await webElement.AddChild(component);
                 }
+
+                //This should be an enum to avoid this weirdness
+                //but this ensures the back button override is only enabled
+                //if the user has scrolled down to the second page.
+                if (_bufferBack is null)
+                {
+                    _bufferBack = false;
+                }
+                else
+                {
+                    _bufferBack = true;
+                }
             }, _applicationStyling.HighlightColor.ToHex());
         }
 
         protected override bool OnBackButtonPressed()
         {
-            if (_loadedPosts.Count < _applicationHacks.PageSize * 2)
+#if ANDROID
+            if (_bufferBack != true)
             {
                 return false;
             }
 
-            //Why does this not pop if there are more than 2 pages in the stack?
-            if (Navigation.NavigationStack.Count > 2)
-            {
-                return false;
-            }
+            _bufferBack = false;
 
-            Task<bool> answer = this.DisplayAlert("Confirm", "Do you want to exit?", "Yes", "No");
+            string text = "Press back again to exit";
+            ToastDuration duration = ToastDuration.Short;
+            double fontSize = 14;
 
-            answer.ContinueWith(async task =>
-            {
-                if (task.Result)
-                {
-                    await Navigation.PopAsync();
-                }
-            });
+            var toast = Toast.Make(text, duration, fontSize);
+
+            toast.Show(CancellationToken.None);
 
             return true;
+#else
+            return false;
+#endif
         }
 
         private PostState GetPostState(HashSet<string> loadedTitles, HashSet<string> loadedUrls, Dictionary<string, UserPartial>? userData, ApiThing thing)

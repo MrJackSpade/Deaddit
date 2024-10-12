@@ -1,4 +1,4 @@
-﻿using Deaddit.Core.Utils;
+﻿using Deaddit.Core.Configurations.Models;
 using Maui.WebComponents;
 using Maui.WebComponents.Classes;
 
@@ -9,41 +9,52 @@ namespace Deaddit.Components
         public override async Task OnDocumentLoaded()
         {
             await this.LoadResource("Deaddit.Resources.Embedded.site.css", typeof(RedditWebElement).Assembly);
+            await this.LoadResource("Deaddit.Resources.Embedded.site.js", typeof(RedditWebElement).Assembly);
         }
 
-        public void SetBackgroundColor(DynamicColor hex)
+        public void SetColors(ApplicationStyling styling)
         {
             DocumentStyles.Add(new StyleRule()
             {
                 CssSelector = "body",
-                Styles = { ["background-color"] = hex.ToHex() }
+                Styles = { ["background-color"] = styling.SecondaryColor.ToHex() }
             }
-        );
-        }
+            );
 
-        public void SetBlockQuoteColor(DynamicColor hex)
-        {
             DocumentStyles.Add(new StyleRule()
             {
                 CssSelector = "blockquote",
                 Styles =
                 {
-                    ["border-left"] = $"1px solid {hex.ToHex()}",
-                    ["padding-left"] = "5px",
-                    ["margin"] = "0 0px 10px 20px"
+                    ["border-left"] = $"1px solid {styling.TextColor.ToHex()}"
                 }
             });
-        }
 
-        public void SetSpoilerColor(DynamicColor hex)
-        {
             DocumentStyles.Add(new StyleRule()
             {
                 CssSelector = ".md-spoiler-text",
                 Styles =
                 {
-                    ["color"] = hex.ToHex(),
-                    ["background-color"] = hex.ToHex()
+                    ["color"] = styling.TextColor.ToHex(),
+                    ["background-color"] = styling.TextColor.ToHex()
+                }
+            });
+
+            DocumentStyles.Add(new StyleRule()
+            {
+                CssSelector = "a",
+                Styles =
+                {
+                    ["color"] = styling.HyperlinkColor.ToHex()
+                }
+            });
+
+            DocumentStyles.Add(new StyleRule()
+            {
+                CssSelector = "th, strong, td, p",
+                Styles =
+                {
+                    ["color"] = styling.TextColor.ToHex()
                 }
             });
         }

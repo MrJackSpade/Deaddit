@@ -59,6 +59,12 @@ namespace Deaddit.Pages.Models
             set => this.SetValue(value);
         }
 
+        public double SubTextFontSize
+        {
+            get => this.GetValue<double>();
+            set => this.SetValue(value);
+        }
+
         public Color TertiaryColor
         {
             get => this.GetValue<Color>();
@@ -93,6 +99,7 @@ namespace Deaddit.Pages.Models
             HyperlinkColor = applicationTheme.HyperlinkColor.ToMauiColor();
             MinHeight = applicationTheme.ThumbnailSize;
             FontSize = applicationTheme.TitleFontSize;
+            SubTextFontSize = applicationTheme.SubTextFontSize;
             SubTextColor = applicationTheme.SubTextColor.ToMauiColor();
         }
     }

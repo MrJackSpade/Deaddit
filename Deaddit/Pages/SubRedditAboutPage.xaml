@@ -4,28 +4,39 @@
              xmlns:components="clr-namespace:Deaddit.Components"
              x:Class="Deaddit.Pages.SubRedditAboutPage"
              BackgroundColor="{Binding SecondaryColor}">
-    <VerticalStackLayout
+    <Grid
         VerticalOptions="FillAndExpand"
         HorizontalOptions="FillAndExpand"
-        x:Name="mainStack">
-        <!-- Define the grid with three columns: auto for the thumbnail, star (*) for the title, auto for the vote stack -->
+        x:Name="mainGridLayout">
+        <!-- Define the rows: Auto for the header and buttons, star (*) for the webElement -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <!-- For the mainGrid -->
+            <RowDefinition Height="Auto" />
+            <!-- For the actionButtonsStack -->
+            <RowDefinition Height="*" />
+            <!-- For the webElement -->
+        </Grid.RowDefinitions>
+
+        <!-- Main Grid -->
         <Grid
-        x:Name="mainGrid"
-        ColumnDefinitions="Auto, *"
-        Margin="0"
-        Padding="0"
-        MinimumHeightRequest="{Binding MinHeight}"
-        BackgroundColor="{Binding SecondaryColor}">
+            x:Name="mainGrid"
+            Grid.Row="0"
+            ColumnDefinitions="Auto, *"
+            Margin="0"
+            Padding="0"
+            MinimumHeightRequest="{Binding MinHeight}"
+            BackgroundColor="{Binding SecondaryColor}">
             <!-- Thumbnail Image -->
             <ImageButton
-            x:Name="thumbnailImage"
-            Grid.Column="0"
-            Aspect="AspectFill"
-            Margin="0"
-            HeightRequest="{Binding MinHeight}"
-            WidthRequest="{Binding MinHeight}"
-            Source="{Binding Thumbnail}"
-            VerticalOptions="Start" />
+                x:Name="thumbnailImage"
+                Grid.Column="0"
+                Aspect="AspectFill"
+                Margin="0"
+                HeightRequest="{Binding MinHeight}"
+                WidthRequest="{Binding MinHeight}"
+                Source="{Binding Thumbnail}"
+                VerticalOptions="Start" />
             <!-- Title and MetaData Stack -->
             <VerticalStackLayout
                 x:Name="titleStack"
@@ -40,38 +51,35 @@
                     TextColor="{Binding TextColor}"
                     LineBreakMode="WordWrap"
                     VerticalOptions="Center" />
-
                 <Label
                     Text="{Binding VisibleMetaData}"
                     VerticalOptions="FillAndExpand"
                     TextColor="{Binding SubTextColor}"
-                    FontSize="{Binding FontSize, Converter={StaticResource MultiplyConverter}, ConverterParameter=0.75}"
+                    FontSize="{Binding SubTextFontSize}"
                     Padding="0,0,0,0" />
             </VerticalStackLayout>
         </Grid>
 
-        <!-- New Row of Buttons -->
+        <!-- Action Buttons Stack -->
         <HorizontalStackLayout
             x:Name="actionButtonsStack"
+            Grid.Row="1"
             HorizontalOptions="FillAndExpand"
             VerticalOptions="Start"
             BackgroundColor="{Binding HighlightColor}"
             Margin="0"
             Padding="0"
             Spacing="0">
-            <!-- Initially hidden -->
             <Button
                 Text="Rules"
                 Clicked="OnRulesClicked"
                 BackgroundColor="Transparent"
                 TextColor="{Binding TextColor}" />
-
             <Button
                 Text="More"
                 Clicked="OnMoreClicked"
                 BackgroundColor="Transparent"
                 TextColor="{Binding TextColor}" />
-
             <Button
                 Text="Subscribe"
                 x:Name="subscribeButton"
@@ -80,14 +88,12 @@
                 TextColor="{Binding TextColor}" />
         </HorizontalStackLayout>
 
-        <Border Stroke="{Binding TertiaryColor}"
-                IsVisible="{Binding PostBodyVisible}"
-                StrokeThickness="2"
-                StrokeShape="RoundRectangle 5,5,5,5"
-                Padding="10"
-                Margin="20"
-                BackgroundColor="{Binding PrimaryColor}"
-                HorizontalOptions="Center">
-        </Border>
-    </VerticalStackLayout>
+        <!-- Reddit Web Element -->
+        <components:RedditWebElement
+            x:Name="webElement"
+            Grid.Row="2"
+            HorizontalOptions="FillAndExpand"
+            VerticalOptions="FillAndExpand">
+        </components:RedditWebElement>
+    </Grid>
 </ContentPage>

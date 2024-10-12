@@ -14,6 +14,12 @@ namespace Deaddit.Core.Configurations.Models
         [EditorDisplay(Name = "Flair Image Handling", Order = 1)]
         public FlairImageHandling FlairImageHandling { get; set; } = FlairImageHandling.None;
 
+        [EditorDisplay(Name = "Minimum Comment Body Length", Order = 4)]
+        public int MinimumCommentBodyLenth { get; set; } = 0;
+
+        [EditorDisplay(Name = "Minimum Post Body Length", Order = 4)]
+        public int MinimumPostBodyLenth { get; set; } = 0;
+
         [EditorDisplay(Name = "Page Buffer", Order = 6)]
         public int PageBuffer { get; set; } = 2;
 

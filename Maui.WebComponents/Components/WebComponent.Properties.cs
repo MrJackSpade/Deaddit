@@ -4,23 +4,18 @@ namespace Maui.WebComponents.Components
 {
     public partial class WebComponent
     {
+        public string? AlignContent
+        {
+            get => this.Style("align-content");
+            set => this.Style("align-content", value);
+        }
+
         public string? AlignItems
         {
             get => this.Style("align-items");
             set => this.Style("align-items", value);
         }
 
-        public string? BorderBottomColor
-        {
-            get => this.Style("border-bottom-color");
-            set => this.Style("border-bottom-color", value);
-        }
-
-        public string? AlignContent
-        {
-            get => this.Style("align-content");
-            set => this.Style("align-content", value);
-        }
         public string? AlignSelf
         {
             get => this.Style("align-self");
@@ -37,6 +32,12 @@ namespace Maui.WebComponents.Components
         {
             get => this.Style("border");
             set => this.Style("border", value);
+        }
+
+        public string? BorderBottomColor
+        {
+            get => this.Style("border-bottom-color");
+            set => this.Style("border-bottom-color", value);
         }
 
         public string? BorderColor
