@@ -77,9 +77,7 @@ namespace Deaddit.Pages
 
             this.InitializeComponent();
 
-            webElement.SetBackgroundColor(applicationStyling.SecondaryColor);
-            webElement.SetBlockQuoteColor(applicationStyling.TextColor);
-            webElement.SetSpoilerColor(applicationStyling.TextColor);
+            webElement.SetColors(applicationStyling);
             webElement.OnJavascriptError += this.WebElement_OnJavascriptError;
 
             webElement.ClickUrl += this.WebElement_ClickUrl;
@@ -94,7 +92,7 @@ namespace Deaddit.Pages
 
             webElement.AddChild(redditPostComponent);
 
-            if (!string.IsNullOrWhiteSpace(post.BodyHtml))
+            if (!string.IsNullOrWhiteSpace(post.BodyHtml) && post.Body.Length > applicationHacks.MinimumPostBodyLenth)
             {
                 postBody = new PostBodyComponent(post, applicationStyling);
             }

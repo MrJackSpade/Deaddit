@@ -390,6 +390,37 @@
             }
         };
 
+        function executeBase64Script(base64Script) {
+            try {
+                if (typeof base64Script !== 'string') {
+                    throw new Error('Invalid base64Script.');
+                }
+
+                var decodeResult = base64ToUtf8(base64Script);
+                if (!decodeResult.success) {
+                    throw new Error(decodeResult.message);
+                }
+
+                var scriptContent = decodeResult.data; // This can be an empty string
+
+                // Check if scriptContent is not empty
+                if (!scriptContent) {
+                    throw new Error('Decoded script is empty.');
+                }
+
+                // Create a new function from the script content
+                var scriptFunction = new Function(scriptContent);
+
+                // Execute the function
+                scriptFunction();
+
+                return { success: true };
+            } catch (error) {
+                console.error('Error in executeBase64Script:', error.message);
+                return { success: false, message: error.message };
+            }
+        }
+
         //# sourceURL=head.js
     </script>
 </head>

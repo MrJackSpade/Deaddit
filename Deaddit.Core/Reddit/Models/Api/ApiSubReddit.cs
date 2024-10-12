@@ -1,5 +1,4 @@
 ﻿using Deaddit.Core.Utils;
-using System.Drawing;
 using System.Text.Json.Serialization;
 
 namespace Deaddit.Core.Reddit.Models.Api
@@ -118,10 +117,10 @@ namespace Deaddit.Core.Reddit.Models.Api
         public bool HasMenuWidget { get; init; }
 
         [JsonPropertyName("header_img")]
-        public object? HeaderImg { get; init; }
+        public string? HeaderImg { get; init; }
 
         [JsonPropertyName("header_size")]
-        public object? HeaderSize { get; init; }
+        public int[] HeaderSize { get; init; } = [];
 
         [JsonPropertyName("header_title")]
         public string? HeaderTitle { get; init; }
@@ -136,7 +135,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public object? IconSize { get; init; }
 
         [JsonPropertyName("is_crosspostable_subreddit")]
-        public object? IsCrosspostableSubreddit { get; init; }
+        public bool? IsCrosspostableSubreddit { get; init; }
 
         [JsonPropertyName("is_enrolled_in_new_modmail")]
         public bool? IsEnrolledInNewModMail { get; init; }
@@ -145,7 +144,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public bool IsNSFW { get; init; }
 
         [JsonPropertyName("key_color")]
-        public Color? KeyColor { get; init; }
+        public DynamicColor? KeyColor { get; init; }
 
         [JsonPropertyName("lang")]
         public string? Lang { get; init; }
@@ -214,7 +213,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public string? SubmitText { get; init; }
 
         [JsonPropertyName("submit_text_html")]
-        public object? SubmitTextHtml { get; init; }
+        public string? SubmitTextHtml { get; init; }
 
         [JsonPropertyName("submit_text_label")]
         public string? SubmitTextLabel { get; init; }
@@ -292,7 +291,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public string? WhitelistStatus { get; init; }
 
         [JsonPropertyName("wiki_enabled")]
-        public object? WikiEnabled { get; init; }
+        public bool? WikiEnabled { get; init; }
 
         [JsonPropertyName("wls")]
         public int Wls { get; init; }

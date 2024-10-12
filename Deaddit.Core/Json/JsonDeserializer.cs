@@ -48,6 +48,30 @@ namespace Deaddit.Core.Json
 
                 return targetDictionary;
             }
+            else if (targetType.IsArray)
+            {
+                // Get the element type of the array
+                Type elementType = targetType.GetElementType()!;
+
+                if (property is JsonArray ja)
+                {
+                    int arrayLength = ja.Count;
+                    // Create an array instance with the correct element type and length
+                    Array targetArray = Array.CreateInstance(elementType, arrayLength);
+
+                    for (int i = 0; i < arrayLength; i++)
+                    {
+                        JsonNode? j = ja[i];
+                        // Deserialize each element in the JSON array
+                        object? item = Deserialize(j, elementType);
+                        targetArray.SetValue(item, i);
+                    }
+
+                    return targetArray;
+                }
+
+                return null;
+            }
             else if (targetType.IsAssignableTo(typeof(IList)))
             {
                 Type collectionType = targetType.GenericTypeArguments[0];
@@ -185,7 +209,7 @@ namespace Deaddit.Core.Json
                         if (pi.PropertyType == typeof(object) && property is not null)
                         {
                             //Create a real type if the data is available
-                            throw new MisconfiguredPropertyException(pi, "Can not deserialize type object");
+                            throw new MisconfiguredPropertyException(pi, $"Can not deserialize property '{pi.Name}' type object");
                         }
 
                         object? propertyValue = Deserialize(property, pi.PropertyType);

@@ -78,7 +78,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Resources\Embedded\site.js" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <EmbeddedResource Include="Resources\Embedded\site.css" />
+	  <EmbeddedResource Include="Resources\Embedded\site.js" />
 	</ItemGroup>
 
 	<ItemGroup>

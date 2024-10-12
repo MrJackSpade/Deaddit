@@ -1,10 +1,11 @@
 ﻿using Deaddit.Components.WebComponents.Partials;
 using Deaddit.Core.Extensions;
+using Deaddit.Core.Utils;
+
 using Maui.WebComponents;
 using Maui.WebComponents.Components;
-using System.Diagnostics;
 using Maui.WebComponents.Extensions;
-using Deaddit.Core.Utils;
+using System.Diagnostics;
 
 namespace Deaddit.Utils
 {

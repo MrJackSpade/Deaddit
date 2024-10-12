@@ -4,6 +4,8 @@ namespace Deaddit.Core.Interfaces
 {
     public interface IAggregatePostHandler
     {
+        IAggregateUrlHandler UrlHandler { get; }
+
         bool CanDownload(ApiPost post);
 
         bool CanLaunch(ApiPost post);

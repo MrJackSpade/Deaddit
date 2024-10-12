@@ -65,12 +65,12 @@ namespace Deaddit.Core.Reddit
                 Stopwatch stopwatch = new();
                 stopwatch.Start();
 
-                ApiThingMeta response = await _jsonClient.Get<ApiThingMeta>($"{API_ROOT}{subreddit.RootedName}/about");
+                ApiSubReddit response = (ApiSubReddit)await _jsonClient.Get<ApiThing>($"{API_ROOT}{subreddit.RootedName}/about");
 
                 stopwatch.Stop();
                 Debug.WriteLine($"[DEBUG] Time spent in About method: {stopwatch.ElapsedMilliseconds}ms");
 
-                return response.Data as ApiSubReddit;
+                return response;
             }
             catch (Exception ex)
             {

@@ -64,10 +64,10 @@ namespace Deaddit.Core.Reddit.Models.Api
         public object? BannedBy { get; init; }
 
         [JsonPropertyNames("body", "selftext")]
-        public string? Body { get; set; }
+        public string Body { get; set; } = string.Empty;
 
         [JsonPropertyNames("body_html", "selftext_html")]
-        public string? BodyHtml { get; set; }
+        public string BodyHtml { get; set; } = string.Empty;
 
         [JsonPropertyName("can_gild")]
         public bool? CanGild { get; init; }

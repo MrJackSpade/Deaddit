@@ -19,13 +19,13 @@ namespace Maui.WebComponents
 
         private readonly Dictionary<string, WebComponent> _componentMap = [];
 
-        public event EventHandler<Exception>? OnJavascriptError;
-
         private readonly TaskCompletionSource _loadedTask = new();
 
         private string _lastDifferentiator;
 
         public event EventHandler<string> ClickUrl;
+
+        public event EventHandler<Exception>? OnJavascriptError;
 
         public event EventHandler? OnScrollBottom;
 
@@ -94,16 +94,20 @@ namespace Maui.WebComponents
 
             if (resourceName.EndsWith(".css", StringComparison.OrdinalIgnoreCase))
             {
-                html = $"<style>{html}</style>";
+                html = $"<style>\n{html}\n</style>";
+                // Build the JavaScript code to execute
+                await this.AddElement(html, 0, "head");
             }
 
             if (resourceName.EndsWith(".js", StringComparison.OrdinalIgnoreCase))
             {
-                html = $"<script>{html}</script>";
+                await this.EvaluateJavaScriptAsync($"executeBase64Script('{Convert.ToBase64String(Encoding.UTF8.GetBytes(html))}')");
             }
+        }
 
-            // Build the JavaScript code to execute
-            await this.AddElement(html, 0, "head");
+        public virtual Task OnDocumentLoaded()
+        {
+            return Task.CompletedTask;
         }
 
         public async Task RemoveChild(WebComponent child)
@@ -111,8 +115,46 @@ namespace Maui.WebComponents
             await this.RemoveChild(child, true);
         }
 
+        protected async Task EvaluateJavaScriptWithResultAsync(string script)
+        {
+            string result = await this.EvaluateJavaScriptAsync(script) ?? "{ }";
+
+            try
+            {
+                OperationResult resultObj = JsonSerializer.Deserialize<OperationResult>(result);
+
+                if (resultObj.Success)
+                {
+                    // success
+                    return;
+                }
+                else
+                {
+                    Exception exception = new(resultObj.Message);
+
+                    if (OnJavascriptError != null)
+                    {
+                        OnJavascriptError(this, exception);
+                    }
+                    else
+                    {
+                        throw exception;
+                    }
+                }
+            }
+            catch (JsonException ex)
+            {
+                throw new Exception("Failed to parse JavaScript result: " + ex.Message);
+            }
+        }
+
         private static string EncodeHtml(string html)
         {
+            if (html is null)
+            {
+                return string.Empty;
+            }
+
             return Convert.ToBase64String(Encoding.UTF8.GetBytes(html));
         }
 
@@ -245,39 +287,6 @@ namespace Maui.WebComponents
             await this.EvaluateJavaScriptWithResultAsync(script);
         }
 
-        protected async Task EvaluateJavaScriptWithResultAsync(string script)
-        {
-            string result = await this.EvaluateJavaScriptAsync(script) ?? "{ }";
-
-            try
-            {
-                OperationResult resultObj = JsonSerializer.Deserialize<OperationResult>(result);
-
-                if (resultObj.Success)
-                {
-                    // success
-                    return;
-                }
-                else
-                {
-                    Exception exception = new (resultObj.Message);
-
-                    if(OnJavascriptError != null)
-                    {
-                        OnJavascriptError(this, exception);
-                    }
-                    else
-                    {
-                        throw exception;
-                    }
-                }
-            }
-            catch (JsonException ex)
-            {
-                throw new Exception("Failed to parse JavaScript result: " + ex.Message);
-            }
-        }
-
         private void HandleInvokeMethod(string componentId, string methodName, string argsJson)
         {
             if (_componentMap.TryGetValue(componentId, out WebComponent? component))
@@ -405,11 +414,6 @@ namespace Maui.WebComponents
                 // Handle the method invocation
                 this.HandleInvokeMethod(componentId, methodName, argsJson);
             }
-        }
-
-        public virtual Task OnDocumentLoaded()
-        {
-            return Task.CompletedTask;
         }
 
         private void RegisterChildren(WebComponent component)

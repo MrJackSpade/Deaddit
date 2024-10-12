@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace Deaddit.Handlers.Url
 {
-    internal class RedditPostUrlHandler(IRedditClient redditClient, IAppNavigator appNavigator) : IUrlHandler
+    internal class RedditCommentsPostUrlHandler(IRedditClient redditClient, IAppNavigator appNavigator) : IUrlHandler
     {
         private readonly IAppNavigator _appNavigator = appNavigator;
 
@@ -20,7 +20,7 @@ namespace Deaddit.Handlers.Url
                 return false;
             }
 
-            return Regex.IsMatch(url, @".*/r\/[^\/]+\/comments\/[^\/]+\/[^\/]+\/?$");
+            return Regex.IsMatch(url, @".*/r\/[^\/]+\/comments\/[^\/]+\/[^\/]+\/?.*$");
         }
 
         public async Task Launch(string url, IAggregatePostHandler caller)

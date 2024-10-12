@@ -37,9 +37,7 @@ namespace Deaddit.Pages
 
             this.InitializeComponent();
 
-            webElement.SetBackgroundColor(applicationStyling.SecondaryColor);
-            webElement.SetBlockQuoteColor(applicationStyling.TextColor);
-            webElement.SetSpoilerColor(applicationStyling.TextColor);
+            webElement.SetColors(applicationStyling);
             webElement.OnJavascriptError += this.WebElement_OnJavascriptError;
 
             ApiThing? toRender = _replyTo;
