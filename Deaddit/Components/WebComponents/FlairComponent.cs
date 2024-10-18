@@ -1,5 +1,6 @@
 ﻿using Deaddit.Core.Configurations.Models;
 using Maui.WebComponents.Components;
+using System.Web;
 
 namespace Deaddit.Components.WebComponents
 {
@@ -7,7 +8,7 @@ namespace Deaddit.Components.WebComponents
     {
         public FlairComponent(string text, string highlightColor, ApplicationStyling applicationStyling)
         {
-            InnerText = text;
+            InnerText = HttpUtility.HtmlEncode(text);
             FontSize = $"{applicationStyling.SubTextFontSize}px";
             Color = highlightColor;
             BackgroundColor = applicationStyling.PrimaryColor.ToHex();

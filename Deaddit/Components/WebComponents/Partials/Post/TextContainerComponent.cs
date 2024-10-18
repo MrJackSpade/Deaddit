@@ -80,7 +80,8 @@ namespace Deaddit.Components.WebComponents.Partials.Post
 
         public void ShowTimeUser(bool show)
         {
-            SpanComponent? timeUser = Children.OfType<SpanComponent>().FirstOrDefault(c => c.InnerText.Contains("by"));
+            //This is fucking stupid. How did I end up here?
+            SpanComponent? timeUser = Children.OfType<SpanComponent>().LastOrDefault(c => c.InnerText.Contains("by"));
             if (timeUser != null)
             {
                 timeUser.Display = show ? "block" : "none";
