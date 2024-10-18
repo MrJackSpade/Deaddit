@@ -6,13 +6,14 @@ namespace Deaddit.Utils
 {
     public static class FileStorage
     {
+
         public static async Task Save(IEnumerable<FileDownload> items)
         {
             List<(string fileName, Func<Task<Stream>> fileStream)> files = [];
 
             foreach (FileDownload item in items)
             {
-                files.Add((item.FileName, new Func<Task<Stream>>(async () => await new HttpClient().GetStreamAsync(item.DownloadUrl))));
+                files.Add((item.FileName, new Func<Task<Stream>>(async () => await FileStreamService.GetStream(item.DownloadUrl))));
             }
 
             await SaveMultipleFiles(files);

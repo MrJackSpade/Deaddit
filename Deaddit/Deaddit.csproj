@@ -30,8 +30,9 @@
 
 	<ItemGroup>
 		<!-- App Icon -->
+		<MauiIcon Include="Resources\AppIcon\appicon_small.png" BaseSize="64,64" />
 		<MauiIcon Include="Resources\AppIcon\appicon.png" BaseSize="128,128" />
-		
+
 		<!-- Splash Screen -->
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
 
@@ -71,6 +72,10 @@
 	  <None Remove="Components\Partials\**" />
 	  <None Remove="Models\**" />
 	  <None Remove="Release\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Remove="Utils\AndroidMediaService.cs" />
 	</ItemGroup>
 
 	<ItemGroup>

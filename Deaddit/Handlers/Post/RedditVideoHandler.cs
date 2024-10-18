@@ -52,13 +52,15 @@ namespace Deaddit.Handlers.Post
 
         private FileDownload GetDownload(ApiPost apiPost)
         {
-            Ensure.NotNull(apiPost.Media?.RedditVideo?.FallbackUrl);
+            Ensure.NotNull(apiPost.Media?.RedditVideo?.DashUrl);
 
-            string url = apiPost.Media.RedditVideo.FallbackUrl;
+            string launchUrl = apiPost.Media.RedditVideo.DashUrl;
 
-            string name = $"{apiPost.Id}{UrlHelper.GetExtension(url)}";
+            string download = apiPost.Media.RedditVideo?.HlsUrl ?? launchUrl;
 
-            return new FileDownload(name, url);
+            string name = $"{apiPost.Id}.mp4";
+
+            return new FileDownload(name, launchUrl, download);
         }
     }
 }
