@@ -1,8 +1,8 @@
 using Deaddit.Core.Attributes;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Extensions;
-using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.DeepCopy;
+using Deaddit.Core.Utils.Models;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
 using Deaddit.Pages.Models;

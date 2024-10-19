@@ -1,7 +1,7 @@
 ﻿using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
-using Deaddit.Core.Utils;
+using Deaddit.Core.Utils.Blocking;
 
 namespace Deaddit.Core.Extensions
 {

@@ -28,7 +28,7 @@ namespace Deaddit.Handlers.Post
         {
             foreach (IApiPostHandler handler in _handlers)
             {
-                if (handler.CanLaunch(apiPost, this))
+                if (handler.CanDownload(apiPost, this))
                 {
                     await handler.Download(apiPost, this);
                 }
@@ -61,9 +61,10 @@ namespace Deaddit.Handlers.Post
         {
             foreach (IApiPostHandler handler in _handlers)
             {
-                if (handler.CanLaunch(apiPost, this))
+                if (handler.CanShare(apiPost, this))
                 {
                     await handler.Share(apiPost, this);
+                    return;
                 }
             }
 

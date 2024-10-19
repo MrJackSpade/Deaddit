@@ -5,7 +5,7 @@ using Deaddit.Core.Json;
 using System.Diagnostics;
 using System.Net.Http.Json;
 
-namespace Deaddit.Core.Utils
+namespace Deaddit.Core.Utils.IO
 {
     public class JsonClient : IJsonClient
     {

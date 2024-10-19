@@ -1,4 +1,4 @@
-﻿namespace Deaddit.Core.Utils
+﻿namespace Deaddit.Core.Utils.IO
 {
     public static class M3U8Downloader
     {

@@ -8,6 +8,7 @@ using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
+using Deaddit.Core.Utils.Validation;
 using Deaddit.Interfaces;
 using Deaddit.MAUI.Components;
 using Deaddit.Pages;
@@ -24,7 +25,7 @@ namespace Deaddit.Utils
     {
         private readonly IServiceProvider _serviceProvider = Ensure.NotNull(serviceProvider);
 
-        private static INavigation Navigation => Shell.Current.Navigation;
+        private INavigation Navigation => _serviceProvider.GetService<INavigation>()!;
 
         private IAggregatePostHandler AggregatePostHandler => _serviceProvider.GetService<IAggregatePostHandler>()!;
 
@@ -42,6 +43,8 @@ namespace Deaddit.Utils
 
         private RedditCredentials RedditCredentials => _serviceProvider.GetService<RedditCredentials>()!;
 
+        private ISelectBoxDisplay SelectBoxDisplay => _serviceProvider.GetService<ISelectBoxDisplay>()!;
+
         private IAggregateUrlHandler UrlHandler => _serviceProvider.GetService<IAggregateUrlHandler>()!;
 
         private IVisitTracker VisitTracker => _serviceProvider.GetService<IVisitTracker>()!;
@@ -50,17 +53,17 @@ namespace Deaddit.Utils
         {
             if (selectionGroup is null)
             {
-                return new RedditCommentWebComponent(comment, post, false, Navigation, this, RedditClient, ApplicationStyling, selectionGroup ?? new SelectionGroup(), BlockConfiguration);
+                return new RedditCommentWebComponent(comment, post, false, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, selectionGroup ?? new SelectionGroup(), BlockConfiguration);
             }
             else
             {
-                return new RedditCommentWebComponent(comment, post, true, Navigation, this, RedditClient, ApplicationStyling, selectionGroup ?? new SelectionGroup(), BlockConfiguration);
+                return new RedditCommentWebComponent(comment, post, true, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, selectionGroup ?? new SelectionGroup(), BlockConfiguration);
             }
         }
 
         public RedditMessageWebComponent CreateMessageWebComponent(ApiMessage message, SelectionGroup selectionGroup)
         {
-            return new RedditMessageWebComponent(message, Navigation, this, RedditClient, ApplicationStyling, selectionGroup, BlockConfiguration);
+            return new RedditMessageWebComponent(message, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, selectionGroup, BlockConfiguration);
         }
 
         public MoreCommentsWebComponent CreateMoreCommentsWebComponent(IMore more)
@@ -70,7 +73,7 @@ namespace Deaddit.Utils
 
         public RedditPostWebComponent CreatePostWebComponent(ApiPost post, PostState postHandling, SelectionGroup? selectionGroup = null)
         {
-            RedditPostWebComponent postComponent = new(post, postHandling, AggregatePostHandler, ApplicationHacks, BlockConfiguration, ConfigurationService, this, VisitTracker, Navigation, RedditClient, ApplicationStyling, selectionGroup);
+            RedditPostWebComponent postComponent = new(post, postHandling, SelectBoxDisplay, AggregatePostHandler, ApplicationHacks, BlockConfiguration, ConfigurationService, this, VisitTracker, Navigation, RedditClient, ApplicationStyling, selectionGroup);
             return postComponent;
         }
 
@@ -145,7 +148,7 @@ namespace Deaddit.Utils
 
         public async Task<PostPage> OpenPost(ApiPost post, ApiComment focus)
         {
-            PostPage postPage = new(post, focus, DisplayExceptions, UrlHandler, AggregatePostHandler, this, ConfigurationService, RedditClient, ApplicationStyling, ApplicationHacks, BlockConfiguration);
+            PostPage postPage = new(post, focus, SelectBoxDisplay, DisplayExceptions, UrlHandler, AggregatePostHandler, this, ConfigurationService, RedditClient, ApplicationStyling, ApplicationHacks, BlockConfiguration);
             await Navigation.PushAsync(postPage);
             await postPage.TryLoad();
             return postPage;

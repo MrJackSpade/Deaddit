@@ -2,13 +2,14 @@
 using Deaddit.Components.WebComponents.Partials.Post;
 using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
-using Deaddit.Core.Exceptions;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
-using Deaddit.Core.Reddit.Models.Options;
 using Deaddit.Core.Utils;
+using Deaddit.Core.Utils.Blocking;
+using Deaddit.Core.Utils.MultiSelect;
+using Deaddit.Core.Utils.Validation;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
@@ -32,6 +33,8 @@ namespace Deaddit.Pages
         private readonly IDisplayExceptions _displayExceptions;
 
         private readonly IRedditClient _redditClient;
+
+        private readonly MultiSelector _multiselector;
 
         private readonly IAggregateUrlHandler _urlHandler;
 
@@ -59,10 +62,11 @@ namespace Deaddit.Pages
 
         public SelectionGroup SelectionGroup { get; }
 
-        public PostPage(ApiPost post, ApiComment? focus, IDisplayExceptions displayExceptions, IAggregateUrlHandler urlHandler, IAggregatePostHandler aggregatePostHandler, IAppNavigator appNavigator, IConfigurationService configurationService, IRedditClient redditClient, ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration)
+        public PostPage(ApiPost post, ApiComment? focus, ISelectBoxDisplay selectBoxDisplay, IDisplayExceptions displayExceptions, IAggregateUrlHandler urlHandler, IAggregatePostHandler aggregatePostHandler, IAppNavigator appNavigator, IConfigurationService configurationService, IRedditClient redditClient, ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
+            _multiselector = new MultiSelector(selectBoxDisplay);
             _urlHandler = urlHandler;
             _aggregatePostHandler = aggregatePostHandler;
             _displayExceptions = displayExceptions;
@@ -113,7 +117,7 @@ namespace Deaddit.Pages
 
             shareButton.OnClick += this.OnShareClicked;
             saveButton.OnClick += this.OnSaveClicked;
-            moreButton.OnClick += this.OnMoreOptionsClicked;
+            moreButton.OnClick += this.OnMoreClicked;
             replyButton.OnClick += this.OnReplyClicked;
             loadImageButton.OnClick += this.OnLoadImageClicked;
 
@@ -166,93 +170,40 @@ namespace Deaddit.Pages
             }
         }
 
-        public virtual async void OnMoreOptionsClicked(object? sender, EventArgs e)
+        private async Task OnMoreShareClicked()
         {
-            Dictionary<PostMoreOptions, string?> options = [];
+            await _multiselector.Select(
+                "Share:",
+                new(null, null),
+                new($"Comments", async () => await this.NewBlockRule(BlockRuleHelper.FromAuthor(Post))));
+        }
 
-            options.Add(PostMoreOptions.BlockAuthor, $"Block /u/{Post.Author}");
-            options.Add(PostMoreOptions.BlockSubreddit, $"Block /r/{Post.SubReddit}");
-            options.Add(PostMoreOptions.ViewAuthor, $"View /u/{Post.Author}");
-            options.Add(PostMoreOptions.ViewSubreddit, $"View /r/{Post.SubReddit}");
+        private async void OnMoreClicked(object? sender, EventArgs e)
+        {
+            await _multiselector.Select(
+            "Select:",
+            new($"Block...", this.OnMoreBlockClicked),
+            new($"View...", this.OnMoreViewClicked),
+            new($"Share...", this.OnMoreShareClicked));
+        }
 
-            if (!string.IsNullOrWhiteSpace(Post.Domain))
-            {
-                options.Add(PostMoreOptions.BlockDomain, $"Block {Post.Domain}");
-            }
-            else
-            {
-                options.Add(PostMoreOptions.BlockDomain, null);
-            }
+        private async Task OnMoreBlockClicked()
+        {
+            await _multiselector.Select(
+            "Block:",
+            new($"/u/{Post.Author}", async () => await this.NewBlockRule(BlockRuleHelper.FromAuthor(Post))),
+            new($"/r/{Post.SubReddit}", async () => await this.NewBlockRule(BlockRuleHelper.FromSubReddit(Post))),
+            new(Post.Domain, async () => await this.NewBlockRule(BlockRuleHelper.FromDomain(Post))),
+            new(Post.LinkFlairText, async () => await this.NewBlockRule(BlockRuleHelper.FromFlair(Post))));
 
-            if (!string.IsNullOrWhiteSpace(Post.LinkFlairText))
-            {
-                options.Add(PostMoreOptions.BlockFlair, $"Block [{Post.LinkFlairText}]");
-            }
-            else
-            {
-                options.Add(PostMoreOptions.BlockFlair, null);
-            }
+        }
 
-            PostMoreOptions? postMoreOptions = await this.DisplayActionSheet("Select:", null, null, options);
-
-            if (postMoreOptions is null)
-            {
-                return;
-            }
-
-            switch (postMoreOptions.Value)
-            {
-                case PostMoreOptions.ViewAuthor:
-                    await AppNavigator.OpenUser(Post.Author);
-                    break;
-
-                case PostMoreOptions.BlockFlair:
-                    await this.NewBlockRule(new BlockRule()
-                    {
-                        Flair = Post.LinkFlairText,
-                        SubReddit = Post.SubReddit,
-                        BlockType = BlockType.Post,
-                        RuleName = $"{Post.SubReddit} [{Post.LinkFlairText}]"
-                    });
-                    break;
-
-                case PostMoreOptions.BlockSubreddit:
-                    await this.NewBlockRule(new BlockRule()
-                    {
-                        SubReddit = Post.SubReddit,
-                        BlockType = BlockType.Post,
-                        RuleName = $"/r/{Post.SubReddit}"
-                    });
-                    break;
-
-                case PostMoreOptions.ViewSubreddit:
-                    await AppNavigator.OpenSubReddit(Post.SubReddit, ApiPostSort.Hot);
-                    break;
-
-                case PostMoreOptions.BlockAuthor:
-                    await this.NewBlockRule(new BlockRule()
-                    {
-                        Author = Post.Author,
-                        BlockType = BlockType.Post,
-                        RuleName = $"/u/{Post.Author}"
-                    });
-                    break;
-
-                case PostMoreOptions.BlockDomain:
-                    if (!string.IsNullOrWhiteSpace(Post.Domain))
-                    {
-                        await this.NewBlockRule(new BlockRule()
-                        {
-                            Domain = Post.Domain,
-                            BlockType = BlockType.Post,
-                            RuleName = $"({Post.Domain})"
-                        });
-                    }
-
-                    break;
-
-                default: throw new EnumNotImplementedException(postMoreOptions.Value);
-            }
+        private async Task OnMoreViewClicked()
+        {
+            await _multiselector.Select(
+            "View:",
+            new($"/u/{Post.Author}", async () => await AppNavigator.OpenUser(Post.Author)),
+            new($"/r/{Post.SubReddit}", async () => await AppNavigator.OpenSubReddit(Post.SubReddit, ApiPostSort.Hot)));
         }
 
         public virtual async void OnReplyClicked(object? sender, EventArgs e)

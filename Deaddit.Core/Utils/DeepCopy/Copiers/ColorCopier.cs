@@ -1,4 +1,6 @@
-﻿namespace Deaddit.Core.Utils.DeepCopy.Copiers
+﻿using Deaddit.Core.Utils.Models;
+
+namespace Deaddit.Core.Utils.DeepCopy.Copiers
 {
     public class ColorCopier : AbstractCopier<DynamicColor>
     {

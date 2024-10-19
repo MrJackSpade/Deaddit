@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-namespace Deaddit.Core.Utils
+namespace Deaddit.Core.Utils.Validation
 {
     public static class Ensure
     {

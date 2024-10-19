@@ -1,6 +1,6 @@
 ﻿using SkiaSharp;
 
-namespace Deaddit.Core.Utils
+namespace Deaddit.Core.Utils.IO
 {
     public static class ImageHelper
     {

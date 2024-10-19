@@ -1,7 +1,7 @@
 ﻿using Deaddit.Core.Exceptions;
 using System.Text.RegularExpressions;
 
-namespace Deaddit.Core.Utils
+namespace Deaddit.Core.Utils.Blocking
 {
     public enum StringMatchType
     {

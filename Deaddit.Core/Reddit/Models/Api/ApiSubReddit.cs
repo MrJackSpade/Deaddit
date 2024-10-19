@@ -1,4 +1,4 @@
-﻿using Deaddit.Core.Utils;
+﻿using Deaddit.Core.Utils.Models;
 using System.Text.Json.Serialization;
 
 namespace Deaddit.Core.Reddit.Models.Api

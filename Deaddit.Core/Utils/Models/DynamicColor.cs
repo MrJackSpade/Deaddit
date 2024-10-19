@@ -1,4 +1,4 @@
-﻿namespace Deaddit.Core.Utils
+﻿namespace Deaddit.Core.Utils.Models
 {
     public class DynamicColor(int red, int green, int blue, int alpha)
     {

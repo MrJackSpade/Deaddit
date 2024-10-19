@@ -5,8 +5,10 @@ using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models.Api;
-using Deaddit.Core.Reddit.Models.Options;
 using Deaddit.Core.Utils;
+using Deaddit.Core.Utils.Blocking;
+using Deaddit.Core.Utils.MultiSelect;
+using Deaddit.Core.Utils.Validation;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
@@ -25,6 +27,8 @@ namespace Deaddit.Components.WebComponents
         private readonly MessageBarComponent _bottomBar;
 
         private readonly HtmlBodyComponent _commentBody;
+
+        private readonly MultiSelector _multiselector;
 
         private readonly DivComponent _commentContainer;
 
@@ -50,8 +54,9 @@ namespace Deaddit.Components.WebComponents
 
         public event EventHandler<OnDeleteClickedEventArgs> OnDelete;
 
-        public RedditMessageWebComponent(ApiMessage message, INavigation navigation, AppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup selectionGroup, BlockConfiguration blockConfiguration)
+        public RedditMessageWebComponent(ApiMessage message, ISelectBoxDisplay selectBoxDisplay, INavigation navigation, AppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup selectionGroup, BlockConfiguration blockConfiguration)
         {
+            _multiselector = new MultiSelector(selectBoxDisplay);
             _message = message;
             SelectEnabled = selectionGroup != null;
             AppNavigator = appNavigator;
@@ -110,37 +115,15 @@ namespace Deaddit.Components.WebComponents
         {
             if (!string.Equals(_redditClient.LoggedInUser, _message.Author, StringComparison.OrdinalIgnoreCase))
             {
-                Dictionary<MessageMoreOptions, string> overrides = [];
-
-                overrides.Add(MessageMoreOptions.BlockAuthor, $"Block /u/{_message.Author}");
-                overrides.Add(MessageMoreOptions.ViewAuthor, $"View /u/{_message.Author}");
-
-                MessageMoreOptions? postMoreOptions = await _navigation.NavigationStack[^1].DisplayActionSheet<MessageMoreOptions>("Select:", null, null, overrides);
-
-                if (postMoreOptions is null)
-                {
-                    return;
-                }
-
-                switch (postMoreOptions.Value)
-                {
-                    case MessageMoreOptions.BlockAuthor:
-                        await this.NewBlockRule(new BlockRule()
-                        {
-                            Author = _message.Author,
-                            BlockType = BlockType.Post,
-                            RuleName = $"/u/{_message.Author}"
-                        });
-                        break;
-
-                    case MessageMoreOptions.ViewAuthor:
-                        Ensure.NotNull(_message.Author);
-                        await AppNavigator.OpenUser(_message.Author);
-                        break;
-                }
+                await _multiselector.Select(
+                    "Select:",
+                    new ($"Block /u/{_message.Author}", async () => await this.NewBlockRule(BlockRuleHelper.FromAuthor(_message))),
+                    new ($"View /u/{_message.Author}", async () => await AppNavigator.OpenUser(_message.Author))
+                );
             }
             else
             {
+                // No action needed for the else block based on the provided code
             }
         }
 
@@ -172,10 +155,6 @@ namespace Deaddit.Components.WebComponents
             throw new NotImplementedException();
         }
 
-        private void BlockRuleOnSave(object? sender, ObjectEditorSaveEventArgs e)
-        {
-        }
-
         private void EditPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
         {
             _message.Body = e.NewComment.Body;
@@ -186,8 +165,6 @@ namespace Deaddit.Components.WebComponents
         private async Task NewBlockRule(BlockRule blockRule)
         {
             ObjectEditorPage objectEditorPage = await AppNavigator.OpenObjectEditor(blockRule);
-
-            objectEditorPage.OnSave += this.BlockRuleOnSave;
         }
 
         private void ReplyButton_OnClick(object? sender, EventArgs e)
