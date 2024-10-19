@@ -36,15 +36,15 @@ namespace Deaddit.Components.WebComponents
 
             _singleClick = !isContinueThread;
 
-            string display = !isContinueThread ? $"More {more.Count}" : "Continue Thread";
+            string display = !isContinueThread ? $"More [{more.Count}]" : "Continue Thread";
 
             if (more is CollapsedMore cm)
             {
                 display = cm.CollapsedReasonCode switch
                 {
-                    CollapsedReasonKind.Deleted => "Deleted",
-                    CollapsedReasonKind.LowScore => "Low Score",
-                    CollapsedReasonKind.BlockedAuthor => "Blocked Author",
+                    CollapsedReasonKind.Deleted => $"Deleted [{more.Count}]",
+                    CollapsedReasonKind.LowScore => $"Low Score [{more.Count}]",
+                    CollapsedReasonKind.BlockedAuthor => $"Blocked [{more.Count}]",
                     _ => cm.CollapsedReasonCode.ToString()
                 };
             }

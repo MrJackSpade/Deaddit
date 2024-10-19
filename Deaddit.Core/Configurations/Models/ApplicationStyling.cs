@@ -1,5 +1,5 @@
 ﻿using Deaddit.Core.Attributes;
-using Deaddit.Core.Utils;
+using Deaddit.Core.Utils.Models;
 
 namespace Deaddit.Core.Configurations.Models
 {

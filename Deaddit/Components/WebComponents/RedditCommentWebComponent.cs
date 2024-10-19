@@ -5,9 +5,11 @@ using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
-using Deaddit.Core.Reddit.Models.Options;
 using Deaddit.Core.Utils;
+using Deaddit.Core.Utils.Blocking;
 using Deaddit.Core.Utils.Extensions;
+using Deaddit.Core.Utils.MultiSelect;
+using Deaddit.Core.Utils.Validation;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
@@ -34,6 +36,8 @@ namespace Deaddit.Components.WebComponents
 
         private readonly CommentHeaderComponent _commentHeader;
 
+        private readonly MultiSelector _multiselector;
+
         private readonly INavigation _navigation;
 
         private readonly IRedditClient _redditClient;
@@ -56,8 +60,9 @@ namespace Deaddit.Components.WebComponents
 
         public event EventHandler<OnDeleteClickedEventArgs> OnDelete;
 
-        public RedditCommentWebComponent(ApiComment comment, ApiPost? post, bool selectEnabled, INavigation navigation, AppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup selectionGroup, BlockConfiguration blockConfiguration)
+        public RedditCommentWebComponent(ApiComment comment, ApiPost? post, bool selectEnabled, ISelectBoxDisplay selectBoxDisplay, INavigation navigation, AppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup selectionGroup, BlockConfiguration blockConfiguration)
         {
+            _multiselector = new MultiSelector(selectBoxDisplay);
             _comment = comment;
             Post = post;
             SelectEnabled = selectEnabled;
@@ -143,94 +148,41 @@ namespace Deaddit.Components.WebComponents
         {
             if (!string.Equals(_redditClient.LoggedInUser, _comment.Author, StringComparison.OrdinalIgnoreCase))
             {
-                Dictionary<CommentMoreOptions, string> overrides = [];
-
-                overrides.Add(CommentMoreOptions.BlockAuthor, $"Block /u/{_comment.Author}");
-                overrides.Add(CommentMoreOptions.ViewAuthor, $"View /u/{_comment.Author}");
-
-                if (_comment.Saved == true)
-                {
-                    overrides.Add(CommentMoreOptions.Save, $"Unsave");
-                }
-
-                CommentMoreOptions? postMoreOptions = await _navigation.NavigationStack[^1].DisplayActionSheet<CommentMoreOptions>("Select:", null, null, overrides);
-
-                if (postMoreOptions is null)
-                {
-                    return;
-                }
-
-                switch (postMoreOptions.Value)
-                {
-                    case CommentMoreOptions.Save:
-                        if (_comment.Saved == true)
-                        {
-                            await _redditClient.ToggleSave(_comment, false);
-                            _comment.Saved = false;
-                        }
-                        else
-                        {
-                            await _redditClient.ToggleSave(_comment, true);
-                            _comment.Saved = true;
-                        }
-
-                        break;
-
-                    case CommentMoreOptions.BlockAuthor:
-                        await this.NewBlockRule(new BlockRule()
-                        {
-                            Author = Post.Author,
-                            BlockType = BlockType.Post,
-                            RuleName = $"/u/{Post.Author}"
-                        });
-                        break;
-
-                    case CommentMoreOptions.ViewAuthor:
-                        Ensure.NotNull(_comment.Author);
-                        await AppNavigator.OpenUser(_comment.Author);
-                        break;
-
-                    case CommentMoreOptions.CopyRaw:
-                        await Clipboard.SetTextAsync(_comment.Body);
-                        break;
-
-                    case CommentMoreOptions.CopyPermalink:
-                        await Clipboard.SetTextAsync(_comment.Permalink);
-                        break;
-                }
+                await _multiselector.Select(
+                    "Select:",
+                    new($"Block /u/{_comment.Author}", async () => await this.NewBlockRule(BlockRuleHelper.FromAuthor(_comment))),
+                    new($"View /u/{_comment.Author}", async () => await AppNavigator.OpenUser(_comment.Author)),
+                    new(_comment.Saved == true ? "Unsave" : "Save", async () =>
+                    {
+                        bool saveState = _comment.Saved == false;
+                        await _redditClient.ToggleSave(_comment, saveState);
+                        _comment.Saved = saveState;
+                    }),
+                    new("Copy Raw", async () => await Clipboard.SetTextAsync(_comment.Body)),
+                    new("Copy Permalink", async () => await Clipboard.SetTextAsync(_comment.Permalink))
+                );
             }
             else
             {
-                Dictionary<MyCommentMoreOptions, string> overrideText = [];
-                bool replyState = _comment.SendReplies != false;
-                overrideText.Add(MyCommentMoreOptions.ToggleReplies, $"{(replyState ? "Disable" : "Enable")} Replies");
-
-                MyCommentMoreOptions? postMoreOptions = await _navigation.NavigationStack[^1].DisplayActionSheet("Select:", null, null, overrideText);
-
-                if (postMoreOptions is null)
-                {
-                    return;
-                }
-
-                switch (postMoreOptions.Value)
-                {
-                    case MyCommentMoreOptions.ToggleReplies:
-                        await _redditClient.ToggleInboxReplies(_comment, !replyState);
-                        _comment.SendReplies = !replyState;
-                        break;
-
-                    case MyCommentMoreOptions.Delete:
+                await _multiselector.Select(
+                    "Select:",
+                    new ($"{(_comment.SendReplies == true ? "Disable" : "Enable")} Replies", async () =>
+                    {
+                        bool newReplyState = _comment.SendReplies == false;
+                        await _redditClient.ToggleInboxReplies(_comment, newReplyState);
+                        _comment.SendReplies = newReplyState;
+                    }),
+                    new("Delete", async () =>
+                    {
                         await _redditClient.Delete(_comment);
                         OnDelete?.Invoke(this, new OnDeleteClickedEventArgs(_comment, this));
-                        break;
-
-                    case MyCommentMoreOptions.Edit:
+                    }),
+                    new("Edit", async () =>
+                    {
                         ReplyPage replyPage = await AppNavigator.OpenEditPage(_comment);
                         replyPage.OnSubmitted += this.EditPage_OnSubmitted;
-                        break;
-
-                    default: throw new EnumNotImplementedException(postMoreOptions.Value);
-                }
+                    })
+                );
             }
         }
 

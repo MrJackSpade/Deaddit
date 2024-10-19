@@ -1,4 +1,4 @@
-﻿using Deaddit.Core.Utils;
+﻿using Deaddit.Core.Utils.Validation;
 
 namespace Deaddit.Core.Reddit.Models
 {

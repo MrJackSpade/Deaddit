@@ -14,6 +14,7 @@
   <ItemGroup>
     <Folder Include="Attributes\" />
     <Folder Include="Constants\" />
+    <Folder Include="Reddit\Models\Options\" />
   </ItemGroup>
 
 </Project>

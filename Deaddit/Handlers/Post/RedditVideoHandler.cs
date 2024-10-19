@@ -1,7 +1,7 @@
 ﻿using Deaddit.Core.Interfaces;
 using Deaddit.Core.Models;
 using Deaddit.Core.Reddit.Models.Api;
-using Deaddit.Core.Utils;
+using Deaddit.Core.Utils.Validation;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.Utils;
