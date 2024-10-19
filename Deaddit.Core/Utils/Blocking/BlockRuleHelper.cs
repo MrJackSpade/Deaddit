@@ -39,13 +39,25 @@ namespace Deaddit.Core.Utils.Blocking
             };
         }
 
+        public static BlockRule FromFlair(ApiComment comment)
+        {
+            return new BlockRule()
+            {
+                Flair = comment.AuthorFlairText,
+                SubReddit = comment.SubReddit,
+                BlockType = BlockType.Post,
+                RuleName = $"{comment.SubReddit} [{comment.AuthorFlairText}]"
+            };
+        }
+
         public static BlockRule FromFlair(ApiPost post)
         {
             return new BlockRule()
             {
                 Flair = post.LinkFlairText,
+                SubReddit = post.SubReddit,
                 BlockType = BlockType.Post,
-                RuleName = $"{post.SubReddit} [{post.Domain}]"
+                RuleName = $"{post.SubReddit} [{post.LinkFlairText}]"
             };
         }
     }
