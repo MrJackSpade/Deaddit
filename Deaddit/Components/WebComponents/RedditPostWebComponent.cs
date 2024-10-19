@@ -168,7 +168,7 @@ namespace Deaddit.Components.WebComponents
             };
         }
 
-        private void BlockRuleOnSave(object? sender, Deaddit.EventArguments.ObjectEditorSaveEventArgs e)
+        private void BlockRuleOnSave(object? sender, ObjectEditorSaveEventArgs e)
         {
             if (e.Saved is BlockRule blockRule)
             {

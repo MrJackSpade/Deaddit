@@ -24,7 +24,7 @@ namespace Deaddit.Core.Utils.Blocking
         {
             return new BlockRule()
             {
-                Author = post.SubReddit,
+                SubReddit = post.SubReddit,
                 BlockType = BlockType.Post,
                 RuleName = $"/r/{post.SubReddit}"
             };
