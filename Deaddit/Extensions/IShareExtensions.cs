@@ -43,9 +43,13 @@ namespace Deaddit.Extensions
                 }
                 else
                 {
-                    using MemoryStream memoryStream = new();
-                    stream.CopyTo(memoryStream);
-                    await File.WriteAllBytesAsync(file, memoryStream.ToArray());
+                    //Off the main thread for android
+                    await Task.Run(async () =>
+                    {
+                        using MemoryStream memoryStream = new();
+                        stream.CopyTo(memoryStream);
+                        await File.WriteAllBytesAsync(file, memoryStream.ToArray());
+                    });
                 }
 
                 files.Add(new ShareFile(file));
