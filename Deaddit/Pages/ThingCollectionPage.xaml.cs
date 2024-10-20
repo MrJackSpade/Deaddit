@@ -7,6 +7,7 @@ using Deaddit.Core.Extensions;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
+using Deaddit.Core.Reddit.Extensions;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Reddit.Models.ThingDefinitions;
 using Deaddit.Core.Utils;
@@ -45,6 +46,8 @@ namespace Deaddit.Pages
 
         private readonly IRedditClient _redditClient;
 
+        private readonly ETagCache _eTagCache;
+
         private readonly SelectionGroup _selectionGroup;
 
         private readonly DivComponent _sortButtons = new();
@@ -61,11 +64,12 @@ namespace Deaddit.Pages
 
         private Enum _sort;
 
-        public ThingCollectionPage(ThingDefinition thingDefinition, Enum sort, ApplicationHacks applicationHacks, IDisplayExceptions displayExceptions, IAggregatePostHandler aggregatePostHandler, IAggregateUrlHandler aggregateUrlHandler, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, BlockConfiguration blockConfiguration)
+        public ThingCollectionPage(ThingDefinition thingDefinition, Enum sort, ETagCache eTagCache, ApplicationHacks applicationHacks, IDisplayExceptions displayExceptions, IAggregatePostHandler aggregatePostHandler, IAggregateUrlHandler aggregateUrlHandler, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, BlockConfiguration blockConfiguration)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
             _sort = sort;
+            _eTagCache = Ensure.NotNull(eTagCache);
             _applicationHacks = Ensure.NotNull(applicationHacks);
             _appNavigator = Ensure.NotNull(appNavigator);
             _blockConfiguration = Ensure.NotNull(blockConfiguration);
@@ -199,6 +203,12 @@ namespace Deaddit.Pages
                                                            .Where(s => !string.IsNullOrWhiteSpace(s))
                                                            .ToHashSet()!;
 
+                HashSet<string> loadedETags = _loadedPosts.Select(p => p.Post)
+                                                            .OfType<ApiPost>()
+                                                            .Select(p => p.TryGetThumbnail())
+                                                            .Where(s => !string.IsNullOrWhiteSpace(s))
+                                                            .ToHashSet()!;
+
                 List<WebComponent> newComponents = [];
 
                 do
@@ -232,12 +242,23 @@ namespace Deaddit.Pages
                         userData = await _redditClient.GetPartialUserData(newPosts.Select(p => p.AuthorFullName).Distinct());
                     }
 
+                    //Prep etags if need be
+                    if (_blockConfiguration.DuplicateThumbHandling != PostState.None)
+                    {
+                        List<string> newThumbs = newPosts.OfType<ApiPost>()
+                                                         .Select(p => p.TryGetThumbnail())
+                                                         .Where(s => !string.IsNullOrWhiteSpace(s))
+                                                         .ToList()!;
+
+                        _eTagCache.Cache(newThumbs);
+                    }
+
                     foreach (ApiThing thing in newPosts)
                     {
                         // Update the 'after' cursor for pagination
                         _after = thing.Name;
 
-                        PostState postState = this.GetPostState(loadedTitles, loadedUrls, userData, thing);
+                        PostState postState = this.GetPostState(loadedTitles, loadedUrls, loadedETags, userData, thing);
 
                         if (postState == PostState.Block && _isBlockEnabled)
                         {
@@ -284,6 +305,13 @@ namespace Deaddit.Pages
 
                             loadedTitles.Add(post.GetTitleOrEmpty());
                             loadedUrls.Add(post.GetUrlOrEmpty());
+
+                            string thumb = post.TryGetThumbnail();
+
+                            if (!string.IsNullOrEmpty(thumb))
+                            {
+                                loadedETags.Add(_eTagCache.Get(thumb));
+                            }
 
                             view = redditPostComponent;
                         }
@@ -360,7 +388,7 @@ namespace Deaddit.Pages
 #endif
         }
 
-        private PostState GetPostState(HashSet<string> loadedTitles, HashSet<string> loadedUrls, Dictionary<string, UserPartial>? userData, ApiThing thing)
+        private PostState GetPostState(HashSet<string> loadedTitles, HashSet<string> loadedUrls, HashSet<string> loadedEtags, Dictionary<string, UserPartial>? userData, ApiThing thing)
         {
             bool blocked = !_blockConfiguration.IsAllowed(thing, userData);
 
@@ -376,6 +404,21 @@ namespace Deaddit.Pages
                 return PostState.Block;
             }
 
+            if (thing is ApiPost post && _blockConfiguration.DuplicateThumbHandling == PostState.Block)
+            {
+                string? thumb = post.TryGetThumbnail();
+
+                if (!string.IsNullOrWhiteSpace(thumb))
+                {
+                    string etag = _eTagCache.Get(thumb);
+
+                    if (loadedEtags.Contains(etag))
+                    {
+                        return PostState.Block;
+                    }
+                }
+            }
+
             if (_blockConfiguration.DuplicateLinkHandling == PostState.Block &&
                 loadedUrls.Contains(thing.GetUrlOrEmpty()))
             {
@@ -387,6 +430,21 @@ namespace Deaddit.Pages
                 loadedTitles.Contains(thing.GetTitleOrEmpty().Trim(), StringComparer.OrdinalIgnoreCase))
             {
                 return PostState.Visited;
+            }
+
+            if (thing is ApiPost post2 && _blockConfiguration.DuplicateThumbHandling == PostState.Visited)
+            {
+                string? thumb = post2.TryGetThumbnail();
+
+                if (!string.IsNullOrWhiteSpace(thumb))
+                {
+                    string etag = _eTagCache.Get(thumb);
+
+                    if (loadedEtags.Contains(etag))
+                    {
+                        return PostState.Visited;
+                    }
+                }
             }
 
             if (_blockConfiguration.DuplicateLinkHandling == PostState.Visited &&
@@ -452,7 +510,7 @@ namespace Deaddit.Pages
         {
             foreach (LoadedThing loadedPost in _loadedPosts.ToList())
             {
-                if (!e.IsAllowed(loadedPost.Post))
+                if (e.IsMatch(loadedPost.Post))
                 {
                     await webElement.RemoveChild(loadedPost.PostComponent);
                     _loadedPosts.Remove(loadedPost);

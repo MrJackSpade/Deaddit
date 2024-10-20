@@ -39,6 +39,8 @@ namespace Deaddit.Utils
 
         private IDisplayExceptions DisplayExceptions => _serviceProvider.GetService<IDisplayExceptions>()!;
 
+        private ETagCache ETagCache => _serviceProvider.GetService<ETagCache>()!;
+
         private INavigation Navigation => _serviceProvider.GetService<INavigation>()!;
 
         private IRedditClient RedditClient => _serviceProvider.GetService<IRedditClient>()!;
@@ -107,7 +109,7 @@ namespace Deaddit.Utils
 
         public async Task<ThingCollectionPage> OpenMessages(InboxSort sort = InboxSort.Unread)
         {
-            ThingCollectionPage page = new(ThingDefinitionHelper.ForMessages(), sort, ApplicationHacks, DisplayExceptions, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
+            ThingCollectionPage page = new(ThingDefinitionHelper.ForMessages(), sort, ETagCache, ApplicationHacks, DisplayExceptions, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
             await Navigation.PushAsync(page);
             await page.Init();
             return page;
@@ -165,7 +167,7 @@ namespace Deaddit.Utils
 
         public async Task<ThingCollectionPage> OpenSubReddit(string subRedditName, ApiPostSort sort = ApiPostSort.Hot)
         {
-            ThingCollectionPage page = new(ThingDefinitionHelper.FromName(subRedditName), sort, ApplicationHacks, DisplayExceptions, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
+            ThingCollectionPage page = new(ThingDefinitionHelper.FromName(subRedditName), sort, ETagCache, ApplicationHacks, DisplayExceptions, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
             await Navigation.PushAsync(page);
             await page.Init();
             return page;
@@ -181,7 +183,7 @@ namespace Deaddit.Utils
 
         public async Task<ThingCollectionPage> OpenThing(ThingDefinition apiThing)
         {
-            ThingCollectionPage page = new(apiThing, apiThing.DefaultSort, ApplicationHacks, DisplayExceptions, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
+            ThingCollectionPage page = new(apiThing, apiThing.DefaultSort, ETagCache, ApplicationHacks, DisplayExceptions, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
             await Navigation.PushAsync(page);
             await page.Init();
             return page;
@@ -189,7 +191,7 @@ namespace Deaddit.Utils
 
         public async Task<ThingCollectionPage> OpenUser(string username, UserProfileSort userProfileSort = UserProfileSort.New)
         {
-            ThingCollectionPage page = new(ThingDefinitionHelper.ForUser(username), userProfileSort, ApplicationHacks, DisplayExceptions, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
+            ThingCollectionPage page = new(ThingDefinitionHelper.ForUser(username), userProfileSort, ETagCache, ApplicationHacks, DisplayExceptions, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
             await Navigation.PushAsync(page);
             await page.Init();
             return page;

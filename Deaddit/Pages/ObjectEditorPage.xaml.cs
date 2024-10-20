@@ -1,4 +1,4 @@
-using Deaddit.Core.Attributes;
+﻿using Deaddit.Core.Attributes;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Extensions;
 using Deaddit.Core.Utils.DeepCopy;
@@ -297,29 +297,66 @@ namespace Deaddit.Pages
 
             foreach (PropertyInfo prop in properties.OrderBy(GetPropertyOrder))
             {
-                if(prop.HasCustomAttribute<EditorIgnoreAttribute>())
+                if (prop.HasCustomAttribute<EditorIgnoreAttribute>())
                 {
                     continue;
                 }
 
-                Type propertyType = obj?.GetType() ?? prop.PropertyType;
+                Type propertyType = prop.PropertyType;
 
                 string labelText = prop.Name;
+                string? descriptionText = null;
 
-                if (prop.GetCustomAttribute<EditorDisplayAttribute>() is EditorDisplayAttribute da && !string.IsNullOrWhiteSpace(da.Name))
+                if (prop.GetCustomAttribute<EditorDisplayAttribute>() is EditorDisplayAttribute da)
                 {
-                    labelText = da.Name;
+                    if (!string.IsNullOrWhiteSpace(da.Name))
+                    {
+                        labelText = da.Name;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(da.Description))
+                    {
+                        descriptionText = da.Description;
+                    }
                 }
 
-                // Create a label for the property name
+                // Create a horizontal stack layout to hold the label and the info button
+                StackLayout labelLayout = new()
+                {
+                    Orientation = StackOrientation.Horizontal,
+                    Spacing = 5,
+                    Margin = new Thickness(5)
+                };
+
+                // Create the label for the property name
                 Label label = new()
                 {
                     Text = labelText,
                     TextColor = _applicationStyling.TextColor.ToMauiColor(),
-                    Margin = new Thickness(5)
+                    VerticalOptions = LayoutOptions.Center
                 };
+                labelLayout.Children.Add(label);
 
-                parentLayout.Children.Add(label);
+                // If there's a description, add an info button
+                if (!string.IsNullOrWhiteSpace(descriptionText))
+                {
+                    Button infoButton = new()
+                    {
+                        Text = "ⓘ",
+                        FontSize = 14,
+                        WidthRequest = 30,
+                        HeightRequest = 30,
+                        BackgroundColor = Colors.Transparent,
+                        TextColor = _applicationStyling.TextColor.ToMauiColor(),
+                        VerticalOptions = LayoutOptions.Center
+                    };
+
+                    infoButton.Clicked += async (s, e) => await this.DisplayAlert(labelText, descriptionText, "OK");
+
+                    labelLayout.Children.Add(infoButton);
+                }
+
+                parentLayout.Children.Add(labelLayout);
 
                 View? editor = this.CreateEditorForType(prop, obj);
 
