@@ -91,7 +91,7 @@ namespace Deaddit.Core.Extensions
 
             blocked &= BlockListHelper.TriggersOrSkip(rule.Flair, post.LinkFlairText, StringMatchType.String);
 
-            blocked &= BlockListHelper.TriggersOrSkip(rule.SubReddit, post.SubReddit, StringMatchType.String);
+            blocked &= BlockListHelper.TriggersOrSkip(rule.SubReddit, post.SubRedditName, StringMatchType.String);
 
             blocked &= BlockListHelper.TriggersOrSkip(rule.Title, post.Title, DynamicMatchType(rule.Title), true);
 

@@ -4,8 +4,9 @@
     {
         public class MediaData
         {
-            public byte[] VideoData { get; set; }
             public byte[] AudioData { get; set; }
+
+            public byte[] VideoData { get; set; }
         }
 
         public static async Task<MediaData> DownloadM3U8Async(string m3u8Url)
@@ -52,84 +53,6 @@
             }
 
             return mediaData;
-        }
-
-        private static (string videoPlaylistUrl, string audioPlaylistUrl) ParseMasterPlaylist(string masterPlaylistContent, string baseUrl)
-        {
-            string videoPlaylistUrl = null;
-            string audioPlaylistUrl = null;
-
-            StringReader reader = new(masterPlaylistContent);
-            string line;
-            while ((line = reader.ReadLine()) != null)
-            {
-                if (line.StartsWith("#EXT-X-MEDIA"))
-                {
-                    // Parse audio track
-                    if (line.Contains("TYPE=AUDIO") && line.Contains("DEFAULT=YES"))
-                    {
-                        string uri = GetAttributeValue(line, "URI");
-                        if (!string.IsNullOrEmpty(uri))
-                        {
-                            audioPlaylistUrl = GetAbsoluteUrl(baseUrl, uri);
-                        }
-                    }
-                }
-                else if (line.StartsWith("#EXT-X-STREAM-INF"))
-                {
-                    // Parse video track
-                    // The next line should be the video playlist URL
-                    string streamInfo = line;
-                    string playlistUrl = reader.ReadLine();
-                    if (!string.IsNullOrEmpty(playlistUrl))
-                    {
-                        string absoluteUrl = GetAbsoluteUrl(baseUrl, playlistUrl);
-
-                        // For simplicity, select the first video playlist found
-                        videoPlaylistUrl ??= absoluteUrl;
-                    }
-                }
-            }
-
-            return (videoPlaylistUrl, audioPlaylistUrl);
-        }
-
-        private static async Task<List<string>> GetSegmentUrlsAsync(HttpClient client, string playlistUrl)
-        {
-            string playlistContent;
-            try
-            {
-                playlistContent = await client.GetStringAsync(playlistUrl);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error downloading playlist: " + ex.Message, ex);
-            }
-
-            return ParseMediaPlaylist(playlistContent, playlistUrl);
-        }
-
-        private static List<string> ParseMediaPlaylist(string playlistContent, string baseUrl)
-        {
-            List<string> segmentUrls = [];
-            StringReader reader = new(playlistContent);
-            string line;
-            while ((line = reader.ReadLine()) != null)
-            {
-                if (line.StartsWith("#"))
-                {
-                    // Skip comments and tags
-                    continue;
-                }
-                else if (!string.IsNullOrWhiteSpace(line))
-                {
-                    // This is a segment URL
-                    string segmentUrl = GetAbsoluteUrl(baseUrl, line.Trim());
-                    segmentUrls.Add(segmentUrl);
-                }
-            }
-
-            return segmentUrls;
         }
 
         private static async Task<byte[]> DownloadSegmentsAsync(HttpClient client, List<string> segmentUrls)
@@ -179,6 +102,84 @@
             }
 
             return null;
+        }
+
+        private static async Task<List<string>> GetSegmentUrlsAsync(HttpClient client, string playlistUrl)
+        {
+            string playlistContent;
+            try
+            {
+                playlistContent = await client.GetStringAsync(playlistUrl);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error downloading playlist: " + ex.Message, ex);
+            }
+
+            return ParseMediaPlaylist(playlistContent, playlistUrl);
+        }
+
+        private static (string videoPlaylistUrl, string audioPlaylistUrl) ParseMasterPlaylist(string masterPlaylistContent, string baseUrl)
+        {
+            string videoPlaylistUrl = null;
+            string audioPlaylistUrl = null;
+
+            StringReader reader = new(masterPlaylistContent);
+            string line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                if (line.StartsWith("#EXT-X-MEDIA"))
+                {
+                    // Parse audio track
+                    if (line.Contains("TYPE=AUDIO") && line.Contains("DEFAULT=YES"))
+                    {
+                        string uri = GetAttributeValue(line, "URI");
+                        if (!string.IsNullOrEmpty(uri))
+                        {
+                            audioPlaylistUrl = GetAbsoluteUrl(baseUrl, uri);
+                        }
+                    }
+                }
+                else if (line.StartsWith("#EXT-X-STREAM-INF"))
+                {
+                    // Parse video track
+                    // The next line should be the video playlist URL
+                    string streamInfo = line;
+                    string playlistUrl = reader.ReadLine();
+                    if (!string.IsNullOrEmpty(playlistUrl))
+                    {
+                        string absoluteUrl = GetAbsoluteUrl(baseUrl, playlistUrl);
+
+                        // For simplicity, select the first video playlist found
+                        videoPlaylistUrl ??= absoluteUrl;
+                    }
+                }
+            }
+
+            return (videoPlaylistUrl, audioPlaylistUrl);
+        }
+
+        private static List<string> ParseMediaPlaylist(string playlistContent, string baseUrl)
+        {
+            List<string> segmentUrls = [];
+            StringReader reader = new(playlistContent);
+            string line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                if (line.StartsWith("#"))
+                {
+                    // Skip comments and tags
+                    continue;
+                }
+                else if (!string.IsNullOrWhiteSpace(line))
+                {
+                    // This is a segment URL
+                    string segmentUrl = GetAbsoluteUrl(baseUrl, line.Trim());
+                    segmentUrls.Add(segmentUrl);
+                }
+            }
+
+            return segmentUrls;
         }
     }
 }

@@ -1,10 +1,5 @@
 ﻿using Maui.WebComponents.Attributes;
 using Maui.WebComponents.Components;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Deaddit.Components.WebComponents.Partials
 {
@@ -13,11 +8,12 @@ namespace Deaddit.Components.WebComponents.Partials
     {
         public Spinner(string color)
         {
-            DivComponent component = new();
+            DivComponent component = new()
+            {
+                BorderBottomColor = color
+            };
 
-            component.BorderBottomColor = color;
-
-            this.Children.Add(component);
+            Children.Add(component);
         }
     }
 }

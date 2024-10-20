@@ -32,9 +32,9 @@ namespace Deaddit.Pages
 
         private readonly IDisplayExceptions _displayExceptions;
 
-        private readonly IRedditClient _redditClient;
-
         private readonly MultiSelector _multiselector;
+
+        private readonly IRedditClient _redditClient;
 
         private readonly IAggregateUrlHandler _urlHandler;
 
@@ -170,42 +170,6 @@ namespace Deaddit.Pages
             }
         }
 
-        private async Task OnMoreShareClicked()
-        {
-            await _multiselector.Select(
-                "Share:",
-                new(null, null),
-                new($"Comments", async () => await this.NewBlockRule(BlockRuleHelper.FromAuthor(Post))));
-        }
-
-        private async void OnMoreClicked(object? sender, EventArgs e)
-        {
-            await _multiselector.Select(
-            "Select:",
-            new($"Block...", this.OnMoreBlockClicked),
-            new($"View...", this.OnMoreViewClicked),
-            new($"Share...", this.OnMoreShareClicked));
-        }
-
-        private async Task OnMoreBlockClicked()
-        {
-            await _multiselector.Select(
-            "Block:",
-            new($"/u/{Post.Author}", async () => await this.NewBlockRule(BlockRuleHelper.FromAuthor(Post))),
-            new($"/r/{Post.SubReddit}", async () => await this.NewBlockRule(BlockRuleHelper.FromSubReddit(Post))),
-            new(Post.Domain, async () => await this.NewBlockRule(BlockRuleHelper.FromDomain(Post))),
-            new(Post.LinkFlairText, async () => await this.NewBlockRule(BlockRuleHelper.FromFlair(Post))));
-
-        }
-
-        private async Task OnMoreViewClicked()
-        {
-            await _multiselector.Select(
-            "View:",
-            new($"/u/{Post.Author}", async () => await AppNavigator.OpenUser(Post.Author)),
-            new($"/r/{Post.SubReddit}", async () => await AppNavigator.OpenSubReddit(Post.SubReddit, ApiPostSort.Hot)));
-        }
-
         public virtual async void OnReplyClicked(object? sender, EventArgs e)
         {
             ReplyPage replyPage = await AppNavigator.OpenReplyPage(Post);
@@ -301,6 +265,41 @@ namespace Deaddit.Pages
             {
                 commentComponent.LoadImages(true);
             }
+        }
+
+        private async Task OnMoreBlockClicked()
+        {
+            await _multiselector.Select(
+            "Block:",
+            new($"/u/{Post.Author}", async () => await this.NewBlockRule(BlockRuleHelper.FromAuthor(Post))),
+            new($"/r/{Post.SubRedditName}", async () => await this.NewBlockRule(BlockRuleHelper.FromSubReddit(Post))),
+            new(Post.Domain, async () => await this.NewBlockRule(BlockRuleHelper.FromDomain(Post))),
+            new(Post.LinkFlairText, async () => await this.NewBlockRule(BlockRuleHelper.FromFlair(Post))));
+        }
+
+        private async void OnMoreClicked(object? sender, EventArgs e)
+        {
+            await _multiselector.Select(
+            "Select:",
+            new($"Block...", this.OnMoreBlockClicked),
+            new($"View...", this.OnMoreViewClicked),
+            new($"Share...", this.OnMoreShareClicked));
+        }
+
+        private async Task OnMoreShareClicked()
+        {
+            await _multiselector.Select(
+                "Share:",
+                new(null, null),
+                new($"Comments", async () => await this.NewBlockRule(BlockRuleHelper.FromAuthor(Post))));
+        }
+
+        private async Task OnMoreViewClicked()
+        {
+            await _multiselector.Select(
+            "View:",
+            new($"/u/{Post.Author}", async () => await AppNavigator.OpenUser(Post.Author)),
+            new($"/r/{Post.SubRedditName}", async () => await AppNavigator.OpenSubReddit(Post.SubRedditName, ApiPostSort.Hot)));
         }
 
         private void ReplyPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)

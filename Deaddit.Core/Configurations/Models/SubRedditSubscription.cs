@@ -1,4 +1,5 @@
 ﻿using Deaddit.Core.Reddit.Models;
+using System.Text.Json.Serialization;
 
 namespace Deaddit.Core.Configurations.Models
 {
@@ -13,7 +14,8 @@ namespace Deaddit.Core.Configurations.Models
 
         public ApiPostSort Sort { get; set; } = ApiPostSort.Hot;
 
-        public string? SubReddit { get; set; }
+        [JsonPropertyName("SubReddit")]
+        public string? ThingName { get; set; }
 
         public SubRedditSubscription()
         {
@@ -23,7 +25,7 @@ namespace Deaddit.Core.Configurations.Models
         {
             Sort = sort;
             DisplayString = displayString;
-            SubReddit = subReddit;
+            ThingName = subReddit;
         }
     }
 }

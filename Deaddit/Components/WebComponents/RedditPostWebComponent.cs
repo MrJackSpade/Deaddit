@@ -85,13 +85,6 @@ namespace Deaddit.Components.WebComponents
             FlexDirection = "column";
             BackgroundColor = _backgroundColor;
 
-            DivComponent topContainer = new()
-            {
-                Display = "flex",
-                FlexDirection = "row",
-                Width = "100%",
-            };
-
             _actionButtons = new ActionButtonsComponent(applicationStyling, _post);
             _actionButtons.SaveClicked += this.SaveButton_OnClick;
             _actionButtons.ShareClicked += this.ShareButton_OnClick;
@@ -119,6 +112,13 @@ namespace Deaddit.Components.WebComponents
 
             _textContainer.OnClick += this.TextContainer_OnClick;
             thumbnail.OnClick += this.Thumbnail_OnClick;
+
+            DivComponent topContainer = new()
+            {
+                Display = "flex",
+                FlexDirection = "row",
+                Width = "100%",
+            };
 
             topContainer.Children.Add(thumbnail);
             topContainer.Children.Add(_textContainer);
@@ -197,12 +197,21 @@ namespace Deaddit.Components.WebComponents
             HideClicked?.Invoke(this, new OnHideClickedEventArgs(_post, this));
         }
 
-        private async Task OnMoreShareClicked()
+        private async Task NewBlockRule(BlockRule blockRule)
+        {
+            ObjectEditorPage objectEditorPage = await _appNavigator.OpenObjectEditor(blockRule);
+
+            objectEditorPage.OnSave += this.BlockRuleOnSave;
+        }
+
+        private async Task OnMoreBlockClicked()
         {
             await _multiselector.Select(
-                "Share:",
-                new(null, null),
-                new($"Comments", async () => await this.NewBlockRule(BlockRuleHelper.FromAuthor(_post))));
+            "Block:",
+            new($"/u/{_post.Author}", async () => await this.NewBlockRule(BlockRuleHelper.FromAuthor(_post))),
+            new($"/r/{_post.SubRedditName}", async () => await this.NewBlockRule(BlockRuleHelper.FromSubReddit(_post))),
+            new(_post.Domain, async () => await this.NewBlockRule(BlockRuleHelper.FromDomain(_post))),
+            new(_post.LinkFlairText, async () => await this.NewBlockRule(BlockRuleHelper.FromFlair(_post))));
         }
 
         private async void OnMoreClicked(object? sender, EventArgs e)
@@ -214,15 +223,12 @@ namespace Deaddit.Components.WebComponents
             new($"Share...", this.OnMoreShareClicked));
         }
 
-        private async Task OnMoreBlockClicked()
+        private async Task OnMoreShareClicked()
         {
             await _multiselector.Select(
-            "Block:",
-            new($"/u/{_post.Author}", async () => await this.NewBlockRule(BlockRuleHelper.FromAuthor(_post))),
-            new($"/r/{_post.SubReddit}", async () => await this.NewBlockRule(BlockRuleHelper.FromSubReddit(_post))),
-            new(_post.Domain, async () => await this.NewBlockRule(BlockRuleHelper.FromDomain(_post))),
-            new(_post.LinkFlairText, async () => await this.NewBlockRule(BlockRuleHelper.FromFlair(_post))));
-
+                "Share:",
+                new(null, null),
+                new($"Comments", async () => await this.NewBlockRule(BlockRuleHelper.FromAuthor(_post))));
         }
 
         private async Task OnMoreViewClicked()
@@ -230,14 +236,7 @@ namespace Deaddit.Components.WebComponents
             await _multiselector.Select(
             "View:",
             new($"/u/{_post.Author}", async () => await _appNavigator.OpenUser(_post.Author)),
-            new($"/r/{_post.SubReddit}", async () => await _appNavigator.OpenSubReddit(_post.SubReddit, ApiPostSort.Hot)));
-        }
-
-        private async Task NewBlockRule(BlockRule blockRule)
-        {
-            ObjectEditorPage objectEditorPage = await _appNavigator.OpenObjectEditor(blockRule);
-
-            objectEditorPage.OnSave += this.BlockRuleOnSave;
+            new($"/r/{_post.SubRedditName}", async () => await _appNavigator.OpenSubReddit(_post.SubRedditName, ApiPostSort.Hot)));
         }
 
         private async void SaveButton_OnClick(object? sender, EventArgs e)

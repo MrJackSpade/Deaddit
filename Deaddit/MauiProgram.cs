@@ -58,7 +58,7 @@ namespace Deaddit
             builder.Services.AddConfiguration<BlockConfiguration>();
             builder.Services.AddConfiguration<ApplicationHacks>();
             builder.Services.AddSingleton<IDisplayExceptions, MauiExceptionDisplay>();
-            builder.Services.AddTransient((s)=> Shell.Current.Navigation);
+            builder.Services.AddTransient((s) => Shell.Current.Navigation);
             builder.Services.AddSingleton<ISelectBoxDisplay, SelectBoxDisplay>();
             builder.Services.AddSingleton<IAppNavigator, AppNavigator>();
             builder.Services.AddTransient<IJsonClient, JsonClient>();

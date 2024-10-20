@@ -1,11 +1,12 @@
-﻿using Deaddit.Components.WebComponents;
+﻿using Deaddit.Components;
+using Deaddit.Components.WebComponents;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Models;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
+using Deaddit.Core.Reddit.Models.ThingDefinitions;
 using Deaddit.Core.Utils;
-using Deaddit.MAUI.Components;
 using Deaddit.Pages;
 
 namespace Deaddit.Interfaces
@@ -20,7 +21,7 @@ namespace Deaddit.Interfaces
 
         RedditPostWebComponent CreatePostWebComponent(ApiPost post, PostState postHandling, SelectionGroup? selectionGroup = null);
 
-        SubRedditComponent CreateSubRedditComponent(SubRedditSubscription subscription, SelectionGroup? group = null);
+        SubscriptionComponent CreateSubRedditComponent(ThingDefinition subscriptionThing, SelectionGroup? group = null);
 
         Task<EmbeddedBrowser> OpenBrowser(string url);
 
@@ -40,11 +41,11 @@ namespace Deaddit.Interfaces
 
         Task<ReplyPage> OpenReplyPage(ApiThing replyTo);
 
-        Task<ThingCollectionPage> OpenSubReddit(ThingCollectionName subRedditName, ApiPostSort sort = ApiPostSort.Hot);
-
         Task<ThingCollectionPage> OpenSubReddit(string subRedditName, ApiPostSort sort = ApiPostSort.Hot);
 
-        Task<SubRedditAboutPage> OpenSubRedditAbout(ThingCollectionName subreddit);
+        Task<SubRedditAboutPage> OpenSubRedditAbout(string subredditName);
+
+        Task<ThingCollectionPage> OpenThing(ThingDefinition subRedditName);
 
         Task<ThingCollectionPage> OpenUser(string username, UserProfileSort userProfileSort = UserProfileSort.New);
 

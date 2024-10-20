@@ -106,8 +106,8 @@
 	  <Compile Update="Pages\ObjectEditorPage.xaml.cs">
 	    <DependentUpon>ObjectEditorPage.xaml</DependentUpon>
 	  </Compile>
-	  <Compile Update="Components\SubRedditComponent.xaml.cs">
-	    <DependentUpon>SubRedditComponent.xaml</DependentUpon>
+	  <Compile Update="Components\SubscriptionComponent.xaml.cs">
+	    <DependentUpon>SubscriptionComponent.xaml</DependentUpon>
 	  </Compile>
 	  <Compile Update="Pages\Embedded\EmbeddedImage.xaml.cs">
 	    <DependentUpon>EmbeddedImage.xaml</DependentUpon>
@@ -136,7 +136,7 @@
 	  <MauiXaml Update="Pages\ObjectEditorPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Components\SubRedditComponent.xaml">
+	  <MauiXaml Update="Components\SubscriptionComponent.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Pages\Embedded\EmbeddedImage.xaml">

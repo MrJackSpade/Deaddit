@@ -1,6 +1,4 @@
-﻿using Deaddit.Core.Interfaces;
-
-namespace Deaddit.Core.Utils.IO
+﻿namespace Deaddit.Core.Utils.IO
 {
     public static class FileStreamService
     {

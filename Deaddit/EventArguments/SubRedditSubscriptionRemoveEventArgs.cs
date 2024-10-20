@@ -1,12 +1,12 @@
-﻿using Deaddit.Core.Configurations.Models;
-using Deaddit.MAUI.Components;
+﻿using Deaddit.Components;
+using Deaddit.Core.Reddit.Models.ThingDefinitions;
 
 namespace Deaddit.EventArguments
 {
-    public class SubRedditSubscriptionRemoveEventArgs(SubRedditSubscription subscription, SubRedditComponent component) : EventArgs
+    public class SubRedditSubscriptionRemoveEventArgs(SubscriptionComponent component, ThingDefinition thing) : EventArgs
     {
-        public SubRedditComponent Component { get; private set; } = component;
+        public SubscriptionComponent Component { get; private set; } = component;
 
-        public SubRedditSubscription Subscription { get; private set; } = subscription;
+        public ThingDefinition Thing { get; private set; } = thing;
     }
 }

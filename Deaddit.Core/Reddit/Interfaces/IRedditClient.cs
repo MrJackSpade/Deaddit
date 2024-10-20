@@ -1,5 +1,7 @@
 ﻿using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
+using Deaddit.Core.Reddit.Models.Requests;
+using Deaddit.Core.Reddit.Models.ThingDefinitions;
 
 namespace Deaddit.Core.Reddit.Interfaces
 {
@@ -9,7 +11,7 @@ namespace Deaddit.Core.Reddit.Interfaces
 
         public string? LoggedInUser { get; }
 
-        Task<ApiSubReddit> About(ThingCollectionName subreddit);
+        Task<ApiSubReddit> About(SubRedditDefinition subreddit);
 
         Task<ApiComment> Comment(ApiThing replyTo, string comment);
 
@@ -17,13 +19,15 @@ namespace Deaddit.Core.Reddit.Interfaces
 
         Task Delete(ApiThing thing);
 
+        Task<Dictionary<string, UserPartial>> GetPartialUserData(IEnumerable<string> usernames);
+
         Task<ApiPost> GetPost(string id);
 
-        Task<List<ApiThing>> GetPosts<T>(ThingCollectionName subreddit, T sort, int pageSize, string? after = null, Region region = Region.GLOBAL) where T : Enum;
+        Task<List<ApiThing>> GetPosts<T>(ApiEndpointDefinition endpointDefinition, T sort, int pageSize, string? after = null, Region region = Region.GLOBAL) where T : Enum;
 
         Task<Stream> GetStream(string url);
 
-        Task<Dictionary<string, UserPartial>> GetUserData(IEnumerable<string> usernames);
+        Task<ApiUser> GetUserData(string username);
 
         Task MarkRead(ApiThing message, bool state);
 

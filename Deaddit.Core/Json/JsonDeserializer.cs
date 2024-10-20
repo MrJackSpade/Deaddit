@@ -223,7 +223,7 @@ namespace Deaddit.Core.Json
                     }
                     catch (DeserializationException ex)
                     {
-                        Debug.WriteLine($"Error deserializing property: {pi.Name}");
+                        Debug.WriteLine($"Error deserializing property: {pi.Name}; Provided Value: '{property}'");
                         Debug.WriteLine(ex.Message);
                     }
                 }
@@ -428,6 +428,7 @@ namespace Deaddit.Core.Json
                 ThingKind.More => (ApiMore)DeserializeObject(data, typeof(ApiMore)),
                 ThingKind.Link => (ApiPost)DeserializeObject(data, typeof(ApiPost)),
                 ThingKind.Message => (ApiComment)DeserializeObject(data, typeof(ApiComment)),
+                ThingKind.Account => (ApiUser)DeserializeObject(data, typeof(ApiUser)),
                 _ => throw new EnumNotImplementedException(kind),
             };
         }

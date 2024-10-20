@@ -43,12 +43,12 @@ pre {
     overflow-x: scroll;
 }
 
-p {
+p, h1, h2, h3 {
     margin: 0;
     padding: 0;
 }
 
-    p:not(:first-child) {
+    p:not(:first-child), h1:not(:first-child), h2:not(:first-child), h3:not(:first-child) {
         margin-top: 10px;
     }
 

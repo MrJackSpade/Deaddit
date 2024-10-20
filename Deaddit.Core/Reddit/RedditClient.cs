@@ -5,11 +5,12 @@ using Deaddit.Core.Reddit.Extensions;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
+using Deaddit.Core.Reddit.Models.Requests;
+using Deaddit.Core.Reddit.Models.ThingDefinitions;
 using Deaddit.Core.Utils.Extensions;
 using Deaddit.Core.Utils.Validation;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
 using System.Text;
 using System.Text.Json;
 
@@ -43,8 +44,6 @@ namespace Deaddit.Core.Reddit
 
         public int MinimumDelayMs { get; set; } = 500;
 
-        private RedditUrlStandardizer UrlStandardizer => new(LoggedInUser);
-
         public RedditClient(RedditCredentials redditCredentials, IJsonClient jsonClient, IDisplayExceptions exceptionDisplay, HttpClient httpClient)
         {
             _redditCredentials = redditCredentials;
@@ -55,7 +54,7 @@ namespace Deaddit.Core.Reddit
         }
 
         // Default to 500ms
-        public async Task<ApiSubReddit?> About(ThingCollectionName subreddit)
+        public async Task<ApiSubReddit?> About(SubRedditDefinition subreddit)
         {
             try
             {
@@ -65,7 +64,7 @@ namespace Deaddit.Core.Reddit
                 Stopwatch stopwatch = new();
                 stopwatch.Start();
 
-                ApiSubReddit response = (ApiSubReddit)await _jsonClient.Get<ApiThing>($"{API_ROOT}{subreddit.RootedName}/about");
+                ApiSubReddit response = (ApiSubReddit)await _jsonClient.Get<ApiThing>($"{API_ROOT}/r/{subreddit.Name}/about");
 
                 stopwatch.Stop();
                 Debug.WriteLine($"[DEBUG] Time spent in About method: {stopwatch.ElapsedMilliseconds}ms");
@@ -233,6 +232,56 @@ namespace Deaddit.Core.Reddit
             }
         }
 
+        public async Task<Dictionary<string, UserPartial>> GetPartialUserData(IEnumerable<string> usernames)
+        {
+            try
+            {
+                Ensure.NotNull(usernames);
+
+                List<string> userNames = usernames.ToList();
+
+                if (userNames.Count == 0)
+                {
+                    return [];
+                }
+
+                await this.EnsureAuthenticated();
+                await this.ThrottleAsync();
+
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
+
+                string url = $"{API_ROOT}/api/user_data_by_account_ids?ids={string.Join(",", userNames)}";
+
+                try
+                {
+                    Dictionary<string, UserPartial> response = await _jsonClient.Get<Dictionary<string, UserPartial>>(url);
+                    return response;
+                }
+                catch (HttpRequestException hre) when (hre.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    Debug.WriteLine($"User data not found ('{string.Join(",", userNames)}')");
+                    return [];
+                }
+                finally
+                {
+                    stopwatch.Stop();
+                    Debug.WriteLine($"[DEBUG] Time spent in GetUserData method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+                }
+            }
+            catch (Exception ex)
+            {
+                if (!await _exceptionDisplay.DisplayException(ex))
+                {
+                    throw;
+                }
+                else
+                {
+                    return [];
+                }
+            }
+        }
+
         public async Task<ApiPost> GetPost(string id)
         {
             try
@@ -285,7 +334,7 @@ namespace Deaddit.Core.Reddit
             }
         }
 
-        public async Task<List<ApiThing>> GetPosts<T>(ThingCollectionName subreddit, T sort, int pageSize, string? after = null, Models.Region region = Models.Region.GLOBAL) where T : Enum
+        public async Task<List<ApiThing>> GetPosts<T>(ApiEndpointDefinition endpointDefinition, T sort, int pageSize, string? after = null, Models.Region region = Models.Region.GLOBAL) where T : Enum
         {
             //TODO: This makes way more sense as an IEnumerable
             //Remove page size and fix the interop between try/catch
@@ -303,13 +352,14 @@ namespace Deaddit.Core.Reddit
 
                 stopwatch.Start();
 
-                string sortString = GetSortString(sort);
-
-                string root = UrlStandardizer.Standardize(subreddit.RootedName);
-
                 do
                 {
-                    string fullUrl = $"{API_ROOT}{root}{sortString}?after={after}&g={region}";
+                    string fullUrl = endpointDefinition.WithRoot(API_ROOT)
+                                                       .WithSort(sort)
+                                                       .WithCallingUser(LoggedInUser)
+                                                       .WithParam("after", after)
+                                                       .WithParam("g", region)
+                                                       .Url;
 
                     ApiThingCollection posts = await _jsonClient.Get<ApiThingCollection>(fullUrl);
 
@@ -355,54 +405,11 @@ namespace Deaddit.Core.Reddit
             return await _httpClient.GetStreamAsync(url);
         }
 
-        public async Task<Dictionary<string, UserPartial>> GetUserData(IEnumerable<string> usernames)
+        public async Task<ApiUser> GetUserData(string username)
         {
-            try
-            {
-                Ensure.NotNull(usernames);
+            string fullUrl = $"{API_ROOT}/user/{username}/about";
 
-                List<string> userNames = usernames.ToList();
-
-                if (userNames.Count == 0)
-                {
-                    return [];
-                }
-
-                await this.EnsureAuthenticated();
-                await this.ThrottleAsync();
-
-                Stopwatch stopwatch = new();
-                stopwatch.Start();
-
-                string url = $"{API_ROOT}/api/user_data_by_account_ids?ids={string.Join(",", userNames)}";
-
-                try
-                {
-                    Dictionary<string, UserPartial> response = await _jsonClient.Get<Dictionary<string, UserPartial>>(url);
-                    return response;
-                }
-                catch (HttpRequestException hre) when (hre.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    Debug.WriteLine($"User data not found ('{string.Join(",", userNames)}')");
-                    return [];
-                }
-                finally
-                {
-                    stopwatch.Stop();
-                    Debug.WriteLine($"[DEBUG] Time spent in GetUserData method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
-                }
-            }
-            catch (Exception ex)
-            {
-                if (!await _exceptionDisplay.DisplayException(ex))
-                {
-                    throw;
-                }
-                else
-                {
-                    return [];
-                }
-            }
+            return (ApiUser)await _jsonClient.Get<ApiThing>(fullUrl);
         }
 
         public async Task MarkRead(ApiThing message, bool state)
@@ -708,27 +715,6 @@ namespace Deaddit.Core.Reddit
                     return null;
                 }
             }
-        }
-
-        private static string GetSortString<T>(T sort) where T : Enum
-        {
-            string sortString;
-
-            if (sort.GetAttribute<EnumMemberAttribute>() is EnumMemberAttribute ema && string.IsNullOrWhiteSpace(ema.Value))
-            {
-                return string.Empty;
-            }
-            else
-            {
-                sortString = sort.ToString().ToLower();
-            }
-
-            if (sortString.Length > 0 && sortString[0] != '/')
-            {
-                sortString = $"/{sortString}";
-            }
-
-            return sortString;
         }
 
         private static void SetParent(ApiThing parent, ApiThing apiThing)

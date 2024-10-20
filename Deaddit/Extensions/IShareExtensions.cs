@@ -1,4 +1,5 @@
 ﻿using Deaddit.Core.Models;
+using Deaddit.Core.Utils.IO;
 
 namespace Deaddit.Extensions
 {
@@ -31,11 +32,22 @@ namespace Deaddit.Extensions
             List<ShareFile> files = [];
             HttpClient client = new();
 
-            foreach (FileDownload uri in items)
+            foreach (FileDownload item in items)
             {
-                string file = Path.Combine(FileSystem.CacheDirectory, uri.FileName);
-                byte[] fileBytes = await client.GetByteArrayAsync(uri.DownloadUrl);
-                await File.WriteAllBytesAsync(file, fileBytes);
+                string file = Path.Combine(FileSystem.CacheDirectory, item.FileName);
+                Stream stream = await FileStreamService.GetStream(item.DownloadUrl);
+
+                if (stream is MemoryStream ms)
+                {
+                    await File.WriteAllBytesAsync(file, ms.ToArray());
+                }
+                else
+                {
+                    using MemoryStream memoryStream = new();
+                    stream.CopyTo(memoryStream);
+                    await File.WriteAllBytesAsync(file, memoryStream.ToArray());
+                }
+
                 files.Add(new ShareFile(file));
             }
 
