@@ -97,4 +97,3 @@ del release.json
 del release_response.json
 
 echo Release created and files uploaded successfully!
-pause
