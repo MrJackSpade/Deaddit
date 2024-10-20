@@ -76,7 +76,6 @@ namespace Deaddit.Pages
             _aggregateUrlHandler = Ensure.NotNull(aggregateUrlHandler);
             _displayExceptions = Ensure.NotNull(displayExceptions);
             _isBlockEnabled = thingDefinition.FilteredByDefault;
-            this.UpdateBlockColor();
 
             _selectionGroup = new SelectionGroup();
             _sortButtons = new DivComponent()
@@ -111,6 +110,8 @@ namespace Deaddit.Pages
 
             reloadButton.TextColor = applicationStyling.TextColor.ToMauiColor();
             infoButton.TextColor = applicationStyling.TextColor.ToMauiColor();
+
+            this.UpdateBlockColor();
         }
 
         public async void OnBlockClicked(object? sender, EventArgs e)
