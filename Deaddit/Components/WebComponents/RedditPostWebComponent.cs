@@ -50,6 +50,8 @@ namespace Deaddit.Components.WebComponents
 
         private readonly IVisitTracker _visitTracker;
 
+        public bool IsListView => _selectionGroup != null;
+
         public bool SelectEnabled => true;
 
         public event EventHandler<BlockRule> BlockAdded;
@@ -193,7 +195,11 @@ namespace Deaddit.Components.WebComponents
 
         private async void HideButton_OnClick(object? sender, EventArgs e)
         {
-            await _redditClient.ToggleVisibility(_post, false);
+            if (_redditClient.CanLogIn)
+            {
+                await _redditClient.ToggleVisibility(_post, false);
+            }
+
             HideClicked?.Invoke(this, new OnHideClickedEventArgs(_post, this));
         }
 
@@ -276,6 +282,11 @@ namespace Deaddit.Components.WebComponents
 
         private async void Thumbnail_OnClick(object? sender, EventArgs e)
         {
+            if (_post.IsSelf && !this.IsListView)
+            {
+                return;
+            }
+
             if (!_apiPostHandler.CanLaunch(_post))
             {
                 await _navigation.NavigationStack[^1].DisplayAlert("Alert", $"Can not handle post", "OK");

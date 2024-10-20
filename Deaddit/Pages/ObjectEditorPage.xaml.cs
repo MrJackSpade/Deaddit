@@ -2,6 +2,7 @@ using Deaddit.Core.Attributes;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Extensions;
 using Deaddit.Core.Utils.DeepCopy;
+using Deaddit.Core.Utils.Extensions;
 using Deaddit.Core.Utils.Models;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
@@ -296,6 +297,11 @@ namespace Deaddit.Pages
 
             foreach (PropertyInfo prop in properties.OrderBy(GetPropertyOrder))
             {
+                if(prop.HasCustomAttribute<EditorIgnoreAttribute>())
+                {
+                    continue;
+                }
+
                 Type propertyType = obj?.GetType() ?? prop.PropertyType;
 
                 string labelText = prop.Name;

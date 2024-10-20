@@ -19,7 +19,7 @@
         Padding="0">
 
             <Label Grid.Column="0" Text="{Binding SubReddit}" TextColor="{Binding TextColor}" Padding="10"></Label>
-            <Button Grid.Column="1" Text="&#x2699;" Clicked="OnSettingsClick" BackgroundColor="Transparent" TextColor="{Binding TextColor}"></Button>
+            <Button x:Name="settingsButton" Grid.Column="1" Text="&#x2699;" Clicked="OnSettingsClick" BackgroundColor="Transparent" TextColor="{Binding TextColor}"></Button>
         </Grid>
         <!-- New Row of Buttons -->
         <HorizontalStackLayout

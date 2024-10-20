@@ -1,4 +1,5 @@
 ﻿using Deaddit.Core.Interfaces;
+using Deaddit.Core.Reddit.Exceptions;
 using System.Diagnostics;
 
 namespace Deaddit.Utils
@@ -9,7 +10,7 @@ namespace Deaddit.Utils
         {
             try
             {
-                await this.HandleException(exception);
+                return await this.HandleException(exception);
             }
             catch (Exception ex)
             {
@@ -26,22 +27,37 @@ namespace Deaddit.Utils
                 : Application.Current?.MainPage;
         }
 
-        private async Task HandleException(Exception ex)
+        private async Task<bool> HandleException(Exception ex)
         {
             Page currentPage = this.GetCurrentPage();
 
             if (currentPage != null)
             {
-                await currentPage.DisplayAlert(
-                    "Error",
-                    $"An error occurred: {ex.Message}\n\nStack Trace:\n{ex.StackTrace}",
-                    "OK"
-                );
+                if (ex is DisplayException de)
+                {
+                    await currentPage.DisplayAlert(
+                        "Alert",
+                        de.Message,
+                        "OK"
+                    );
+                }
+                else
+                {
+                    await currentPage.DisplayAlert(
+                        "Error",
+                        $"An error occurred: {ex.Message}\n\nStack Trace:\n{ex.StackTrace}",
+                        "OK"
+                    );
+                }
+
+                return true;
             }
             else
             {
                 Debug.WriteLine($"Error: {ex.Message}\nStack Trace: {ex.StackTrace}");
             }
+
+            return false;
         }
     }
 }

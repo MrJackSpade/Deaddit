@@ -224,7 +224,10 @@ namespace Deaddit.Pages
                     if (_blockConfiguration.RequiresUserData() &&
                        //Cheap hack. Don't pull user data if this is an account page because we don't filter
                        //based on account, on account pages. That wouldn't make sense.
-                       _thingDefinition.Kind != ThingKind.Account)
+                       _thingDefinition.Kind != ThingKind.Account &&
+                       //This only works if logged in
+                       _redditClient.IsLoggedIn
+                       )
                     {
                         userData = await _redditClient.GetPartialUserData(newPosts.Select(p => p.AuthorFullName).Distinct());
                     }

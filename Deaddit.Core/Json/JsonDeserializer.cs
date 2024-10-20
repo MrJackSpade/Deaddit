@@ -440,9 +440,15 @@ namespace Deaddit.Core.Json
                 return null;
             }
 
-            if (property is JsonValue jv && jv.ToString() == string.Empty)
+            if (property is JsonValue jv)
             {
-                return null;
+                if (jv.ToString() == string.Empty)
+                {
+                    return null;
+                } else
+                {
+                    return new ApiThingCollection();
+                }
             }
 
             JsonObject dataProperty = property["data"] as JsonObject;
