@@ -250,7 +250,7 @@ namespace Deaddit.Pages
                                                          .Where(s => !string.IsNullOrWhiteSpace(s))
                                                          .ToList()!;
 
-                        _eTagCache.Cache(newThumbs);
+                        await _eTagCache.Cache(newThumbs);
                     }
 
                     foreach (ApiThing thing in newPosts)
@@ -258,7 +258,7 @@ namespace Deaddit.Pages
                         // Update the 'after' cursor for pagination
                         _after = thing.Name;
 
-                        PostState postState = this.GetPostState(loadedTitles, loadedUrls, loadedETags, userData, thing);
+                        PostState postState = await this.GetPostState(loadedTitles, loadedUrls, loadedETags, userData, thing);
 
                         if (postState == PostState.Block && _isBlockEnabled)
                         {
@@ -310,7 +310,7 @@ namespace Deaddit.Pages
 
                             if (!string.IsNullOrEmpty(thumb))
                             {
-                                loadedETags.Add(_eTagCache.Get(thumb));
+                                loadedETags.Add(await _eTagCache.Get(thumb));
                             }
 
                             view = redditPostComponent;
@@ -388,7 +388,7 @@ namespace Deaddit.Pages
 #endif
         }
 
-        private PostState GetPostState(HashSet<string> loadedTitles, HashSet<string> loadedUrls, HashSet<string> loadedEtags, Dictionary<string, UserPartial>? userData, ApiThing thing)
+        private async Task<PostState> GetPostState(HashSet<string> loadedTitles, HashSet<string> loadedUrls, HashSet<string> loadedEtags, Dictionary<string, UserPartial>? userData, ApiThing thing)
         {
             bool blocked = !_blockConfiguration.IsAllowed(thing, userData);
 
@@ -410,7 +410,7 @@ namespace Deaddit.Pages
 
                 if (!string.IsNullOrWhiteSpace(thumb))
                 {
-                    string etag = _eTagCache.Get(thumb);
+                    string etag = await _eTagCache.Get(thumb);
 
                     if (loadedEtags.Contains(etag))
                     {
@@ -438,7 +438,7 @@ namespace Deaddit.Pages
 
                 if (!string.IsNullOrWhiteSpace(thumb))
                 {
-                    string etag = _eTagCache.Get(thumb);
+                    string etag = await _eTagCache.Get(thumb);
 
                     if (loadedEtags.Contains(etag))
                     {

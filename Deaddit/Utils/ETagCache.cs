@@ -6,12 +6,12 @@ namespace Deaddit.Utils
     {
         private readonly ConcurrentDictionary<string, string> _cache = new();
 
-        public void Cache(IEnumerable<string> urls)
+        public async Task Cache(IEnumerable<string> urls)
         {
-            Parallel.ForEach(urls, url => this.Get(url));
+            await Parallel.ForEachAsync(urls, async (url, c) => await this.Get(url));
         }
 
-        public string Get(string url)
+        public async Task<string> Get(string url)
         {
             if(!Uri.TryCreate(url, UriKind.Absolute, out Uri? _))
             {
@@ -24,11 +24,11 @@ namespace Deaddit.Utils
 
                 HttpRequestMessage request = new(HttpMethod.Head, url);
 
-                HttpResponseMessage response = httpClient.Send(request);
+                HttpResponseMessage response = await httpClient.SendAsync(request);
 
                 etag = response.Headers.ETag?.Tag ?? string.Empty;
-                _cache.TryAdd(url, etag);
 
+                _cache.TryAdd(url, etag);
             }
 
             return etag;

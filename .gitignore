@@ -23,3 +23,4 @@ Release/bin/Deaddit/release_net8.0-android/com.companyname.deaddit-Signed.apk.id
 Pat.dat
 Release/
 credentials.yaml
+*.user
