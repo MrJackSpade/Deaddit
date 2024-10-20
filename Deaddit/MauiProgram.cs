@@ -57,6 +57,7 @@ namespace Deaddit
             builder.Services.AddConfiguration<RedditCredentials>();
             builder.Services.AddConfiguration<BlockConfiguration>();
             builder.Services.AddConfiguration<ApplicationHacks>();
+            builder.Services.AddSingleton<ETagCache>();
             builder.Services.AddSingleton<IDisplayExceptions, MauiExceptionDisplay>();
             builder.Services.AddTransient((s) => Shell.Current.Navigation);
             builder.Services.AddSingleton<ISelectBoxDisplay, SelectBoxDisplay>();

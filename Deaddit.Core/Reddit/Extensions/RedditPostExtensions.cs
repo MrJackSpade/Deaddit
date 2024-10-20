@@ -4,7 +4,7 @@ namespace Deaddit.Core.Reddit.Extensions
 {
     public static class RedditPostExtensions
     {
-        public static string? TryGetPreview(this ApiPost redditPost)
+        public static string? TryGetThumbnail(this ApiPost redditPost)
         {
             if (redditPost?.Thumbnail?.Contains("://") ?? false)
             {

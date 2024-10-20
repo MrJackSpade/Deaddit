@@ -96,7 +96,7 @@ namespace Deaddit.Components.WebComponents
 
             ImgComponent thumbnail = new()
             {
-                Src = post.TryGetPreview(),
+                Src = post.TryGetThumbnail(),
                 Width = $"{applicationStyling.ThumbnailSize}px",
                 Height = $"{applicationStyling.ThumbnailSize}px",
                 FlexShrink = "0",
@@ -174,7 +174,7 @@ namespace Deaddit.Components.WebComponents
         {
             if (e.Saved is BlockRule blockRule)
             {
-                _blockConfiguration.BlockRules.Add(blockRule);
+                _blockConfiguration.BlackList.Rules.Add(blockRule);
 
                 _configurationService.Write(_blockConfiguration);
 

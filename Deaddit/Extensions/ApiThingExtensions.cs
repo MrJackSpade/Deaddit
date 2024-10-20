@@ -6,7 +6,7 @@ namespace Deaddit.Extensions
     {
         public static string GetTitleOrEmpty(this ApiThing thing)
         {
-            return (thing as ApiPost)?.Title ?? string.Empty;
+            return (thing as ApiPost)?.Title?.Trim() ?? string.Empty;
         }
 
         public static string GetUrlOrEmpty(this ApiThing thing)

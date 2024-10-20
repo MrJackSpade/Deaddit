@@ -224,7 +224,7 @@ namespace Deaddit.Pages
         {
             if (e.Saved is BlockRule blockRule)
             {
-                BlockConfiguration.BlockRules.Add(blockRule);
+                BlockConfiguration.BlackList.Rules.Add(blockRule);
 
                 _configurationService.Write(BlockConfiguration);
             }
