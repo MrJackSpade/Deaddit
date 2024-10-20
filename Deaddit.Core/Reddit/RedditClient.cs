@@ -19,13 +19,13 @@ namespace Deaddit.Core.Reddit
 {
     public class RedditClient : IRedditClient
     {
+        private readonly ICredentialProvider _credentialProvider;
+
         private readonly IDisplayExceptions _exceptionDisplay;
 
         private readonly HttpClient _httpClient;
 
         private readonly IJsonClient _jsonClient;
-
-        private readonly RedditCredentials _redditCredentials;
 
         private readonly SemaphoreSlim _semaphore = new(1, 1);
 
@@ -33,7 +33,9 @@ namespace Deaddit.Core.Reddit
 
         private DateTime _tokenExpiration = DateTime.MinValue;
 
-        public bool CanLogIn => _redditCredentials.Valid;
+        public bool CanLogIn => _credentialProvider.CanLogIn;
+
+        public bool HasCredentials => _credentialProvider.HasCredentials;
 
         public bool IsLoggedIn => !string.IsNullOrWhiteSpace(LoggedInUser);
 
@@ -45,9 +47,9 @@ namespace Deaddit.Core.Reddit
 
         private string ApiRoot => IsLoggedIn ? "https://oauth.reddit.com" : "https://www.reddit.com";
 
-        public RedditClient(RedditCredentials redditCredentials, IJsonClient jsonClient, IDisplayExceptions exceptionDisplay, HttpClient httpClient)
+        public RedditClient(ICredentialProvider credentialProvider, IJsonClient jsonClient, IDisplayExceptions exceptionDisplay, HttpClient httpClient)
         {
-            _redditCredentials = redditCredentials;
+            _credentialProvider = credentialProvider;
             _httpClient = httpClient;
             _jsonClient = jsonClient;
             _exceptionDisplay = exceptionDisplay;
@@ -59,7 +61,7 @@ namespace Deaddit.Core.Reddit
         {
             try
             {
-                await this.TryAuthenticate();
+                await this.TryAuthenticate(false);
                 await this.ThrottleAsync();
 
                 string fullUrl = $"{ApiRoot}/r/{subreddit.Name}/about";
@@ -154,7 +156,7 @@ namespace Deaddit.Core.Reddit
 
             try
             {
-                await this.TryAuthenticate();
+                await this.TryAuthenticate(false);
                 await this.ThrottleAsync();
 
                 stopwatch.Start();
@@ -358,7 +360,7 @@ namespace Deaddit.Core.Reddit
 
             try
             {
-                await this.TryAuthenticate();
+                await this.TryAuthenticate(false);
                 await this.ThrottleAsync();
 
                 Stopwatch stopwatch = new();
@@ -427,7 +429,7 @@ namespace Deaddit.Core.Reddit
 
         public async Task<ApiUser> GetUserData(string username)
         {
-            await this.TryAuthenticate();
+            await this.TryAuthenticate(false);
             await this.ThrottleAsync();
 
             string fullUrl = $"{ApiRoot}/user/{username}/about";
@@ -765,7 +767,7 @@ namespace Deaddit.Core.Reddit
 
         private async Task EnsureAuthenticated()
         {
-            if (!(await this.TryAuthenticate()))
+            if (!(await this.TryAuthenticate(true)))
             {
                 throw new InvalidCredentialsException();
             }
@@ -809,7 +811,15 @@ namespace Deaddit.Core.Reddit
             }
         }
 
-        private async Task<bool> TryAuthenticate()
+        /// <summary>
+        /// Will attempt to authenticate in the event that log-in state may
+        /// change the results of the request. (ex subscription toggle)
+        /// </summary>
+        /// <param name="prompt">If true, the credential provider will be called 
+        /// even when no cached credentials are present, which may prompt the user 
+        /// </param>
+        /// <returns></returns>
+        private async Task<bool> TryAuthenticate(bool prompt)
         {
             if (_tokenExpiration < DateTime.Now)
             {
@@ -819,24 +829,31 @@ namespace Deaddit.Core.Reddit
 
             if (_oAuthToken is null)
             {
-                if (!_redditCredentials.Valid)
+                if (!_credentialProvider.HasCredentials && !prompt)
                 {
                     return false;
                 }
 
-                Ensure.NotNullOrWhiteSpace(_redditCredentials.UserName);
-                Ensure.NotNullOrWhiteSpace(_redditCredentials.Password);
-                Ensure.NotNullOrWhiteSpace(_redditCredentials.AppKey);
-                Ensure.NotNullOrWhiteSpace(_redditCredentials.AppSecret);
+                RedditCredentials redditCredentials = await _credentialProvider.GetCredentials();
 
-                string text = Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1").GetBytes(_redditCredentials.AppKey + ":" + _redditCredentials.AppSecret));
+                if (!redditCredentials.Valid)
+                {
+                    return false;
+                }
+
+                Ensure.NotNullOrWhiteSpace(redditCredentials.UserName);
+                Ensure.NotNullOrWhiteSpace(redditCredentials.Password);
+                Ensure.NotNullOrWhiteSpace(redditCredentials.AppKey);
+                Ensure.NotNullOrWhiteSpace(redditCredentials.AppSecret);
+
+                string text = Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1").GetBytes(redditCredentials.AppKey + ":" + redditCredentials.AppSecret));
 
                 // Set the Authorization header
                 _httpClient.SetDefaultHeader("Authorization", "Basic " + text);
 
                 // Encode the form values
-                string encodedUsername = Uri.EscapeDataString(_redditCredentials.UserName);
-                string encodedPassword = Uri.EscapeDataString(_redditCredentials.Password);
+                string encodedUsername = Uri.EscapeDataString(redditCredentials.UserName);
+                string encodedPassword = Uri.EscapeDataString(redditCredentials.Password);
 
                 // Prepare the content with encoded values
                 StringContent content = new($"grant_type=password&username={encodedUsername}&password={encodedPassword}",
@@ -859,7 +876,7 @@ namespace Deaddit.Core.Reddit
 
                 _jsonClient.SetDefaultHeader("Authorization", _oAuthToken.TokenType + " " + _oAuthToken.AccessToken);
 
-                LoggedInUser = _redditCredentials.UserName;
+                LoggedInUser = redditCredentials.UserName;
             }
 
             return true;

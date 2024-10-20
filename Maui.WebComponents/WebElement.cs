@@ -19,9 +19,11 @@ namespace Maui.WebComponents
 
         private readonly Dictionary<string, WebComponent> _componentMap = [];
 
-        private readonly TaskCompletionSource _loadedTask = new();
-
         private string _lastDifferentiator;
+
+        private TaskCompletionSource _loadedTask = new();
+
+        public Task NavigationTask => _loadedTask.Task;
 
         public event EventHandler<string> ClickUrl;
 
@@ -103,6 +105,13 @@ namespace Maui.WebComponents
             {
                 await this.EvaluateJavaScriptAsync($"executeBase64Script('{Convert.ToBase64String(Encoding.UTF8.GetBytes(html))}')");
             }
+        }
+
+        public async Task Navigate(string url)
+        {
+            _loadedTask = new TaskCompletionSource();
+            Source = new UrlWebViewSource { Url = url };
+            await NavigationTask;
         }
 
         public virtual Task OnDocumentLoaded()

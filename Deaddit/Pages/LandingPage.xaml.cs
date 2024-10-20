@@ -101,7 +101,7 @@ namespace Deaddit.Pages
 
         private async Task LoadMultis()
         {
-            if (_redditClient.CanLogIn)
+            if (_redditClient.HasCredentials)
             {
                 foreach (ApiMulti multi in await _redditClient.Multis())
                 {
