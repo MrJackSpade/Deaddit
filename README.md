@@ -1,5 +1,5 @@
 # How to install
-Android APK file is available on the (Releases)[/releases] page. Download the APK file and install it on your Android device.
+Android APK file is available on the [Releases](/releases) page. Download the APK file and install it on your Android device.
 
 Windows client can be built from scratch. Simply pull the code and build.
 
