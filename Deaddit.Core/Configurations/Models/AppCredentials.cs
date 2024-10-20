@@ -16,6 +16,7 @@ namespace Deaddit.Core.Configurations.Models
         [EditorDisplay(Name = "User Name", Order = 1)]
         public string? UserName { get; set; }
 
+        [EditorIgnore]
         public bool Valid => !string.IsNullOrWhiteSpace(AppKey) && !string.IsNullOrWhiteSpace(AppSecret) && !string.IsNullOrWhiteSpace(UserName) && !string.IsNullOrWhiteSpace(Password);
     }
 }

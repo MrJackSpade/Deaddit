@@ -9,6 +9,8 @@ namespace Deaddit.Core.Reddit.Interfaces
     {
         bool CanLogIn { get; }
 
+        bool IsLoggedIn { get; }
+
         public string? LoggedInUser { get; }
 
         Task<ApiSubReddit> About(SubRedditDefinition subreddit);

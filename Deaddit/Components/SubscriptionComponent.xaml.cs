@@ -35,6 +35,11 @@ namespace Deaddit.Components
 
             BindingContext = new SubRedditComponentViewModel(subscriptionThing.DisplayName, applicationTheme);
             this.InitializeComponent();
+
+            if (!removable)
+            {
+                settingsButton.IsVisible = false;
+            }
         }
 
         public void OnRemoveClick(object? sender, EventArgs e)

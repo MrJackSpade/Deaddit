@@ -1,6 +1,7 @@
 ﻿using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Extensions;
 using Deaddit.Core.Interfaces;
+using Deaddit.Core.Reddit.Exceptions;
 using Deaddit.Core.Reddit.Extensions;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
@@ -18,10 +19,6 @@ namespace Deaddit.Core.Reddit
 {
     public class RedditClient : IRedditClient
     {
-        private const string API_ROOT = "https://oauth.reddit.com";
-
-        private const string AUTHORIZATION_ROOT = "https://www.reddit.com";
-
         private readonly IDisplayExceptions _exceptionDisplay;
 
         private readonly HttpClient _httpClient;
@@ -38,11 +35,15 @@ namespace Deaddit.Core.Reddit
 
         public bool CanLogIn => _redditCredentials.Valid;
 
+        public bool IsLoggedIn => !string.IsNullOrWhiteSpace(LoggedInUser);
+
         public DateTime LastFired { get; private set; } = DateTime.MinValue;
 
         public string? LoggedInUser { get; private set; }
 
         public int MinimumDelayMs { get; set; } = 500;
+
+        private string ApiRoot => IsLoggedIn ? "https://oauth.reddit.com" : "https://www.reddit.com";
 
         public RedditClient(RedditCredentials redditCredentials, IJsonClient jsonClient, IDisplayExceptions exceptionDisplay, HttpClient httpClient)
         {
@@ -58,13 +59,20 @@ namespace Deaddit.Core.Reddit
         {
             try
             {
-                await this.EnsureAuthenticated();
+                await this.TryAuthenticate();
                 await this.ThrottleAsync();
+
+                string fullUrl = $"{ApiRoot}/r/{subreddit.Name}/about";
+
+                if (!this.IsLoggedIn)
+                {
+                    fullUrl += ".json";
+                }
 
                 Stopwatch stopwatch = new();
                 stopwatch.Start();
 
-                ApiSubReddit response = (ApiSubReddit)await _jsonClient.Get<ApiThing>($"{API_ROOT}/r/{subreddit.Name}/about");
+                ApiSubReddit response = (ApiSubReddit)await _jsonClient.Get<ApiThing>(fullUrl);
 
                 stopwatch.Stop();
                 Debug.WriteLine($"[DEBUG] Time spent in About method: {stopwatch.ElapsedMilliseconds}ms");
@@ -94,7 +102,7 @@ namespace Deaddit.Core.Reddit
                 Stopwatch stopwatch = new();
                 stopwatch.Start();
 
-                string fullUrl = $"{API_ROOT}/api/comment";
+                string fullUrl = $"{ApiRoot}/api/comment";
 
                 // Prepare the form values as a dictionary
                 Dictionary<string, string> formValues = new()
@@ -146,12 +154,18 @@ namespace Deaddit.Core.Reddit
 
             try
             {
-                await this.EnsureAuthenticated();
+                await this.TryAuthenticate();
                 await this.ThrottleAsync();
 
                 stopwatch.Start();
 
-                string fullUrl = $"{API_ROOT}/comments/{parent.Id}";
+                string fullUrl = $"{ApiRoot}/comments/{parent.Id}";
+
+                if (!this.IsLoggedIn)
+                {
+                    //Hack for not logged in
+                    fullUrl = fullUrl.Replace("://oauth.", "://www.") + ".json";
+                }
 
                 if (!string.IsNullOrWhiteSpace(focusComment?.Id))
                 {
@@ -209,7 +223,7 @@ namespace Deaddit.Core.Reddit
                 Stopwatch stopwatch = new();
                 stopwatch.Start();
 
-                string url = $"{API_ROOT}/api/del";
+                string url = $"{ApiRoot}/api/del";
 
                 // Prepare the form values as a dictionary
                 Dictionary<string, string> formValues = new()
@@ -251,7 +265,7 @@ namespace Deaddit.Core.Reddit
                 Stopwatch stopwatch = new();
                 stopwatch.Start();
 
-                string url = $"{API_ROOT}/api/user_data_by_account_ids?ids={string.Join(",", userNames)}";
+                string url = $"{ApiRoot}/api/user_data_by_account_ids?ids={string.Join(",", userNames)}";
 
                 try
                 {
@@ -297,7 +311,7 @@ namespace Deaddit.Core.Reddit
                 string fullname = id.StartsWith("t3_") ? id : $"t3_{id}";
 
                 // Construct the full URL for the API request
-                string fullUrl = $"{API_ROOT}/api/info?id={fullname}";
+                string fullUrl = $"{ApiRoot}/api/info?id={fullname}";
 
                 // Make the API call to get the post data
                 ApiThingCollection response = await _jsonClient.Get<ApiThingCollection>(fullUrl);
@@ -344,8 +358,7 @@ namespace Deaddit.Core.Reddit
 
             try
             {
-                //Returns HTML if not authenticated
-                await this.EnsureAuthenticated();
+                await this.TryAuthenticate();
                 await this.ThrottleAsync();
 
                 Stopwatch stopwatch = new();
@@ -354,12 +367,19 @@ namespace Deaddit.Core.Reddit
 
                 do
                 {
-                    string fullUrl = endpointDefinition.WithRoot(API_ROOT)
+                    string fullUrl = endpointDefinition.WithRoot(ApiRoot)
                                                        .WithSort(sort)
                                                        .WithCallingUser(LoggedInUser)
                                                        .WithParam("after", after)
                                                        .WithParam("g", region)
                                                        .Url;
+
+                    //Modify to use the public non-api url if not logged in
+                    if (!this.IsLoggedIn)
+                    {
+                        Uri uri = new(fullUrl);
+                        fullUrl = ApiRoot + uri.AbsolutePath + ".json" + uri.Query;
+                    }
 
                     ApiThingCollection posts = await _jsonClient.Get<ApiThingCollection>(fullUrl);
 
@@ -407,14 +427,22 @@ namespace Deaddit.Core.Reddit
 
         public async Task<ApiUser> GetUserData(string username)
         {
-            string fullUrl = $"{API_ROOT}/user/{username}/about";
+            await this.TryAuthenticate();
+            await this.ThrottleAsync();
+
+            string fullUrl = $"{ApiRoot}/user/{username}/about";
+
+            if (!this.IsLoggedIn)
+            {
+                fullUrl += ".json";
+            }
 
             return (ApiUser)await _jsonClient.Get<ApiThing>(fullUrl);
         }
 
         public async Task MarkRead(ApiThing message, bool state)
         {
-            await this.SimpleToggle(message, state, $"{API_ROOT}/api/read_message", $"{API_ROOT}/api/unread_message");
+            await this.SimpleToggle(message, state, $"{ApiRoot}/api/read_message", $"{ApiRoot}/api/unread_message");
         }
 
         public async Task<List<ApiThing>> MoreComments(ApiPost post, IMore moreItem)
@@ -433,7 +461,7 @@ namespace Deaddit.Core.Reddit
                 // Ensure the required properties are not null or empty
                 Ensure.NotNullOrEmpty(moreItem.ChildNames);
 
-                string fullUrl = $"{API_ROOT}/api/morechildren";
+                string fullUrl = $"{ApiRoot}/api/morechildren";
 
                 // Prepare the form values as a dictionary
                 Dictionary<string, string> formValues = new()
@@ -522,7 +550,7 @@ namespace Deaddit.Core.Reddit
                 await this.EnsureAuthenticated();
                 await this.ThrottleAsync();
 
-                string url = $"{API_ROOT}/api/multi/mine";
+                string url = $"{ApiRoot}/api/multi/mine";
 
                 List<ApiMultiMeta> response = await _jsonClient.Get<List<ApiMultiMeta>>(url);
 
@@ -570,7 +598,7 @@ namespace Deaddit.Core.Reddit
                         break;
                 }
 
-                string url = $"{API_ROOT}/api/vote?dir={stateInt}&id={thing.Name}";
+                string url = $"{ApiRoot}/api/vote?dir={stateInt}&id={thing.Name}";
 
                 await _jsonClient.Post(url);
 
@@ -614,12 +642,12 @@ namespace Deaddit.Core.Reddit
 
         public async Task ToggleInboxReplies(ApiThing thing, bool enabled)
         {
-            await this.SimpleToggle(thing, enabled, $"{API_ROOT}/api/sendreplies", $"{API_ROOT}/api/sendreplies");
+            await this.SimpleToggle(thing, enabled, $"{ApiRoot}/api/sendreplies", $"{ApiRoot}/api/sendreplies");
         }
 
         public async Task ToggleSave(ApiThing thing, bool saved)
         {
-            await this.SimpleToggle(thing, saved, $"{API_ROOT}/api/save", $"{API_ROOT}/api/unsave");
+            await this.SimpleToggle(thing, saved, $"{ApiRoot}/api/save", $"{ApiRoot}/api/unsave");
         }
 
         public async Task ToggleSubScription(ApiSubReddit thing, bool subscribed)
@@ -632,7 +660,7 @@ namespace Deaddit.Core.Reddit
                 Stopwatch stopwatch = new();
                 stopwatch.Start();
 
-                string url = $"{API_ROOT}/api/subscribe";
+                string url = $"{ApiRoot}/api/subscribe";
 
                 // Prepare the form values as a dictionary
                 Dictionary<string, string> formValues = new()
@@ -661,7 +689,7 @@ namespace Deaddit.Core.Reddit
 
         public async Task ToggleVisibility(ApiThing thing, bool visible)
         {
-            await this.SimpleToggle(thing, visible, $"{API_ROOT}/api/unhide", $"{API_ROOT}/api/hide");
+            await this.SimpleToggle(thing, visible, $"{ApiRoot}/api/unhide", $"{ApiRoot}/api/hide");
         }
 
         public async Task<ApiComment> Update(ApiThing thing)
@@ -674,7 +702,7 @@ namespace Deaddit.Core.Reddit
                 Stopwatch stopwatch = new();
                 stopwatch.Start();
 
-                string fullUrl = $"{API_ROOT}/api/editusertext";
+                string fullUrl = $"{ApiRoot}/api/editusertext";
 
                 // Prepare the form values as a dictionary
                 Dictionary<string, string> formValues = new()
@@ -737,46 +765,9 @@ namespace Deaddit.Core.Reddit
 
         private async Task EnsureAuthenticated()
         {
-            if (_tokenExpiration < DateTime.Now)
+            if (!(await this.TryAuthenticate()))
             {
-                _oAuthToken = null;
-            }
-
-            if (_oAuthToken is null)
-            {
-                Ensure.NotNullOrWhiteSpace(_redditCredentials.UserName);
-                Ensure.NotNullOrWhiteSpace(_redditCredentials.Password);
-                Ensure.NotNullOrWhiteSpace(_redditCredentials.AppKey);
-                Ensure.NotNullOrWhiteSpace(_redditCredentials.AppSecret);
-
-                string text = Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1").GetBytes(_redditCredentials.AppKey + ":" + _redditCredentials.AppSecret));
-
-                // Set the Authorization header
-                _httpClient.SetDefaultHeader("Authorization", "Basic " + text);
-
-                // Encode the form values
-                string encodedUsername = Uri.EscapeDataString(_redditCredentials.UserName);
-                string encodedPassword = Uri.EscapeDataString(_redditCredentials.Password);
-
-                // Prepare the content with encoded values
-                StringContent content = new($"grant_type=password&username={encodedUsername}&password={encodedPassword}",
-                    Encoding.UTF8, "application/x-www-form-urlencoded");
-
-                // Make the POST request
-                HttpResponseMessage response = await _httpClient.PostAsync($"{AUTHORIZATION_ROOT}/api/v1/access_token", content);
-
-                response.EnsureSuccessStatusCode();
-
-                // Read and deserialize the response content
-                string responseContent = await response.Content.ReadAsStringAsync();
-
-                _oAuthToken = JsonSerializer.Deserialize<OAuthToken>(responseContent)!;
-
-                _tokenExpiration = DateTime.Now.AddSeconds(_oAuthToken.ExpiresIn - 5);
-
-                _jsonClient.SetDefaultHeader("Authorization", _oAuthToken.TokenType + " " + _oAuthToken.AccessToken);
-
-                LoggedInUser = _redditCredentials.UserName;
+                throw new InvalidCredentialsException();
             }
         }
 
@@ -816,6 +807,62 @@ namespace Deaddit.Core.Reddit
                     return;
                 }
             }
+        }
+
+        private async Task<bool> TryAuthenticate()
+        {
+            if (_tokenExpiration < DateTime.Now)
+            {
+                _oAuthToken = null;
+                LoggedInUser = string.Empty;
+            }
+
+            if (_oAuthToken is null)
+            {
+                if (!_redditCredentials.Valid)
+                {
+                    return false;
+                }
+
+                Ensure.NotNullOrWhiteSpace(_redditCredentials.UserName);
+                Ensure.NotNullOrWhiteSpace(_redditCredentials.Password);
+                Ensure.NotNullOrWhiteSpace(_redditCredentials.AppKey);
+                Ensure.NotNullOrWhiteSpace(_redditCredentials.AppSecret);
+
+                string text = Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1").GetBytes(_redditCredentials.AppKey + ":" + _redditCredentials.AppSecret));
+
+                // Set the Authorization header
+                _httpClient.SetDefaultHeader("Authorization", "Basic " + text);
+
+                // Encode the form values
+                string encodedUsername = Uri.EscapeDataString(_redditCredentials.UserName);
+                string encodedPassword = Uri.EscapeDataString(_redditCredentials.Password);
+
+                // Prepare the content with encoded values
+                StringContent content = new($"grant_type=password&username={encodedUsername}&password={encodedPassword}",
+                    Encoding.UTF8, "application/x-www-form-urlencoded");
+
+                // Make the POST request
+                HttpResponseMessage response = await _httpClient.PostAsync($"{ApiRoot}/api/v1/access_token", content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return false;
+                }
+
+                // Read and deserialize the response content
+                string responseContent = await response.Content.ReadAsStringAsync();
+
+                _oAuthToken = JsonSerializer.Deserialize<OAuthToken>(responseContent)!;
+
+                _tokenExpiration = DateTime.Now.AddSeconds(_oAuthToken.ExpiresIn - 5);
+
+                _jsonClient.SetDefaultHeader("Authorization", _oAuthToken.TokenType + " " + _oAuthToken.AccessToken);
+
+                LoggedInUser = _redditCredentials.UserName;
+            }
+
+            return true;
         }
     }
 }
