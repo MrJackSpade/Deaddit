@@ -18,3 +18,5 @@ Maui.WebComponents/bin/
 Release/bin/Maui.WebComponents/
 Release/bin/Deaddit/release_net8.0-android/Maui.WebComponents.dll
 Release/bin/Deaddit/release_net8.0-android/Maui.WebComponents.pdb
+Release/bin/Deaddit/release_net8.0-android/com.companyname.deaddit.apk
+Release/bin/Deaddit/release_net8.0-android/com.companyname.deaddit-Signed.apk.idsig
