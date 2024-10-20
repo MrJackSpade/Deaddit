@@ -7,10 +7,25 @@ namespace Deaddit.Core.Reddit.Interfaces
 {
     public interface IRedditClient
     {
+        /// <summary>
+        /// True if the client can log in, in the current context.
+        /// </summary>
         bool CanLogIn { get; }
 
+        /// <summary>
+        /// True if the client has valid credentials regardless of whether
+        /// or not it is currently authenticated
+        /// </summary>
+        bool HasCredentials { get; }
+
+        /// <summary>
+        /// True if the client is currently authenticated
+        /// </summary>
         bool IsLoggedIn { get; }
 
+        /// <summary>
+        /// The username of the currently authenticated user
+        /// </summary>
         public string? LoggedInUser { get; }
 
         Task<ApiSubReddit> About(SubRedditDefinition subreddit);

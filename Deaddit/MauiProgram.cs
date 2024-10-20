@@ -12,6 +12,7 @@ using Deaddit.Handlers.Url;
 using Deaddit.Interfaces;
 using Deaddit.Pages;
 using Deaddit.Utils;
+using Deaddit.Utils.Login;
 using Microsoft.Extensions.Logging;
 
 namespace Deaddit
@@ -24,12 +25,12 @@ namespace Deaddit
 
             builder.Services.AddSingleton<IRedditClient>(s =>
             {
-                RedditCredentials ApplicationTheme = s.GetRequiredService<RedditCredentials>();
+                ICredentialProvider credentialProvider = s.GetRequiredService<ICredentialProvider>();
                 IJsonClient jsonClient = s.GetRequiredService<IJsonClient>();
                 HttpClient httpClient = s.GetRequiredService<HttpClient>();
                 IDisplayExceptions displayExceptions = s.GetRequiredService<IDisplayExceptions>();
 
-                return new RedditClient(ApplicationTheme, jsonClient, displayExceptions, httpClient);
+                return new RedditClient(credentialProvider, jsonClient, displayExceptions, httpClient);
             });
 
             // Register individual handlers as transient
@@ -61,6 +62,7 @@ namespace Deaddit
             builder.Services.AddSingleton<IDisplayExceptions, MauiExceptionDisplay>();
             builder.Services.AddTransient((s) => Shell.Current.Navigation);
             builder.Services.AddSingleton<ISelectBoxDisplay, SelectBoxDisplay>();
+            builder.Services.AddSingleton<ICredentialProvider, BrowserLoginProvider>();
             builder.Services.AddSingleton<IAppNavigator, AppNavigator>();
             builder.Services.AddTransient<IJsonClient, JsonClient>();
             builder.Services.AddSingleton<IVisitTracker, PreferencesVisitTracker>();
