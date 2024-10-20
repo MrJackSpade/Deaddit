@@ -48,5 +48,3 @@ ECHO Cleaning up...
 move Release\bin\Deaddit\release_net8.0-android\com.companyname.deaddit-Signed.apk Release\Deaddit.apk
 rmdir /s /Q Release\bin
 rmdir /s /Q Release\obj
-
-PAUSE
