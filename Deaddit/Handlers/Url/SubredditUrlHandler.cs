@@ -1,5 +1,4 @@
 ﻿using Deaddit.Core.Interfaces;
-using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Utils.Validation;
 using Deaddit.Interfaces;
 using System.Text.RegularExpressions;
@@ -30,7 +29,7 @@ namespace Deaddit.Handlers.Url
 
             string id = match.Groups[1].Value;
 
-            await _appNavigator.OpenSubReddit(new ThingCollectionName(id));
+            await _appNavigator.OpenSubReddit(id);
         }
     }
 }

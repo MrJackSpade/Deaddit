@@ -89,6 +89,9 @@ namespace Deaddit.Core.Reddit.Models.Api
         [JsonPropertyName("community_reviewed")]
         public bool CommunityReviewed { get; init; }
 
+        [JsonPropertyName("default_set")]
+        public bool DefaultSet { get; set; }
+
         [JsonPropertyName("description")]
         public string? Description { get; init; }
 
@@ -128,14 +131,23 @@ namespace Deaddit.Core.Reddit.Models.Api
         [JsonPropertyName("hide_ads")]
         public bool HideAds { get; init; }
 
+        [JsonPropertyName("icon_color")]
+        public DynamicColor? IconColor { get; set; }
+
         [JsonPropertyName("icon_img")]
         public string? IconImg { get; init; }
 
         [JsonPropertyName("icon_size")]
-        public object? IconSize { get; init; }
+        public List<int> IconSize { get; set; } = [];
 
         [JsonPropertyName("is_crosspostable_subreddit")]
         public bool? IsCrosspostableSubreddit { get; init; }
+
+        [JsonPropertyName("is_default_banner")]
+        public bool IsDefaultBanner { get; set; }
+
+        [JsonPropertyName("is_default_icon")]
+        public bool IsDefaultIcon { get; set; }
 
         [JsonPropertyName("is_enrolled_in_new_modmail")]
         public bool? IsEnrolledInNewModMail { get; init; }
@@ -164,11 +176,17 @@ namespace Deaddit.Core.Reddit.Models.Api
         [JsonPropertyName("original_content_tag_enabled")]
         public bool OriginalContentTagEnabled { get; init; }
 
+        [JsonPropertyName("over_18")]
+        public bool Over18 { get; set; }
+
         [JsonPropertyName("prediction_leaderboard_entry_type")]
         public int PredictionLeaderboardEntryType { get; init; }
 
+        [JsonPropertyName("previous_names")]
+        public List<string> PreviousNames { get; set; } = [];
+
         [JsonPropertyName("primary_color")]
-        public string? PrimaryColor { get; init; }
+        public DynamicColor? PrimaryColor { get; init; }
 
         [JsonPropertyName("public_description")]
         public string? PublicDescription { get; init; }

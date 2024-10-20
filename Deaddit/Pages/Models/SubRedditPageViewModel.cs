@@ -1,4 +1,4 @@
-﻿using Deaddit.Core.Reddit.Models;
+﻿using Deaddit.Core.Reddit.Models.ThingDefinitions;
 
 namespace Deaddit.Pages.Models
 {
@@ -10,9 +10,9 @@ namespace Deaddit.Pages.Models
             set => this.SetValue(value);
         }
 
-        public SubRedditPageViewModel(ThingCollectionName subreddit)
+        public SubRedditPageViewModel(ThingDefinition subreddit)
         {
-            SubReddit = subreddit.DisplayName;
+            SubReddit = subreddit.Name;
         }
     }
 }

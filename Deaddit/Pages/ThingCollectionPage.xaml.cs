@@ -1,12 +1,14 @@
 ﻿using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Core;
 using Deaddit.Components.WebComponents;
+using Deaddit.Components.WebComponents.Partials.User;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Extensions;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
+using Deaddit.Core.Reddit.Models.ThingDefinitions;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Extensions;
 using Deaddit.Core.Utils.Validation;
@@ -47,7 +49,9 @@ namespace Deaddit.Pages
 
         private readonly DivComponent _sortButtons = new();
 
-        private readonly ThingCollectionName _thingCollectionName;
+        private WebComponent? _header = null;
+
+        private readonly ThingDefinition _thingDefinition;
 
         private string? _after = null;
 
@@ -57,20 +61,21 @@ namespace Deaddit.Pages
 
         private Enum _sort;
 
-        public ThingCollectionPage(ThingCollectionName subreddit, Enum sort, ApplicationHacks applicationHacks, IDisplayExceptions displayExceptions, IAggregatePostHandler aggregatePostHandler, IAggregateUrlHandler aggregateUrlHandler, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, BlockConfiguration blockConfiguration)
+        public ThingCollectionPage(ThingDefinition thingDefinition, Enum sort, ApplicationHacks applicationHacks, IDisplayExceptions displayExceptions, IAggregatePostHandler aggregatePostHandler, IAggregateUrlHandler aggregateUrlHandler, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, BlockConfiguration blockConfiguration)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
+            _sort = sort;
             _applicationHacks = Ensure.NotNull(applicationHacks);
             _appNavigator = Ensure.NotNull(appNavigator);
             _blockConfiguration = Ensure.NotNull(blockConfiguration);
-            _thingCollectionName = Ensure.NotNull(subreddit);
-            _sort = Ensure.NotNull(sort);
+            _thingDefinition = Ensure.NotNull(thingDefinition);
             _redditClient = Ensure.NotNull(redditClient);
             _applicationStyling = Ensure.NotNull(applicationStyling);
             _aggregatePostHandler = Ensure.NotNull(aggregatePostHandler);
             _aggregateUrlHandler = Ensure.NotNull(aggregateUrlHandler);
             _displayExceptions = Ensure.NotNull(displayExceptions);
+            _isBlockEnabled = thingDefinition.FilteredByDefault;
 
             _selectionGroup = new SelectionGroup();
             _sortButtons = new DivComponent()
@@ -81,7 +86,7 @@ namespace Deaddit.Pages
                 BackgroundColor = "red"
             };
 
-            BindingContext = new SubRedditPageViewModel(subreddit);
+            BindingContext = new SubRedditPageViewModel(thingDefinition);
 
             this.InitializeComponent();
 
@@ -89,7 +94,7 @@ namespace Deaddit.Pages
             webElement.ClickUrl += this.WebElement_ClickUrl;
             webElement.OnJavascriptError += this.WebElement_OnJavascriptError;
 
-            if (subreddit.Kind == ThingKind.Account)
+            if (thingDefinition.Kind == ThingKind.Account)
             {
                 _isBlockEnabled = false;
                 blockButton.TextColor = applicationStyling.TextColor.ToMauiColor();
@@ -101,12 +106,10 @@ namespace Deaddit.Pages
             settingsButton.TextColor = applicationStyling.TextColor.ToMauiColor();
 
             subredditLabel.TextColor = applicationStyling.TextColor.ToMauiColor();
-            subredditLabel.Text = subreddit.DisplayName;
+            subredditLabel.Text = thingDefinition.Name;
 
             reloadButton.TextColor = applicationStyling.TextColor.ToMauiColor();
             infoButton.TextColor = applicationStyling.TextColor.ToMauiColor();
-
-            this.InitSortButtons(sort);
         }
 
         public async void OnBlockClicked(object? sender, EventArgs e)
@@ -127,7 +130,10 @@ namespace Deaddit.Pages
 
         public async void OnInfoClicked(object? sender, EventArgs e)
         {
-            await _appNavigator.OpenSubRedditAbout(_thingCollectionName);
+            if (_thingDefinition is SubRedditDefinition sd)
+            {
+                await _appNavigator.OpenSubRedditAbout(sd.Name);
+            }
         }
 
         public async void OnReloadClicked(object? sender, EventArgs e)
@@ -153,10 +159,27 @@ namespace Deaddit.Pages
             }
         }
 
-        public async Task TryLoad()
+        public async Task Init()
+        {
+            if (_thingDefinition.Kind == ThingKind.Account)
+            {
+                ApiUser userData = await _redditClient.GetUserData(_thingDefinition.Name);
+                _header = new UserHeader(userData, _applicationStyling);
+                await webElement.AddChild(_header);
+            }
+
+            if (_sort != null)
+            {
+                await this.InitSortButtons(_sort);
+            }
+
+            await this.TryLoad();
+        }
+
+        private async Task TryLoad()
         {
             // Wrap the loading process in a DataService call
-            await DataService.LoadAsync(this.webElement, async () =>
+            await DataService.LoadAsync(webElement, async () =>
             {
                 // Create a set of already loaded post names to avoid duplicates
                 HashSet<string> loadedNames = _loadedPosts.Select(_loadedPosts => _loadedPosts.Post.Name).ToHashSet();
@@ -175,7 +198,7 @@ namespace Deaddit.Pages
                 {
                     // Fetch new posts from Reddit API
                     List<ApiThing> newPosts = await _redditClient.GetPosts(after: _after,
-                                                                            subreddit: _thingCollectionName,
+                                                                            endpointDefinition: _thingDefinition.EndpointDefinition,
                                                                             pageSize: _applicationHacks.PageSize,
                                                                             sort: _sort,
                                                                             region: _applicationHacks.DefaultRegion)
@@ -194,9 +217,9 @@ namespace Deaddit.Pages
                     if (_blockConfiguration.RequiresUserData() &&
                        //Cheap hack. Don't pull user data if this is an account page because we don't filter
                        //based on account, on account pages. That wouldn't make sense.
-                       _thingCollectionName.Kind != ThingKind.Account)
+                       _thingDefinition.Kind != ThingKind.Account)
                     {
-                        userData = await _redditClient.GetUserData(newPosts.Select(p => p.AuthorFullName).Distinct());
+                        userData = await _redditClient.GetPartialUserData(newPosts.Select(p => p.AuthorFullName).Distinct());
                     }
 
                     foreach (ApiThing thing in newPosts)
@@ -317,7 +340,7 @@ namespace Deaddit.Pages
             ToastDuration duration = ToastDuration.Short;
             double fontSize = 14;
 
-            var toast = Toast.Make(text, duration, fontSize);
+            IToast toast = Toast.Make(text, duration, fontSize);
 
             toast.Show(CancellationToken.None);
 
@@ -431,9 +454,14 @@ namespace Deaddit.Pages
         {
             _loadedPosts.Clear();
             _after = null;
-            _selectionGroup.Unselect();
+            await _selectionGroup.Unselect();
 
             await webElement.Clear();
+
+            if (_header is not null)
+            {
+                await webElement.AddChild(_header);
+            }
 
             await webElement.AddChild(_sortButtons);
 

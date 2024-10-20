@@ -1,10 +1,5 @@
 ﻿using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Reddit.Models.Api;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Deaddit.Core.Utils.Blocking
 {
@@ -20,17 +15,8 @@ namespace Deaddit.Core.Utils.Blocking
             };
         }
 
-        public static BlockRule FromSubReddit(ApiThing post)
+        public static BlockRule FromDomain(ApiPost post)
         {
-            return new BlockRule()
-            {
-                SubReddit = post.SubReddit,
-                BlockType = BlockType.Post,
-                RuleName = $"/r/{post.SubReddit}"
-            };
-        }
-
-        public static BlockRule FromDomain(ApiPost post) {
             return new BlockRule()
             {
                 Domain = post.Domain,
@@ -44,9 +30,9 @@ namespace Deaddit.Core.Utils.Blocking
             return new BlockRule()
             {
                 Flair = comment.AuthorFlairText,
-                SubReddit = comment.SubReddit,
+                SubReddit = comment.SubRedditName,
                 BlockType = BlockType.Post,
-                RuleName = $"{comment.SubReddit} [{comment.AuthorFlairText}]"
+                RuleName = $"{comment.SubRedditName} [{comment.AuthorFlairText}]"
             };
         }
 
@@ -55,9 +41,19 @@ namespace Deaddit.Core.Utils.Blocking
             return new BlockRule()
             {
                 Flair = post.LinkFlairText,
-                SubReddit = post.SubReddit,
+                SubReddit = post.SubRedditName,
                 BlockType = BlockType.Post,
-                RuleName = $"{post.SubReddit} [{post.LinkFlairText}]"
+                RuleName = $"{post.SubRedditName} [{post.LinkFlairText}]"
+            };
+        }
+
+        public static BlockRule FromSubReddit(ApiThing post)
+        {
+            return new BlockRule()
+            {
+                SubReddit = post.SubRedditName,
+                BlockType = BlockType.Post,
+                RuleName = $"/r/{post.SubRedditName}"
             };
         }
     }

@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Reddit\Models\Options\**" />
+    <EmbeddedResource Remove="Reddit\Models\Options\**" />
+    <None Remove="Reddit\Models\Options\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MimeKit" Version="4.7.1" />
     <PackageReference Include="SkiaSharp" Version="2.88.8" />
   </ItemGroup>
@@ -14,7 +20,6 @@
   <ItemGroup>
     <Folder Include="Attributes\" />
     <Folder Include="Constants\" />
-    <Folder Include="Reddit\Models\Options\" />
   </ItemGroup>
 
 </Project>

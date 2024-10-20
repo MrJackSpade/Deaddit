@@ -162,11 +162,11 @@ namespace Deaddit.Core.Reddit.Models.Api
         [JsonPropertyName("stickied")]
         public bool? Stickied { get; init; }
 
-        [JsonPropertyName("subreddit")]
-        public string? SubReddit { get; init; }
-
         [JsonPropertyName("subreddit_id")]
         public string? SubRedditId { get; init; }
+
+        [JsonPropertyName("subreddit")]
+        public string? SubRedditName { get; set; }
 
         [JsonPropertyName("subreddit_name_prefixed")]
         public string? SubredditNamePrefixed { get; init; }

@@ -1,14 +1,15 @@
 using Deaddit.Components.ComponentModels;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
+using Deaddit.Core.Reddit.Models.ThingDefinitions;
 using Deaddit.Core.Utils;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
 
-namespace Deaddit.MAUI.Components
+namespace Deaddit.Components
 {
-    public partial class SubRedditComponent : ContentView, ISelectionGroupItem
+    public partial class SubscriptionComponent : ContentView, ISelectionGroupItem
     {
         private readonly ApplicationStyling _applicationStyling;
 
@@ -16,7 +17,7 @@ namespace Deaddit.MAUI.Components
 
         private readonly SelectionGroup _selectionGroup;
 
-        private readonly SubRedditSubscription _subscription;
+        private readonly ThingDefinition _subscriptionThing;
 
         public bool Selected { get; private set; }
 
@@ -24,21 +25,21 @@ namespace Deaddit.MAUI.Components
 
         public event EventHandler<SubRedditSubscriptionRemoveEventArgs>? OnRemove;
 
-        public SubRedditComponent(SubRedditSubscription subscription, bool removable, IAppNavigator appNavigator, ApplicationStyling applicationTheme, SelectionGroup selectionTracker)
+        public SubscriptionComponent(ThingDefinition subscriptionThing, bool removable, IAppNavigator appNavigator, ApplicationStyling applicationTheme, SelectionGroup selectionTracker)
         {
             SelectEnabled = removable;
             _appNavigator = appNavigator;
             _applicationStyling = applicationTheme;
             _selectionGroup = selectionTracker;
-            _subscription = subscription;
+            _subscriptionThing = subscriptionThing;
 
-            BindingContext = new SubRedditComponentViewModel(subscription.DisplayString, applicationTheme);
+            BindingContext = new SubRedditComponentViewModel(subscriptionThing.DisplayName, applicationTheme);
             this.InitializeComponent();
         }
 
         public void OnRemoveClick(object? sender, EventArgs e)
         {
-            OnRemove.Invoke(this, new SubRedditSubscriptionRemoveEventArgs(_subscription, this));
+            OnRemove?.Invoke(this, new SubRedditSubscriptionRemoveEventArgs(this, _subscriptionThing));
         }
 
         public void OnRemoveClicked(object? sender, EventArgs e)
@@ -69,7 +70,7 @@ namespace Deaddit.MAUI.Components
 
         private async void OnParentTapped(object? sender, TappedEventArgs e)
         {
-            await _appNavigator.OpenSubReddit(_subscription.SubReddit, _subscription.Sort);
+            await _appNavigator.OpenThing(_subscriptionThing);
         }
     }
 }

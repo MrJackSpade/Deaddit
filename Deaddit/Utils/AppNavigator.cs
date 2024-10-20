@@ -1,16 +1,18 @@
-﻿using Deaddit.Components.WebComponents;
+﻿using Deaddit.Components;
+using Deaddit.Components.WebComponents;
 using Deaddit.Configurations;
 using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Models;
+using Deaddit.Core.Reddit;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
+using Deaddit.Core.Reddit.Models.ThingDefinitions;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Validation;
 using Deaddit.Interfaces;
-using Deaddit.MAUI.Components;
 using Deaddit.Pages;
 
 namespace Deaddit.Utils
@@ -25,8 +27,6 @@ namespace Deaddit.Utils
     {
         private readonly IServiceProvider _serviceProvider = Ensure.NotNull(serviceProvider);
 
-        private INavigation Navigation => _serviceProvider.GetService<INavigation>()!;
-
         private IAggregatePostHandler AggregatePostHandler => _serviceProvider.GetService<IAggregatePostHandler>()!;
 
         private ApplicationHacks ApplicationHacks => _serviceProvider.GetService<ApplicationHacks>()!;
@@ -38,6 +38,8 @@ namespace Deaddit.Utils
         private IConfigurationService ConfigurationService => _serviceProvider.GetService<IConfigurationService>()!;
 
         private IDisplayExceptions DisplayExceptions => _serviceProvider.GetService<IDisplayExceptions>()!;
+
+        private INavigation Navigation => _serviceProvider.GetService<INavigation>()!;
 
         private IRedditClient RedditClient => _serviceProvider.GetService<IRedditClient>()!;
 
@@ -77,9 +79,9 @@ namespace Deaddit.Utils
             return postComponent;
         }
 
-        public SubRedditComponent CreateSubRedditComponent(SubRedditSubscription subscription, SelectionGroup? group = null)
+        public SubscriptionComponent CreateSubRedditComponent(ThingDefinition subscriptionThing, SelectionGroup? group = null)
         {
-            return new SubRedditComponent(subscription, group is not null, this, ApplicationStyling, group ?? new SelectionGroup());
+            return new SubscriptionComponent(subscriptionThing, group is not null, this, ApplicationStyling, group ?? new SelectionGroup());
         }
 
         public async Task<EmbeddedBrowser> OpenBrowser(string resource)
@@ -105,9 +107,9 @@ namespace Deaddit.Utils
 
         public async Task<ThingCollectionPage> OpenMessages(InboxSort sort = InboxSort.Unread)
         {
-            ThingCollectionPage page = new(new ThingCollectionName("Messages", "/message", ThingKind.Message), sort, ApplicationHacks, DisplayExceptions, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
+            ThingCollectionPage page = new(ThingDefinitionHelper.ForMessages(), sort, ApplicationHacks, DisplayExceptions, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
             await Navigation.PushAsync(page);
-            await page.TryLoad();
+            await page.Init();
             return page;
         }
 
@@ -163,30 +165,33 @@ namespace Deaddit.Utils
 
         public async Task<ThingCollectionPage> OpenSubReddit(string subRedditName, ApiPostSort sort = ApiPostSort.Hot)
         {
-            return await this.OpenSubReddit(new ThingCollectionName(subRedditName), sort);
+            ThingCollectionPage page = new(ThingDefinitionHelper.FromName(subRedditName), sort, ApplicationHacks, DisplayExceptions, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
+            await Navigation.PushAsync(page);
+            await page.Init();
+            return page;
         }
 
-        public async Task<ThingCollectionPage> OpenSubReddit(ThingCollectionName subRedditName, ApiPostSort sort = ApiPostSort.Hot)
+        public async Task<SubRedditAboutPage> OpenSubRedditAbout(string subredditName)
         {
-            ThingCollectionPage page = new(subRedditName, sort, ApplicationHacks, DisplayExceptions, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
+            SubRedditAboutPage page = new(ThingDefinitionHelper.ForSubReddit(subredditName), AggregatePostHandler, this, RedditClient, ApplicationStyling);
             await Navigation.PushAsync(page);
             await page.TryLoad();
             return page;
         }
 
-        public async Task<SubRedditAboutPage> OpenSubRedditAbout(ThingCollectionName subredditName)
+        public async Task<ThingCollectionPage> OpenThing(ThingDefinition apiThing)
         {
-            SubRedditAboutPage page = new(subredditName, AggregatePostHandler, this, RedditClient, ApplicationStyling);
+            ThingCollectionPage page = new(apiThing, apiThing.DefaultSort, ApplicationHacks, DisplayExceptions, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
             await Navigation.PushAsync(page);
-            await page.TryLoad();
+            await page.Init();
             return page;
         }
 
         public async Task<ThingCollectionPage> OpenUser(string username, UserProfileSort userProfileSort = UserProfileSort.New)
         {
-            ThingCollectionPage page = new(new ThingCollectionName($"u/{username}"), userProfileSort, ApplicationHacks, DisplayExceptions, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
+            ThingCollectionPage page = new(ThingDefinitionHelper.ForUser(username), userProfileSort, ApplicationHacks, DisplayExceptions, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
             await Navigation.PushAsync(page);
-            await page.TryLoad();
+            await page.Init();
             return page;
         }
 

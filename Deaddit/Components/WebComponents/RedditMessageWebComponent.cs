@@ -8,9 +8,7 @@ using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Blocking;
 using Deaddit.Core.Utils.MultiSelect;
-using Deaddit.Core.Utils.Validation;
 using Deaddit.EventArguments;
-using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.Pages;
 using Deaddit.Utils;
@@ -28,13 +26,13 @@ namespace Deaddit.Components.WebComponents
 
         private readonly HtmlBodyComponent _commentBody;
 
-        private readonly MultiSelector _multiselector;
-
         private readonly DivComponent _commentContainer;
 
         private readonly ApiMessage _message;
 
         private readonly MessageHeaderComponent _messageHeader;
+
+        private readonly MultiSelector _multiselector;
 
         private readonly INavigation _navigation;
 
@@ -117,8 +115,8 @@ namespace Deaddit.Components.WebComponents
             {
                 await _multiselector.Select(
                     "Select:",
-                    new ($"Block /u/{_message.Author}", async () => await this.NewBlockRule(BlockRuleHelper.FromAuthor(_message))),
-                    new ($"View /u/{_message.Author}", async () => await AppNavigator.OpenUser(_message.Author))
+                    new($"Block /u/{_message.Author}", async () => await this.NewBlockRule(BlockRuleHelper.FromAuthor(_message))),
+                    new($"View /u/{_message.Author}", async () => await AppNavigator.OpenUser(_message.Author))
                 );
             }
             else

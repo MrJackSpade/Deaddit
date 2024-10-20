@@ -18,7 +18,7 @@
     <MauiXaml Update="Pages\ObjectEditorPage.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
-    <MauiXaml Update="Components\SubRedditComponent.xaml">
+    <MauiXaml Update="Components\SubscriptionComponent.xaml">
       <SubType>Designer</SubType>
     </MauiXaml>
     <MauiXaml Update="Pages\Embedded\EmbeddedImage.xaml">

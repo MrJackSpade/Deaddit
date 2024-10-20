@@ -12,5 +12,10 @@
         {
             return new OptionalDateTime() { Value = source };
         }
+
+        public override string ToString()
+        {
+            return Value?.ToShortDateString() ?? string.Empty;
+        }
     }
 }

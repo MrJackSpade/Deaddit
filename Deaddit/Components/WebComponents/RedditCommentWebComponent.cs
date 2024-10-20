@@ -1,6 +1,5 @@
 ﻿using Deaddit.Components.WebComponents.Partials.Comment;
 using Deaddit.Core.Configurations.Models;
-using Deaddit.Core.Exceptions;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
@@ -166,7 +165,7 @@ namespace Deaddit.Components.WebComponents
             {
                 await _multiselector.Select(
                     "Select:",
-                    new ($"{(_comment.SendReplies == true ? "Disable" : "Enable")} Replies", async () =>
+                    new($"{(_comment.SendReplies == true ? "Disable" : "Enable")} Replies", async () =>
                     {
                         bool newReplyState = _comment.SendReplies == false;
                         await _redditClient.ToggleInboxReplies(_comment, newReplyState);

@@ -7,7 +7,6 @@ namespace Deaddit.Utils
 {
     public static class FileStorage
     {
-
         public static async Task Save(IEnumerable<FileDownload> items)
         {
             List<(string fileName, Func<Task<Stream>> fileStream)> files = [];

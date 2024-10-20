@@ -1,8 +1,8 @@
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Interfaces;
-using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
+using Deaddit.Core.Reddit.Models.ThingDefinitions;
 using Deaddit.Interfaces;
 using Deaddit.Pages.Models;
 using Deaddit.Utils;
@@ -25,13 +25,13 @@ namespace Deaddit.Pages
 
         private readonly SubRedditAboutPageModel _subRedditAboutPageModel;
 
-        private readonly ThingCollectionName _subredditName;
+        private readonly SubRedditDefinition _subredditName;
 
         private readonly DivComponent _wrapperDiv;
 
         private ApiSubReddit? _apiSubReddit;
 
-        public SubRedditAboutPage(ThingCollectionName subredditName, IAggregatePostHandler aggregatePostHandler, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme)
+        public SubRedditAboutPage(SubRedditDefinition subredditName, IAggregatePostHandler aggregatePostHandler, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
