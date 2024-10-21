@@ -160,10 +160,22 @@ namespace Maui.WebComponents.Components
             set => this.Style("margin", value);
         }
 
+        public string? MarginBottom
+        {
+            get => this.Style("margin-bottom");
+            set => this.Style("margin-bottom", value);
+        }
+
         public string? MarginRight
         {
             get => this.Style("margin-right");
             set => this.Style("margin-right", value);
+        }
+
+        public string? MarginTop
+        {
+            get => this.Style("margin-top");
+            set => this.Style("margin-top", value);
         }
 
         public string? MaxHeight
@@ -272,6 +284,12 @@ namespace Maui.WebComponents.Components
         {
             get => this.Style("text-align");
             set => this.Style("text-align", value);
+        }
+
+        public string? TextDecoration
+        {
+            get => this.Style("text-decoration");
+            set => this.Style("text-decoration", value);
         }
 
         public string? Top

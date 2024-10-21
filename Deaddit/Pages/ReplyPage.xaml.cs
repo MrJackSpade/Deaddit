@@ -15,7 +15,7 @@ namespace Deaddit.Pages
     {
         private readonly IAppNavigator _appNavigator;
 
-        private readonly IDisplayExceptions _displayExceptions;
+        private readonly IDisplayMessages _displayExceptions;
 
         private readonly IRedditClient _redditClient;
 
@@ -25,7 +25,7 @@ namespace Deaddit.Pages
 
         public event EventHandler<ReplySubmittedEventArgs>? OnSubmitted;
 
-        public ReplyPage(ApiThing? replyTo, ApiThing? toEdit, IDisplayExceptions displayExceptions, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling)
+        public ReplyPage(ApiThing? replyTo, ApiThing? toEdit, IDisplayMessages displayExceptions, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling)
         {
             _redditClient = redditClient;
             _replyTo = replyTo ?? toEdit.Parent;

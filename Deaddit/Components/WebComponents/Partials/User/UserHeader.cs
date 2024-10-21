@@ -1,5 +1,6 @@
 ﻿using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Reddit.Models.Api;
+using Deaddit.Interfaces;
 using Maui.WebComponents.Components;
 
 namespace Deaddit.Components.WebComponents.Partials.User
@@ -8,9 +9,11 @@ namespace Deaddit.Components.WebComponents.Partials.User
     {
         private readonly ApiUser _userData;
 
-        public UserHeader(ApiUser userData, ApplicationStyling applicationStyling)
+        private readonly IAppNavigator _appNavigator;
+        public UserHeader(ApiUser userData, IAppNavigator appNavigator, ApplicationStyling applicationStyling, bool showMessage)
         {
             _userData = userData;
+            _appNavigator = appNavigator;
 
             DivComponent topContainer = new()
             {
@@ -33,7 +36,32 @@ namespace Deaddit.Components.WebComponents.Partials.User
             topContainer.Children.Add(thumbnail);
             topContainer.Children.Add(_textContainer);
 
+            if (showMessage)
+            {
+                ButtonComponent messageButton = new()
+                {
+                    InnerHTML = "&#128488;",
+                    BackgroundColor = "transparent",
+                    Color = applicationStyling.TextColor.ToHex(),
+                    Width = $"{applicationStyling.ThumbnailSize}px",
+                    Height = $"{applicationStyling.ThumbnailSize}px",
+                    FontSize = $"{applicationStyling.ThumbnailSize}px",
+                    Display = "flex",
+                    JustifyContent = "center",
+                    AlignItems = "center",
+                    Border = "none"
+                };
+
+                topContainer.Children.Add(messageButton);
+                messageButton.OnClick += this.MessageButton_OnClick;
+            }
+
             Children.Add(topContainer);
+        }
+
+        private void MessageButton_OnClick(object? sender, EventArgs e)
+        {
+            _appNavigator.OpenMessagePage(_userData);
         }
     }
 }

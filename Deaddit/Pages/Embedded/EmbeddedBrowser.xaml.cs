@@ -7,8 +7,11 @@ namespace Deaddit
     {
         private readonly ApplicationStyling _applicationStyling;
 
+        private string _url;
         public EmbeddedBrowser(string url, ApplicationStyling applicationTheme)
         {
+            _url = url;
+
             this.InitializeComponent();
 
             //Embedding a browser in a MAUI app will not allow http requests, so we need to change the url to https
@@ -31,6 +34,14 @@ namespace Deaddit
             Navigation.PopAsync();
         }
 
+        public void OnBypassClicked(object? sender, EventArgs e)
+        {
+            webView.Source = new UrlWebViewSource
+            {
+                Url = "https://www.removepaywall.com/search?url=" + _url
+            };
+        }
+
         public void OnSaveClicked(object? sender, EventArgs e)
         {
             // Logic to save current state or media
@@ -40,7 +51,7 @@ namespace Deaddit
         {
             Share.Default.RequestAsync(new ShareTextRequest
             {
-                Uri = webView.Source.ToString()
+                Uri = _url
             });
         }
     }

@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace Deaddit.Utils
 {
-    internal class MauiExceptionDisplay : IDisplayExceptions
+    internal class MauiExceptionDisplay : IDisplayMessages
     {
         public async Task<bool> DisplayException(Exception exception)
         {
@@ -18,6 +18,32 @@ namespace Deaddit.Utils
             }
 
             return false;
+        }
+
+        public async Task<bool> DisplayMessage(string message)
+        {
+            try
+            {
+                Page page = this.GetCurrentPage();
+
+                if (page is null)
+                {
+                    return false;
+                }
+
+                await page.DisplayAlert(
+                    "Alert",
+                    message,
+                    "OK"
+                );
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error displaying message: {ex.Message}\nStack Trace: {ex.StackTrace}");
+                return false;
+            }
+
+            return true;
         }
 
         private Page GetCurrentPage()

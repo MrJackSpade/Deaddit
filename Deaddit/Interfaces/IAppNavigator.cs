@@ -29,6 +29,8 @@ namespace Deaddit.Interfaces
 
         Task<EmbeddedImage> OpenImages(FileDownload[] urls);
 
+        Task<MessagePage> OpenMessagePage(ApiUser user, ApiMessage? replyTo = null);
+
         Task<ThingCollectionPage> OpenMessages(InboxSort sort = InboxSort.Unread);
 
         Task<ObjectEditorPage> OpenObjectEditor(object original);

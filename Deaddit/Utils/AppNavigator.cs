@@ -37,7 +37,7 @@ namespace Deaddit.Utils
 
         private IConfigurationService ConfigurationService => _serviceProvider.GetService<IConfigurationService>()!;
 
-        private IDisplayExceptions DisplayExceptions => _serviceProvider.GetService<IDisplayExceptions>()!;
+        private IDisplayMessages DisplayExceptions => _serviceProvider.GetService<IDisplayMessages>()!;
 
         private ETagCache ETagCache => _serviceProvider.GetService<ETagCache>()!;
 
@@ -67,6 +67,8 @@ namespace Deaddit.Utils
 
         public RedditMessageWebComponent CreateMessageWebComponent(ApiMessage message, SelectionGroup selectionGroup)
         {
+            Ensure.NotNull(message);
+
             return new RedditMessageWebComponent(message, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, selectionGroup, BlockConfiguration);
         }
 
@@ -161,6 +163,13 @@ namespace Deaddit.Utils
         public async Task<ReplyPage> OpenReplyPage(ApiThing comment)
         {
             ReplyPage replyPage = new(comment, null, DisplayExceptions, this, RedditClient, ApplicationStyling);
+            await Navigation.PushAsync(replyPage);
+            return replyPage;
+        }
+
+        public async Task<MessagePage> OpenMessagePage(ApiUser user, ApiMessage? replyTo = null)
+        {
+            MessagePage replyPage = new(user, replyTo, DisplayExceptions, this, RedditClient, ApplicationStyling);
             await Navigation.PushAsync(replyPage);
             return replyPage;
         }

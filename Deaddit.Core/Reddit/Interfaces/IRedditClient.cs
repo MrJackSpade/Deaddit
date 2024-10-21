@@ -33,6 +33,8 @@ namespace Deaddit.Core.Reddit.Interfaces
 
         Task MarkRead(ApiThing message, bool state);
 
+        Task Message(ApiUser thing, string subject, string body);
+
         Task<List<ApiThing>> MoreComments(ApiPost thing, IMore comment);
 
         Task<List<ApiMulti>> Multis();

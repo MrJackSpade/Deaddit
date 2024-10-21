@@ -22,34 +22,7 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
             _comment = comment;
             _voteIndicator = new SpanComponent();
 
-            SpanComponent authorSpan = new()
-            {
-                InnerText = _comment.Author,
-                Color = _applicationStyling.SubTextColor.ToHex(),
-                MarginRight = "5px"
-            };
-
-            switch (comment.Distinguished)
-            {
-                case DistinguishedKind.None:
-                    if (comment.Author == parentPost?.Author)
-                    {
-                        authorSpan.BackgroundColor = _applicationStyling.OpBackgroundColor.ToHex();
-                        authorSpan.Color = _applicationStyling.OpTextColor.ToHex();
-                    }
-
-                    break;
-
-                case DistinguishedKind.Moderator:
-                    authorSpan.BackgroundColor = _applicationStyling.ModeratorAuthorBackgroundColor.ToHex();
-                    authorSpan.Color = _applicationStyling.ModeratorAuthorTextColor.ToHex();
-                    break;
-
-                case DistinguishedKind.Admin:
-                    authorSpan.BackgroundColor = _applicationStyling.AdminAuthorBackgroundColor.ToHex();
-                    authorSpan.Color = _applicationStyling.AdminAuthorBackgroundColor.ToHex();
-                    break;
-            }
+            AuthorNameComponent authorSpan = new(comment.Author, applicationStyling, _comment.Distinguished, _comment.Author == parentPost?.Author);
 
             _commentMeta = new()
             {

@@ -1,4 +1,5 @@
-﻿using Deaddit.Components.WebComponents.Partials.Comment;
+﻿using Deaddit.Components.WebComponents.Partials;
+using Deaddit.Components.WebComponents.Partials.Comment;
 using Deaddit.Components.WebComponents.Partials.Message;
 using Deaddit.Components.WebComponents.Partials.Post;
 using Deaddit.Core.Configurations.Models;
@@ -8,12 +9,14 @@ using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Blocking;
 using Deaddit.Core.Utils.MultiSelect;
+using Deaddit.Core.Utils.Validation;
 using Deaddit.EventArguments;
 using Deaddit.Interfaces;
 using Deaddit.Pages;
 using Deaddit.Utils;
 using Maui.WebComponents.Attributes;
 using Maui.WebComponents.Components;
+using System.Xml.Linq;
 
 namespace Deaddit.Components.WebComponents
 {
@@ -24,7 +27,7 @@ namespace Deaddit.Components.WebComponents
 
         private readonly MessageBarComponent _bottomBar;
 
-        private readonly HtmlBodyComponent _commentBody;
+        private readonly HtmlBodyComponent _messageBody;
 
         private readonly DivComponent _commentContainer;
 
@@ -55,7 +58,7 @@ namespace Deaddit.Components.WebComponents
         public RedditMessageWebComponent(ApiMessage message, ISelectBoxDisplay selectBoxDisplay, INavigation navigation, AppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup selectionGroup, BlockConfiguration blockConfiguration)
         {
             _multiselector = new MultiSelector(selectBoxDisplay);
-            _message = message;
+            _message = Ensure.NotNull(message);
             SelectEnabled = selectionGroup != null;
             AppNavigator = appNavigator;
             _redditClient = redditClient;
@@ -70,19 +73,12 @@ namespace Deaddit.Components.WebComponents
                 FlexDirection = "column",
             };
 
-            _commentBody = new HtmlBodyComponent(message.BodyHtml, applicationStyling);
+            _messageBody = new HtmlBodyComponent(message.BodyHtml, applicationStyling);
 
             _replies = new RepliesContainerComponent(_applicationStyling);
 
             _messageHeader = new MessageHeaderComponent(applicationStyling, message);
-
-            SpanComponent authorSpan = new()
-            {
-                InnerText = message.Author,
-                Color = _applicationStyling.SubTextColor.ToHex(),
-                MarginRight = "5px"
-            };
-
+            
             _topBar = new TopBarComponent();
 
             _bottomBar = new MessageBarComponent(applicationStyling);
@@ -92,7 +88,7 @@ namespace Deaddit.Components.WebComponents
 
             _commentContainer.Children.Add(_topBar);
             _commentContainer.Children.Add(_messageHeader);
-            _commentContainer.Children.Add(_commentBody);
+            _commentContainer.Children.Add(_messageBody);
             _commentContainer.Children.Add(_bottomBar);
 
             Children.Add(_commentContainer);
@@ -127,8 +123,8 @@ namespace Deaddit.Components.WebComponents
 
         public async void OnReplyClicked(object? sender, EventArgs e)
         {
-            ReplyPage replyPage = await AppNavigator.OpenReplyPage(_message);
-            replyPage.OnSubmitted += this.ReplyPage_OnSubmitted;
+            ApiUser author = await _redditClient.GetUserData(_message.Author);
+            await AppNavigator.OpenMessagePage(author, _message);
         }
 
         public async Task Select()
@@ -157,21 +153,12 @@ namespace Deaddit.Components.WebComponents
         {
             _message.Body = e.NewComment.Body;
 
-            _commentBody.InnerText = e.NewComment.Body;
+            _messageBody.InnerText = e.NewComment.Body;
         }
 
         private async Task NewBlockRule(BlockRule blockRule)
         {
             ObjectEditorPage objectEditorPage = await AppNavigator.OpenObjectEditor(blockRule);
-        }
-
-        private void ReplyButton_OnClick(object? sender, EventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
-        private void ReplyPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
-        {
         }
 
         private async void SelectClick(object? sender, EventArgs e)
