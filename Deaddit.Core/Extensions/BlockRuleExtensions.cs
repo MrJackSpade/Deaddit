@@ -9,6 +9,14 @@ namespace Deaddit.Core.Extensions
     {
         public static bool IsAllowed(this BlockConfiguration blockConfiguration, ApiThing thing, Dictionary<string, UserPartial>? userData = null)
         {
+            foreach(BlockRule br in blockConfiguration.WhiteList.Rules)
+            {
+                if(br.IsMatch(thing))
+                {
+                    return true;
+                }
+            }
+
             foreach (BlockRule br in blockConfiguration.BlackList.Rules)
             {
                 if (br.IsMatch(thing))
