@@ -38,7 +38,9 @@ namespace Deaddit.Pages
 
         private readonly BlockConfiguration _blockConfiguration;
 
-        private readonly IDisplayExceptions _displayExceptions;
+        private readonly IDisplayMessages _displayExceptions;
+
+        private readonly ETagCache _eTagCache;
 
         private readonly List<LoadedThing> _loadedPosts = [];
 
@@ -46,13 +48,9 @@ namespace Deaddit.Pages
 
         private readonly IRedditClient _redditClient;
 
-        private readonly ETagCache _eTagCache;
-
         private readonly SelectionGroup _selectionGroup;
 
         private readonly DivComponent _sortButtons = new();
-
-        private WebComponent? _header = null;
 
         private readonly ThingDefinition _thingDefinition;
 
@@ -60,11 +58,13 @@ namespace Deaddit.Pages
 
         private bool? _bufferBack;
 
+        private UserHeader? _header = null;
+
         private bool _isBlockEnabled = true;
 
         private Enum _sort;
 
-        public ThingCollectionPage(ThingDefinition thingDefinition, Enum sort, ETagCache eTagCache, ApplicationHacks applicationHacks, IDisplayExceptions displayExceptions, IAggregatePostHandler aggregatePostHandler, IAggregateUrlHandler aggregateUrlHandler, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, BlockConfiguration blockConfiguration)
+        public ThingCollectionPage(ThingDefinition thingDefinition, Enum sort, ETagCache eTagCache, ApplicationHacks applicationHacks, IDisplayMessages displayExceptions, IAggregatePostHandler aggregatePostHandler, IAggregateUrlHandler aggregateUrlHandler, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, BlockConfiguration blockConfiguration)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
@@ -118,6 +118,23 @@ namespace Deaddit.Pages
             this.UpdateBlockColor();
         }
 
+        public async Task Init()
+        {
+            if (_thingDefinition.Kind == ThingKind.Account)
+            {
+                ApiUser userData = await _redditClient.GetUserData(_thingDefinition.Name);
+                _header = new(userData, _appNavigator, _applicationStyling, true);
+                await webElement.AddChild(_header);
+            }
+
+            if (_sort != null)
+            {
+                await this.InitSortButtons(_sort);
+            }
+
+            await this.TryLoad();
+        }
+
         public async void OnBlockClicked(object? sender, EventArgs e)
         {
             _isBlockEnabled = !_isBlockEnabled;
@@ -125,18 +142,6 @@ namespace Deaddit.Pages
             this.UpdateBlockColor();
 
             await this.Reload();
-        }
-
-        private void UpdateBlockColor()
-        {
-            if (_isBlockEnabled)
-            {
-                blockButton.TextColor = Color.Parse("#FF0000");
-            }
-            else
-            {
-                blockButton.TextColor = _applicationStyling.TextColor.ToMauiColor();
-            }
         }
 
         public async void OnInfoClicked(object? sender, EventArgs e)
@@ -170,19 +175,174 @@ namespace Deaddit.Pages
             }
         }
 
-        public async Task Init()
+        protected override bool OnBackButtonPressed()
         {
-            if (_thingDefinition.Kind == ThingKind.Account)
+#if ANDROID
+            if (_bufferBack != true)
             {
-                ApiUser userData = await _redditClient.GetUserData(_thingDefinition.Name);
-                _header = new UserHeader(userData, _applicationStyling);
+                return false;
+            }
+
+            _bufferBack = false;
+
+            string text = "Press back again to exit";
+            ToastDuration duration = ToastDuration.Short;
+            double fontSize = 14;
+
+            IToast toast = Toast.Make(text, duration, fontSize);
+
+            toast.Show(CancellationToken.None);
+
+            return true;
+#else
+            return false;
+#endif
+        }
+
+        private async Task<PostState> GetPostState(HashSet<string> loadedTitles, HashSet<string> loadedUrls, HashSet<string> loadedEtags, Dictionary<string, UserPartial>? userData, ApiThing thing)
+        {
+            bool blocked = !_blockConfiguration.IsAllowed(thing, userData);
+
+            // Skip if not allowed by block configuration
+            if (blocked)
+            {
+                return PostState.Block;
+            }
+
+            if (_blockConfiguration.DuplicateTitleHandling == PostState.Block &&
+                loadedTitles.Contains(thing.GetTitleOrEmpty().Trim(), StringComparer.OrdinalIgnoreCase))
+            {
+                return PostState.Block;
+            }
+
+            if (thing is ApiPost post && _blockConfiguration.DuplicateThumbHandling == PostState.Block)
+            {
+                string? thumb = post.TryGetThumbnail();
+
+                if (!string.IsNullOrWhiteSpace(thumb))
+                {
+                    string etag = await _eTagCache.Get(thumb);
+
+                    if (loadedEtags.Contains(etag))
+                    {
+                        return PostState.Block;
+                    }
+                }
+            }
+
+            if (_blockConfiguration.DuplicateLinkHandling == PostState.Block &&
+                loadedUrls.Contains(thing.GetUrlOrEmpty()))
+            {
+                return PostState.Block;
+            }
+
+            // Code looks weird but these come last as a set because block takes precedence
+            if (_blockConfiguration.DuplicateTitleHandling == PostState.Visited &&
+                loadedTitles.Contains(thing.GetTitleOrEmpty().Trim(), StringComparer.OrdinalIgnoreCase))
+            {
+                return PostState.Visited;
+            }
+
+            if (thing is ApiPost post2 && _blockConfiguration.DuplicateThumbHandling == PostState.Visited)
+            {
+                string? thumb = post2.TryGetThumbnail();
+
+                if (!string.IsNullOrWhiteSpace(thumb))
+                {
+                    string etag = await _eTagCache.Get(thumb);
+
+                    if (loadedEtags.Contains(etag))
+                    {
+                        return PostState.Visited;
+                    }
+                }
+            }
+
+            if (_blockConfiguration.DuplicateLinkHandling == PostState.Visited &&
+                loadedUrls.Contains(thing.GetUrlOrEmpty()))
+            {
+                return PostState.Visited;
+            }
+
+            return PostState.None;
+        }
+
+        private async Task InitSortButtons(Enum sort)
+        {
+            await webElement.AddChild(_sortButtons);
+
+            _sortButtons.Children.Clear();
+
+            List<Enum> values = [];
+
+            foreach (Enum e in Enum.GetValues(sort.GetType()))
+            {
+                if (Convert.ToInt32(e) != 0)
+                {
+                    values.Add(e);
+                }
+            }
+
+            foreach (Enum sortValue in values)
+            {
+                ButtonComponent button = new()
+                {
+                    InnerText = sortValue.ToString(),
+                    Color = _applicationStyling.TextColor.ToHex(),
+                    FontSize = $"{_applicationStyling.TitleFontSize}px",
+                    BackgroundColor = _applicationStyling.SecondaryColor.ToHex(),
+                    Border = "0",
+                    FlexGrow = "1",
+                    Padding = "15px",
+                };
+
+                if (sort.Equals(sortValue))
+                {
+                    button.BackgroundColor = _applicationStyling.TertiaryColor.ToHex();
+                }
+
+                button.OnClick += async (sender, e) =>
+                {
+                    _sort = sortValue;
+                    this.UpdateSort(sortValue);
+                    await this.Reload();
+                };
+
+                _sortButtons.Children.Add(button);
+            }
+        }
+
+        private async void RedditPostComponent_HideClicked(object? sender, OnHideClickedEventArgs e)
+        {
+            await webElement.RemoveChild(e.Component);
+        }
+
+        private async void RedditPostComponent_OnBlockAdded(object? sender, BlockRule e)
+        {
+            foreach (LoadedThing loadedPost in _loadedPosts.ToList())
+            {
+                if (e.IsMatch(loadedPost.Post))
+                {
+                    await webElement.RemoveChild(loadedPost.PostComponent);
+                    _loadedPosts.Remove(loadedPost);
+                }
+            }
+        }
+
+        private async Task Reload()
+        {
+            _loadedPosts.Clear();
+            _after = null;
+            await _selectionGroup.Unselect();
+
+            await webElement.Clear();
+
+            if (_header is not null)
+            {
                 await webElement.AddChild(_header);
             }
 
-            if (_sort != null)
-            {
-                await this.InitSortButtons(_sort);
-            }
+            await webElement.AddChild(_sortButtons);
 
             await this.TryLoad();
         }
@@ -364,176 +524,16 @@ namespace Deaddit.Pages
             }, _applicationStyling.HighlightColor.ToHex());
         }
 
-        protected override bool OnBackButtonPressed()
+        private void UpdateBlockColor()
         {
-#if ANDROID
-            if (_bufferBack != true)
+            if (_isBlockEnabled)
             {
-                return false;
+                blockButton.TextColor = Color.Parse("#FF0000");
             }
-
-            _bufferBack = false;
-
-            string text = "Press back again to exit";
-            ToastDuration duration = ToastDuration.Short;
-            double fontSize = 14;
-
-            IToast toast = Toast.Make(text, duration, fontSize);
-
-            toast.Show(CancellationToken.None);
-
-            return true;
-#else
-            return false;
-#endif
-        }
-
-        private async Task<PostState> GetPostState(HashSet<string> loadedTitles, HashSet<string> loadedUrls, HashSet<string> loadedEtags, Dictionary<string, UserPartial>? userData, ApiThing thing)
-        {
-            bool blocked = !_blockConfiguration.IsAllowed(thing, userData);
-
-            // Skip if not allowed by block configuration
-            if (blocked)
+            else
             {
-                return PostState.Block;
+                blockButton.TextColor = _applicationStyling.TextColor.ToMauiColor();
             }
-
-            if (_blockConfiguration.DuplicateTitleHandling == PostState.Block &&
-                loadedTitles.Contains(thing.GetTitleOrEmpty().Trim(), StringComparer.OrdinalIgnoreCase))
-            {
-                return PostState.Block;
-            }
-
-            if (thing is ApiPost post && _blockConfiguration.DuplicateThumbHandling == PostState.Block)
-            {
-                string? thumb = post.TryGetThumbnail();
-
-                if (!string.IsNullOrWhiteSpace(thumb))
-                {
-                    string etag = await _eTagCache.Get(thumb);
-
-                    if (loadedEtags.Contains(etag))
-                    {
-                        return PostState.Block;
-                    }
-                }
-            }
-
-            if (_blockConfiguration.DuplicateLinkHandling == PostState.Block &&
-                loadedUrls.Contains(thing.GetUrlOrEmpty()))
-            {
-                return PostState.Block;
-            }
-
-            // Code looks weird but these come last as a set because block takes precedence
-            if (_blockConfiguration.DuplicateTitleHandling == PostState.Visited &&
-                loadedTitles.Contains(thing.GetTitleOrEmpty().Trim(), StringComparer.OrdinalIgnoreCase))
-            {
-                return PostState.Visited;
-            }
-
-            if (thing is ApiPost post2 && _blockConfiguration.DuplicateThumbHandling == PostState.Visited)
-            {
-                string? thumb = post2.TryGetThumbnail();
-
-                if (!string.IsNullOrWhiteSpace(thumb))
-                {
-                    string etag = await _eTagCache.Get(thumb);
-
-                    if (loadedEtags.Contains(etag))
-                    {
-                        return PostState.Visited;
-                    }
-                }
-            }
-
-            if (_blockConfiguration.DuplicateLinkHandling == PostState.Visited &&
-                loadedUrls.Contains(thing.GetUrlOrEmpty()))
-            {
-                return PostState.Visited;
-            }
-
-            return PostState.None;
-        }
-
-        private async Task InitSortButtons(Enum sort)
-        {
-            await webElement.AddChild(_sortButtons);
-
-            _sortButtons.Children.Clear();
-
-            List<Enum> values = [];
-
-            foreach (Enum e in Enum.GetValues(sort.GetType()))
-            {
-                if (Convert.ToInt32(e) != 0)
-                {
-                    values.Add(e);
-                }
-            }
-
-            foreach (Enum sortValue in values)
-            {
-                ButtonComponent button = new()
-                {
-                    InnerText = sortValue.ToString(),
-                    Color = _applicationStyling.TextColor.ToHex(),
-                    FontSize = $"{_applicationStyling.TitleFontSize}px",
-                    BackgroundColor = _applicationStyling.SecondaryColor.ToHex(),
-                    Border = "0",
-                    FlexGrow = "1",
-                    Padding = "15px",
-                };
-
-                if (sort.Equals(sortValue))
-                {
-                    button.BackgroundColor = _applicationStyling.TertiaryColor.ToHex();
-                }
-
-                button.OnClick += async (sender, e) =>
-                {
-                    _sort = sortValue;
-                    this.UpdateSort(sortValue);
-                    await this.Reload();
-                };
-
-                _sortButtons.Children.Add(button);
-            }
-        }
-
-        private async void RedditPostComponent_HideClicked(object? sender, OnHideClickedEventArgs e)
-        {
-            await webElement.RemoveChild(e.Component);
-        }
-
-        private async void RedditPostComponent_OnBlockAdded(object? sender, BlockRule e)
-        {
-            foreach (LoadedThing loadedPost in _loadedPosts.ToList())
-            {
-                if (e.IsMatch(loadedPost.Post))
-                {
-                    await webElement.RemoveChild(loadedPost.PostComponent);
-                    _loadedPosts.Remove(loadedPost);
-                }
-            }
-        }
-
-        private async Task Reload()
-        {
-            _loadedPosts.Clear();
-            _after = null;
-            await _selectionGroup.Unselect();
-
-            await webElement.Clear();
-
-            if (_header is not null)
-            {
-                await webElement.AddChild(_header);
-            }
-
-            await webElement.AddChild(_sortButtons);
-
-            await this.TryLoad();
         }
 
         private void UpdateSort(Enum sort)

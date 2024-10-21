@@ -15,14 +15,18 @@ namespace Deaddit.Components.WebComponents.Partials.Post
             _applicationStyling = applicationStyling;
             _message = message;
 
-            SpanComponent authorSpan = new()
-            {
-                InnerText = _message.Author,
-                Color = _applicationStyling.SubTextColor.ToHex(),
-                MarginRight = "5px"
-            };
+            AuthorNameComponent authorSpan = new(message.Author, applicationStyling, message.Distinguished, false);
 
             Children.Add(authorSpan);
+
+            SpanComponent messageSubject = new()
+            {
+                InnerText = "- " + message.Subject,
+                Color = applicationStyling.TextColor.ToHex(),
+                FontWeight = "bold"
+            };
+
+            Children.Add(messageSubject);
         }
     }
 }

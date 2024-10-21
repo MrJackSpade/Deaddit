@@ -30,7 +30,7 @@ namespace Deaddit.Pages
 
         private readonly IConfigurationService _configurationService;
 
-        private readonly IDisplayExceptions _displayExceptions;
+        private readonly IDisplayMessages _displayExceptions;
 
         private readonly MultiSelector _multiselector;
 
@@ -62,7 +62,7 @@ namespace Deaddit.Pages
 
         public SelectionGroup SelectionGroup { get; }
 
-        public PostPage(ApiPost post, ApiComment? focus, ISelectBoxDisplay selectBoxDisplay, IDisplayExceptions displayExceptions, IAggregateUrlHandler urlHandler, IAggregatePostHandler aggregatePostHandler, IAppNavigator appNavigator, IConfigurationService configurationService, IRedditClient redditClient, ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration)
+        public PostPage(ApiPost post, ApiComment? focus, ISelectBoxDisplay selectBoxDisplay, IDisplayMessages displayExceptions, IAggregateUrlHandler urlHandler, IAggregatePostHandler aggregatePostHandler, IAppNavigator appNavigator, IConfigurationService configurationService, IRedditClient redditClient, ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Deaddit.Pages.MessagePage"
+             xmlns:components="clr-namespace:Deaddit.Components"
+             xmlns:webComponents="clr-namespace:Maui.WebComponents;assembly=Maui.WebComponents"
+             BackgroundColor="{Binding SecondaryColor}">
+    <Grid RowDefinitions="*, Auto">
+        <!-- Comment Container -->
+        <components:RedditWebElement x:Name="webElement">
+        </components:RedditWebElement>
+        <!-- Reply Box -->
+        <VerticalStackLayout
+            x:Name="replyBox"
+            Grid.Row="1">
+            <Entry
+                BackgroundColor="{Binding PrimaryColor}"
+                TextColor="{Binding TextColor}"
+                Placeholder="Subject"
+                x:Name="subjectEditor">
+            </Entry>
+            <Editor
+                BackgroundColor="{Binding PrimaryColor}"
+                TextColor="{Binding TextColor}"
+                AutoSize="TextChanges"
+                Placeholder="Body"
+                x:Name="bodyEditor">
+            </Editor>
+
+            <!-- New Row of Buttons -->
+            <HorizontalStackLayout
+                x:Name="actionButtonsStack"
+                HorizontalOptions="FillAndExpand"
+                VerticalOptions="Start"
+                BackgroundColor="{Binding SecondaryColor}"
+                Margin="0"
+                Padding="0"
+                Spacing="0">
+                <!-- Initially hidden -->
+                <Button
+                    Text="Cancel"
+                    Clicked="OnCancelClicked"
+                    BackgroundColor="Transparent"
+                    TextColor="{Binding TextColor}" />
+
+                <Button
+                    Text="Preview"
+                    Clicked="OnPreviewClicked"
+                    BackgroundColor="Transparent"
+                    TextColor="{Binding TextColor}" />
+
+                <Button
+                    Text="Submit"
+                    Clicked="OnSubmitClicked"
+                    BackgroundColor="Transparent"
+                    TextColor="{Binding TextColor}" />
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

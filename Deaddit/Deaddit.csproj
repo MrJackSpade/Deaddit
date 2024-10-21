@@ -121,6 +121,9 @@
 	  <Compile Update="Pages\Embedded\EmbeddedVideo.xaml.cs">
 	    <DependentUpon>EmbeddedVideo.xaml</DependentUpon>
 	  </Compile>
+	  <Compile Update="Pages\MessagePage.xaml.cs">
+	    <DependentUpon>MessagePage.xaml</DependentUpon>
+	  </Compile>
 	  <Compile Update="Pages\SubRedditAboutPage.xaml.cs">
 	    <DependentUpon>SubRedditAboutPage.xaml</DependentUpon>
 	  </Compile>
@@ -152,6 +155,9 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Pages\Embedded\EmbeddedBrowser.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Pages\MessagePage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Pages\ReplyPage.xaml">

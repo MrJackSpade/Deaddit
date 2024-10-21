@@ -19,7 +19,7 @@ namespace Deaddit.Core.Reddit
 {
     public class RedditClient : IRedditClient
     {
-        private readonly IDisplayExceptions _exceptionDisplay;
+        private readonly IDisplayMessages _exceptionDisplay;
 
         private readonly HttpClient _httpClient;
 
@@ -45,7 +45,7 @@ namespace Deaddit.Core.Reddit
 
         private string ApiRoot => IsLoggedIn ? "https://oauth.reddit.com" : "https://www.reddit.com";
 
-        public RedditClient(RedditCredentials redditCredentials, IJsonClient jsonClient, IDisplayExceptions exceptionDisplay, HttpClient httpClient)
+        public RedditClient(RedditCredentials redditCredentials, IJsonClient jsonClient, IDisplayMessages exceptionDisplay, HttpClient httpClient)
         {
             _redditCredentials = redditCredentials;
             _httpClient = httpClient;
@@ -64,7 +64,7 @@ namespace Deaddit.Core.Reddit
 
                 string fullUrl = $"{ApiRoot}/r/{subreddit.Name}/about";
 
-                if (!this.IsLoggedIn)
+                if (!IsLoggedIn)
                 {
                     fullUrl += ".json";
                 }
@@ -88,6 +88,54 @@ namespace Deaddit.Core.Reddit
                 else
                 {
                     return null;
+                }
+            }
+        }
+
+        public async Task Message(ApiUser thing, string subject, string body)
+        {
+            try
+            {
+                await this.EnsureAuthenticated();
+                await this.ThrottleAsync();
+
+                Stopwatch stopwatch = new();
+                stopwatch.Start();
+
+                string fullUrl = $"{ApiRoot}/api/compose";
+
+                // Prepare the form values as a dictionary
+                Dictionary<string, string> formValues = new()
+                {
+                    { "api_type", "json" },
+                    { "subject", subject },
+                    { "text", body },
+                    { "to", thing.Name }
+                };
+
+                // Use the modified Post method to send the form data
+                PostCommentResponse response = await _jsonClient.Post<PostCommentResponse>(fullUrl, formValues);
+
+                if (response.Json.Errors.Count > 0)
+                {
+                    List<Exception> exceptions = [];
+
+                    foreach (string error in response.Json.Errors)
+                    {
+                        exceptions.Add(new Exception(error));
+                    }
+
+                    throw new AggregateException(exceptions);
+                }
+
+                stopwatch.Stop();
+                Debug.WriteLine($"[DEBUG] Time spent in Comment method (excluding authentication): {stopwatch.ElapsedMilliseconds}ms");
+            }
+            catch (Exception ex)
+            {
+                if (!await _exceptionDisplay.DisplayException(ex))
+                {
+                    throw;
                 }
             }
         }
@@ -161,7 +209,7 @@ namespace Deaddit.Core.Reddit
 
                 string fullUrl = $"{ApiRoot}/comments/{parent.Id}";
 
-                if (!this.IsLoggedIn)
+                if (!IsLoggedIn)
                 {
                     //Hack for not logged in
                     fullUrl = fullUrl.Replace("://oauth.", "://www.") + ".json";
@@ -375,7 +423,7 @@ namespace Deaddit.Core.Reddit
                                                        .Url;
 
                     //Modify to use the public non-api url if not logged in
-                    if (!this.IsLoggedIn)
+                    if (!IsLoggedIn)
                     {
                         Uri uri = new(fullUrl);
                         fullUrl = ApiRoot + uri.AbsolutePath + ".json" + uri.Query;
@@ -432,7 +480,7 @@ namespace Deaddit.Core.Reddit
 
             string fullUrl = $"{ApiRoot}/user/{username}/about";
 
-            if (!this.IsLoggedIn)
+            if (!IsLoggedIn)
             {
                 fullUrl += ".json";
             }
@@ -765,7 +813,7 @@ namespace Deaddit.Core.Reddit
 
         private async Task EnsureAuthenticated()
         {
-            if (!(await this.TryAuthenticate()))
+            if (!await this.TryAuthenticate())
             {
                 throw new InvalidCredentialsException();
             }

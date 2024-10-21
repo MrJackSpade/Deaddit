@@ -427,7 +427,7 @@ namespace Deaddit.Core.Json
                 ThingKind.Subreddit => (ApiSubReddit)DeserializeObject(data, typeof(ApiSubReddit)),
                 ThingKind.More => (ApiMore)DeserializeObject(data, typeof(ApiMore)),
                 ThingKind.Link => (ApiPost)DeserializeObject(data, typeof(ApiPost)),
-                ThingKind.Message => (ApiComment)DeserializeObject(data, typeof(ApiComment)),
+                ThingKind.Message => (ApiMessage)DeserializeObject(data, typeof(ApiMessage)),
                 ThingKind.Account => (ApiUser)DeserializeObject(data, typeof(ApiUser)),
                 _ => throw new EnumNotImplementedException(kind),
             };
