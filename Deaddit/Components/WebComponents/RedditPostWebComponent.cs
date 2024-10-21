@@ -170,18 +170,6 @@ namespace Deaddit.Components.WebComponents
             };
         }
 
-        private void BlockRuleOnSave(object? sender, ObjectEditorSaveEventArgs e)
-        {
-            if (e.Saved is BlockRule blockRule)
-            {
-                _blockConfiguration.BlackList.Rules.Add(blockRule);
-
-                _configurationService.Write(_blockConfiguration);
-
-                BlockAdded?.Invoke(this, blockRule);
-            }
-        }
-
         private async void CommentsButton_OnClick(object? sender, EventArgs e)
         {
             if (_post.IsSelf && _selectionGroup is null)
@@ -203,11 +191,26 @@ namespace Deaddit.Components.WebComponents
             HideClicked?.Invoke(this, new OnHideClickedEventArgs(_post, this));
         }
 
-        private async Task NewBlockRule(BlockRule blockRule)
+        private async Task NewBlockRule(BlockRule blockRule, bool whitelist = false)
         {
             ObjectEditorPage objectEditorPage = await _appNavigator.OpenObjectEditor(blockRule);
 
-            objectEditorPage.OnSave += this.BlockRuleOnSave;
+            objectEditorPage.OnSave += (sender, e) =>
+            {
+                if (e.Saved is BlockRule blockRule)
+                {
+                    if (whitelist)
+                    {
+                        _blockConfiguration.WhiteList.Rules.Add(blockRule);
+                    }
+                    else
+                    {
+                        _blockConfiguration.BlackList.Rules.Add(blockRule);
+                    }
+
+                    _configurationService.Write(_blockConfiguration);
+                }
+            };
         }
 
         private async Task OnMoreBlockClicked()
@@ -220,13 +223,24 @@ namespace Deaddit.Components.WebComponents
             new(_post.LinkFlairText, async () => await this.NewBlockRule(BlockRuleHelper.FromFlair(_post))));
         }
 
+        private async Task OnMoreWhitelistClicked()
+        {
+            await _multiselector.Select(
+            "Whitelist:",
+            new($"/u/{_post.Author}", async () => await this.NewBlockRule(BlockRuleHelper.FromAuthor(_post), true)),
+            new($"/r/{_post.SubRedditName}", async () => await this.NewBlockRule(BlockRuleHelper.FromSubReddit(_post), true)),
+            new(_post.Domain, async () => await this.NewBlockRule(BlockRuleHelper.FromDomain(_post), true)),
+            new(_post.LinkFlairText, async () => await this.NewBlockRule(BlockRuleHelper.FromFlair(_post), true)));
+        }
+
         private async void OnMoreClicked(object? sender, EventArgs e)
         {
             await _multiselector.Select(
             "Select:",
-            new($"Block...", this.OnMoreBlockClicked),
             new($"View...", this.OnMoreViewClicked),
-            new($"Share...", this.OnMoreShareClicked));
+            new($"Share...", this.OnMoreShareClicked),
+            new($"Block...", this.OnMoreBlockClicked),
+            new($"Whitelist...", this.OnMoreWhitelistClicked));
         }
 
         private async Task OnMoreShareClicked()
