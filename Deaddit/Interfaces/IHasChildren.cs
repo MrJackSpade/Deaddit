@@ -1,6 +1,6 @@
 ﻿using Deaddit.Core.Configurations.Models;
-using Deaddit.Core.Reddit.Interfaces;
-using Deaddit.Core.Reddit.Models.Api;
+using Reddit.Api.Interfaces;
+using Reddit.Api.Models.Api;
 using Deaddit.Core.Utils;
 using Maui.WebComponents.Components;
 

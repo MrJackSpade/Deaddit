@@ -1,4 +1,4 @@
-﻿using Deaddit.Core.Reddit.Models.ThingDefinitions;
+﻿using Reddit.Api.Models.ThingDefinitions;
 
 namespace Deaddit.Pages.Models
 {

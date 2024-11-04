@@ -1,8 +1,8 @@
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
-using Deaddit.Core.Reddit.Interfaces;
-using Deaddit.Core.Reddit.Models.Api;
-using Deaddit.Core.Reddit.Models.ThingDefinitions;
+using Reddit.Api.Interfaces;
+using Reddit.Api.Models.Api;
+using Reddit.Api.Models.ThingDefinitions;
 using Deaddit.Interfaces;
 using Deaddit.Pages.Models;
 using Deaddit.Utils;

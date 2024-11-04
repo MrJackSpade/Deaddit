@@ -2,10 +2,10 @@
 using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
-using Deaddit.Core.Reddit.Extensions;
-using Deaddit.Core.Reddit.Interfaces;
-using Deaddit.Core.Reddit.Models;
-using Deaddit.Core.Reddit.Models.Api;
+using Reddit.Api.Extensions;
+using Reddit.Api.Interfaces;
+using Reddit.Api.Models;
+using Reddit.Api.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Blocking;
 using Deaddit.Core.Utils.MultiSelect;
@@ -156,20 +156,6 @@ namespace Deaddit.Components.WebComponents
             return Task.CompletedTask;
         }
 
-        private ButtonComponent ActionButton(string text)
-        {
-            return new ButtonComponent
-            {
-                InnerText = text,
-                FontSize = $"{_applicationStyling.TitleFontSize}px",
-                Color = _applicationStyling.TextColor.ToHex(),
-                BackgroundColor = _applicationStyling.HighlightColor.ToHex(),
-                Padding = "10px",
-                FlexGrow = "1",
-                Border = "0",
-            };
-        }
-
         private async void CommentsButton_OnClick(object? sender, EventArgs e)
         {
             if (_post.IsSelf && _selectionGroup is null)
@@ -206,6 +192,7 @@ namespace Deaddit.Components.WebComponents
                     else
                     {
                         _blockConfiguration.BlackList.Rules.Add(blockRule);
+                        BlockAdded?.Invoke(this, blockRule);
                     }
 
                     _configurationService.Write(_blockConfiguration);
@@ -248,7 +235,7 @@ namespace Deaddit.Components.WebComponents
             await _multiselector.Select(
                 "Share:",
                 new(null, null),
-                new($"Comments", async () => await this.NewBlockRule(BlockRuleHelper.FromAuthor(_post))));
+                new($"Comments", async () => { }));
         }
 
         private async Task OnMoreViewClicked()

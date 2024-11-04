@@ -1,4 +1,4 @@
-﻿using Deaddit.Core.Exceptions;
+﻿using Reddit.Api.Exceptions;
 using System.Text.RegularExpressions;
 
 namespace Deaddit.Core.Utils.Blocking
