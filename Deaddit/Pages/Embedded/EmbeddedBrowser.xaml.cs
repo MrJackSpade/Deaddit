@@ -7,7 +7,7 @@ namespace Deaddit
     {
         private readonly ApplicationStyling _applicationStyling;
 
-        private string _url;
+        private readonly string _url;
         public EmbeddedBrowser(string url, ApplicationStyling applicationTheme)
         {
             _url = url;

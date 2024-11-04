@@ -1,5 +1,5 @@
 ﻿using Deaddit.Core.Configurations.Models;
-using Deaddit.Core.Reddit.Models;
+using Reddit.Api.Models;
 using Maui.WebComponents.Components;
 
 namespace Deaddit.Components.WebComponents.Partials.Comment

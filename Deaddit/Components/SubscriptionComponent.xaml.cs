@@ -1,7 +1,7 @@
 using Deaddit.Components.ComponentModels;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
-using Deaddit.Core.Reddit.Models.ThingDefinitions;
+using Reddit.Api.Models.ThingDefinitions;
 using Deaddit.Core.Utils;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;

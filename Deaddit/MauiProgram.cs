@@ -4,8 +4,8 @@ using Deaddit.Configurations.Services.Extensions;
 using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
-using Deaddit.Core.Reddit;
-using Deaddit.Core.Reddit.Interfaces;
+using Reddit.Api;
+using Reddit.Api.Interfaces;
 using Deaddit.Core.Utils.IO;
 using Deaddit.Handlers.Post;
 using Deaddit.Handlers.Url;
@@ -13,6 +13,9 @@ using Deaddit.Interfaces;
 using Deaddit.Pages;
 using Deaddit.Utils;
 using Microsoft.Extensions.Logging;
+using Reddit.Api.Json.Interfaces;
+using Deaddit.Core.Reddit;
+using Reddit.Api.Json;
 
 namespace Deaddit
 {
@@ -24,12 +27,12 @@ namespace Deaddit
 
             builder.Services.AddSingleton<IRedditClient>(s =>
             {
-                RedditCredentials ApplicationTheme = s.GetRequiredService<RedditCredentials>();
+                RedditCredentials redditCredentials = s.GetRequiredService<RedditCredentials>();
                 IJsonClient jsonClient = s.GetRequiredService<IJsonClient>();
                 HttpClient httpClient = s.GetRequiredService<HttpClient>();
                 IDisplayMessages displayExceptions = s.GetRequiredService<IDisplayMessages>();
 
-                return new RedditClient(ApplicationTheme, jsonClient, displayExceptions, httpClient);
+                return new DeadditClient(displayExceptions,redditCredentials, jsonClient,  httpClient);
             });
 
             // Register individual handlers as transient

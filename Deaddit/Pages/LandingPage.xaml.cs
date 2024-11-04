@@ -1,17 +1,18 @@
 using Deaddit.Components;
 using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
-using Deaddit.Core.Reddit;
-using Deaddit.Core.Reddit.Interfaces;
-using Deaddit.Core.Reddit.Models;
-using Deaddit.Core.Reddit.Models.Api;
-using Deaddit.Core.Reddit.Models.ThingDefinitions;
+using Reddit.Api;
+using Reddit.Api.Interfaces;
+using Reddit.Api.Models;
+using Reddit.Api.Models.Api;
+using Reddit.Api.Models.ThingDefinitions;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Extensions;
 using Deaddit.EventArguments;
 using Deaddit.Interfaces;
 using Deaddit.Pages.Models;
 using Deaddit.Utils;
+using Reddit.Api.Extensions;
 
 namespace Deaddit.Pages
 {

@@ -2,10 +2,10 @@
 using Deaddit.Components.WebComponents;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Models;
-using Deaddit.Core.Reddit.Interfaces;
-using Deaddit.Core.Reddit.Models;
-using Deaddit.Core.Reddit.Models.Api;
-using Deaddit.Core.Reddit.Models.ThingDefinitions;
+using Reddit.Api.Interfaces;
+using Reddit.Api.Models;
+using Reddit.Api.Models.Api;
+using Reddit.Api.Models.ThingDefinitions;
 using Deaddit.Core.Utils;
 using Deaddit.Pages;
 

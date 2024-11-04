@@ -1,5 +1,5 @@
 ﻿using Deaddit.Core.Interfaces;
-using Deaddit.Core.Reddit.Models.Api;
+using Reddit.Api.Models.Api;
 
 namespace Deaddit.Handlers.Post
 {

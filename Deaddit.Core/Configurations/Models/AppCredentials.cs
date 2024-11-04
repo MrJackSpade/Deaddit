@@ -1,8 +1,9 @@
 ﻿using Deaddit.Core.Attributes;
+using Reddit.Api.Interfaces;
 
 namespace Deaddit.Core.Configurations.Models
 {
-    public class RedditCredentials
+    public class RedditCredentials : IRedditCredentials
     {
         [EditorDisplay(Name = "App Key", Order = 3)]
         public string? AppKey { get; set; }

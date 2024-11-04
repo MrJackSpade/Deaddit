@@ -1,4 +1,4 @@
-﻿using Deaddit.Core.Reddit.Models;
+﻿using Reddit.Api.Models;
 
 namespace Deaddit.Core.Extensions
 {

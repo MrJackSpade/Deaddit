@@ -1,9 +1,9 @@
 ﻿using Deaddit.Components.WebComponents.Partials.Comment;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
-using Deaddit.Core.Reddit.Interfaces;
-using Deaddit.Core.Reddit.Models;
-using Deaddit.Core.Reddit.Models.Api;
+using Reddit.Api.Interfaces;
+using Reddit.Api.Models;
+using Reddit.Api.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Blocking;
 using Deaddit.Core.Utils.Extensions;
@@ -17,6 +17,7 @@ using Deaddit.Utils;
 using Maui.WebComponents.Attributes;
 using Maui.WebComponents.Components;
 using System.Web;
+using Reddit.Api.Extensions;
 
 namespace Deaddit.Components.WebComponents
 {

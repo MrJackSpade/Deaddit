@@ -2,12 +2,14 @@ using Deaddit.Components.WebComponents;
 using Deaddit.Components.WebComponents.Partials.Post;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
-using Deaddit.Core.Reddit.Interfaces;
-using Deaddit.Core.Reddit.Models.Api;
+using Reddit.Api.Interfaces;
+using Reddit.Api.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.EventArguments;
 using Deaddit.Interfaces;
 using Deaddit.Pages.Models;
+using Reddit.Api.Interfaces;
+using Reddit.Api.Models.Api;
 
 namespace Deaddit.Pages
 {

@@ -22,6 +22,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Deaddit.Core", "Deaddit.Cor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Maui.WebComponents", "Maui.WebComponents\Maui.WebComponents.csproj", "{DD72B085-5BEA-4CB7-93A8-907CFC9EDB4F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reddit.Api", "..\Reddit.Api\Reddit.Api\Reddit.Api.csproj", "{2C4DF3FF-C75F-4B81-A32E-F9B83D41EB01}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +48,10 @@ Global
 		{DD72B085-5BEA-4CB7-93A8-907CFC9EDB4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD72B085-5BEA-4CB7-93A8-907CFC9EDB4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD72B085-5BEA-4CB7-93A8-907CFC9EDB4F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C4DF3FF-C75F-4B81-A32E-F9B83D41EB01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C4DF3FF-C75F-4B81-A32E-F9B83D41EB01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C4DF3FF-C75F-4B81-A32E-F9B83D41EB01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C4DF3FF-C75F-4B81-A32E-F9B83D41EB01}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

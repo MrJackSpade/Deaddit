@@ -1,5 +1,5 @@
 ﻿using Deaddit.Components;
-using Deaddit.Core.Reddit.Models.ThingDefinitions;
+using Reddit.Api.Models.ThingDefinitions;
 
 namespace Deaddit.EventArguments
 {
