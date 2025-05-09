@@ -72,21 +72,44 @@ namespace Deaddit.Handlers.Url
                     properlyCapitalized = chunk.Substring(indexOfName, name.Length);
                     break;
                 }
+
+                if (chunk.Contains("media.redgifs.com", StringComparison.OrdinalIgnoreCase) && chunk.Contains(name, StringComparison.OrdinalIgnoreCase))
+                {
+                    int indexOfName = chunk.IndexOf(name, StringComparison.OrdinalIgnoreCase);
+                    properlyCapitalized = chunk.Substring(indexOfName, name.Length);
+                    break;
+                }
             }
 
             List<string> newUrls = [
                 $"https://files.redgifs.com/{properlyCapitalized}.mp4",
                 $"https://files.redgifs.com/{properlyCapitalized}-mobile.mp4",
+                $"https://files.redgifs.com/{properlyCapitalized}-silent.mp4",
+                $"https://media.redgifs.com/{properlyCapitalized}.mp4",
+                $"https://media.redgifs.com/{properlyCapitalized}-mobile.mp4",
+                $"https://media.redgifs.com/{properlyCapitalized}-silent.mp4",
             ];
 
             string? newUrl = string.Empty;
 
-            foreach(string thisUrl in newUrls)
+            foreach (string thisUrl in newUrls)
             {
-                if (await this.Exists(thisUrl))
+                if (source.Contains(thisUrl))
                 {
                     newUrl = thisUrl;
                     break;
+                }
+            }
+
+            if(string.IsNullOrEmpty(newUrl))
+            {
+                foreach (string thisUrl in newUrls)
+                {
+                    if (await this.Exists(thisUrl))
+                    {
+                        newUrl = thisUrl;
+                        break;
+                    }
                 }
             }
 
