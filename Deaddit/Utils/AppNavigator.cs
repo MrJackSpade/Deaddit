@@ -37,7 +37,7 @@ namespace Deaddit.Utils
 
         private IConfigurationService ConfigurationService => _serviceProvider.GetService<IConfigurationService>()!;
 
-        private IDisplayMessages DisplayExceptions => _serviceProvider.GetService<IDisplayMessages>()!;
+        private IDisplayMessages DisplayMessages => _serviceProvider.GetService<IDisplayMessages>()!;
 
         private ETagCache ETagCache => _serviceProvider.GetService<ETagCache>()!;
 
@@ -57,11 +57,11 @@ namespace Deaddit.Utils
         {
             if (selectionGroup is null)
             {
-                return new RedditCommentWebComponent(comment, post, false, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, selectionGroup ?? new SelectionGroup(), BlockConfiguration);
+                return new RedditCommentWebComponent(comment, post, false, DisplayMessages, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, selectionGroup ?? new SelectionGroup(), BlockConfiguration);
             }
             else
             {
-                return new RedditCommentWebComponent(comment, post, true, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, selectionGroup ?? new SelectionGroup(), BlockConfiguration);
+                return new RedditCommentWebComponent(comment, post, true, DisplayMessages, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, selectionGroup ?? new SelectionGroup(), BlockConfiguration);
             }
         }
 
@@ -97,7 +97,7 @@ namespace Deaddit.Utils
 
         public async Task<ReplyPage> OpenEditPage(ApiThing toEdit)
         {
-            ReplyPage replyPage = new(null, toEdit, DisplayExceptions, this, RedditClient, ApplicationStyling);
+            ReplyPage replyPage = new(null, toEdit, DisplayMessages, this, RedditClient, ApplicationStyling);
             await Navigation.PushAsync(replyPage);
             return replyPage;
         }
@@ -111,7 +111,7 @@ namespace Deaddit.Utils
 
         public async Task<ThingCollectionPage> OpenMessages(InboxSort sort = InboxSort.Unread)
         {
-            ThingCollectionPage page = new(ThingDefinitionHelper.ForMessages(), sort, ETagCache, ApplicationHacks, DisplayExceptions, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
+            ThingCollectionPage page = new(ThingDefinitionHelper.ForMessages(), sort, ETagCache, ApplicationHacks, DisplayMessages, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
             await Navigation.PushAsync(page);
             await page.Init();
             return page;
@@ -154,7 +154,7 @@ namespace Deaddit.Utils
 
         public async Task<PostPage> OpenPost(ApiPost post, ApiComment focus)
         {
-            PostPage postPage = new(post, focus, SelectBoxDisplay, DisplayExceptions, UrlHandler, AggregatePostHandler, this, ConfigurationService, RedditClient, ApplicationStyling, ApplicationHacks, BlockConfiguration);
+            PostPage postPage = new(post, focus, SelectBoxDisplay, DisplayMessages, UrlHandler, AggregatePostHandler, this, ConfigurationService, RedditClient, ApplicationStyling, ApplicationHacks, BlockConfiguration);
             await Navigation.PushAsync(postPage);
             await postPage.TryLoad();
             return postPage;
@@ -162,21 +162,21 @@ namespace Deaddit.Utils
 
         public async Task<ReplyPage> OpenReplyPage(ApiThing comment)
         {
-            ReplyPage replyPage = new(comment, null, DisplayExceptions, this, RedditClient, ApplicationStyling);
+            ReplyPage replyPage = new(comment, null, DisplayMessages, this, RedditClient, ApplicationStyling);
             await Navigation.PushAsync(replyPage);
             return replyPage;
         }
 
         public async Task<MessagePage> OpenMessagePage(ApiUser user, ApiMessage? replyTo = null)
         {
-            MessagePage replyPage = new(user, replyTo, DisplayExceptions, this, RedditClient, ApplicationStyling);
+            MessagePage replyPage = new(user, replyTo, DisplayMessages, this, RedditClient, ApplicationStyling);
             await Navigation.PushAsync(replyPage);
             return replyPage;
         }
 
         public async Task<ThingCollectionPage> OpenSubReddit(string subRedditName, ApiPostSort sort = ApiPostSort.Hot)
         {
-            ThingCollectionPage page = new(ThingDefinitionHelper.FromName(subRedditName), sort, ETagCache, ApplicationHacks, DisplayExceptions, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
+            ThingCollectionPage page = new(ThingDefinitionHelper.FromName(subRedditName), sort, ETagCache, ApplicationHacks, DisplayMessages, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
             await Navigation.PushAsync(page);
             await page.Init();
             return page;
@@ -192,7 +192,7 @@ namespace Deaddit.Utils
 
         public async Task<ThingCollectionPage> OpenThing(ThingDefinition apiThing)
         {
-            ThingCollectionPage page = new(apiThing, apiThing.DefaultSort, ETagCache, ApplicationHacks, DisplayExceptions, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
+            ThingCollectionPage page = new(apiThing, apiThing.DefaultSort, ETagCache, ApplicationHacks, DisplayMessages, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
             await Navigation.PushAsync(page);
             await page.Init();
             return page;
@@ -200,7 +200,7 @@ namespace Deaddit.Utils
 
         public async Task<ThingCollectionPage> OpenUser(string username, UserProfileSort userProfileSort = UserProfileSort.New)
         {
-            ThingCollectionPage page = new(ThingDefinitionHelper.ForUser(username), userProfileSort, ETagCache, ApplicationHacks, DisplayExceptions, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
+            ThingCollectionPage page = new(ThingDefinitionHelper.ForUser(username), userProfileSort, ETagCache, ApplicationHacks, DisplayMessages, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
             await Navigation.PushAsync(page);
             await page.Init();
             return page;

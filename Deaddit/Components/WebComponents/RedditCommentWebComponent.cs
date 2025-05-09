@@ -52,7 +52,9 @@ namespace Deaddit.Components.WebComponents
 
         WebComponent IHasChildren.ChildContainer => _replies;
 
-        public ApiPost Post { get; }
+        private readonly IDisplayMessages _displayMessages;
+
+        public ApiPost? Post { get; }
 
         public bool SelectEnabled { get; private set; }
 
@@ -60,7 +62,7 @@ namespace Deaddit.Components.WebComponents
 
         public event EventHandler<OnDeleteClickedEventArgs> OnDelete;
 
-        public RedditCommentWebComponent(ApiComment comment, ApiPost? post, bool selectEnabled, ISelectBoxDisplay selectBoxDisplay, INavigation navigation, AppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup selectionGroup, BlockConfiguration blockConfiguration)
+        public RedditCommentWebComponent(ApiComment comment, ApiPost? post, bool selectEnabled, IDisplayMessages displayMessages, ISelectBoxDisplay selectBoxDisplay, INavigation navigation, AppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup selectionGroup, BlockConfiguration blockConfiguration)
         {
             _multiselector = new MultiSelector(selectBoxDisplay);
             _comment = comment;
@@ -72,6 +74,7 @@ namespace Deaddit.Components.WebComponents
             SelectionGroup = selectionGroup;
             BlockConfiguration = blockConfiguration;
             _navigation = navigation;
+            _displayMessages = displayMessages;
 
             _commentContainer = new DivComponent()
             {
@@ -146,43 +149,50 @@ namespace Deaddit.Components.WebComponents
 
         public async void OnMoreClicked(object? sender, EventArgs e)
         {
-            if (!string.Equals(_redditClient.LoggedInUser, _comment.Author, StringComparison.OrdinalIgnoreCase))
+            try
             {
-                await _multiselector.Select(
-                    "Select:",
-                    new($"Block /u/{_comment.Author}", async () => await this.NewBlockRule(BlockRuleHelper.FromAuthor(_comment))),
-                    new($"View /u/{_comment.Author}", async () => await AppNavigator.OpenUser(_comment.Author)),
-                    new(_comment.Saved == true ? "Unsave" : "Save", async () =>
-                    {
-                        bool saveState = _comment.Saved == false;
-                        await _redditClient.ToggleSave(_comment, saveState);
-                        _comment.Saved = saveState;
-                    }),
-                    new("Copy Raw", async () => await Clipboard.SetTextAsync(_comment.Body)),
-                    new("Copy Permalink", async () => await Clipboard.SetTextAsync(_comment.Permalink))
-                );
+                if (!string.Equals(_redditClient.LoggedInUser, _comment.Author, StringComparison.OrdinalIgnoreCase))
+                {
+                    await _multiselector.Select(
+                        "Select:",
+                        new($"Block /u/{_comment.Author}", async () => await this.NewBlockRule(BlockRuleHelper.FromAuthor(_comment))),
+                        new($"View /u/{_comment.Author}", async () => await AppNavigator.OpenUser(_comment.Author)),
+                        new(_comment.Saved == true ? "Unsave" : "Save", async () =>
+                        {
+                            bool saveState = _comment.Saved == false;
+                            await _redditClient.ToggleSave(_comment, saveState);
+                            _comment.Saved = saveState;
+                        }),
+                        new("Copy Raw", async () => await Clipboard.SetTextAsync(_comment.Body)),
+                        new("Copy Permalink", async () => await Clipboard.SetTextAsync(_comment.Permalink))
+                    );
+                }
+                else
+                {
+                    await _multiselector.Select(
+                        "Select:",
+                        new($"{(_comment.SendReplies == true ? "Disable" : "Enable")} Replies", async () =>
+                        {
+                            bool newReplyState = _comment.SendReplies == false;
+                            await _redditClient.ToggleInboxReplies(_comment, newReplyState);
+                            _comment.SendReplies = newReplyState;
+                        }),
+                        new("Delete", async () =>
+                        {
+                            await _redditClient.Delete(_comment);
+                            OnDelete?.Invoke(this, new OnDeleteClickedEventArgs(_comment, this));
+                        }),
+                        new("Edit", async () =>
+                        {
+                            ReplyPage replyPage = await AppNavigator.OpenEditPage(_comment);
+                            replyPage.OnSubmitted += this.EditPage_OnSubmitted;
+                        })
+                    );
+                }
             }
-            else
+            catch (Exception ex)
             {
-                await _multiselector.Select(
-                    "Select:",
-                    new($"{(_comment.SendReplies == true ? "Disable" : "Enable")} Replies", async () =>
-                    {
-                        bool newReplyState = _comment.SendReplies == false;
-                        await _redditClient.ToggleInboxReplies(_comment, newReplyState);
-                        _comment.SendReplies = newReplyState;
-                    }),
-                    new("Delete", async () =>
-                    {
-                        await _redditClient.Delete(_comment);
-                        OnDelete?.Invoke(this, new OnDeleteClickedEventArgs(_comment, this));
-                    }),
-                    new("Edit", async () =>
-                    {
-                        ReplyPage replyPage = await AppNavigator.OpenEditPage(_comment);
-                        replyPage.OnSubmitted += this.EditPage_OnSubmitted;
-                    })
-                );
+                await _displayMessages.DisplayException(ex);
             }
         }
 
