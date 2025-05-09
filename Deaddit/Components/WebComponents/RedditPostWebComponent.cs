@@ -94,9 +94,21 @@ namespace Deaddit.Components.WebComponents
             _actionButtons.HideClicked += this.HideButton_OnClick;
             _actionButtons.CommentsClicked += this.CommentsButton_OnClick;
 
+            string? thumbSrc = post.TryGetThumbnail();
+
+            if (string.IsNullOrWhiteSpace(thumbSrc) && !string.IsNullOrWhiteSpace(post.Url))
+            {
+                string mimeType = UrlHelper.GetMimeTypeFromUri(new Uri(post.Url));
+
+                if (mimeType.StartsWith("image/"))
+                {
+                    thumbSrc = post.Url;
+                }
+            }
+
             ImgComponent thumbnail = new()
             {
-                Src = post.TryGetThumbnail(),
+                Src = thumbSrc,
                 Width = $"{applicationStyling.ThumbnailSize}px",
                 Height = $"{applicationStyling.ThumbnailSize}px",
                 FlexShrink = "0",
