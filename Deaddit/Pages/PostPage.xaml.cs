@@ -96,9 +96,15 @@ namespace Deaddit.Pages
 
             webElement.AddChild(redditPostComponent);
 
-            if (!string.IsNullOrWhiteSpace(post.BodyHtml) && post.Body.Length > applicationHacks.MinimumPostBodyLenth)
-            {
-                postBody = new PostBodyComponent(post, applicationStyling);
+            if (!string.IsNullOrWhiteSpace(post.Body))
+            {           
+                //Include hidden characters for removal here 
+                string postBodyVisible = new(post.Body.Trim().Where(c => c != (char)8204).ToArray());
+
+                if (postBodyVisible.Length > applicationHacks.MinimumPostBodyLenth)
+                {
+                    postBody = new PostBodyComponent(post, applicationStyling);
+                }
             }
 
             DivComponent actionButtons = new()
