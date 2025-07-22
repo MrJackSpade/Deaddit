@@ -18,6 +18,7 @@ using Maui.WebComponents.Attributes;
 using Maui.WebComponents.Components;
 using System.Web;
 using Reddit.Api.Extensions;
+using Deaddit.Core.Configurations.Interfaces;
 
 namespace Deaddit.Components.WebComponents
 {
@@ -29,6 +30,8 @@ namespace Deaddit.Components.WebComponents
         private readonly BottomBarComponent _bottomBar;
 
         private readonly ApiComment _comment;
+
+        private readonly IConfigurationService _configurationService;
 
         private readonly HtmlBodyComponent _commentBody;
 
@@ -62,7 +65,7 @@ namespace Deaddit.Components.WebComponents
 
         public event EventHandler<OnDeleteClickedEventArgs> OnDelete;
 
-        public RedditCommentWebComponent(ApiComment comment, ApiPost? post, bool selectEnabled, IDisplayMessages displayMessages, ISelectBoxDisplay selectBoxDisplay, INavigation navigation, AppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup selectionGroup, BlockConfiguration blockConfiguration)
+        public RedditCommentWebComponent(ApiComment comment, ApiPost? post, bool selectEnabled, IConfigurationService configurationService, IDisplayMessages displayMessages, ISelectBoxDisplay selectBoxDisplay, INavigation navigation, AppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup selectionGroup, BlockConfiguration blockConfiguration)
         {
             _multiselector = new MultiSelector(selectBoxDisplay);
             _comment = comment;
@@ -75,6 +78,7 @@ namespace Deaddit.Components.WebComponents
             BlockConfiguration = blockConfiguration;
             _navigation = navigation;
             _displayMessages = displayMessages;
+            _configurationService = configurationService;
 
             _commentContainer = new DivComponent()
             {
@@ -296,6 +300,12 @@ namespace Deaddit.Components.WebComponents
 
         private void BlockRuleOnSave(object? sender, ObjectEditorSaveEventArgs e)
         {
+            if (e.Saved is BlockRule blockRule)
+            {
+                BlockConfiguration.BlackList.Rules.Add(blockRule);
+
+                _configurationService.Write(BlockConfiguration);
+            }
         }
 
         private async Task ContinueThread(ApiComment comment)

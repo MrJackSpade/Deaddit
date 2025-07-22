@@ -1,4 +1,5 @@
 ﻿using MimeKit;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Deaddit.Core.Utils
 {
@@ -33,6 +34,8 @@ namespace Deaddit.Core.Utils
 
             return Path.GetFileName(fileName);
         }
+
+        public static string GetMimeTypeFromUri(string s) => GetMimeTypeFromUri(new Uri(s));
 
         public static string GetMimeTypeFromUri(Uri uri)
         {

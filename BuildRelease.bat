@@ -38,10 +38,10 @@ REM Display the new version
 ECHO New Version: %NewVersion%
 
 REM Proceed with the build
-dotnet build Deaddit -f net8.0-android -c Release --artifacts-path Release
+dotnet build Deaddit -f net9.0-android -c Release --artifacts-path Release
 
 REM Cleanup
 ECHO Cleaning up...
-move Release\bin\Deaddit\release_net8.0-android\com.companyname.deaddit-Signed.apk Release\Deaddit.apk
+move Release\bin\Deaddit\release_net9.0-android\com.companyname.deaddit-Signed.apk Release\Deaddit.apk
 rmdir /s /Q Release\bin
 rmdir /s /Q Release\obj

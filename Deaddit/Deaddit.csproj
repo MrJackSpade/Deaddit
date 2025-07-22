@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFrameworks>net8.0-android</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net8.0-windows10.0.19041.0</TargetFrameworks>
+		<TargetFrameworks>net9.0-android</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
+		<WindowsSdkPackageVersion>10.0.19041.57</WindowsSdkPackageVersion>
 		<OutputType>Exe</OutputType>
 		<RootNamespace>Deaddit</RootNamespace>
 		<UseMaui>true</UseMaui>
@@ -92,14 +93,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="CommunityToolkit.Maui" Version="9.0.3" />
-		<PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="4.1.0" />
-		<PackageReference Include="HtmlAgilityPack" Version="1.11.66" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.90" />
-		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.82" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
-		<PackageReference Include="MimeKit" Version="4.7.1" />
-		<PackageReference Include="SkiaSharp" Version="2.88.8" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="12.1.0" />
+		<PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="6.1.1" />
+		<PackageReference Include="HtmlAgilityPack" Version="1.12.2" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.90" />
+		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="9.0.90" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.7" />
+		<PackageReference Include="MimeKit" Version="4.13.0" />
+		<PackageReference Include="SkiaSharp" Version="3.119.0" />
 	</ItemGroup>
 
 	<ItemGroup>

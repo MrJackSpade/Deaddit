@@ -10,7 +10,7 @@ namespace Deaddit.Core.Utils.Blocking
             return new BlockRule()
             {
                 Author = post.Author,
-                BlockType = BlockType.Post,
+                BlockType = BlockType.Both,
                 RuleName = $"/u/{post.Author}"
             };
         }

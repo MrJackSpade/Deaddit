@@ -82,6 +82,7 @@ namespace Deaddit.Pages
 
         public async void OnSubmitClicked(object? sender, EventArgs e)
         {
+
             ApiComment meta;
 
             if (_toEdit is ApiComment comment)
@@ -95,9 +96,12 @@ namespace Deaddit.Pages
                 meta = await _redditClient.Comment(_replyTo, commentBody);
             }
 
-            OnSubmitted?.Invoke(this, new ReplySubmittedEventArgs(_replyTo, meta));
+            if (meta != null)
+            {
+                OnSubmitted?.Invoke(this, new ReplySubmittedEventArgs(_replyTo, meta));
 
-            await Navigation.PopAsync();
+                await Navigation.PopAsync();
+            }
         }
 
         private void WebElement_OnJavascriptError(object? sender, Exception e)

@@ -50,6 +50,8 @@ namespace Deaddit.Components.WebComponents
 
         private readonly IVisitTracker _visitTracker;
 
+        private readonly IDisplayMessages _displayMessages;
+
         public bool IsListView => _selectionGroup != null;
 
         public bool SelectEnabled => true;
@@ -58,7 +60,7 @@ namespace Deaddit.Components.WebComponents
 
         public event EventHandler<OnHideClickedEventArgs> HideClicked;
 
-        public RedditPostWebComponent(ApiPost post, PostState postHandling, ISelectBoxDisplay selectBoxDisplay, IAggregatePostHandler apiPostHandler, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration, IConfigurationService configurationService, IAppNavigator appNavigator, IVisitTracker visitTracker, INavigation navigation, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup? selectionGroup)
+        public RedditPostWebComponent(ApiPost post, PostState postHandling, IDisplayMessages displayMessages, ISelectBoxDisplay selectBoxDisplay, IAggregatePostHandler apiPostHandler, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration, IConfigurationService configurationService, IAppNavigator appNavigator, IVisitTracker visitTracker, INavigation navigation, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup? selectionGroup)
         {
             _multiselector = new MultiSelector(selectBoxDisplay);
             _post = post;
@@ -71,6 +73,7 @@ namespace Deaddit.Components.WebComponents
             _blockConfiguration = blockConfiguration;
             _configurationService = configurationService;
             _apiPostHandler = apiPostHandler;
+            _displayMessages = displayMessages;
 
             if (postHandling == PostState.Block)
             {
@@ -313,7 +316,14 @@ namespace Deaddit.Components.WebComponents
                 _visitTracker.Visit(_post);
             }
 
-            await _apiPostHandler.Launch(_post);
+            try
+            {
+                await _apiPostHandler.Launch(_post);
+            }
+            catch (Exception ex)
+            {
+                await _displayMessages.DisplayException(ex);
+            }
         }
     }
 }
