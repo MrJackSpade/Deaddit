@@ -1,5 +1,6 @@
 ﻿using Deaddit.Core.Interfaces;
 using Deaddit.Core.Models;
+using Deaddit.Core.Utils;
 using Deaddit.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,11 @@ namespace Deaddit.Handlers.Url
 
         public bool CanLaunch(string url, IAggregatePostHandler? aggregatePostHandler)
         {
+            if (UrlHelper.GetMimeTypeFromUri(url).StartsWith("image/"))
+            {
+                return false;
+            }
+
             return Uri.TryCreate(url, UriKind.Absolute, out Uri? uri) && uri.Host.EndsWith("redgifs.com", StringComparison.OrdinalIgnoreCase);
         }
 

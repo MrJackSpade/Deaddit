@@ -57,11 +57,11 @@ namespace Deaddit.Utils
         {
             if (selectionGroup is null)
             {
-                return new RedditCommentWebComponent(comment, post, false, DisplayMessages, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, selectionGroup ?? new SelectionGroup(), BlockConfiguration);
+                return new RedditCommentWebComponent(comment, post, false, ConfigurationService, DisplayMessages, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, selectionGroup ?? new SelectionGroup(), BlockConfiguration);
             }
             else
             {
-                return new RedditCommentWebComponent(comment, post, true, DisplayMessages, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, selectionGroup ?? new SelectionGroup(), BlockConfiguration);
+                return new RedditCommentWebComponent(comment, post, true, ConfigurationService, DisplayMessages, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, selectionGroup ?? new SelectionGroup(), BlockConfiguration);
             }
         }
 
@@ -79,7 +79,7 @@ namespace Deaddit.Utils
 
         public RedditPostWebComponent CreatePostWebComponent(ApiPost post, PostState postHandling, SelectionGroup? selectionGroup = null)
         {
-            RedditPostWebComponent postComponent = new(post, postHandling, SelectBoxDisplay, AggregatePostHandler, ApplicationHacks, BlockConfiguration, ConfigurationService, this, VisitTracker, Navigation, RedditClient, ApplicationStyling, selectionGroup);
+            RedditPostWebComponent postComponent = new(post, postHandling, DisplayMessages, SelectBoxDisplay, AggregatePostHandler, ApplicationHacks, BlockConfiguration, ConfigurationService, this, VisitTracker, Navigation, RedditClient, ApplicationStyling, selectionGroup);
             return postComponent;
         }
 

@@ -22,32 +22,32 @@ namespace Deaddit.Core.Extensions
                 if (br.IsMatch(thing))
                 {
                     return false;
+                }           
+            }
+
+            if (userData is not null && thing.AuthorFullName is not null && userData.TryGetValue(thing.AuthorFullName, out UserPartial user))
+            {
+                if (blockConfiguration.MinAccountAgeDays > 0)
+                {
+                    if ((DateTime.UtcNow - user.CreatedUtc).TotalDays < blockConfiguration.MinAccountAgeDays)
+                    {
+                        return false;
+                    }
                 }
 
-                if (userData is not null && thing.AuthorFullName is not null && userData.TryGetValue(thing.AuthorFullName, out UserPartial user))
+                if (blockConfiguration.MinCommentKarma > 0 && blockConfiguration.MinCommentKarma > user.CommentKarma)
                 {
-                    if (blockConfiguration.MinAccountAgeDays > 0)
-                    {
-                        if ((DateTime.UtcNow - user.CreatedUtc).TotalDays < blockConfiguration.MinAccountAgeDays)
-                        {
-                            return false;
-                        }
-                    }
+                    return false;
+                }
 
-                    if (blockConfiguration.MinCommentKarma > 0 && blockConfiguration.MinCommentKarma > user.CommentKarma)
-                    {
-                        return false;
-                    }
+                if (blockConfiguration.MaxLinkKarma > 0 && blockConfiguration.MaxLinkKarma < user.LinkKarma)
+                {
+                    return false;
+                }
 
-                    if (blockConfiguration.MaxLinkKarma > 0 && blockConfiguration.MaxLinkKarma < user.LinkKarma)
-                    {
-                        return false;
-                    }
-
-                    if (blockConfiguration.MaxLinkKarmaRatio > 0 && user.LinkKarma > 0 && (double)user.LinkKarma / user.CommentKarma > blockConfiguration.MaxLinkKarmaRatio)
-                    {
-                        return false;
-                    }
+                if (blockConfiguration.MaxLinkKarmaRatio > 0 && user.LinkKarma > 0 && (double)user.LinkKarma / user.CommentKarma > blockConfiguration.MaxLinkKarmaRatio)
+                {
+                    return false;
                 }
             }
 
@@ -58,8 +58,23 @@ namespace Deaddit.Core.Extensions
         {
             bool match = true;
 
-            //Add comment specific here if needed in the future
-            match &= thing is ApiPost rp && rule.IsMatch(rp);
+            if (thing is ApiPost rp)
+            {
+                if (rule.BlockType == BlockType.Comment)
+                {
+                    return false;
+                }
+
+                match &= rule.PostIsMatch(rp);
+            }
+
+            if (thing is ApiComment rc)
+            {
+                if (rule.BlockType == BlockType.Post)
+                {
+                    return false;
+                }
+            }
 
             match &= BlockListHelper.TriggersOrSkip(rule.Author, thing.Author, DynamicMatchType(rule.Author));
 
@@ -85,7 +100,7 @@ namespace Deaddit.Core.Extensions
             }
         }
 
-        private static bool IsMatch(this BlockRule rule, ApiPost post)
+        private static bool PostIsMatch(this BlockRule rule, ApiPost post)
         {
             bool match = true;
 

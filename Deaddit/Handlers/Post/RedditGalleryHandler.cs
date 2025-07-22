@@ -35,7 +35,7 @@ namespace Deaddit.Handlers.Post
 
         public async Task Launch(ApiPost apiPost, IAggregatePostHandler caller)
         {
-            await _appNavigator.OpenImages(this.GetSortedGalleryItems(apiPost).ToArray());
+            await _appNavigator.OpenImages([.. this.GetSortedGalleryItems(apiPost)]);
         }
 
         public async Task Share(ApiPost apiPost, IAggregatePostHandler caller)
@@ -51,14 +51,17 @@ namespace Deaddit.Handlers.Post
 
             Dictionary<string, MediaMetaData>? mediaMeta = apiPost.MediaMetaData;
 
-            List<MediaMetaData> sortedMedia = mediaMeta.Values.OrderBy(v => galleryItems.IndexOf(v.Id)).ToList();
+            List<MediaMetaData> sortedMedia = [.. mediaMeta.Values.OrderBy(v => galleryItems.IndexOf(v.Id))];
 
-            foreach (string imageUrl in sortedMedia.Select(m => m.Source.Url ?? m.Source.Gif))
+            foreach (string? imageUrl in sortedMedia.Select(m => m.Source?.Url ?? m.Source?.Gif))
             {
-                toReturn.Add(new FileDownload(
-                    $"{apiPost.Id}_{toReturn.Count}{UrlHelper.GetExtension(imageUrl)}",
-                    imageUrl
-                ));
+                if (!string.IsNullOrWhiteSpace(imageUrl))
+                {
+                    toReturn.Add(new FileDownload(
+                        $"{apiPost.Id}_{toReturn.Count}{UrlHelper.GetExtension(imageUrl)}",
+                        imageUrl
+                    ));
+                }
             }
 
             return toReturn;
