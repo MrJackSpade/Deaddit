@@ -10,38 +10,38 @@ namespace Deaddit.Core.Utils.Blocking
         Regex
     }
 
-    public static class BlockListHelper
+    public static partial class BlockListHelper
     {
-        public static bool TriggersOrSkip(bool ruleValue, bool? checkValue)
+        public static TriggerState TriggersOrSkip(bool ruleValue, bool? checkValue)
         {
             if (!ruleValue)
             {
-                return true;
+                return TriggerState.Skip;
             }
 
-            return checkValue == true;
+            return checkValue == true ? TriggerState.Match : TriggerState.NoMatch;
         }
 
-        public static bool TriggersOrSkip(bool ruleValue, bool checkValue)
+        public static TriggerState TriggersOrSkip(bool ruleValue, bool checkValue)
         {
             if (!ruleValue)
             {
-                return true;
+                return TriggerState.Skip;
             }
 
-            return checkValue;
+            return checkValue ? TriggerState.Match : TriggerState.NoMatch;
         }
 
-        public static bool TriggersOrSkip(string? ruleValue, string? checkValue, StringMatchType matchType, bool partial = false, StringComparison stringComparison = StringComparison.OrdinalIgnoreCase)
+        public static TriggerState TriggersOrSkip(string? ruleValue, string? checkValue, StringMatchType matchType, bool partial = false, StringComparison stringComparison = StringComparison.OrdinalIgnoreCase)
         {
             if (string.IsNullOrWhiteSpace(ruleValue))
             {
-                return true;
+                return TriggerState.Skip;
             }
 
             if (string.IsNullOrWhiteSpace(checkValue))
             {
-                return true;
+                return TriggerState.NoMatch;
             }
 
             if (matchType == StringMatchType.Regex)
@@ -49,18 +49,32 @@ namespace Deaddit.Core.Utils.Blocking
                 ruleValue = ruleValue.Trim('/');
             }
 
-            return matchType switch
+            switch(matchType)
             {
-                StringMatchType.String => partial ? checkValue.Contains(ruleValue, stringComparison)
-                                                  : string.Equals(ruleValue, checkValue, stringComparison),
-                StringMatchType.Regex => stringComparison switch
-                {
-                    StringComparison.OrdinalIgnoreCase => Regex.IsMatch(checkValue, ruleValue, RegexOptions.IgnoreCase),
-                    StringComparison.Ordinal => Regex.IsMatch(ruleValue, ruleValue),
-                    _ => throw new EnumNotImplementedException(stringComparison),
-                },
-                _ => throw new EnumNotImplementedException(matchType),
-            };
+                case StringMatchType.Regex:
+                    switch (stringComparison)
+                    {
+                        case StringComparison.OrdinalIgnoreCase:
+                            return Regex.IsMatch(checkValue, ruleValue, RegexOptions.IgnoreCase) ? TriggerState.Match : TriggerState.NoMatch;
+                        case StringComparison.Ordinal:
+                            return Regex.IsMatch(ruleValue, ruleValue) ? TriggerState.Match : TriggerState.NoMatch;
+                        default:
+                            throw new EnumNotImplementedException(stringComparison);
+                    }
+                case StringMatchType.String: 
+                    bool match;
+                    if (partial)
+                    {
+                        match = checkValue.Contains(ruleValue, stringComparison);
+                    } else
+                    {
+                        match = string.Equals(ruleValue, checkValue, stringComparison);
+                    }
+
+                    return match ? TriggerState.Match : TriggerState.NoMatch;
+                default:
+                    throw new EnumNotImplementedException(matchType);
+            }
         }
     }
 }

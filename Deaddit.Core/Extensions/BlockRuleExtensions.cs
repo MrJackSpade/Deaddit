@@ -2,10 +2,12 @@
 using Reddit.Api.Models;
 using Reddit.Api.Models.Api;
 using Deaddit.Core.Utils.Blocking;
+using System.Reflection.Metadata.Ecma335;
+using static Deaddit.Core.Utils.Blocking.BlockListHelper;
 
 namespace Deaddit.Core.Extensions
 {
-    public static class BlockRuleExtensions
+    public static partial class BlockRuleExtensions
     {
         public static bool IsAllowed(this BlockConfiguration blockConfiguration, ApiThing thing, Dictionary<string, UserPartial>? userData = null)
         {
@@ -56,7 +58,7 @@ namespace Deaddit.Core.Extensions
 
         public static bool IsMatch(this BlockRule rule, ApiThing thing)
         {
-            bool match = true;
+            MatchResult result = new();
 
             if (thing is ApiPost rp)
             {
@@ -65,7 +67,7 @@ namespace Deaddit.Core.Extensions
                     return false;
                 }
 
-                match &= rule.PostIsMatch(rp);
+                result.Apply(rule.PostIsMatch(rp));
             }
 
             if (thing is ApiComment rc)
@@ -76,11 +78,11 @@ namespace Deaddit.Core.Extensions
                 }
             }
 
-            match &= BlockListHelper.TriggersOrSkip(rule.Author, thing.Author, DynamicMatchType(rule.Author));
+            result.Apply(BlockListHelper.TriggersOrSkip(rule.Author, thing.Author, DynamicMatchType(rule.Author)));
 
-            match &= BlockListHelper.TriggersOrSkip(rule.Body, thing.Body, DynamicMatchType(rule.Body), true);
+            result.Apply(BlockListHelper.TriggersOrSkip(rule.Body, thing.Body, DynamicMatchType(rule.Body), true));
 
-            return match;
+            return result.IsMatch;
         }
 
         public static bool RequiresUserData(this BlockConfiguration blockConfiguration)
@@ -100,25 +102,25 @@ namespace Deaddit.Core.Extensions
             }
         }
 
-        private static bool PostIsMatch(this BlockRule rule, ApiPost post)
+        private static TriggerState PostIsMatch(this BlockRule rule, ApiPost post)
         {
-            bool match = true;
+            MatchResult result = new();
 
-            match &= BlockListHelper.TriggersOrSkip(rule.Domain, post.Domain, StringMatchType.String);
+            result.Apply(BlockListHelper.TriggersOrSkip(rule.Domain, post.Domain, StringMatchType.String));
 
-            match &= BlockListHelper.TriggersOrSkip(rule.IsLocked, post.IsLocked);
+            result.Apply(BlockListHelper.TriggersOrSkip(rule.IsLocked, post.IsLocked));
 
-            match &= BlockListHelper.TriggersOrSkip(rule.IsNsfw, post.IsNsfw);
+            result.Apply(BlockListHelper.TriggersOrSkip(rule.IsNsfw, post.IsNsfw));
 
-            match &= BlockListHelper.TriggersOrSkip(rule.IsArchived, post.IsArchived);
+            result.Apply(BlockListHelper.TriggersOrSkip(rule.IsArchived, post.IsArchived));
 
-            match &= BlockListHelper.TriggersOrSkip(rule.Flair, post.LinkFlairText, StringMatchType.String);
+            result.Apply(BlockListHelper.TriggersOrSkip(rule.Flair, post.LinkFlairText, StringMatchType.String));
 
-            match &= BlockListHelper.TriggersOrSkip(rule.SubReddit, post.SubRedditName, StringMatchType.String);
+            result.Apply(BlockListHelper.TriggersOrSkip(rule.SubReddit, post.SubRedditName, StringMatchType.String));
 
-            match &= BlockListHelper.TriggersOrSkip(rule.Title, post.Title, DynamicMatchType(rule.Title), true);
+            result.Apply(BlockListHelper.TriggersOrSkip(rule.Title, post.Title, DynamicMatchType(rule.Title), true));
 
-            return match;
+            return result.State;
         }
     }
 }
