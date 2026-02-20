@@ -7,6 +7,8 @@
 
         public bool Masked { get; set; }
 
+        public bool Multiline { get; set; }
+
         public string? Name { get; set; }
 
         public int Order { get; set; }

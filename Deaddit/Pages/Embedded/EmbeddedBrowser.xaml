@@ -13,12 +13,20 @@
             x:Name="navigationBar"
             Grid.Row="0"
             HorizontalOptions="FillAndExpand"
-            ColumnDefinitions="*, auto, auto, auto"
+            ColumnDefinitions="*, auto, auto, auto, auto"
             VerticalOptions="Center">
 
             <Button
-                Text="&#129692;"
+                Text="🌐"
                 Grid.Column="1"
+                x:Name="browserButton"
+                HorizontalOptions="Start"
+                Clicked="OnBrowserClicked"
+                BackgroundColor="Transparent" />
+            
+            <Button
+                Text="&#129692;"
+                Grid.Column="2"
                 x:Name="paywallButton"
                 HorizontalOptions="Start"
                 Clicked="OnBypassClicked"
@@ -26,7 +34,7 @@
             
             <Button
                 Text="&#8278;"
-                Grid.Column="2"
+                Grid.Column="3"
                 x:Name="shareButton"
                 HorizontalOptions="Start"
                 Clicked="OnShareClicked"
@@ -34,7 +42,7 @@
 
             <Button
                 Text="💾"
-                Grid.Column="3"
+                Grid.Column="4"
                 x:Name="saveButton"
                 HorizontalOptions="End"
                 Clicked="OnSaveClicked"

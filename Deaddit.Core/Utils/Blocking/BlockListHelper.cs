@@ -49,24 +49,22 @@ namespace Deaddit.Core.Utils.Blocking
                 ruleValue = ruleValue.Trim('/');
             }
 
-            switch(matchType)
+            switch (matchType)
             {
                 case StringMatchType.Regex:
-                    switch (stringComparison)
+                    return stringComparison switch
                     {
-                        case StringComparison.OrdinalIgnoreCase:
-                            return Regex.IsMatch(checkValue, ruleValue, RegexOptions.IgnoreCase) ? TriggerState.Match : TriggerState.NoMatch;
-                        case StringComparison.Ordinal:
-                            return Regex.IsMatch(ruleValue, ruleValue) ? TriggerState.Match : TriggerState.NoMatch;
-                        default:
-                            throw new EnumNotImplementedException(stringComparison);
-                    }
-                case StringMatchType.String: 
+                        StringComparison.OrdinalIgnoreCase => Regex.IsMatch(checkValue, ruleValue) ? TriggerState.Match : TriggerState.NoMatch,
+                        StringComparison.Ordinal => Regex.IsMatch(ruleValue, ruleValue) ? TriggerState.Match : TriggerState.NoMatch,
+                        _ => throw new EnumNotImplementedException(stringComparison),
+                    };
+                case StringMatchType.String:
                     bool match;
                     if (partial)
                     {
                         match = checkValue.Contains(ruleValue, stringComparison);
-                    } else
+                    }
+                    else
                     {
                         match = string.Equals(ruleValue, checkValue, stringComparison);
                     }

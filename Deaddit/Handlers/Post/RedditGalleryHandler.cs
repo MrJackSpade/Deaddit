@@ -1,10 +1,10 @@
 ﻿using Deaddit.Core.Interfaces;
 using Deaddit.Core.Models;
-using Reddit.Api.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.Utils;
+using Reddit.Api.Models.Api;
 using DefaultShare = Microsoft.Maui.ApplicationModel.DataTransfer;
 
 namespace Deaddit.Handlers.Post

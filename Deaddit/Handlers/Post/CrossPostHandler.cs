@@ -1,6 +1,6 @@
 ﻿using Deaddit.Core.Interfaces;
-using Reddit.Api.Models.Api;
 using Deaddit.Core.Utils.Validation;
+using Reddit.Api.Models.Api;
 
 namespace Deaddit.Handlers.Post
 {

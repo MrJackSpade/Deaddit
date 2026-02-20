@@ -1,8 +1,7 @@
 ﻿using Deaddit.Core.Configurations.Models;
+using Deaddit.Core.Utils.Blocking;
 using Reddit.Api.Models;
 using Reddit.Api.Models.Api;
-using Deaddit.Core.Utils.Blocking;
-using System.Reflection.Metadata.Ecma335;
 using static Deaddit.Core.Utils.Blocking.BlockListHelper;
 
 namespace Deaddit.Core.Extensions
@@ -11,9 +10,9 @@ namespace Deaddit.Core.Extensions
     {
         public static bool IsAllowed(this BlockConfiguration blockConfiguration, ApiThing thing, Dictionary<string, UserPartial>? userData = null)
         {
-            foreach(BlockRule br in blockConfiguration.WhiteList.Rules)
+            foreach (BlockRule br in blockConfiguration.WhiteList.Rules)
             {
-                if(br.IsMatch(thing))
+                if (br.IsMatch(thing))
                 {
                     return true;
                 }
@@ -24,7 +23,7 @@ namespace Deaddit.Core.Extensions
                 if (br.IsMatch(thing))
                 {
                     return false;
-                }           
+                }
             }
 
             if (userData is not null && thing.AuthorFullName is not null && userData.TryGetValue(thing.AuthorFullName, out UserPartial user))
