@@ -1,8 +1,9 @@
-﻿using Deaddit.Core.Configurations.Models;
+﻿using Deaddit.Components.WebComponents;
+using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Extensions;
+using Maui.WebComponents.Components;
 using Reddit.Api.Models;
 using Reddit.Api.Models.Api;
-using Maui.WebComponents.Components;
 
 namespace Deaddit.Components.WebComponents.Partials.Comment
 {
@@ -33,6 +34,14 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
 
             Children.Add(_voteIndicator);
             Children.Add(authorSpan);
+
+            if (!string.IsNullOrWhiteSpace(comment.AuthorFlairText))
+            {
+                string flairColor = comment.AuthorFlairBackgroundColor?.ToHex() ?? applicationStyling.SubTextColor.ToHex();
+                FlairComponent userFlair = new(comment.AuthorFlairText, flairColor, applicationStyling);
+                Children.Add(userFlair);
+            }
+
             Children.Add(_commentMeta);
 
             this.SetIndicatorState(_comment.Likes);

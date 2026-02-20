@@ -1,4 +1,5 @@
-﻿using Deaddit.Core.Configurations.Models;
+﻿using Deaddit.Components.WebComponents;
+using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Extensions;
 using Maui.WebComponents.Components;
 using Reddit.Api.Models.Api;
@@ -39,13 +40,28 @@ namespace Deaddit.Components.WebComponents.Partials.Post
                     break;
             }
 
+            DivComponent timeUserContainer = new()
+            {
+                Display = "none",
+                FlexDirection = "row",
+                AlignItems = "center"
+            };
+
             SpanComponent timeUser = new()
             {
                 InnerText = $"{post.CreatedUtc.Elapsed()} by {post.Author}",
                 FontSize = $"{applicationStyling.SubTextFontSize}px",
-                Color = applicationStyling.SubTextColor.ToHex(),
-                Display = "none"
+                Color = applicationStyling.SubTextColor.ToHex()
             };
+
+            timeUserContainer.Children.Add(timeUser);
+
+            if (!string.IsNullOrWhiteSpace(post.AuthorFlairText))
+            {
+                string flairColor = post.AuthorFlairBackgroundColor?.ToHex() ?? applicationStyling.SubTextColor.ToHex();
+                FlairComponent userFlair = new(post.AuthorFlairText, flairColor, applicationStyling);
+                timeUserContainer.Children.Add(userFlair);
+            }
 
             SpanComponent metaData = new()
             {
@@ -73,18 +89,17 @@ namespace Deaddit.Components.WebComponents.Partials.Post
             }
 
             Children.Add(metaData);
-            Children.Add(timeUser);
+            Children.Add(timeUserContainer);
 
             OnClick += (s, e) => Clicked?.Invoke(this, EventArgs.Empty);
         }
 
         public void ShowTimeUser(bool show)
         {
-            //This is fucking stupid. How did I end up here?
-            SpanComponent? timeUser = Children.OfType<SpanComponent>().LastOrDefault(c => c.InnerText.Contains("by"));
-            if (timeUser != null)
+            DivComponent? timeUserContainer = Children.OfType<DivComponent>().LastOrDefault();
+            if (timeUserContainer != null)
             {
-                timeUser.Display = show ? "block" : "none";
+                timeUserContainer.Display = show ? "flex" : "none";
             }
         }
     }
