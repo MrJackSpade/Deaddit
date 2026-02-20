@@ -1,18 +1,17 @@
 using Deaddit.Components;
 using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
-using Reddit.Api;
-using Reddit.Api.Interfaces;
-using Reddit.Api.Models;
-using Reddit.Api.Models.Api;
-using Reddit.Api.Models.ThingDefinitions;
 using Deaddit.Core.Utils;
-using Deaddit.Core.Utils.Extensions;
 using Deaddit.EventArguments;
 using Deaddit.Interfaces;
 using Deaddit.Pages.Models;
 using Deaddit.Utils;
+using Reddit.Api;
 using Reddit.Api.Extensions;
+using Reddit.Api.Interfaces;
+using Reddit.Api.Models;
+using Reddit.Api.Models.Api;
+using Reddit.Api.Models.ThingDefinitions;
 
 namespace Deaddit.Pages
 {
@@ -46,6 +45,7 @@ namespace Deaddit.Pages
             mainStack.Add(_appNavigator.CreateSubRedditComponent(ThingDefinitionHelper.ForSubReddit("All"), null));
             mainStack.Add(_appNavigator.CreateSubRedditComponent(new HomeDefinition(), null));
             mainStack.Add(_appNavigator.CreateSubRedditComponent(new SavedDefinition(), null));
+            mainStack.Add(_appNavigator.CreateHistoryComponent());
 
             foreach (SubRedditSubscription subscription in _configuration.Subscriptions)
             {

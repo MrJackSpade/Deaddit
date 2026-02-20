@@ -1,7 +1,7 @@
 ﻿using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Extensions;
-using Reddit.Api.Models.Api;
 using Maui.WebComponents.Components;
+using Reddit.Api.Models.Api;
 
 namespace Deaddit.Components.WebComponents.Partials.Post
 {
@@ -54,7 +54,7 @@ namespace Deaddit.Components.WebComponents.Partials.Post
                 Color = applicationStyling.SubTextColor.ToHex(),
             };
 
-            if (!post.IsSelf && Uri.TryCreate(post.Url, UriKind.Absolute, out Uri result))
+            if (!post.IsSelf && Uri.TryCreate(post.Url, UriKind.Absolute, out Uri result) && !string.IsNullOrWhiteSpace(result.Host))
             {
                 metaData.InnerText += $" ({result.Host})";
             }

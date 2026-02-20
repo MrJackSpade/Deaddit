@@ -2,10 +2,6 @@
 using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
-using Reddit.Api.Extensions;
-using Reddit.Api.Interfaces;
-using Reddit.Api.Models;
-using Reddit.Api.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Blocking;
 using Deaddit.Core.Utils.MultiSelect;
@@ -14,6 +10,10 @@ using Deaddit.Interfaces;
 using Deaddit.Pages;
 using Maui.WebComponents.Attributes;
 using Maui.WebComponents.Components;
+using Reddit.Api.Extensions;
+using Reddit.Api.Interfaces;
+using Reddit.Api.Models;
+using Reddit.Api.Models.Api;
 
 namespace Deaddit.Components.WebComponents
 {
@@ -52,6 +52,10 @@ namespace Deaddit.Components.WebComponents
 
         private readonly IDisplayMessages _displayMessages;
 
+        private readonly IHistoryTracker _historyTracker;
+
+        private bool _isFromHistoryPage = false;
+
         public bool IsListView => _selectionGroup != null;
 
         public bool SelectEnabled => true;
@@ -60,7 +64,7 @@ namespace Deaddit.Components.WebComponents
 
         public event EventHandler<OnHideClickedEventArgs> HideClicked;
 
-        public RedditPostWebComponent(ApiPost post, PostState postHandling, IDisplayMessages displayMessages, ISelectBoxDisplay selectBoxDisplay, IAggregatePostHandler apiPostHandler, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration, IConfigurationService configurationService, IAppNavigator appNavigator, IVisitTracker visitTracker, INavigation navigation, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup? selectionGroup)
+        public RedditPostWebComponent(ApiPost post, PostState postHandling, IDisplayMessages displayMessages, ISelectBoxDisplay selectBoxDisplay, IAggregatePostHandler apiPostHandler, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration, IConfigurationService configurationService, IAppNavigator appNavigator, IVisitTracker visitTracker, IHistoryTracker historyTracker, INavigation navigation, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup? selectionGroup)
         {
             _multiselector = new MultiSelector(selectBoxDisplay);
             _post = post;
@@ -68,6 +72,7 @@ namespace Deaddit.Components.WebComponents
             _redditClient = redditClient;
             _selectionGroup = selectionGroup;
             _visitTracker = visitTracker;
+            _historyTracker = historyTracker;
             _navigation = navigation;
             _appNavigator = appNavigator;
             _blockConfiguration = blockConfiguration;
@@ -171,6 +176,11 @@ namespace Deaddit.Components.WebComponents
             return Task.CompletedTask;
         }
 
+        public void SetHistorySource()
+        {
+            _isFromHistoryPage = true;
+        }
+
         private async void CommentsButton_OnClick(object? sender, EventArgs e)
         {
             if (_post.IsSelf && _selectionGroup is null)
@@ -179,7 +189,7 @@ namespace Deaddit.Components.WebComponents
                 _visitTracker.Visit(_post);
             }
 
-            await _appNavigator.OpenPost(_post);
+            await _appNavigator.OpenPost(_post, null, _isFromHistoryPage);
         }
 
         private async void HideButton_OnClick(object? sender, EventArgs e)
@@ -279,13 +289,28 @@ namespace Deaddit.Components.WebComponents
 
         private async void ShareButton_OnClick(object? sender, EventArgs e)
         {
-            if (!_apiPostHandler.CanShare(_post))
-            {
-                await _navigation.NavigationStack[^1].DisplayAlert("Alert", $"Can not handle post", "OK");
-                return;
-            }
+            await _multiselector.Select(
+                "Share:",
+                new($"File", this.OnShareFileClicked),
+                new($"Link", this.OnShareLinkClicked));
+        }
 
-            await _apiPostHandler.Share(_post);
+        private async Task OnShareLinkClicked()
+        {
+            await Share.Default.RequestAsync(new ShareTextRequest
+            {
+                Text = _post.Url,
+                Title = _post.Title
+            });
+        }
+
+        private async Task OnShareFileClicked()
+        {
+            await Share.Default.RequestAsync(new ShareTextRequest
+            {
+                Uri = _post.Url,
+                Title = _post.Title
+            });
         }
 
         private async void TextContainer_OnClick(object? sender, EventArgs e)
@@ -298,7 +323,7 @@ namespace Deaddit.Components.WebComponents
 
         private async void Thumbnail_OnClick(object? sender, EventArgs e)
         {
-            if (_post.IsSelf && !this.IsListView)
+            if (_post.IsSelf && !IsListView)
             {
                 return;
             }
@@ -315,6 +340,8 @@ namespace Deaddit.Components.WebComponents
                 await _selectionGroup.Select(this);
                 _visitTracker.Visit(_post);
             }
+
+            _historyTracker.AddToHistory(_post, _isFromHistoryPage);
 
             try
             {

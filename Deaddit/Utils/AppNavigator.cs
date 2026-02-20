@@ -5,15 +5,15 @@ using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Models;
+using Deaddit.Core.Utils;
+using Deaddit.Core.Utils.Validation;
+using Deaddit.Interfaces;
+using Deaddit.Pages;
 using Reddit.Api;
 using Reddit.Api.Interfaces;
 using Reddit.Api.Models;
 using Reddit.Api.Models.Api;
 using Reddit.Api.Models.ThingDefinitions;
-using Deaddit.Core.Utils;
-using Deaddit.Core.Utils.Validation;
-using Deaddit.Interfaces;
-using Deaddit.Pages;
 
 namespace Deaddit.Utils
 {
@@ -28,6 +28,10 @@ namespace Deaddit.Utils
         private readonly IServiceProvider _serviceProvider = Ensure.NotNull(serviceProvider);
 
         private IAggregatePostHandler AggregatePostHandler => _serviceProvider.GetService<IAggregatePostHandler>()!;
+
+        private AIConfiguration AIConfiguration => _serviceProvider.GetService<AIConfiguration>()!;
+
+        private IClaudeService ClaudeService => _serviceProvider.GetService<IClaudeService>()!;
 
         private ApplicationHacks ApplicationHacks => _serviceProvider.GetService<ApplicationHacks>()!;
 
@@ -52,6 +56,8 @@ namespace Deaddit.Utils
         private IAggregateUrlHandler UrlHandler => _serviceProvider.GetService<IAggregateUrlHandler>()!;
 
         private IVisitTracker VisitTracker => _serviceProvider.GetService<IVisitTracker>()!;
+
+        private IHistoryTracker HistoryTracker => _serviceProvider.GetService<IHistoryTracker>()!;
 
         public RedditCommentWebComponent CreateCommentWebComponent(ApiComment comment, ApiPost? post = null, SelectionGroup? selectionGroup = null)
         {
@@ -79,13 +85,18 @@ namespace Deaddit.Utils
 
         public RedditPostWebComponent CreatePostWebComponent(ApiPost post, PostState postHandling, SelectionGroup? selectionGroup = null)
         {
-            RedditPostWebComponent postComponent = new(post, postHandling, DisplayMessages, SelectBoxDisplay, AggregatePostHandler, ApplicationHacks, BlockConfiguration, ConfigurationService, this, VisitTracker, Navigation, RedditClient, ApplicationStyling, selectionGroup);
+            RedditPostWebComponent postComponent = new(post, postHandling, DisplayMessages, SelectBoxDisplay, AggregatePostHandler, ApplicationHacks, BlockConfiguration, ConfigurationService, this, VisitTracker, HistoryTracker, Navigation, RedditClient, ApplicationStyling, selectionGroup);
             return postComponent;
         }
 
         public SubscriptionComponent CreateSubRedditComponent(ThingDefinition subscriptionThing, SelectionGroup? group = null)
         {
             return new SubscriptionComponent(subscriptionThing, group is not null, this, ApplicationStyling, group ?? new SelectionGroup());
+        }
+
+        public HistoryComponent CreateHistoryComponent()
+        {
+            return new HistoryComponent(this, ApplicationStyling);
         }
 
         public async Task<EmbeddedBrowser> OpenBrowser(string resource)
@@ -97,7 +108,7 @@ namespace Deaddit.Utils
 
         public async Task<ReplyPage> OpenEditPage(ApiThing toEdit)
         {
-            ReplyPage replyPage = new(null, toEdit, DisplayMessages, this, RedditClient, ApplicationStyling);
+            ReplyPage replyPage = new(null, toEdit, AIConfiguration, ClaudeService, DisplayMessages, this, RedditClient, ApplicationStyling);
             await Navigation.PushAsync(replyPage);
             return replyPage;
         }
@@ -107,6 +118,13 @@ namespace Deaddit.Utils
             EmbeddedImage browser = new(ApplicationStyling, resource);
             await Navigation.PushAsync(browser);
             return browser;
+        }
+
+        public async Task<MessagePage> OpenMessagePage(ApiUser user, ApiMessage? replyTo = null)
+        {
+            MessagePage replyPage = new(user, replyTo, DisplayMessages, this, RedditClient, ApplicationStyling);
+            await Navigation.PushAsync(replyPage);
+            return replyPage;
         }
 
         public async Task<ThingCollectionPage> OpenMessages(InboxSort sort = InboxSort.Unread)
@@ -131,7 +149,8 @@ namespace Deaddit.Utils
                 BlockConfiguration = BlockConfiguration,
                 Credentials = RedditCredentials,
                 Styling = ApplicationStyling,
-                ApplicationHacks = ApplicationHacks
+                ApplicationHacks = ApplicationHacks,
+                AIConfiguration = AIConfiguration
             };
 
             ObjectEditorPage editorPage = await this.OpenObjectEditor(editorConfiguration);
@@ -142,6 +161,7 @@ namespace Deaddit.Utils
                 ConfigurationService.Write(editorConfiguration.Credentials);
                 ConfigurationService.Write(editorConfiguration.BlockConfiguration);
                 ConfigurationService.Write(editorConfiguration.Styling);
+                ConfigurationService.Write(editorConfiguration.AIConfiguration);
             };
 
             onSave?.Invoke();
@@ -152,8 +172,10 @@ namespace Deaddit.Utils
             await this.OpenObjectEditor(null);
         }
 
-        public async Task<PostPage> OpenPost(ApiPost post, ApiComment focus)
+        public async Task<PostPage> OpenPost(ApiPost post, ApiComment focus, bool fromHistoryPage = false)
         {
+            HistoryTracker.AddToHistory(post, fromHistoryPage);
+
             PostPage postPage = new(post, focus, SelectBoxDisplay, DisplayMessages, UrlHandler, AggregatePostHandler, this, ConfigurationService, RedditClient, ApplicationStyling, ApplicationHacks, BlockConfiguration);
             await Navigation.PushAsync(postPage);
             await postPage.TryLoad();
@@ -162,14 +184,7 @@ namespace Deaddit.Utils
 
         public async Task<ReplyPage> OpenReplyPage(ApiThing comment)
         {
-            ReplyPage replyPage = new(comment, null, DisplayMessages, this, RedditClient, ApplicationStyling);
-            await Navigation.PushAsync(replyPage);
-            return replyPage;
-        }
-
-        public async Task<MessagePage> OpenMessagePage(ApiUser user, ApiMessage? replyTo = null)
-        {
-            MessagePage replyPage = new(user, replyTo, DisplayMessages, this, RedditClient, ApplicationStyling);
+            ReplyPage replyPage = new(comment, null, AIConfiguration, ClaudeService, DisplayMessages, this, RedditClient, ApplicationStyling);
             await Navigation.PushAsync(replyPage);
             return replyPage;
         }
@@ -211,6 +226,14 @@ namespace Deaddit.Utils
             EmbeddedVideo browser = new(url, ApplicationStyling);
             await Navigation.PushAsync(browser);
             return browser;
+        }
+
+        public async Task<HistoryPage> OpenHistory()
+        {
+            HistoryPage page = new(HistoryTracker, DisplayMessages, this, RedditClient, ApplicationStyling);
+            await Navigation.PushAsync(page);
+            await page.Init();
+            return page;
         }
     }
 }
