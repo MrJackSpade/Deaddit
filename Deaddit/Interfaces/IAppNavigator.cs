@@ -23,7 +23,11 @@ namespace Deaddit.Interfaces
 
         SubscriptionComponent CreateSubRedditComponent(ThingDefinition subscriptionThing, SelectionGroup? group = null);
 
+        SubscriptionWebComponent CreateSubscriptionWebComponent(ThingDefinition subscriptionThing, SelectionGroup? group = null);
+
         HistoryComponent CreateHistoryComponent();
+
+        HistoryWebComponent CreateHistoryWebComponent();
 
         Task<EmbeddedBrowser> OpenBrowser(string url);
 

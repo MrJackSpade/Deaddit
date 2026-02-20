@@ -1,4 +1,5 @@
 ﻿using Deaddit.Core.Interfaces;
+using Deaddit.Core.Models;
 using Deaddit.Core.Utils.Validation;
 using Deaddit.Interfaces;
 using System.Text.RegularExpressions;
@@ -21,6 +22,11 @@ namespace Deaddit.Handlers.Url
             return Regex.IsMatch(url, SubredditRegex);
         }
 
+        public bool CanDownload(string url, IAggregatePostHandler? aggregatePostHandler)
+        {
+            return false;
+        }
+
         public async Task Launch(string url, IAggregatePostHandler caller)
         {
             Ensure.NotNull(caller);
@@ -30,6 +36,11 @@ namespace Deaddit.Handlers.Url
             string id = match.Groups[1].Value;
 
             await _appNavigator.OpenSubReddit(id);
+        }
+
+        public Task<FileDownload> Download(string url, IAggregatePostHandler aggregatePostHandler)
+        {
+            throw new NotSupportedException();
         }
     }
 }

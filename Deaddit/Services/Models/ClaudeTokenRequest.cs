@@ -1,4 +1,5 @@
-﻿using Deaddit.Services.Constants;
+﻿using Deaddit.Configurations.Ai;
+using Deaddit.Extensions;
 using System.Text.Json.Serialization;
 
 namespace Deaddit.Services.Models
@@ -9,7 +10,7 @@ namespace Deaddit.Services.Models
         public List<Message> Messages { get; set; } = [];
 
         [JsonPropertyName("model")]
-        public string Model { get; set; } = ModelNames.Claude_Sonnet_4_5_20250929;
+        public string Model { get; set; } = ClaudeModel.Claude_Sonnet_4_5.ToModelId();
 
         [JsonPropertyName("system")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

@@ -99,6 +99,16 @@ namespace Deaddit.Utils
             return new HistoryComponent(this, ApplicationStyling);
         }
 
+        public SubscriptionWebComponent CreateSubscriptionWebComponent(ThingDefinition subscriptionThing, SelectionGroup? group = null)
+        {
+            return new SubscriptionWebComponent(subscriptionThing, group is not null, this, ApplicationStyling, group);
+        }
+
+        public HistoryWebComponent CreateHistoryWebComponent()
+        {
+            return new HistoryWebComponent(this, ApplicationStyling);
+        }
+
         public async Task<EmbeddedBrowser> OpenBrowser(string resource)
         {
             EmbeddedBrowser browser = new(resource, ApplicationStyling);

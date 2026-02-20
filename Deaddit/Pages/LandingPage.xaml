@@ -1,51 +1,53 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:components="clr-namespace:Deaddit.Components"
              x:Class="Deaddit.Pages.LandingPage"
              BackgroundColor="{Binding TertiaryColor}">
-    <ScrollView>
-        <VerticalStackLayout
-        x:Name="mainStack">
-            <Grid Padding="0"
+    <Grid RowDefinitions="auto, *">
+        <!-- Navigation Bar -->
+        <Grid Padding="0"
               Row="0"
               x:Name="navigationBar"
               BackgroundColor="{Binding PrimaryColor}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-                <Button Text="&#x2699;"
-                    Grid.Column="0"
-                    x:Name="menuButton"
-                    Background="Transparent"
-                    TextColor="{Binding TextColor}"
-                    VerticalOptions="Center"
-                    HorizontalOptions="Start"
-                    Clicked="OnMenuClicked" />
+            <Button Text="&#x2699;"
+                Grid.Column="0"
+                x:Name="menuButton"
+                Background="Transparent"
+                TextColor="{Binding TextColor}"
+                VerticalOptions="Center"
+                HorizontalOptions="Start"
+                Clicked="OnMenuClicked" />
 
-                <!-- New Envelope Button -->
-                <Button Text="&#9993;"
-                    Grid.Column="1"
-                    x:Name="envelopeButton"
-                    VerticalOptions="Center"
-                    TextColor="{Binding TextColor}"
-                    HorizontalOptions="End"
-                    Background="Transparent"
-                    Clicked="OnMessageClicked" />
+            <!-- New Envelope Button -->
+            <Button Text="&#9993;"
+                Grid.Column="1"
+                x:Name="envelopeButton"
+                VerticalOptions="Center"
+                TextColor="{Binding TextColor}"
+                HorizontalOptions="End"
+                Background="Transparent"
+                Clicked="OnMessageClicked" />
 
-                <!-- Add Button -->
-                <Button Text="&#10133;"
-                    Grid.Column="2"
-                    x:Name="addButton"
-                    VerticalOptions="Center"
-                    TextColor="{Binding TextColor}"
-                    HorizontalOptions="End"
-                    Background="Transparent"
-                    Clicked="OnAddClicked" />
-            </Grid>
-        </VerticalStackLayout>
-    </ScrollView>
+            <!-- Add Button -->
+            <Button Text="&#10133;"
+                Grid.Column="2"
+                x:Name="addButton"
+                VerticalOptions="Center"
+                TextColor="{Binding TextColor}"
+                HorizontalOptions="End"
+                Background="Transparent"
+                Clicked="OnAddClicked" />
+        </Grid>
+        <!-- Main Content -->
+        <components:RedditWebElement Grid.Row="1" x:Name="webElement">
+        </components:RedditWebElement>
+    </Grid>
 </ContentPage>

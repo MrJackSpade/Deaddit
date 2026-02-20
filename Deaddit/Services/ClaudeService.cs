@@ -1,6 +1,7 @@
 ﻿using Deaddit.Configurations;
+using Deaddit.Configurations.Ai;
+using Deaddit.Extensions;
 using Deaddit.Interfaces;
-using Deaddit.Services.Constants;
 using Deaddit.Services.Models;
 using System.Net;
 using System.Text;
@@ -60,11 +61,11 @@ namespace Deaddit.Services
 
         public async Task<ClaudeTokenResponse?> CountTokens(List<Message> messages,
                                                          string? systemPrompt = null,
-                                                         string model = ModelNames.Claude_Sonnet_4_5_20250929)
+                                                         string? model = null)
         {
             ClaudeTokenRequest request = new()
             {
-                Model = model,
+                Model = model ?? ClaudeModel.Claude_Sonnet_4_5.ToModelId(),
                 Messages = messages,
                 System = systemPrompt,
             };
@@ -88,7 +89,7 @@ namespace Deaddit.Services
             _httpClient?.Dispose();
         }
 
-        public async Task<string> SendMessageAsync(string prompt, string input, string? prefill = null, double temperature = 0)
+        public async Task<string> SendMessageAsync(string prompt, string input, string? model = null, string? prefill = null, double temperature = 0)
         {
             List<Message> messages =
             [
@@ -100,7 +101,7 @@ namespace Deaddit.Services
                 messages.Add(new AssistantMessage(prefill));
             }
 
-            ClaudeMessageResponse? response = await this.SendMessageAsync(messages, systemPrompt: prompt, temperature: temperature);
+            ClaudeMessageResponse? response = await this.SendMessageAsync(messages, systemPrompt: prompt, model: model, temperature: temperature);
 
             string responseString = response.Content.FirstOrDefault()?.Text ?? string.Empty;
 
@@ -125,14 +126,14 @@ namespace Deaddit.Services
 
         public async Task<ClaudeMessageResponse?> SendMessageAsync(List<Message> messages,
                                                            string? systemPrompt = null,
-                                                           string model = ModelNames.Claude_Sonnet_4_5_20250929,
+                                                           string? model = null,
                                                            int maxTokens = 10000,
                                                            double? temperature = 0,
                                                            int maxRetries = 3)
         {
             ClaudeMessageRequest request = new()
             {
-                Model = model,
+                Model = model ?? ClaudeModel.Claude_Sonnet_4_5.ToModelId(),
                 MaxTokens = maxTokens,
                 Messages = messages,
                 System = systemPrompt,

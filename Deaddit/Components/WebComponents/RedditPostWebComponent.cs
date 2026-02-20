@@ -2,10 +2,12 @@
 using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
+using Deaddit.Core.Models;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Blocking;
 using Deaddit.Core.Utils.MultiSelect;
 using Deaddit.EventArguments;
+using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.Pages;
 using Maui.WebComponents.Attributes;
@@ -289,7 +291,7 @@ namespace Deaddit.Components.WebComponents
 
         private async void ShareButton_OnClick(object? sender, EventArgs e)
         {
-            if (_apiPostHandler.CanShare(_post))
+            if (_apiPostHandler.CanDownload(_post))
             {
                 await _multiselector.Select(
                     "Share:",
@@ -313,7 +315,19 @@ namespace Deaddit.Components.WebComponents
 
         private async Task OnShareFileClicked()
         {
-            await _apiPostHandler.Share(_post);
+            // Try post handler first (galleries, Reddit videos)
+            if (_apiPostHandler.CanShare(_post))
+            {
+                await _apiPostHandler.Share(_post);
+                return;
+            }
+
+            // Fall back to URL handler (images, videos by URL)
+            if (_apiPostHandler.UrlHandler.CanDownload(_post.Url, _apiPostHandler))
+            {
+                FileDownload download = await _apiPostHandler.UrlHandler.Download(_post.Url, _apiPostHandler);
+                await Share.Default.ShareFiles(_post.Title, download);
+            }
         }
 
         private async void TextContainer_OnClick(object? sender, EventArgs e)
