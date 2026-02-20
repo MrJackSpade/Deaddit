@@ -337,7 +337,7 @@ namespace Deaddit.Components.WebComponents
 
         private async Task NewBlockRule(BlockRule blockRule)
         {
-            ObjectEditorPage objectEditorPage = await AppNavigator.OpenObjectEditor(blockRule);
+            WebObjectEditorPage objectEditorPage = await AppNavigator.OpenObjectEditor(blockRule);
 
             objectEditorPage.OnSave += this.BlockRuleOnSave;
         }

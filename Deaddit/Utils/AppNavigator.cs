@@ -135,9 +135,9 @@ namespace Deaddit.Utils
             return page;
         }
 
-        public async Task<ObjectEditorPage> OpenObjectEditor(object original)
+        public async Task<WebObjectEditorPage> OpenObjectEditor(object original)
         {
-            ObjectEditorPage page = new(original, ApplicationStyling);
+            WebObjectEditorPage page = new(original, ApplicationStyling, Navigation);
             await Navigation.PushAsync(page);
             return page;
         }
@@ -153,7 +153,7 @@ namespace Deaddit.Utils
                 AIConfiguration = AIConfiguration
             };
 
-            ObjectEditorPage editorPage = await this.OpenObjectEditor(editorConfiguration);
+            WebObjectEditorPage editorPage = await this.OpenObjectEditor(editorConfiguration);
 
             editorPage.OnSave += (s, e) =>
             {

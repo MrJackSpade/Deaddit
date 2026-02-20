@@ -52,26 +52,32 @@
 	  <AndroidResource Remove="Attributes\**" />
 	  <AndroidResource Remove="Components\Partials\**" />
 	  <AndroidResource Remove="Models\**" />
+	  <AndroidResource Remove="Pages\Interfaces\**" />
 	  <AndroidResource Remove="Release\**" />
 	  <Compile Remove="Attributes\**" />
 	  <Compile Remove="Components\Partials\**" />
 	  <Compile Remove="Models\**" />
+	  <Compile Remove="Pages\Interfaces\**" />
 	  <Compile Remove="Release\**" />
 	  <EmbeddedResource Remove="Attributes\**" />
 	  <EmbeddedResource Remove="Components\Partials\**" />
 	  <EmbeddedResource Remove="Models\**" />
+	  <EmbeddedResource Remove="Pages\Interfaces\**" />
 	  <EmbeddedResource Remove="Release\**" />
 	  <MauiCss Remove="Attributes\**" />
 	  <MauiCss Remove="Components\Partials\**" />
 	  <MauiCss Remove="Models\**" />
+	  <MauiCss Remove="Pages\Interfaces\**" />
 	  <MauiCss Remove="Release\**" />
 	  <MauiXaml Remove="Attributes\**" />
 	  <MauiXaml Remove="Components\Partials\**" />
 	  <MauiXaml Remove="Models\**" />
+	  <MauiXaml Remove="Pages\Interfaces\**" />
 	  <MauiXaml Remove="Release\**" />
 	  <None Remove="Attributes\**" />
 	  <None Remove="Components\Partials\**" />
 	  <None Remove="Models\**" />
+	  <None Remove="Pages\Interfaces\**" />
 	  <None Remove="Release\**" />
 	</ItemGroup>
 
@@ -134,6 +140,9 @@
 	  <Compile Update="Pages\ThingCollectionPage.xaml.cs">
 	    <DependentUpon>ThingCollectionPage.xaml</DependentUpon>
 	  </Compile>
+	  <Compile Update="Pages\WebObjectEditorPage.xaml.cs">
+	    <DependentUpon>WebObjectEditorPage.xaml</DependentUpon>
+	  </Compile>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -170,10 +179,9 @@
 	  <MauiXaml Update="Pages\SubRedditAboutPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Pages\Interfaces\" />
+	  <MauiXaml Update="Pages\WebObjectEditorPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	</ItemGroup>
 
 	<ItemGroup>
