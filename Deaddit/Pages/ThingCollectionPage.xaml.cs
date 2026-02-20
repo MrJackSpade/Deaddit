@@ -5,11 +5,6 @@ using Deaddit.Components.WebComponents.Partials.User;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Extensions;
 using Deaddit.Core.Interfaces;
-using Reddit.Api.Interfaces;
-using Reddit.Api.Extensions;
-using Reddit.Api.Models;
-using Reddit.Api.Models.Api;
-using Reddit.Api.Models.ThingDefinitions;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Extensions;
 using Deaddit.Core.Utils.Validation;
@@ -20,6 +15,11 @@ using Deaddit.Pages.Models;
 using Deaddit.Utils;
 using Maui.WebComponents.Components;
 using Maui.WebComponents.Extensions;
+using Reddit.Api.Extensions;
+using Reddit.Api.Interfaces;
+using Reddit.Api.Models;
+using Reddit.Api.Models.Api;
+using Reddit.Api.Models.ThingDefinitions;
 using System.Diagnostics;
 
 namespace Deaddit.Pages

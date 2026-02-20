@@ -1,7 +1,7 @@
 ﻿using Deaddit.Core.Configurations.Models;
-using Reddit.Api.Models.Api;
 using Deaddit.Interfaces;
 using Maui.WebComponents.Components;
+using Reddit.Api.Models.Api;
 
 namespace Deaddit.Components.WebComponents.Partials.User
 {

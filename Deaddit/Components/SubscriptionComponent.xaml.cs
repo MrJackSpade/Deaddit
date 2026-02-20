@@ -1,11 +1,11 @@
 using Deaddit.Components.ComponentModels;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
-using Reddit.Api.Models.ThingDefinitions;
 using Deaddit.Core.Utils;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
+using Reddit.Api.Models.ThingDefinitions;
 
 namespace Deaddit.Components
 {

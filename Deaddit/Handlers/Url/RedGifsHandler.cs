@@ -2,12 +2,6 @@
 using Deaddit.Core.Models;
 using Deaddit.Core.Utils;
 using Deaddit.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Net.WebRequestMethods;
 
 namespace Deaddit.Handlers.Url
 {
@@ -29,12 +23,12 @@ namespace Deaddit.Handlers.Url
         {
             bool exists = await Task.Run(async () =>
             {
-                using var client = new HttpClient();
+                using HttpClient client = new();
 
                 try
                 {
-                    var request = new HttpRequestMessage(HttpMethod.Head, url);
-                    var response = await client.SendAsync(request);
+                    HttpRequestMessage request = new(HttpMethod.Head, url);
+                    HttpResponseMessage response = await client.SendAsync(request);
 
                     return response.IsSuccessStatusCode;
                 }
@@ -48,13 +42,12 @@ namespace Deaddit.Handlers.Url
 
             return exists;
         }
-    
 
         public async Task Launch(string url, IAggregatePostHandler aggregatePostHandler)
         {
             string name = url.Split('/').Last();
 
-            if(name.Contains('?'))
+            if (name.Contains('?'))
             {
                 name = name.Split('?').First();
             }
@@ -65,9 +58,9 @@ namespace Deaddit.Handlers.Url
 
             string properlyCapitalized = string.Empty;
 
-            foreach(string chunk in source.Split("\"").Skip(1))
+            foreach (string chunk in source.Split("\"").Skip(1))
             {
-                if(!Uri.TryCreate(chunk, UriKind.Absolute, out Uri? thisUrl))
+                if (!Uri.TryCreate(chunk, UriKind.Absolute, out Uri? thisUrl))
                 {
                     continue;
                 }
@@ -107,7 +100,7 @@ namespace Deaddit.Handlers.Url
                 }
             }
 
-            if(string.IsNullOrEmpty(newUrl))
+            if (string.IsNullOrEmpty(newUrl))
             {
                 foreach (string thisUrl in newUrls)
                 {

@@ -218,22 +218,25 @@ namespace Deaddit.Pages
 
             if (propertyType == typeof(string))
             {
-                Entry entry = new()
-                {
-                    Text = prop.GetValue(obj)?.ToString()
-                };
+                InputView? editor = null;
 
-                entry.TextChanged += (s, e) => prop.SetValue(obj, e.NewTextValue);
-
-                if (prop.GetCustomAttribute<EditorDisplayAttribute>() is EditorDisplayAttribute input)
+                if (prop.GetCustomAttribute<EditorDisplayAttribute>() is EditorDisplayAttribute displayAttr && displayAttr.Multiline)
                 {
-                    if (input.Masked)
+                    editor = new Editor()
                     {
-                        entry.IsPassword = true;
-                    }
+                        AutoSize = EditorAutoSizeOption.TextChanges,
+                        MinimumHeightRequest = 100  // Optional: set a minimum height
+                    };
+                }
+                else
+                {
+                    editor = new Entry();
                 }
 
-                return entry;
+                editor.Text = prop.GetValue(obj)?.ToString();
+                editor.TextChanged += (s, e) => prop.SetValue(obj, e.NewTextValue);
+
+                return editor;
             }
 
             if (propertyType == typeof(int) || propertyType == typeof(double))

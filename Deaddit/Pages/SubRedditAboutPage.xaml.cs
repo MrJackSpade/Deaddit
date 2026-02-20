@@ -1,13 +1,13 @@
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
-using Reddit.Api.Interfaces;
-using Reddit.Api.Models.Api;
-using Reddit.Api.Models.ThingDefinitions;
 using Deaddit.Interfaces;
 using Deaddit.Pages.Models;
 using Deaddit.Utils;
 using Maui.WebComponents.Components;
 using Maui.WebComponents.Extensions;
+using Reddit.Api.Interfaces;
+using Reddit.Api.Models.Api;
+using Reddit.Api.Models.ThingDefinitions;
 
 namespace Deaddit.Pages
 {

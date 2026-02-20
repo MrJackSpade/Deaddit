@@ -14,7 +14,7 @@ namespace Deaddit.Utils
 
         public async Task<string> Get(string url)
         {
-            if(!Uri.TryCreate(url, UriKind.Absolute, out Uri? _))
+            if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? _))
             {
                 return string.Empty;
             }

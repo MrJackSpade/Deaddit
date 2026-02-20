@@ -16,6 +16,11 @@ namespace Deaddit.Handlers.Post
 
         public bool CanLaunch(ApiPost apiPost)
         {
+            if (string.IsNullOrWhiteSpace(apiPost.Url))
+            {
+                return false;
+            }
+
             return UrlHandler.CanLaunch(apiPost.Url, this) || _handlers.Any(h => h.CanLaunch(apiPost, this));
         }
 

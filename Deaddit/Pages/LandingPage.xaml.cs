@@ -1,4 +1,5 @@
 using Deaddit.Components;
+using Deaddit.Components.WebComponents.Partials;
 using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Utils;
@@ -6,6 +7,8 @@ using Deaddit.EventArguments;
 using Deaddit.Interfaces;
 using Deaddit.Pages.Models;
 using Deaddit.Utils;
+using Maui.WebComponents.Components;
+using Maui.WebComponents.Extensions;
 using Reddit.Api;
 using Reddit.Api.Extensions;
 using Reddit.Api.Interfaces;
@@ -19,6 +22,8 @@ namespace Deaddit.Pages
     {
         private readonly IAppNavigator _appNavigator;
 
+        private readonly ApplicationStyling _applicationStyling;
+
         private readonly LandingPageConfiguration _configuration;
 
         private readonly IConfigurationService _configurationService;
@@ -29,6 +34,7 @@ namespace Deaddit.Pages
 
         public LandingPage(IAppNavigator appNavigator, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IRedditClient redditClient, RedditCredentials RedditCredentials, IConfigurationService configurationService, BlockConfiguration blockConfiguration)
         {
+            _applicationStyling = applicationTheme;
             //https://www.reddit.com/r/redditdev/comments/8pbx43/get_multireddit_listing/
             NavigationPage.SetHasNavigationBar(this, false);
 
@@ -55,7 +61,20 @@ namespace Deaddit.Pages
                 mainStack.Add(subRedditComponent);
             }
 
-            DataService.LoadAsync(this.LoadMultis);
+            DataService.LoadAsync(this.LoadMultisWithSpinner);
+        }
+
+        private async Task LoadMultisWithSpinner()
+        {
+            RedditWebElement spinnerContainer = new() { HeightRequest = 50 };
+            WebComponent activityIndicator = new Spinner(_applicationStyling.HighlightColor.ToHex());
+
+            mainStack.Add(spinnerContainer);
+            await spinnerContainer.AddChild(activityIndicator);
+
+            await this.LoadMultis();
+
+            mainStack.Remove(spinnerContainer);
         }
 
         public async void OnAddClicked(object? sender, EventArgs e)

@@ -41,6 +41,18 @@ namespace Deaddit
                 Url = "https://www.removepaywall.com/search?url=" + _url
             };
         }
+        public async void OnBrowserClicked(object? sender, EventArgs e)
+        {
+            try
+            {
+                Uri uri = new(_url);
+                await Browser.Default.OpenAsync(uri, BrowserLaunchMode.SystemPreferred);
+            }
+            catch (Exception)
+            {
+                // An unexpected error occurred. No browser may be installed on the device.
+            }
+        }
 
         public void OnSaveClicked(object? sender, EventArgs e)
         {

@@ -1,5 +1,5 @@
-﻿using Reddit.Api.Models.Api;
-using Maui.WebComponents.Components;
+﻿using Maui.WebComponents.Components;
+using Reddit.Api.Models.Api;
 
 namespace Deaddit.EventArguments
 {

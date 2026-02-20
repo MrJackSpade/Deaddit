@@ -7,13 +7,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Constants\**" />
+    <Compile Remove="Exceptions\**" />
+    <EmbeddedResource Remove="Constants\**" />
+    <EmbeddedResource Remove="Exceptions\**" />
+    <None Remove="Constants\**" />
+    <None Remove="Exceptions\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MimeKit" Version="4.13.0" />
     <PackageReference Include="SkiaSharp" Version="3.119.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Constants\" />
-    <Folder Include="Exceptions\" />
     <Folder Include="Utils\Models\" />
   </ItemGroup>
 
