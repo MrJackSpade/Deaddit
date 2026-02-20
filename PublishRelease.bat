@@ -52,7 +52,7 @@ if "%GITHUB_TOKEN%"=="" (
 set RELEASE_BODY=Automated Release
 
 :: Files to upload (space-separated list)
-set FILES_TO_UPLOAD=Release\Deaddit.apk
+set FILES_TO_UPLOAD=Release\Deaddit-%TAG_NAME%.apk
 
 ::----------------------------------------------
 :: Create release.json file with release details

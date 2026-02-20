@@ -42,6 +42,6 @@ dotnet build Deaddit -f net9.0-android -c Release --artifacts-path Release
 
 REM Cleanup
 ECHO Cleaning up...
-move Release\bin\Deaddit\release_net9.0-android\com.companyname.deaddit-Signed.apk Release\Deaddit.apk
+move Release\bin\Deaddit\release_net9.0-android\com.companyname.deaddit-Signed.apk Release\Deaddit-%NewVersion%.apk
 rmdir /s /Q Release\bin
 rmdir /s /Q Release\obj

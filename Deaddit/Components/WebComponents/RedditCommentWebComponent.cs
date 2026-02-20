@@ -1,12 +1,9 @@
 ﻿using Deaddit.Components.WebComponents.Partials.Comment;
+using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
-using Reddit.Api.Interfaces;
-using Reddit.Api.Models;
-using Reddit.Api.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Blocking;
-using Deaddit.Core.Utils.Extensions;
 using Deaddit.Core.Utils.MultiSelect;
 using Deaddit.Core.Utils.Validation;
 using Deaddit.EventArguments;
@@ -16,9 +13,11 @@ using Deaddit.Pages;
 using Deaddit.Utils;
 using Maui.WebComponents.Attributes;
 using Maui.WebComponents.Components;
-using System.Web;
 using Reddit.Api.Extensions;
-using Deaddit.Core.Configurations.Interfaces;
+using Reddit.Api.Interfaces;
+using Reddit.Api.Models;
+using Reddit.Api.Models.Api;
+using System.Web;
 
 namespace Deaddit.Components.WebComponents
 {
@@ -183,8 +182,17 @@ namespace Deaddit.Components.WebComponents
                         }),
                         new("Delete", async () =>
                         {
-                            await _redditClient.Delete(_comment);
-                            OnDelete?.Invoke(this, new OnDeleteClickedEventArgs(_comment, this));
+                            bool confirm = await _navigation.NavigationStack[^1].DisplayAlert(
+                                "Confirm Delete",
+                                "Are you sure you want to delete this comment?",
+                                "Delete",
+                                "Cancel");
+
+                            if (confirm)
+                            {
+                                await _redditClient.Delete(_comment);
+                                OnDelete?.Invoke(this, new OnDeleteClickedEventArgs(_comment, this));
+                            }
                         }),
                         new("Edit", async () =>
                         {
