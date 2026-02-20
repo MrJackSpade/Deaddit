@@ -1,21 +1,21 @@
 ﻿using CommunityToolkit.Maui;
+using Deaddit.Configurations;
 using Deaddit.Configurations.Services;
 using Deaddit.Configurations.Services.Extensions;
 using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
-using Reddit.Api;
-using Reddit.Api.Interfaces;
-using Deaddit.Core.Utils.IO;
+using Deaddit.Core.Reddit;
 using Deaddit.Handlers.Post;
 using Deaddit.Handlers.Url;
 using Deaddit.Interfaces;
 using Deaddit.Pages;
+using Deaddit.Services;
 using Deaddit.Utils;
 using Microsoft.Extensions.Logging;
-using Reddit.Api.Json.Interfaces;
-using Deaddit.Core.Reddit;
+using Reddit.Api.Interfaces;
 using Reddit.Api.Json;
+using Reddit.Api.Json.Interfaces;
 
 namespace Deaddit
 {
@@ -32,7 +32,7 @@ namespace Deaddit
                 HttpClient httpClient = s.GetRequiredService<HttpClient>();
                 IDisplayMessages displayExceptions = s.GetRequiredService<IDisplayMessages>();
 
-                return new DeadditClient(displayExceptions,redditCredentials, jsonClient,  httpClient);
+                return new DeadditClient(displayExceptions, redditCredentials, jsonClient, httpClient);
             });
 
             // Register individual handlers as transient
@@ -59,6 +59,7 @@ namespace Deaddit
 
             builder.Services.AddConfiguration<ApplicationStyling>();
             builder.Services.AddConfiguration<RedditCredentials>();
+            builder.Services.AddConfiguration<AIConfiguration>();
             builder.Services.AddConfiguration<BlockConfiguration>();
             builder.Services.AddConfiguration<ApplicationHacks>();
             builder.Services.AddSingleton<ETagCache>();
@@ -68,7 +69,9 @@ namespace Deaddit
             builder.Services.AddSingleton<IAppNavigator, AppNavigator>();
             builder.Services.AddTransient<IJsonClient, JsonClient>();
             builder.Services.AddSingleton<IVisitTracker, PreferencesVisitTracker>();
+            builder.Services.AddSingleton<IHistoryTracker, PreferencesHistoryTracker>();
             builder.Services.AddTransient<IConfigurationService, PreferencesConfigurationService>();
+            builder.Services.AddTransient<IClaudeService, ClaudeService>();
             builder.Services.AddSingleton(s => new HttpClient());
             builder.Services.AddSingleton<LandingPage>();
 

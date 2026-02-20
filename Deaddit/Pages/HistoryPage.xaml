@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:components="clr-namespace:Deaddit.Components"
+             xmlns:webComponents="clr-namespace:Maui.WebComponents;assembly=Maui.WebComponents"
+             x:Class="Deaddit.Pages.HistoryPage">
+    <Grid RowDefinitions="auto, *">
+        <!-- Navigation Bar -->
+        <Grid Padding="0"
+              ColumnDefinitions="auto, *, auto"
+              Row="0"
+              x:Name="navigationBar">
+            <!-- Reload Button -->
+            <Button Text="&#8635;"
+                    x:Name="reloadButton"
+                    Grid.Column="0"
+                    VerticalOptions="Center"
+                    HorizontalOptions="Start"
+                    Background="Transparent"
+                    Clicked="OnReloadClicked" />
+            <Label x:Name="titleLabel"
+                   Text="History"
+                   HorizontalTextAlignment="Center"
+                   VerticalTextAlignment="Center"
+                   Grid.Column="1"></Label>
+            <!-- Right Gear Button -->
+            <Button Text="&#x2699;"
+                    x:Name="settingsButton"
+                    Grid.Column="2"
+                    VerticalOptions="Center"
+                    HorizontalOptions="End"
+                    Background="Transparent"
+                    Clicked="OnSettingsClicked" />
+        </Grid>
+        <!-- Main Content -->
+        <components:RedditWebElement Grid.Row="1" x:Name="webElement">
+        </components:RedditWebElement>
+    </Grid>
+</ContentPage>

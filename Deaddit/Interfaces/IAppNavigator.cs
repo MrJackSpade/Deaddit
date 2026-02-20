@@ -2,12 +2,12 @@
 using Deaddit.Components.WebComponents;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Models;
+using Deaddit.Core.Utils;
+using Deaddit.Pages;
 using Reddit.Api.Interfaces;
 using Reddit.Api.Models;
 using Reddit.Api.Models.Api;
 using Reddit.Api.Models.ThingDefinitions;
-using Deaddit.Core.Utils;
-using Deaddit.Pages;
 
 namespace Deaddit.Interfaces
 {
@@ -22,6 +22,8 @@ namespace Deaddit.Interfaces
         RedditPostWebComponent CreatePostWebComponent(ApiPost post, PostState postHandling, SelectionGroup? selectionGroup = null);
 
         SubscriptionComponent CreateSubRedditComponent(ThingDefinition subscriptionThing, SelectionGroup? group = null);
+
+        HistoryComponent CreateHistoryComponent();
 
         Task<EmbeddedBrowser> OpenBrowser(string url);
 
@@ -39,7 +41,7 @@ namespace Deaddit.Interfaces
 
         Task OpenObjectEditor();
 
-        Task<PostPage> OpenPost(ApiPost post, ApiComment focus = null);
+        Task<PostPage> OpenPost(ApiPost post, ApiComment focus = null, bool fromHistoryPage = false);
 
         Task<ReplyPage> OpenReplyPage(ApiThing replyTo);
 
@@ -52,5 +54,7 @@ namespace Deaddit.Interfaces
         Task<ThingCollectionPage> OpenUser(string username, UserProfileSort userProfileSort = UserProfileSort.New);
 
         Task<EmbeddedVideo> OpenVideo(FileDownload url);
+
+        Task<HistoryPage> OpenHistory();
     }
 }
