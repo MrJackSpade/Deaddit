@@ -16,6 +16,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		PostRelease.ps1 = PostRelease.ps1
 		PublishRelease.bat = PublishRelease.bat
 		README.md = README.md
+		TODO.md = TODO.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Deaddit.Core", "Deaddit.Core\Deaddit.Core.csproj", "{425AA3B7-2E87-462C-95A5-5623EF09D9FF}"

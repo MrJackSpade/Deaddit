@@ -9,7 +9,7 @@ using Reddit.Api.Models.ThingDefinitions;
 
 namespace Deaddit.Components
 {
-    public partial class SubscriptionComponent : ContentView, ISelectionGroupItem
+    public partial class SubscriptionComponent : ContentView, ISelectionGroupItem, ISubscriptionComponent
     {
         private readonly ApplicationStyling _applicationStyling;
 

@@ -94,7 +94,7 @@ namespace Deaddit.Pages
 
                         try
                         {
-                            textEditor.Text = await _claudeService.SendMessageAsync(systemPrompt, history);
+                            textEditor.Text = await _claudeService.SendMessageAsync(systemPrompt, history, selectedPrompt.Model.ToModelId());
                         }
                         finally
                         {

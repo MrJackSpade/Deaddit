@@ -11,6 +11,21 @@ namespace Deaddit.Handlers.Url
 
         public bool CanLaunch(string url, IAggregatePostHandler? aggregatePostHandler)
         {
+            return this.IsRedGifs(url);
+        }
+
+        public bool CanDownload(string url, IAggregatePostHandler? aggregatePostHandler)
+        {
+            return false; // RedGifs requires URL resolution, not directly downloadable
+        }
+
+        public Task<FileDownload> Download(string url, IAggregatePostHandler aggregatePostHandler)
+        {
+            throw new NotSupportedException();
+        }
+
+        private bool IsRedGifs(string url)
+        {
             if (UrlHelper.GetMimeTypeFromUri(url).StartsWith("image/"))
             {
                 return false;

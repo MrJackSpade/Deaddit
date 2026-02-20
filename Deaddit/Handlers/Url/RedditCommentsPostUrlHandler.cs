@@ -1,4 +1,5 @@
 ﻿using Deaddit.Core.Interfaces;
+using Deaddit.Core.Models;
 using Deaddit.Core.Utils.Validation;
 using Deaddit.Interfaces;
 using Reddit.Api.Interfaces;
@@ -23,6 +24,11 @@ namespace Deaddit.Handlers.Url
             return Regex.IsMatch(url, @".*/r\/[^\/]+\/comments\/[^\/]+\/[^\/]+\/?.*$");
         }
 
+        public bool CanDownload(string url, IAggregatePostHandler? aggregatePostHandler)
+        {
+            return false;
+        }
+
         public async Task Launch(string url, IAggregatePostHandler caller)
         {
             Ensure.NotNull(caller);
@@ -34,6 +40,11 @@ namespace Deaddit.Handlers.Url
             ApiPost post = await _redditClient.GetPost(id);
 
             await _appNavigator.OpenPost(post);
+        }
+
+        public Task<FileDownload> Download(string url, IAggregatePostHandler aggregatePostHandler)
+        {
+            throw new NotSupportedException();
         }
     }
 }

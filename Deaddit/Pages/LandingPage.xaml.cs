@@ -1,13 +1,13 @@
-using Deaddit.Components;
-using Deaddit.Components.WebComponents.Partials;
+using Deaddit.Components.WebComponents;
 using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
+using Deaddit.Core.Interfaces;
 using Deaddit.Core.Utils;
 using Deaddit.EventArguments;
+using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.Pages.Models;
 using Deaddit.Utils;
-using Maui.WebComponents.Components;
 using Maui.WebComponents.Extensions;
 using Reddit.Api;
 using Reddit.Api.Extensions;
@@ -28,11 +28,13 @@ namespace Deaddit.Pages
 
         private readonly IConfigurationService _configurationService;
 
+        private readonly IDisplayMessages _displayMessages;
+
         private readonly IRedditClient _redditClient;
 
         private readonly SelectionGroup _selectionGroup = new();
 
-        public LandingPage(IAppNavigator appNavigator, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IRedditClient redditClient, RedditCredentials RedditCredentials, IConfigurationService configurationService, BlockConfiguration blockConfiguration)
+        public LandingPage(IAppNavigator appNavigator, IDisplayMessages displayMessages, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IRedditClient redditClient, RedditCredentials RedditCredentials, IConfigurationService configurationService, BlockConfiguration blockConfiguration)
         {
             _applicationStyling = applicationTheme;
             //https://www.reddit.com/r/redditdev/comments/8pbx43/get_multireddit_listing/
@@ -40,6 +42,7 @@ namespace Deaddit.Pages
 
             _appNavigator = appNavigator;
             _redditClient = redditClient;
+            _displayMessages = displayMessages;
 
             _configuration = configurationService.Read<LandingPageConfiguration>();
 
@@ -48,33 +51,30 @@ namespace Deaddit.Pages
             BindingContext = new LandingPageViewModel(applicationTheme);
             this.InitializeComponent();
 
-            mainStack.Add(_appNavigator.CreateSubRedditComponent(ThingDefinitionHelper.ForSubReddit("All"), null));
-            mainStack.Add(_appNavigator.CreateSubRedditComponent(new HomeDefinition(), null));
-            mainStack.Add(_appNavigator.CreateSubRedditComponent(new SavedDefinition(), null));
-            mainStack.Add(_appNavigator.CreateHistoryComponent());
+            webElement.SetColors(applicationTheme);
+            webElement.OnJavascriptError += this.WebElement_OnJavascriptError;
+
+            navigationBar.BackgroundColor = applicationTheme.PrimaryColor.ToMauiColor();
+
+            DataService.LoadAsync(this.InitializeContent);
+        }
+
+        private async Task InitializeContent()
+        {
+            await webElement.AddChild(_appNavigator.CreateSubscriptionWebComponent(ThingDefinitionHelper.ForSubReddit("All"), null));
+            await webElement.AddChild(_appNavigator.CreateSubscriptionWebComponent(new HomeDefinition(), null));
+            await webElement.AddChild(_appNavigator.CreateSubscriptionWebComponent(new SavedDefinition(), null));
+            await webElement.AddChild(_appNavigator.CreateHistoryWebComponent());
 
             foreach (SubRedditSubscription subscription in _configuration.Subscriptions)
             {
                 ThingDefinition thingDefinition = ThingDefinitionHelper.FromName(subscription.ThingName);
-                SubscriptionComponent subRedditComponent = _appNavigator.CreateSubRedditComponent(thingDefinition, _selectionGroup);
+                SubscriptionWebComponent subRedditComponent = _appNavigator.CreateSubscriptionWebComponent(thingDefinition, _selectionGroup);
                 subRedditComponent.OnRemove += this.SubRedditComponent_OnRemove;
-                mainStack.Add(subRedditComponent);
+                await webElement.AddChild(subRedditComponent);
             }
 
-            DataService.LoadAsync(this.LoadMultisWithSpinner);
-        }
-
-        private async Task LoadMultisWithSpinner()
-        {
-            RedditWebElement spinnerContainer = new() { HeightRequest = 50 };
-            WebComponent activityIndicator = new Spinner(_applicationStyling.HighlightColor.ToHex());
-
-            mainStack.Add(spinnerContainer);
-            await spinnerContainer.AddChild(activityIndicator);
-
             await this.LoadMultis();
-
-            mainStack.Remove(spinnerContainer);
         }
 
         public async void OnAddClicked(object? sender, EventArgs e)
@@ -104,9 +104,9 @@ namespace Deaddit.Pages
 
             ThingDefinition thingDefinition = ThingDefinitionHelper.FromName(newSubscription.ThingName);
 
-            SubscriptionComponent subRedditComponent = _appNavigator.CreateSubRedditComponent(thingDefinition, _selectionGroup);
+            SubscriptionWebComponent subRedditComponent = _appNavigator.CreateSubscriptionWebComponent(thingDefinition, _selectionGroup);
             subRedditComponent.OnRemove += this.SubRedditComponent_OnRemove;
-            mainStack.Add(subRedditComponent);
+            await webElement.AddChild(subRedditComponent);
         }
 
         public async void OnMenuClicked(object? sender, EventArgs e)
@@ -123,23 +123,26 @@ namespace Deaddit.Pages
         {
             if (_redditClient.CanLogIn)
             {
-                foreach (ApiMulti multi in await _redditClient.Multis())
+                await DataService.LoadAsync(webElement, async () =>
                 {
-                    if (!multi.Subreddits.NotNullAny())
+                    foreach (ApiMulti multi in await _redditClient.Multis())
                     {
-                        continue;
-                    }
+                        if (!multi.Subreddits.NotNullAny())
+                        {
+                            continue;
+                        }
 
-                    mainStack.Add(_appNavigator.CreateSubRedditComponent(
-                                                ThingDefinitionHelper.ForMulti(multi.Name),
-                                                _selectionGroup));
-                }
+                        await webElement.AddChild(_appNavigator.CreateSubscriptionWebComponent(
+                                                    ThingDefinitionHelper.ForMulti(multi.Name),
+                                                    _selectionGroup));
+                    }
+                }, _applicationStyling.HighlightColor.ToHex());
             }
         }
 
-        private void SubRedditComponent_OnRemove(object? sender, SubRedditSubscriptionRemoveEventArgs e)
+        private async void SubRedditComponent_OnRemove(object? sender, SubRedditSubscriptionRemoveEventArgs e)
         {
-            mainStack.Remove(e.Component);
+            await webElement.RemoveChild((SubscriptionWebComponent)e.Component);
 
             foreach (SubRedditSubscription subscription in _configuration.Subscriptions)
             {
@@ -153,6 +156,11 @@ namespace Deaddit.Pages
             }
 
             _configurationService.Write(_configuration);
+        }
+
+        private void WebElement_OnJavascriptError(object? sender, Exception e)
+        {
+            _displayMessages.DisplayException(e);
         }
     }
 }
