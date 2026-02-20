@@ -9,4 +9,4 @@
 7. ~~Enhance image viewer with pinch to zoom~~
 8. Refactor settings to use webview
 9. Show load icon on landing page while multis are loading
-10. Fix share action from post overview
+10. ~~Fix share action from post overview~~
