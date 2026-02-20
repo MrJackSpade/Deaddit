@@ -56,13 +56,6 @@ namespace Deaddit.Components.WebComponents.Partials.Post
 
             timeUserContainer.Children.Add(timeUser);
 
-            if (!string.IsNullOrWhiteSpace(post.AuthorFlairText))
-            {
-                string flairColor = post.AuthorFlairBackgroundColor?.ToHex() ?? applicationStyling.SubTextColor.ToHex();
-                FlairComponent userFlair = new(post.AuthorFlairText, flairColor, applicationStyling);
-                timeUserContainer.Children.Add(userFlair);
-            }
-
             SpanComponent metaData = new()
             {
                 InnerText = $"{post.NumComments} comments {post.SubRedditName}",
