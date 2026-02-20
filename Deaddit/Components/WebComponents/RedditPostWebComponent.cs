@@ -289,10 +289,17 @@ namespace Deaddit.Components.WebComponents
 
         private async void ShareButton_OnClick(object? sender, EventArgs e)
         {
-            await _multiselector.Select(
-                "Share:",
-                new($"File", this.OnShareFileClicked),
-                new($"Link", this.OnShareLinkClicked));
+            if (_apiPostHandler.CanShare(_post))
+            {
+                await _multiselector.Select(
+                    "Share:",
+                    new("File", this.OnShareFileClicked),
+                    new("Link", this.OnShareLinkClicked));
+            }
+            else
+            {
+                await this.OnShareLinkClicked();
+            }
         }
 
         private async Task OnShareLinkClicked()
@@ -306,11 +313,7 @@ namespace Deaddit.Components.WebComponents
 
         private async Task OnShareFileClicked()
         {
-            await Share.Default.RequestAsync(new ShareTextRequest
-            {
-                Uri = _post.Url,
-                Title = _post.Title
-            });
+            await _apiPostHandler.Share(_post);
         }
 
         private async void TextContainer_OnClick(object? sender, EventArgs e)
