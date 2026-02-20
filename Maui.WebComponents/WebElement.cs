@@ -160,8 +160,8 @@ namespace Maui.WebComponents
 
         private static void RaiseEvent(WebComponent component, EventInfo eventInfo, string argsJson)
         {
-            // Deserialize argsJson if necessary
-            EventArgs eventArgs = EventArgs.Empty; // Replace with actual deserialization if needed
+            // Parse args and create typed EventArgs
+            EventArgs eventArgs = CreateEventArgs(eventInfo, argsJson);
 
             // Get the backing field of the event (this relies on the field name matching the event name)
             FieldInfo? field = null;
@@ -188,6 +188,65 @@ namespace Maui.WebComponents
                     }
                 }
             }
+        }
+
+        private static EventArgs CreateEventArgs(EventInfo eventInfo, string argsJson)
+        {
+            try
+            {
+                Dictionary<string, string?>? args = JsonSerializer.Deserialize<Dictionary<string, string?>>(argsJson);
+                if (args == null)
+                {
+                    return EventArgs.Empty;
+                }
+
+                // Check event handler type and create appropriate EventArgs
+                Type? handlerType = eventInfo.EventHandlerType;
+                if (handlerType != null && handlerType.IsGenericType)
+                {
+                    Type[] genericArgs = handlerType.GetGenericArguments();
+                    if (genericArgs.Length > 0)
+                    {
+                        Type argsType = genericArgs[0];
+
+                        if (argsType == typeof(InputEventArgs))
+                        {
+                            bool? checkedValue = null;
+                            if (args.TryGetValue("checked", out string? checkedStr))
+                            {
+                                checkedValue = string.Equals(checkedStr, "true", StringComparison.OrdinalIgnoreCase);
+                            }
+
+                            return new InputEventArgs
+                            {
+                                Value = args.GetValueOrDefault("value"),
+                                Checked = checkedValue
+                            };
+                        }
+
+                        if (argsType == typeof(SelectChangedEventArgs))
+                        {
+                            int selectedIndex = 0;
+                            if (args.TryGetValue("selectedIndex", out string? indexStr))
+                            {
+                                int.TryParse(indexStr, out selectedIndex);
+                            }
+
+                            return new SelectChangedEventArgs
+                            {
+                                Value = args.GetValueOrDefault("value"),
+                                SelectedIndex = selectedIndex
+                            };
+                        }
+                    }
+                }
+            }
+            catch (JsonException)
+            {
+                // Fall through to return EventArgs.Empty
+            }
+
+            return EventArgs.Empty;
         }
 
         private static string RenderComponent(WebComponent component)

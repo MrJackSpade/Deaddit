@@ -145,7 +145,7 @@
             true
         );
 
-        function invokeMethod(componentId, methodName, args) {
+        function invokeMethod(componentId, methodName, event) {
             try {
                 if (!componentId || typeof componentId !== 'string') {
                     throw new Error('Invalid componentId.');
@@ -154,14 +154,32 @@
                     throw new Error('Invalid methodName.');
                 }
 
-                if (args && args.target && args.target.tagName === 'A' && args.target.href) {
-                    const href = args.target.href;
+                if (event && event.target && event.target.tagName === 'A' && event.target.href) {
+                    const href = event.target.href;
 
-                    if (typeof args.preventDefault === 'function') {
-                        args.preventDefault();
+                    if (typeof event.preventDefault === 'function') {
+                        event.preventDefault();
                     }
 
                     return { success: true };
+                }
+
+                // Extract input values from form elements
+                var args = {};
+                if (event && event.target) {
+                    var target = event.target;
+                    if (target.tagName === 'INPUT') {
+                        if (target.type === 'checkbox') {
+                            args.checked = target.checked ? 'true' : 'false';
+                        } else {
+                            args.value = target.value || '';
+                        }
+                    } else if (target.tagName === 'SELECT') {
+                        args.value = target.value || '';
+                        args.selectedIndex = target.selectedIndex.toString();
+                    } else if (target.tagName === 'TEXTAREA') {
+                        args.value = target.value || '';
+                    }
                 }
 
                 var navResult = navigate(componentId, methodName, args);

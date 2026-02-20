@@ -1,11 +1,8 @@
-﻿using Deaddit.Components.WebComponents.Partials;
-using Deaddit.Components.WebComponents.Partials.Comment;
+﻿using Deaddit.Components.WebComponents.Partials.Comment;
 using Deaddit.Components.WebComponents.Partials.Message;
 using Deaddit.Components.WebComponents.Partials.Post;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
-using Reddit.Api.Interfaces;
-using Reddit.Api.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Blocking;
 using Deaddit.Core.Utils.MultiSelect;
@@ -16,7 +13,8 @@ using Deaddit.Pages;
 using Deaddit.Utils;
 using Maui.WebComponents.Attributes;
 using Maui.WebComponents.Components;
-using System.Xml.Linq;
+using Reddit.Api.Interfaces;
+using Reddit.Api.Models.Api;
 
 namespace Deaddit.Components.WebComponents
 {
@@ -78,7 +76,7 @@ namespace Deaddit.Components.WebComponents
             _replies = new RepliesContainerComponent(_applicationStyling);
 
             _messageHeader = new MessageHeaderComponent(applicationStyling, message);
-            
+
             _topBar = new TopBarComponent();
 
             _bottomBar = new MessageBarComponent(applicationStyling);
@@ -158,7 +156,7 @@ namespace Deaddit.Components.WebComponents
 
         private async Task NewBlockRule(BlockRule blockRule)
         {
-            ObjectEditorPage objectEditorPage = await AppNavigator.OpenObjectEditor(blockRule);
+            WebObjectEditorPage objectEditorPage = await AppNavigator.OpenObjectEditor(blockRule);
         }
 
         private async void SelectClick(object? sender, EventArgs e)

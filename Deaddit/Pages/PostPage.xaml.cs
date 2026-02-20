@@ -3,9 +3,6 @@ using Deaddit.Components.WebComponents.Partials.Post;
 using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
-using Reddit.Api.Interfaces;
-using Reddit.Api.Models;
-using Reddit.Api.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Blocking;
 using Deaddit.Core.Utils.MultiSelect;
@@ -16,6 +13,9 @@ using Deaddit.Interfaces;
 using Deaddit.Utils;
 using Maui.WebComponents.Components;
 using Maui.WebComponents.Extensions;
+using Reddit.Api.Interfaces;
+using Reddit.Api.Models;
+using Reddit.Api.Models.Api;
 using System.Diagnostics;
 
 namespace Deaddit.Pages
@@ -97,7 +97,7 @@ namespace Deaddit.Pages
             webElement.AddChild(redditPostComponent);
 
             if (!string.IsNullOrWhiteSpace(post.Body))
-            {           
+            {
                 //Include hidden characters for removal here 
                 string postBodyVisible = new(post.Body.Trim().Where(c => c != (char)8204).ToArray());
 
@@ -200,6 +200,23 @@ namespace Deaddit.Pages
 
         public virtual async void OnShareClicked(object? sender, EventArgs e)
         {
+            await _multiselector.Select(
+                "Share:",
+                new($"File", this.OnShareFileClicked),
+                new($"Link", this.OnShareLinkClicked));
+        }
+
+        private async Task OnShareLinkClicked()
+        {
+            await Share.Default.RequestAsync(new ShareTextRequest
+            {
+                Text = Post.Url,
+                Title = Post.Title
+            });
+        }
+
+        private async Task OnShareFileClicked()
+        {
             await Share.Default.RequestAsync(new ShareTextRequest
             {
                 Uri = Post.Url,
@@ -260,7 +277,7 @@ namespace Deaddit.Pages
 
         private async Task NewBlockRule(BlockRule blockRule)
         {
-            ObjectEditorPage objectEditorPage = await AppNavigator.OpenObjectEditor(blockRule);
+            WebObjectEditorPage objectEditorPage = await AppNavigator.OpenObjectEditor(blockRule);
 
             objectEditorPage.OnSave += this.BlockRuleOnSave;
         }

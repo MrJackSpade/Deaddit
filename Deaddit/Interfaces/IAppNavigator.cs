@@ -35,7 +35,7 @@ namespace Deaddit.Interfaces
 
         Task<ThingCollectionPage> OpenMessages(InboxSort sort = InboxSort.Unread);
 
-        Task<ObjectEditorPage> OpenObjectEditor(object original);
+        Task<WebObjectEditorPage> OpenObjectEditor(object original);
 
         Task OpenObjectEditor(Action onSave);
 
