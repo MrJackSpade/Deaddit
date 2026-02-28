@@ -5,6 +5,7 @@ using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Reddit.Models.Requests;
 using Deaddit.Core.Reddit.Models.ThingDefinitions;
+using Reddit.Api.Models.Enums;
 using Reddit.Api.Models.Json.Common;
 using Reddit.Api.Models.Json.Listings;
 using System.Diagnostics;
@@ -125,7 +126,7 @@ namespace Deaddit.Core.Reddit
                         }
 
                         // Check if this is a "more" item
-                        if (child.Kind == "more")
+                        if (child.Kind == ThingKind.More)
                         {
                             ApiMore more = RedditModelMapper.MapMore(child.Data);
                             more.Parent = responseParent;
@@ -166,12 +167,20 @@ namespace Deaddit.Core.Reddit
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
-                string kindString = kind.ToString().ToLower();
+                SubmitKind submitKind = kind switch
+                {
+                    PostKind.Self => SubmitKind.Self,
+                    PostKind.Link => SubmitKind.Link,
+                    PostKind.Image => SubmitKind.Image,
+                    PostKind.Video => SubmitKind.Video,
+                    PostKind.VideoGif => SubmitKind.VideoGif,
+                    _ => SubmitKind.Self
+                };
                 global::Reddit.Api.Models.Json.LinksComments.SubmitRequest request = new()
                 {
                     Subreddit = subreddit,
                     Title = title,
-                    Kind = kindString
+                    Kind = submitKind
                 };
 
                 if (kind is PostKind.Self)
@@ -514,7 +523,7 @@ namespace Deaddit.Core.Reddit
 
                     foreach (Thing<Comment> thing in result)
                     {
-                        if (thing?.Data != null && thing.Kind != "more")
+                        if (thing?.Data != null && thing.Kind != ThingKind.More)
                         {
                             ApiComment comment = RedditModelMapper.Map(thing.Data);
                             if (comment != null)
@@ -533,7 +542,7 @@ namespace Deaddit.Core.Reddit
                             continue;
                         }
 
-                        if (thing.Kind == "more")
+                        if (thing.Kind == ThingKind.More)
                         {
                             ApiMore more = RedditModelMapper.MapMore(thing.Data);
                             allThings.Add(more);
@@ -649,7 +658,7 @@ namespace Deaddit.Core.Reddit
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
-                string how = distinguish ? "yes" : "no";
+                DistinguishHow how = distinguish ? DistinguishHow.Yes : DistinguishHow.No;
                 await _client.DistinguishAsync(thing.Name, how, sticky);
 
                 stopwatch.Stop();
@@ -882,7 +891,7 @@ namespace Deaddit.Core.Reddit
                                 continue;
                             }
 
-                            if (child.Kind == "more")
+                            if (child.Kind == ThingKind.More)
                             {
                                 ApiMore more = RedditModelMapper.MapMore(child.Data);
                                 more.Parent = apiComment;

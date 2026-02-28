@@ -7,8 +7,6 @@ using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit;
 using Deaddit.Core.Reddit.Interfaces;
-using Deaddit.Core.Reddit.Json;
-using Deaddit.Core.Reddit.Json.Interfaces;
 using Deaddit.Handlers.Post;
 using Deaddit.Handlers.Url;
 using Deaddit.Interfaces;
@@ -66,7 +64,6 @@ namespace Deaddit
             builder.Services.AddTransient((s) => Shell.Current.Navigation);
             builder.Services.AddSingleton<ISelectBoxDisplay, SelectBoxDisplay>();
             builder.Services.AddSingleton<IAppNavigator, AppNavigator>();
-            builder.Services.AddTransient<IJsonClient, JsonClient>();
             builder.Services.AddSingleton<IVisitTracker, PreferencesVisitTracker>();
             builder.Services.AddSingleton<IHistoryTracker, PreferencesHistoryTracker>();
             builder.Services.AddTransient<IConfigurationService, PreferencesConfigurationService>();
