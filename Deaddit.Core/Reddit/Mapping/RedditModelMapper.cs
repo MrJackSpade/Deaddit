@@ -51,8 +51,8 @@ namespace Deaddit.Core.Reddit.Mapping
                 Downs = source.Downs,
                 UpvoteRatio = source.UpvoteRatio,
                 NumComments = source.NumComments,
-                CreatedUtc = MapDateTime(source.CreatedUtc),
-                Edited = MapEditedTime(source.Edited),
+                CreatedUtc = source.CreatedUtc,
+                Edited = source.Edited,
                 Permalink = source.Permalink,
                 IsSelf = source.IsSelf,
                 IsVideo = source.IsVideo,
@@ -98,9 +98,9 @@ namespace Deaddit.Core.Reddit.Mapping
                 ModNote = source.ModNote,
                 ModReasonBy = source.ModReasonBy,
                 ModReasonTitle = source.ModReasonTitle,
-                ApprovedAtUtc = MapOptionalDateTime(source.ApprovedAtUtc),
+                ApprovedAtUtc = source.ApprovedAtUtc,
                 ApprovedBy = source.ApprovedBy,
-                BannedAtUtc = source.BannedAtUtc.HasValue ? DateTime.UnixEpoch.AddSeconds(source.BannedAtUtc.Value) : null,
+                BannedAtUtc = source.BannedAtUtc,
                 BannedBy = source.BannedBy,
                 RemovedBy = source.RemovedBy,
                 RemovedByCategory = source.RemovedByCategory,
@@ -161,8 +161,8 @@ namespace Deaddit.Core.Reddit.Mapping
                 Score = source.Score,
                 Ups = source.Ups,
                 Downs = source.Downs,
-                CreatedUtc = MapDateTime(source.CreatedUtc),
-                Edited = MapEditedTime(source.Edited),
+                CreatedUtc = source.CreatedUtc,
+                Edited = source.Edited,
                 Permalink = source.Permalink,
                 IsLocked = source.Locked,
                 Stickied = source.Stickied,
@@ -187,9 +187,9 @@ namespace Deaddit.Core.Reddit.Mapping
                 ModNote = source.ModNote,
                 ModReasonBy = source.ModReasonBy,
                 ModReasonTitle = source.ModReasonTitle,
-                ApprovedAtUtc = MapOptionalDateTime(source.ApprovedAtUtc),
+                ApprovedAtUtc = source.ApprovedAtUtc,
                 ApprovedBy = source.ApprovedBy,
-                BannedAtUtc = source.BannedAtUtc.HasValue ? DateTime.UnixEpoch.AddSeconds(source.BannedAtUtc.Value) : null,
+                BannedAtUtc = source.BannedAtUtc,
                 BannedBy = source.BannedBy
             };
         }
@@ -233,7 +233,7 @@ namespace Deaddit.Core.Reddit.Mapping
                 Subscribers = source.Subscribers,
                 ActiveUserCount = source.ActiveUserCount,
                 AccountsActive = source.AccountsActive,
-                CreatedUtc = MapDateTime(source.CreatedUtc),
+                CreatedUtc = source.CreatedUtc,
                 IsNSFW = source.Over18,
                 UserIsSubscriber = source.UserIsSubscriber ?? false,
                 UserIsModerator = source.UserIsModerator ?? false,
@@ -326,7 +326,7 @@ namespace Deaddit.Core.Reddit.Mapping
             {
                 Id = source.Id,
                 Name = source.Name,
-                CreatedUtc = MapDateTime(source.CreatedUtc),
+                CreatedUtc = source.CreatedUtc,
                 LinkKarma = source.LinkKarma,
                 CommentKarma = source.CommentKarma,
                 TotalKarma = source.TotalKarma ?? 0,
@@ -400,7 +400,7 @@ namespace Deaddit.Core.Reddit.Mapping
                 NumSubscribers = source.NumSubscribers,
                 CopiedFrom = source.CopiedFrom,
                 Created = source.Created,
-                CreatedUtc = MapDateTime(source.CreatedUtc),
+                CreatedUtc = source.CreatedUtc,
                 Subreddits = source.Subreddits?.Select(s => new ApiMultiSubReddit { Name = s.Name }).ToList() ?? []
             };
         }
@@ -483,59 +483,6 @@ namespace Deaddit.Core.Reddit.Mapping
         #endregion
 
         #region Primitive Conversions
-
-        public static OptionalDateTime MapDateTime(double unixTimestamp)
-        {
-            if (unixTimestamp <= 0)
-            {
-                return OptionalDateTime.Null;
-            }
-
-            return DateTime.UnixEpoch.AddSeconds(unixTimestamp);
-        }
-
-        public static OptionalDateTime MapOptionalDateTime(double? unixTimestamp)
-        {
-            if (!unixTimestamp.HasValue || unixTimestamp.Value <= 0)
-            {
-                return OptionalDateTime.Null;
-            }
-
-            return DateTime.UnixEpoch.AddSeconds(unixTimestamp.Value);
-        }
-
-        public static OptionalDateTime MapEditedTime(object? edited)
-        {
-            if (edited == null)
-            {
-                return OptionalDateTime.Null;
-            }
-
-            if (edited is bool b && !b)
-            {
-                return OptionalDateTime.Null;
-            }
-
-            if (edited is double d)
-            {
-                return MapDateTime(d);
-            }
-
-            if (edited is System.Text.Json.JsonElement je)
-            {
-                if (je.ValueKind == System.Text.Json.JsonValueKind.False)
-                {
-                    return OptionalDateTime.Null;
-                }
-
-                if (je.ValueKind == System.Text.Json.JsonValueKind.Number && je.TryGetDouble(out double timestamp))
-                {
-                    return MapDateTime(timestamp);
-                }
-            }
-
-            return OptionalDateTime.Null;
-        }
 
         public static UpvoteState MapUpvoteState(bool? likes)
         {
