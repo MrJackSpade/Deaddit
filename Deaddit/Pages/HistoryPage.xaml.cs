@@ -1,6 +1,8 @@
 using Deaddit.Components.WebComponents;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
+using Deaddit.Core.Reddit.Interfaces;
+using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Validation;
 using Deaddit.EventArguments;
@@ -8,9 +10,6 @@ using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.Utils;
 using Maui.WebComponents.Extensions;
-using Reddit.Api.Interfaces;
-using Reddit.Api.Models.Api;
-using System.Diagnostics;
 
 namespace Deaddit.Pages
 {

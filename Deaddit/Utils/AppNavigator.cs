@@ -5,15 +5,15 @@ using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Models;
+using Deaddit.Core.Reddit;
+using Deaddit.Core.Reddit.Interfaces;
+using Deaddit.Core.Reddit.Models;
+using Deaddit.Core.Reddit.Models.Api;
+using Deaddit.Core.Reddit.Models.ThingDefinitions;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Validation;
 using Deaddit.Interfaces;
 using Deaddit.Pages;
-using Reddit.Api;
-using Reddit.Api.Interfaces;
-using Reddit.Api.Models;
-using Reddit.Api.Models.Api;
-using Reddit.Api.Models.ThingDefinitions;
 
 namespace Deaddit.Utils
 {

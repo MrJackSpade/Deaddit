@@ -1,16 +1,13 @@
 using Deaddit.Components.WebComponents.Forms;
 using Deaddit.Core.Attributes;
 using Deaddit.Core.Configurations.Models;
-using Deaddit.Core.Extensions;
+using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Utils.DeepCopy;
 using Deaddit.Core.Utils.Extensions;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
-using Deaddit.Interfaces;
 using Maui.WebComponents.Components;
 using Maui.WebComponents.Extensions;
-using Reddit.Api.Models;
-using System.Collections;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -164,10 +161,7 @@ namespace Deaddit.Pages
                 {
                     if (!string.IsNullOrWhiteSpace(descriptionText))
                     {
-                        field.OnInfoClicked += async (s, e) =>
-                        {
-                            await this.DisplayAlert(labelText, descriptionText, "OK");
-                        };
+                        field.OnInfoClicked += async (s, e) => await this.DisplayAlert(labelText, descriptionText, "OK");
                     }
 
                     _formContainer.Children.Add(field);

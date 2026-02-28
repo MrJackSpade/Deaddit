@@ -6,6 +6,9 @@ using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit;
+using Deaddit.Core.Reddit.Interfaces;
+using Deaddit.Core.Reddit.Json;
+using Deaddit.Core.Reddit.Json.Interfaces;
 using Deaddit.Handlers.Post;
 using Deaddit.Handlers.Url;
 using Deaddit.Interfaces;
@@ -13,9 +16,6 @@ using Deaddit.Pages;
 using Deaddit.Services;
 using Deaddit.Utils;
 using Microsoft.Extensions.Logging;
-using Reddit.Api.Interfaces;
-using Reddit.Api.Json;
-using Reddit.Api.Json.Interfaces;
 
 namespace Deaddit
 {

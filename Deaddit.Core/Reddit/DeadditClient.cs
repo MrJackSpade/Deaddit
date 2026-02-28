@@ -1,5 +1,5 @@
 ﻿using Deaddit.Core.Interfaces;
-using Reddit.Api.Interfaces;
+using Deaddit.Core.Reddit.Interfaces;
 
 namespace Deaddit.Core.Reddit
 {

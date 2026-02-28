@@ -1,8 +1,8 @@
 using Deaddit.Core.Configurations.Models;
+using Deaddit.Core.Reddit.Models;
 using Maui.WebComponents.Attributes;
 using Maui.WebComponents.Components;
 using Maui.WebComponents.Events;
-using Reddit.Api.Models;
 using System.Reflection;
 
 namespace Deaddit.Components.WebComponents.Forms
@@ -67,7 +67,7 @@ namespace Deaddit.Components.WebComponents.Forms
                 MarginTop = "4px"
             };
 
-            _input.OnInput += OnInputChanged;
+            _input.OnInput += this.OnInputChanged;
 
             container.Children.Add(_colorPreview);
             container.Children.Add(_input);

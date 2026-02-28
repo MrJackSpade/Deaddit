@@ -1,7 +1,7 @@
 using Deaddit.Core.Reddit.Models;
-using Reddit.Api.Models;
-using Reddit.Api.Models.Requests;
-using Reddit.Api.Models.ThingDefinitions;
+using Deaddit.Core.Reddit.Models.Api;
+using Deaddit.Core.Reddit.Models.Requests;
+using Deaddit.Core.Reddit.Models.ThingDefinitions;
 
 namespace Deaddit.Core.Reddit.Interfaces
 {

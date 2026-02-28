@@ -1,5 +1,5 @@
 ﻿using Deaddit.Core.Interfaces;
-using Reddit.Api.Exceptions;
+using Deaddit.Core.Reddit.Exceptions;
 using System.Diagnostics;
 
 namespace Deaddit.Utils

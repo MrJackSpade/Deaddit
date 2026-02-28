@@ -1,4 +1,4 @@
-using Reddit.Api.Models.Api;
+using Deaddit.Core.Reddit.Models.Api;
 
 namespace Deaddit.Interfaces
 {

@@ -36,7 +36,7 @@ namespace Deaddit.Components.WebComponents.Forms
                 Cursor = "pointer"
             };
 
-            _checkbox.OnChange += OnCheckboxChanged;
+            _checkbox.OnChange += this.OnCheckboxChanged;
             container.Children.Add(_checkbox);
 
             this.AddInput(container);

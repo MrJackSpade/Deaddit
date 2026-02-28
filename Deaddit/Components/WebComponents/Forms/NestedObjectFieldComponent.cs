@@ -31,7 +31,7 @@ namespace Deaddit.Components.WebComponents.Forms
                 Cursor = "pointer"
             };
 
-            _editButton.OnClick += OnEditButtonClicked;
+            _editButton.OnClick += this.OnEditButtonClicked;
             this.AddInput(_editButton);
         }
 

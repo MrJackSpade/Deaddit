@@ -2,6 +2,12 @@ using Deaddit.Components.WebComponents;
 using Deaddit.Core.Configurations.Interfaces;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
+using Deaddit.Core.Reddit;
+using Deaddit.Core.Reddit.Extensions;
+using Deaddit.Core.Reddit.Interfaces;
+using Deaddit.Core.Reddit.Models;
+using Deaddit.Core.Reddit.Models.Api;
+using Deaddit.Core.Reddit.Models.ThingDefinitions;
 using Deaddit.Core.Utils;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
@@ -9,12 +15,6 @@ using Deaddit.Interfaces;
 using Deaddit.Pages.Models;
 using Deaddit.Utils;
 using Maui.WebComponents.Extensions;
-using Reddit.Api;
-using Reddit.Api.Extensions;
-using Reddit.Api.Interfaces;
-using Reddit.Api.Models;
-using Reddit.Api.Models.Api;
-using Reddit.Api.Models.ThingDefinitions;
 
 namespace Deaddit.Pages
 {

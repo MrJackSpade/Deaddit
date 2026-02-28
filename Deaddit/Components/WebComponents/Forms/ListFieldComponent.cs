@@ -51,7 +51,7 @@ namespace Deaddit.Components.WebComponents.Forms
                 Cursor = "pointer"
             };
 
-            _addButton.OnClick += OnAddClicked;
+            _addButton.OnClick += this.OnAddClicked;
             this.AddInput(_addButton);
         }
 
@@ -68,7 +68,7 @@ namespace Deaddit.Components.WebComponents.Forms
                 }
 
                 int index = i;
-                DivComponent itemRow = CreateItemRow(item, index);
+                DivComponent itemRow = this.CreateItemRow(item, index);
                 _itemsContainer.Children.Add(itemRow);
             }
         }
@@ -137,7 +137,7 @@ namespace Deaddit.Components.WebComponents.Forms
             {
                 _list.Add(newItem);
 
-                DivComponent itemRow = CreateItemRow(newItem, _list.Count - 1);
+                DivComponent itemRow = this.CreateItemRow(newItem, _list.Count - 1);
                 _itemsContainer.Children.Add(itemRow);
 
                 OnEditItem?.Invoke(this, newItem);

@@ -1,6 +1,6 @@
 ﻿using Deaddit.Core.Configurations.Models;
+using Deaddit.Core.Reddit.Exceptions;
 using Deaddit.Core.Utils;
-using Reddit.Api.Exceptions;
 
 namespace Deaddit.Core.Extensions
 {
