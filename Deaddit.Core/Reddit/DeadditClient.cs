@@ -1,15 +1,21 @@
 ﻿using Deaddit.Core.Interfaces;
-using Reddit.Api;
 using Reddit.Api.Interfaces;
-using Reddit.Api.Json.Interfaces;
 
 namespace Deaddit.Core.Reddit
 {
-    public class DeadditClient : RedditClient
+    /// <summary>
+    /// Extension of RedditService that adds IDisplayMessages integration
+    /// for user-friendly exception handling.
+    /// </summary>
+    public class DeadditClient : RedditService, IRedditClient
     {
         private readonly IDisplayMessages _displayMessages;
 
-        public DeadditClient(IDisplayMessages displayMessages, IRedditCredentials redditCredentials, IJsonClient jsonClient, HttpClient httpClient) : base(redditCredentials, jsonClient, httpClient)
+        public DeadditClient(
+            IDisplayMessages displayMessages,
+            IRedditCredentials credentials,
+            HttpClient httpClient)
+            : base(credentials, httpClient)
         {
             _displayMessages = displayMessages;
         }

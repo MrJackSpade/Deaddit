@@ -28,11 +28,10 @@ namespace Deaddit
             builder.Services.AddSingleton<IRedditClient>(s =>
             {
                 RedditCredentials redditCredentials = s.GetRequiredService<RedditCredentials>();
-                IJsonClient jsonClient = s.GetRequiredService<IJsonClient>();
                 HttpClient httpClient = s.GetRequiredService<HttpClient>();
                 IDisplayMessages displayExceptions = s.GetRequiredService<IDisplayMessages>();
 
-                return new DeadditClient(displayExceptions, redditCredentials, jsonClient, httpClient);
+                return new DeadditClient(displayExceptions, redditCredentials, httpClient);
             });
 
             // Register individual handlers as transient
