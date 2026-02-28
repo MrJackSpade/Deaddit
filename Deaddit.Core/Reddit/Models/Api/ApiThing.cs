@@ -1,4 +1,5 @@
 ﻿using Deaddit.Core.Reddit.Json.Attributes;
+using Reddit.Api.Models;
 using Reddit.Api.Models.Enums;
 using System.Text.Json.Serialization;
 
@@ -10,7 +11,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public List<object> AllAwardings { get; init; } = [];
 
         [JsonPropertyName("approved_at_utc")]
-        public OptionalDateTime ApprovedAtUtc { get; init; }
+        public JsonDateTime ApprovedAtUtc { get; init; }
 
         [JsonPropertyName("approved_by")]
         public string? ApprovedBy { get; init; }
@@ -22,7 +23,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public bool? AuthorCakeDay { get; init; }
 
         [JsonPropertyName("author_flair_background_color")]
-        public DynamicColor? AuthorFlairBackgroundColor { get; init; }
+        public JsonColor AuthorFlairBackgroundColor { get; init; }
 
         [JsonPropertyName("author_flair_css_class")]
         public string? AuthorFlairCssClass { get; init; }
@@ -37,7 +38,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public string? AuthorFlairText { get; init; }
 
         [JsonPropertyName("author_flair_text_color")]
-        public DynamicColor? AuthorFlairTextColor { get; init; }
+        public JsonColor AuthorFlairTextColor { get; init; }
 
         [JsonPropertyName("author_flair_type")]
         public string? AuthorFlairType { get; init; }
@@ -77,10 +78,10 @@ namespace Deaddit.Core.Reddit.Models.Api
 
         [JsonPropertyName("created")]
         [Obsolete("Use the UTC version", true)]
-        public OptionalDateTime Created { get; init; }
+        public JsonDateTime Created { get; init; }
 
         [JsonPropertyName("created_utc")]
-        public OptionalDateTime CreatedUtc { get; init; }
+        public JsonDateTime CreatedUtc { get; init; }
 
         [JsonPropertyName("distinguished")]
         public DistinguishedKind Distinguished { get; init; }
@@ -89,7 +90,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public long? Downs { get; init; }
 
         [JsonPropertyName("edited")]
-        public OptionalDateTime Edited { get; init; }
+        public JsonDateTime Edited { get; init; }
 
         [JsonPropertyName("gilded")]
         public int? Gilded { get; init; }
@@ -172,7 +173,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public string? SubredditNamePrefixed { get; init; }
 
         [JsonPropertyName("subreddit_type")]
-        public string? SubredditType { get; init; }
+        public SubredditType SubredditType { get; init; }
 
         [JsonPropertyName("top_awarded_type")]
         public object? TopAwardedType { get; init; }

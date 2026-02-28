@@ -1,4 +1,5 @@
-﻿using Reddit.Api.Models.Enums;
+﻿using Reddit.Api.Models;
+using Reddit.Api.Models.Enums;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
@@ -13,10 +14,10 @@ namespace Deaddit.Core.Reddit.Models.Api
         public string? CopiedFrom { get; set; }
 
         [JsonPropertyName("created")]
-        public OptionalDateTime Created { get; set; }
+        public JsonDateTime Created { get; set; }
 
         [JsonPropertyName("created_utc")]
-        public OptionalDateTime CreatedUtc { get; set; }
+        public JsonDateTime CreatedUtc { get; set; }
 
         [JsonPropertyName("description_html")]
         public string? DescriptionHtml { get; set; }

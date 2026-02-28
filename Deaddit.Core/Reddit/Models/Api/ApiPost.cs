@@ -1,4 +1,5 @@
-﻿using Reddit.Api.Models.Enums;
+﻿using Reddit.Api.Models;
+using Reddit.Api.Models.Enums;
 using System.Diagnostics;
 using System.Text.Json.Serialization;
 
@@ -74,7 +75,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public bool IsVideo { get; init; }
 
         [JsonPropertyName("link_flair_background_color")]
-        public DynamicColor? LinkFlairBackgroundColor { get; init; }
+        public JsonColor LinkFlairBackgroundColor { get; init; }
 
         [JsonPropertyName("link_flair_css_class")]
         public string? LinkFlairCssClass { get; init; }
@@ -89,7 +90,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public string? LinkFlairText { get; init; }
 
         [JsonPropertyName("link_flair_text_color")]
-        public DynamicColor? LinkFlairTextColor { get; init; }
+        public JsonColor LinkFlairTextColor { get; init; }
 
         [JsonPropertyName("link_flair_type")]
         public string? LinkFlairType { get; init; }
@@ -116,7 +117,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public bool Pinned { get; init; }
 
         [JsonPropertyName("post_hint")]
-        public string? PostHint { get; init; }
+        public PostHint PostHint { get; init; }
 
         [JsonPropertyName("preview")]
         public Preview? Preview { get; init; }

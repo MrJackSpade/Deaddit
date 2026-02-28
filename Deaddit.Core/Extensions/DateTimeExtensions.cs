@@ -1,10 +1,10 @@
-﻿using Deaddit.Core.Reddit.Models;
+﻿using Reddit.Api.Models;
 
 namespace Deaddit.Core.Extensions
 {
     public static class DateTimeExtensions
     {
-        public static string? Elapsed(this OptionalDateTime dateTime)
+        public static string? Elapsed(this JsonDateTime dateTime)
         {
             if (!dateTime.HasValue)
             {

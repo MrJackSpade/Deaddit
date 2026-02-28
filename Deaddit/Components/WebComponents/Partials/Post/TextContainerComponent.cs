@@ -74,7 +74,7 @@ namespace Deaddit.Components.WebComponents.Partials.Post
             string? cleanedLinkFlair = applicationHacks.CleanFlair(post.LinkFlairText);
             if (!string.IsNullOrWhiteSpace(cleanedLinkFlair))
             {
-                string color = post.LinkFlairBackgroundColor?.ToHex() ?? applicationStyling.TextColor.ToHex();
+                string color = post.LinkFlairBackgroundColor.ToHex() ?? applicationStyling.TextColor.ToHex();
                 FlairComponent linkFlair = new(cleanedLinkFlair, color, applicationStyling)
                 {
                     AlignSelf = "flex-start"
