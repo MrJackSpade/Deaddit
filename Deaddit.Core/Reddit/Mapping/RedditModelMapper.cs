@@ -1,5 +1,6 @@
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
+using Reddit.Api.Models.Enums;
 using Reddit.Api.Models.Json.Common;
 using Reddit.Api.Models.Json.Listings;
 using Reddit.Api.Models.Json.Multis;
@@ -78,7 +79,7 @@ namespace Deaddit.Core.Reddit.Mapping
                 CanModPost = source.CanModPost,
                 CanGild = source.CanGild,
                 NoFollow = source.NoFollow,
-                Distinguished = MapDistinguished(source.Distinguished),
+                Distinguished = source.Distinguished ?? DistinguishedKind.Null,
                 LinkFlairText = source.LinkFlairText,
                 LinkFlairCssClass = source.LinkFlairCssClass,
                 LinkFlairBackgroundColor = ParseColor(source.LinkFlairBackgroundColor),
@@ -103,7 +104,7 @@ namespace Deaddit.Core.Reddit.Mapping
                 BannedBy = source.BannedBy,
                 RemovedBy = source.RemovedBy,
                 RemovedByCategory = source.RemovedByCategory,
-                SuggestedSort = MapCommentSort(source.SuggestedSort),
+                SuggestedSort = source.SuggestedSort,
                 ViewCount = source.ViewCount,
                 Wls = source.Wls,
                 Pwls = source.Pwls,
@@ -174,10 +175,10 @@ namespace Deaddit.Core.Reddit.Mapping
                 CanGild = source.CanGild,
                 NoFollow = source.NoFollow,
                 SendReplies = source.SendReplies,
-                Distinguished = MapDistinguished(source.Distinguished),
+                Distinguished = source.Distinguished ?? DistinguishedKind.Null,
                 Collapsed = source.Collapsed,
                 CollapsedReason = source.CollapsedReason,
-                CollapsedReasonCode = MapCollapsedReasonCode(source.CollapsedReasonCode),
+                CollapsedReasonCode = source.CollapsedReasonCode ?? CollapsedReasonCode.Null,
                 Controversiality = source.Controversiality,
                 Depth = source.Depth,
                 Gilded = source.Gilded,
@@ -292,7 +293,7 @@ namespace Deaddit.Core.Reddit.Mapping
                 RestrictCommenting = source.RestrictCommenting,
                 RestrictPosting = source.RestrictPosting,
                 CommentScoreHideMins = source.CommentScoreHideMins,
-                SuggestedCommentSort = MapCommentSort(source.SuggestedCommentSort),
+                SuggestedCommentSort = source.SuggestedCommentSort,
                 AcceptFollowers = source.AcceptFollowers ?? false,
                 DisableContributorRequests = source.DisableContributorRequests ?? false,
                 CollapseDeletedComments = source.CollapseDeletedComments,
@@ -573,44 +574,6 @@ namespace Deaddit.Core.Reddit.Mapping
             }
 
             return null;
-        }
-
-        private static DistinguishedKind MapDistinguished(string? distinguished)
-        {
-            return distinguished?.ToLowerInvariant() switch
-            {
-                "moderator" => DistinguishedKind.Moderator,
-                "admin" => DistinguishedKind.Admin,
-                _ => DistinguishedKind.None
-            };
-        }
-
-        private static CollapsedReasonKind MapCollapsedReasonCode(string? code)
-        {
-            return code?.ToLowerInvariant() switch
-            {
-                "score-below-threshold" => CollapsedReasonKind.LowScore,
-                "low_score" => CollapsedReasonKind.LowScore,
-                "deleted" => CollapsedReasonKind.Deleted,
-                "blocked-author" => CollapsedReasonKind.BlockedAuthor,
-                _ => CollapsedReasonKind.None
-            };
-        }
-
-        private static ApiCommentSort MapCommentSort(string? sort)
-        {
-            return sort?.ToLowerInvariant() switch
-            {
-                "confidence" => ApiCommentSort.Confidence,
-                "top" => ApiCommentSort.Top,
-                "new" => ApiCommentSort.New,
-                "controversial" => ApiCommentSort.Controversial,
-                "old" => ApiCommentSort.Old,
-                "random" => ApiCommentSort.Random,
-                "qa" => ApiCommentSort.Qa,
-                "live" => ApiCommentSort.Live,
-                _ => ApiCommentSort.Undefined
-            };
         }
 
         #endregion

@@ -2,6 +2,7 @@
 using Deaddit.Core.Extensions;
 using Deaddit.Core.Reddit.Models.Api;
 using Maui.WebComponents.Components;
+using Reddit.Api.Models.Enums;
 
 namespace Deaddit.Components.WebComponents.Partials.Post
 {
@@ -26,7 +27,8 @@ namespace Deaddit.Components.WebComponents.Partials.Post
 
             switch (post.Distinguished)
             {
-                case DistinguishedKind.None:
+                case DistinguishedKind.Null:
+                case DistinguishedKind.Empty:
                     Color = applicationStyling.TextColor.ToHex();
                     break;
 

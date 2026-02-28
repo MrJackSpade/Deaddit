@@ -1,5 +1,6 @@
 ﻿using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models.Api;
+using Reddit.Api.Models.Enums;
 
 namespace Deaddit.Core.Reddit.Models
 {
@@ -7,7 +8,7 @@ namespace Deaddit.Core.Reddit.Models
     {
         public List<string?> ChildNames { get; }
 
-        public CollapsedReasonKind CollapsedReasonCode { get; }
+        public CollapsedReasonCode CollapsedReasonCode { get; }
 
         public int? Count { get; }
 

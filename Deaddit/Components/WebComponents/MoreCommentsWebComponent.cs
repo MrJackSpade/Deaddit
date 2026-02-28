@@ -5,6 +5,7 @@ using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Maui.WebComponents.Attributes;
 using Maui.WebComponents.Components;
+using Reddit.Api.Models.Enums;
 
 namespace Deaddit.Components.WebComponents
 {
@@ -42,9 +43,9 @@ namespace Deaddit.Components.WebComponents
             {
                 display = cm.CollapsedReasonCode switch
                 {
-                    CollapsedReasonKind.Deleted => $"Deleted [{more.Count}]",
-                    CollapsedReasonKind.LowScore => $"Low Score [{more.Count}]",
-                    CollapsedReasonKind.BlockedAuthor => $"Blocked [{more.Count}]",
+                    CollapsedReasonCode.Deleted => $"Deleted [{more.Count}]",
+                    CollapsedReasonCode.LowScore or CollapsedReasonCode.ScoreBelowThreshold => $"Low Score [{more.Count}]",
+                    CollapsedReasonCode.BlockedAuthor => $"Blocked [{more.Count}]",
                     _ => cm.CollapsedReasonCode.ToString()
                 };
             }

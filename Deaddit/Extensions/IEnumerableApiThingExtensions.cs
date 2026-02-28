@@ -1,30 +1,31 @@
-﻿using Deaddit.Core.Reddit.Models.Api;
+using Deaddit.Core.Reddit.Models.Api;
+using Reddit.Api.Models.Enums;
 
 namespace Deaddit.Extensions
 {
     internal static class IEnumerableApiThingExtensions
     {
-        public static Dictionary<CollapsedReasonKind, List<ApiThing>> GroupByCollasedReason(this IEnumerable<ApiThing> children)
+        public static Dictionary<CollapsedReasonCode, List<ApiThing>> GroupByCollasedReason(this IEnumerable<ApiThing> children)
         {
-            Dictionary<CollapsedReasonKind, List<ApiThing>> toRender = [];
+            Dictionary<CollapsedReasonCode, List<ApiThing>> toRender = [];
 
-            toRender.Add(CollapsedReasonKind.None, []);
+            toRender.Add(CollapsedReasonCode.Null, []);
 
             foreach (ApiThing thing in children)
             {
-                CollapsedReasonKind collapsedReasonKind = CollapsedReasonKind.None;
+                CollapsedReasonCode collapsedReasonCode = CollapsedReasonCode.Null;
 
                 if (thing is ApiComment comment)
                 {
-                    collapsedReasonKind = comment.CollapsedReasonCode;
+                    collapsedReasonCode = comment.CollapsedReasonCode;
                 }
 
-                if (!toRender.ContainsKey(collapsedReasonKind))
+                if (!toRender.ContainsKey(collapsedReasonCode))
                 {
-                    toRender.Add(collapsedReasonKind, []);
+                    toRender.Add(collapsedReasonCode, []);
                 }
 
-                toRender[collapsedReasonKind].Add(thing);
+                toRender[collapsedReasonCode].Add(thing);
             }
 
             return toRender;

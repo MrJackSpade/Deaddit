@@ -6,6 +6,7 @@ using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Interfaces;
 using Maui.WebComponents.Components;
+using Reddit.Api.Models.Enums;
 
 namespace Deaddit.Extensions
 {
@@ -13,7 +14,7 @@ namespace Deaddit.Extensions
     {
         public static void AddChildren(this IHasChildren target, IEnumerable<ApiThing> children, bool loadMore = false)
         {
-            Dictionary<CollapsedReasonKind, List<ApiThing>> toRender;
+            Dictionary<CollapsedReasonCode, List<ApiThing>> toRender;
 
             if (!loadMore)
             {
@@ -21,13 +22,13 @@ namespace Deaddit.Extensions
             }
             else
             {
-                toRender = new Dictionary<CollapsedReasonKind, List<ApiThing>>
+                toRender = new Dictionary<CollapsedReasonCode, List<ApiThing>>
                 {
-                    { CollapsedReasonKind.None, children.ToList() }
+                    { CollapsedReasonCode.Null, children.ToList() }
                 };
             }
 
-            foreach (ApiThing? child in toRender[CollapsedReasonKind.None])
+            foreach (ApiThing? child in toRender[CollapsedReasonCode.Null])
             {
                 ApiThing renderChild = child;
 
@@ -65,9 +66,9 @@ namespace Deaddit.Extensions
                 target.ChildContainer.Children.Add(childComponent);
             }
 
-            foreach (KeyValuePair<CollapsedReasonKind, List<ApiThing>> collapsedComments in toRender)
+            foreach (KeyValuePair<CollapsedReasonCode, List<ApiThing>> collapsedComments in toRender)
             {
-                if (collapsedComments.Key == CollapsedReasonKind.None)
+                if (collapsedComments.Key == CollapsedReasonCode.Null)
                 {
                     continue;
                 }
