@@ -12,6 +12,15 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
 
         private ButtonComponent _upvoteButton;
 
+        public BottomBarComponent(ApplicationStyling applicationStyling, VoteState initialState)
+        {
+            _applicationStyling = applicationStyling;
+
+            Display = "none";
+            this.InitializeButtons();
+            this.SetVoteState(initialState);
+        }
+
         public event EventHandler? OnDownvoteClicked;
 
         public event EventHandler? OnMoreClicked;
@@ -21,15 +30,6 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
         public event EventHandler? OnShareClicked;
 
         public event EventHandler? OnUpvoteClicked;
-
-        public BottomBarComponent(ApplicationStyling applicationStyling, VoteState initialState)
-        {
-            _applicationStyling = applicationStyling;
-
-            Display = "none";
-            this.InitializeButtons();
-            this.SetVoteState(initialState);
-        }
 
         public void SetVoteState(VoteState upvote)
         {

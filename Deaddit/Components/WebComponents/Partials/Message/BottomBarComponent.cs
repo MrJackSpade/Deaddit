@@ -7,10 +7,6 @@ namespace Deaddit.Components.WebComponents.Partials.Message
     {
         private readonly ApplicationStyling _applicationStyling;
 
-        public event EventHandler? OnMoreClicked;
-
-        public event EventHandler? OnReplyClicked;
-
         public MessageBarComponent(ApplicationStyling applicationStyling)
         {
             _applicationStyling = applicationStyling;
@@ -18,6 +14,10 @@ namespace Deaddit.Components.WebComponents.Partials.Message
             Display = "none";
             this.InitializeButtons();
         }
+
+        public event EventHandler? OnMoreClicked;
+
+        public event EventHandler? OnReplyClicked;
 
         private ButtonComponent CreateActionButton(string text)
         {

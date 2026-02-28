@@ -8,24 +8,24 @@ namespace Deaddit.Handlers.Url
     {
         private readonly IAppNavigator _appNavigator = appNavigator;
 
-        public bool CanLaunch(string url, IAggregatePostHandler aggregatePostHandler)
-        {
-            return Uri.TryCreate(url, UriKind.Absolute, out _);
-        }
-
         public bool CanDownload(string url, IAggregatePostHandler? aggregatePostHandler)
         {
             return false;
         }
 
-        public async Task Launch(string url, IAggregatePostHandler caller)
+        public bool CanLaunch(string url, IAggregatePostHandler aggregatePostHandler)
         {
-            await _appNavigator.OpenBrowser(url);
+            return Uri.TryCreate(url, UriKind.Absolute, out _);
         }
 
         public Task<FileDownload> Download(string url, IAggregatePostHandler aggregatePostHandler)
         {
             throw new NotSupportedException();
+        }
+
+        public async Task Launch(string url, IAggregatePostHandler caller)
+        {
+            await _appNavigator.OpenBrowser(url);
         }
     }
 }

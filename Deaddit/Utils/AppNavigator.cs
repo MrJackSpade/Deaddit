@@ -31,19 +31,21 @@ namespace Deaddit.Utils
 
         private AIConfiguration AIConfiguration => _serviceProvider.GetService<AIConfiguration>()!;
 
-        private IClaudeService ClaudeService => _serviceProvider.GetService<IClaudeService>()!;
-
         private ApplicationHacks ApplicationHacks => _serviceProvider.GetService<ApplicationHacks>()!;
 
         private ApplicationStyling ApplicationStyling => _serviceProvider.GetService<ApplicationStyling>()!;
 
         private BlockConfiguration BlockConfiguration => _serviceProvider.GetService<BlockConfiguration>()!;
 
+        private IClaudeService ClaudeService => _serviceProvider.GetService<IClaudeService>()!;
+
         private IConfigurationService ConfigurationService => _serviceProvider.GetService<IConfigurationService>()!;
 
         private IDisplayMessages DisplayMessages => _serviceProvider.GetService<IDisplayMessages>()!;
 
         private ETagCache ETagCache => _serviceProvider.GetService<ETagCache>()!;
+
+        private IHistoryTracker HistoryTracker => _serviceProvider.GetService<IHistoryTracker>()!;
 
         private INavigation Navigation => _serviceProvider.GetService<INavigation>()!;
 
@@ -57,8 +59,6 @@ namespace Deaddit.Utils
 
         private IVisitTracker VisitTracker => _serviceProvider.GetService<IVisitTracker>()!;
 
-        private IHistoryTracker HistoryTracker => _serviceProvider.GetService<IHistoryTracker>()!;
-
         public RedditCommentWebComponent CreateCommentWebComponent(ApiComment comment, ApiPost? post = null, SelectionGroup? selectionGroup = null)
         {
             if (selectionGroup is null)
@@ -69,6 +69,16 @@ namespace Deaddit.Utils
             {
                 return new RedditCommentWebComponent(comment, post, true, ConfigurationService, DisplayMessages, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, selectionGroup ?? new SelectionGroup(), BlockConfiguration);
             }
+        }
+
+        public HistoryComponent CreateHistoryComponent()
+        {
+            return new HistoryComponent(this, ApplicationStyling);
+        }
+
+        public HistoryWebComponent CreateHistoryWebComponent()
+        {
+            return new HistoryWebComponent(this, ApplicationStyling);
         }
 
         public RedditMessageWebComponent CreateMessageWebComponent(ApiMessage message, SelectionGroup selectionGroup)
@@ -94,19 +104,9 @@ namespace Deaddit.Utils
             return new SubscriptionComponent(subscriptionThing, group is not null, this, ApplicationStyling, group ?? new SelectionGroup());
         }
 
-        public HistoryComponent CreateHistoryComponent()
-        {
-            return new HistoryComponent(this, ApplicationStyling);
-        }
-
         public SubscriptionWebComponent CreateSubscriptionWebComponent(ThingDefinition subscriptionThing, SelectionGroup? group = null)
         {
             return new SubscriptionWebComponent(subscriptionThing, group is not null, this, ApplicationStyling, group);
-        }
-
-        public HistoryWebComponent CreateHistoryWebComponent()
-        {
-            return new HistoryWebComponent(this, ApplicationStyling);
         }
 
         public async Task<EmbeddedBrowser> OpenBrowser(string resource)
@@ -121,6 +121,14 @@ namespace Deaddit.Utils
             ReplyPage replyPage = new(null, toEdit, AIConfiguration, ClaudeService, DisplayMessages, this, RedditClient, ApplicationStyling);
             await Navigation.PushAsync(replyPage);
             return replyPage;
+        }
+
+        public async Task<HistoryPage> OpenHistory()
+        {
+            HistoryPage page = new(HistoryTracker, DisplayMessages, this, RedditClient, ApplicationStyling);
+            await Navigation.PushAsync(page);
+            await page.Init();
+            return page;
         }
 
         public async Task<EmbeddedImage> OpenImages(FileDownload[] resource)
@@ -236,14 +244,6 @@ namespace Deaddit.Utils
             EmbeddedVideo browser = new(url, ApplicationStyling);
             await Navigation.PushAsync(browser);
             return browser;
-        }
-
-        public async Task<HistoryPage> OpenHistory()
-        {
-            HistoryPage page = new(HistoryTracker, DisplayMessages, this, RedditClient, ApplicationStyling);
-            await Navigation.PushAsync(page);
-            await page.Init();
-            return page;
         }
     }
 }

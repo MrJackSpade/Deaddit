@@ -30,13 +30,15 @@ namespace Deaddit.Components.WebComponents
 
         private readonly ApiComment _comment;
 
-        private readonly IConfigurationService _configurationService;
-
         private readonly HtmlBodyComponent _commentBody;
 
         private readonly DivComponent _commentContainer;
 
         private readonly CommentHeaderComponent _commentHeader;
+
+        private readonly IConfigurationService _configurationService;
+
+        private readonly IDisplayMessages _displayMessages;
 
         private readonly MultiSelector _multiselector;
 
@@ -47,22 +49,6 @@ namespace Deaddit.Components.WebComponents
         private readonly RepliesContainerComponent _replies;
 
         private readonly TopBarComponent _topBar;
-
-        public IAppNavigator AppNavigator { get; }
-
-        public BlockConfiguration BlockConfiguration { get; }
-
-        WebComponent IHasChildren.ChildContainer => _replies;
-
-        private readonly IDisplayMessages _displayMessages;
-
-        public ApiPost? Post { get; }
-
-        public bool SelectEnabled { get; private set; }
-
-        public SelectionGroup SelectionGroup { get; private set; }
-
-        public event EventHandler<OnDeleteClickedEventArgs> OnDelete;
 
         public RedditCommentWebComponent(ApiComment comment, ApiPost? post, bool selectEnabled, IConfigurationService configurationService, IDisplayMessages displayMessages, ISelectBoxDisplay selectBoxDisplay, INavigation navigation, AppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup selectionGroup, BlockConfiguration blockConfiguration)
         {
@@ -126,6 +112,20 @@ namespace Deaddit.Components.WebComponents
 
             _commentContainer.OnClick += this.SelectClick;
         }
+
+        public event EventHandler<OnDeleteClickedEventArgs> OnDelete;
+
+        public IAppNavigator AppNavigator { get; }
+
+        public BlockConfiguration BlockConfiguration { get; }
+
+        WebComponent IHasChildren.ChildContainer => _replies;
+
+        public ApiPost? Post { get; }
+
+        public bool SelectEnabled { get; private set; }
+
+        public SelectionGroup SelectionGroup { get; private set; }
 
         public async void MoreCommentsClick(object? sender, IMore e)
         {

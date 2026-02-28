@@ -9,10 +9,13 @@ namespace Deaddit.Components.WebComponents.Forms
     [HtmlEntity("div")]
     public class EnumFieldComponent : FormFieldComponent
     {
-        private readonly SelectComponent _select;
-        private readonly PropertyInfo _property;
-        private readonly object _target;
         private readonly Array _enumValues;
+
+        private readonly PropertyInfo _property;
+
+        private readonly SelectComponent _select;
+
+        private readonly object _target;
 
         public EnumFieldComponent(string labelText, string? description, PropertyInfo property, object target, ApplicationStyling styling)
             : base(labelText, description, styling)

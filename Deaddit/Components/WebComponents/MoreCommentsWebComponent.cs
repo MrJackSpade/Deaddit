@@ -20,14 +20,6 @@ namespace Deaddit.Components.WebComponents
 
         private bool _clicked;
 
-        public List<string> ChildNames { get; } = [];
-
-        public int? Count { get; }
-
-        public ApiThing Parent => _more.Parent;
-
-        public event EventHandler<IMore>? LoadMore;
-
         public MoreCommentsWebComponent(IMore more, ApplicationStyling applicationStyling)
         {
             _more = more;
@@ -61,6 +53,14 @@ namespace Deaddit.Components.WebComponents
             PaddingBottom = "5px";
             OnClick += this.Clicked;
         }
+
+        public event EventHandler<IMore>? LoadMore;
+
+        public List<string> ChildNames { get; } = [];
+
+        public int? Count { get; }
+
+        public ApiThing Parent => _more.Parent;
 
         public void Clicked(object? sender, EventArgs e)
         {

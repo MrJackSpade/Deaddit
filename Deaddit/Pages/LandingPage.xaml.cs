@@ -20,9 +20,9 @@ namespace Deaddit.Pages
 {
     public partial class LandingPage : ContentPage
     {
-        private readonly IAppNavigator _appNavigator;
-
         private readonly ApplicationStyling _applicationStyling;
+
+        private readonly IAppNavigator _appNavigator;
 
         private readonly LandingPageConfiguration _configuration;
 
@@ -57,24 +57,6 @@ namespace Deaddit.Pages
             navigationBar.BackgroundColor = applicationTheme.PrimaryColor.ToMauiColor();
 
             DataService.LoadAsync(this.InitializeContent);
-        }
-
-        private async Task InitializeContent()
-        {
-            await webElement.AddChild(_appNavigator.CreateSubscriptionWebComponent(ThingDefinitionHelper.ForSubReddit("All"), null));
-            await webElement.AddChild(_appNavigator.CreateSubscriptionWebComponent(new HomeDefinition(), null));
-            await webElement.AddChild(_appNavigator.CreateSubscriptionWebComponent(new SavedDefinition(), null));
-            await webElement.AddChild(_appNavigator.CreateHistoryWebComponent());
-
-            foreach (SubRedditSubscription subscription in _configuration.Subscriptions)
-            {
-                ThingDefinition thingDefinition = ThingDefinitionHelper.FromName(subscription.ThingName);
-                SubscriptionWebComponent subRedditComponent = _appNavigator.CreateSubscriptionWebComponent(thingDefinition, _selectionGroup);
-                subRedditComponent.OnRemove += this.SubRedditComponent_OnRemove;
-                await webElement.AddChild(subRedditComponent);
-            }
-
-            await this.LoadMultis();
         }
 
         public async void OnAddClicked(object? sender, EventArgs e)
@@ -117,6 +99,24 @@ namespace Deaddit.Pages
         public async void OnMessageClicked(object sender, EventArgs e)
         {
             await _appNavigator.OpenMessages();
+        }
+
+        private async Task InitializeContent()
+        {
+            await webElement.AddChild(_appNavigator.CreateSubscriptionWebComponent(ThingDefinitionHelper.ForSubReddit("All"), null));
+            await webElement.AddChild(_appNavigator.CreateSubscriptionWebComponent(new HomeDefinition(), null));
+            await webElement.AddChild(_appNavigator.CreateSubscriptionWebComponent(new SavedDefinition(), null));
+            await webElement.AddChild(_appNavigator.CreateHistoryWebComponent());
+
+            foreach (SubRedditSubscription subscription in _configuration.Subscriptions)
+            {
+                ThingDefinition thingDefinition = ThingDefinitionHelper.FromName(subscription.ThingName);
+                SubscriptionWebComponent subRedditComponent = _appNavigator.CreateSubscriptionWebComponent(thingDefinition, _selectionGroup);
+                subRedditComponent.OnRemove += this.SubRedditComponent_OnRemove;
+                await webElement.AddChild(subRedditComponent);
+            }
+
+            await this.LoadMultis();
         }
 
         private async Task LoadMultis()

@@ -6,10 +6,10 @@ namespace Maui.WebComponents.Components
     [HtmlEntity("select")]
     public class SelectComponent : WebComponent
     {
-        [HtmlAttribute]
-        public string? Name { get; set; }
-
         [HtmlEvent("onchange")]
         public event EventHandler<SelectChangedEventArgs>? OnChange;
+
+        [HtmlAttribute]
+        public string? Name { get; set; }
     }
 }

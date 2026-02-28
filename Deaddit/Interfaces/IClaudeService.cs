@@ -1,5 +1,4 @@
-﻿
-namespace Deaddit.Interfaces
+﻿namespace Deaddit.Interfaces
 {
     public interface IClaudeService
     {

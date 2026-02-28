@@ -7,9 +7,7 @@ using Deaddit.Core.Extensions;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Extensions;
 using Deaddit.Core.Reddit.Interfaces;
-using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
-using Reddit.Api.Models.Enums;
 using Deaddit.Core.Reddit.Models.ThingDefinitions;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Extensions;
@@ -21,6 +19,8 @@ using Deaddit.Pages.Models;
 using Deaddit.Utils;
 using Maui.WebComponents.Components;
 using Maui.WebComponents.Extensions;
+using Reddit.Api.Models.Enums;
+using Reddit.Api.Models.Json.Users;
 using System.Diagnostics;
 
 namespace Deaddit.Pages
@@ -200,7 +200,7 @@ namespace Deaddit.Pages
 #endif
         }
 
-        private async Task<PostState> GetPostState(HashSet<string> loadedTitles, HashSet<string> loadedUrls, HashSet<string> loadedEtags, Dictionary<string, UserPartial>? userData, ApiThing thing)
+        private async Task<PostState> GetPostState(HashSet<string> loadedTitles, HashSet<string> loadedUrls, HashSet<string> loadedEtags, Dictionary<string, UserPartialData>? userData, ApiThing thing)
         {
             bool blocked = !_blockConfiguration.IsAllowed(thing, userData);
 
@@ -389,7 +389,7 @@ namespace Deaddit.Pages
                         break;
                     }
 
-                    Dictionary<string, UserPartial>? userData = null;
+                    Dictionary<string, UserPartialData>? userData = null;
 
                     // Fetch user data if required by block configuration
                     if (_blockConfiguration.RequiresUserData() &&

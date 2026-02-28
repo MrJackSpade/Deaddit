@@ -24,14 +24,14 @@ namespace Deaddit.Components
 
     public class HistoryComponentViewModel
     {
-        public Color SecondaryColor { get; }
-
-        public Color TextColor { get; }
-
         public HistoryComponentViewModel(ApplicationStyling applicationStyling)
         {
             SecondaryColor = applicationStyling.SecondaryColor.ToMauiColor();
             TextColor = applicationStyling.TextColor.ToMauiColor();
         }
+
+        public Color SecondaryColor { get; }
+
+        public Color TextColor { get; }
     }
 }

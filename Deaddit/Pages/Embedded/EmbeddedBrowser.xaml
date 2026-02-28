@@ -23,7 +23,7 @@
                 HorizontalOptions="Start"
                 Clicked="OnBrowserClicked"
                 BackgroundColor="Transparent" />
-            
+
             <Button
                 Text="&#129692;"
                 Grid.Column="2"
@@ -31,7 +31,7 @@
                 HorizontalOptions="Start"
                 Clicked="OnBypassClicked"
                 BackgroundColor="Transparent" />
-            
+
             <Button
                 Text="&#8278;"
                 Grid.Column="3"

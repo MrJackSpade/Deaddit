@@ -4,6 +4,9 @@ namespace Deaddit.Core.Configurations.Models
 {
     public class BlockConfiguration
     {
+        [EditorDisplay(Name = "Blacklist", Order = 1)]
+        public BlockList BlackList { get; set; } = new BlockList();
+
         [EditorDisplay(Name = "Duplicate Link Handling")]
         public PostState DuplicateLinkHandling { get; set; }
 
@@ -24,9 +27,6 @@ namespace Deaddit.Core.Configurations.Models
 
         [EditorDisplay(Name = "Minimum Comment Karma")]
         public int MinCommentKarma { get; set; }
-
-        [EditorDisplay(Name = "Blacklist", Order = 1)]
-        public BlockList BlackList { get; set; } = new BlockList();
 
         [EditorDisplay(Name = "Whitelist", Order = 1)]
         public BlockList WhiteList { get; set; } = new BlockList();

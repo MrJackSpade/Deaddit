@@ -7,9 +7,9 @@ namespace Deaddit.Core.Reddit.Models.ThingDefinitions
     {
         public override Enum DefaultSort => UserProfileSort.New;
 
-        public override bool FilteredByDefault => false;
-
         public override ApiEndpointDefinition EndpointDefinition => new($"/user/{Name}");
+
+        public override bool FilteredByDefault => false;
 
         public override ThingKind Kind => ThingKind.Account;
     }

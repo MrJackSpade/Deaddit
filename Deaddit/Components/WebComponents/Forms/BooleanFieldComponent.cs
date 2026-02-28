@@ -10,7 +10,9 @@ namespace Deaddit.Components.WebComponents.Forms
     public class BooleanFieldComponent : FormFieldComponent
     {
         private readonly InputComponent _checkbox;
+
         private readonly PropertyInfo _property;
+
         private readonly object _target;
 
         public BooleanFieldComponent(string labelText, string? description, PropertyInfo property, object target, ApplicationStyling styling)

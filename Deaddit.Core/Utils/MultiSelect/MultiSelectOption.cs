@@ -2,10 +2,6 @@
 {
     public class MultiSelectOption
     {
-        public string DisplayName { get; set; }
-
-        public Func<Task> Func { get; set; }
-
         public MultiSelectOption(string name, Func<Task> func)
         {
             DisplayName = name;
@@ -28,5 +24,9 @@
                 DisplayName = $"{template}{name}";
             }
         }
+
+        public string DisplayName { get; set; }
+
+        public Func<Task> Func { get; set; }
     }
 }

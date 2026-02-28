@@ -5,6 +5,14 @@ namespace Deaddit.Pages.Models
 {
     internal class LandingPageViewModel : BaseViewModel
     {
+        public LandingPageViewModel(ApplicationStyling applicationTheme)
+        {
+            SecondaryColor = applicationTheme.SecondaryColor.ToMauiColor();
+            TextColor = applicationTheme.TextColor.ToMauiColor();
+            PrimaryColor = applicationTheme.PrimaryColor.ToMauiColor();
+            TertiaryColor = applicationTheme.TertiaryColor.ToMauiColor();
+        }
+
         public Color PrimaryColor
         {
             get => this.GetValue<Color>();
@@ -27,14 +35,6 @@ namespace Deaddit.Pages.Models
         {
             get => this.GetValue<Color>();
             set => this.SetValue(value);
-        }
-
-        public LandingPageViewModel(ApplicationStyling applicationTheme)
-        {
-            SecondaryColor = applicationTheme.SecondaryColor.ToMauiColor();
-            TextColor = applicationTheme.TextColor.ToMauiColor();
-            PrimaryColor = applicationTheme.PrimaryColor.ToMauiColor();
-            TertiaryColor = applicationTheme.TertiaryColor.ToMauiColor();
         }
     }
 }

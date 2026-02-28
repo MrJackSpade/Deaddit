@@ -9,25 +9,25 @@ namespace Deaddit.Handlers.Url
     {
         private readonly IAppNavigator _appNavigator = appNavigator;
 
-        public bool CanLaunch(string url, IAggregatePostHandler aggregatePostHandler)
-        {
-            return this.IsVideo(url);
-        }
-
         public bool CanDownload(string url, IAggregatePostHandler? aggregatePostHandler)
         {
             return this.IsVideo(url);
         }
 
-        public async Task Launch(string url, IAggregatePostHandler caller)
+        public bool CanLaunch(string url, IAggregatePostHandler aggregatePostHandler)
         {
-            await _appNavigator.OpenVideo(new FileDownload(url));
+            return this.IsVideo(url);
         }
 
         public Task<FileDownload> Download(string url, IAggregatePostHandler aggregatePostHandler)
         {
             string fileName = UrlHelper.GetFileName(url);
             return Task.FromResult(new FileDownload(fileName, url));
+        }
+
+        public async Task Launch(string url, IAggregatePostHandler caller)
+        {
+            await _appNavigator.OpenVideo(new FileDownload(url));
         }
 
         private bool IsVideo(string url)

@@ -9,12 +9,17 @@ namespace Deaddit.Components.WebComponents.Forms
     [HtmlEntity("div")]
     public class NumericFieldComponent : FormFieldComponent
     {
-        private readonly InputComponent _input;
         private readonly SpanComponent _errorLabel;
-        private readonly PropertyInfo _property;
-        private readonly object _target;
+
+        private readonly InputComponent _input;
+
         private readonly Type _numericType;
+
+        private readonly PropertyInfo _property;
+
         private readonly ApplicationStyling _styling;
+
+        private readonly object _target;
 
         public NumericFieldComponent(string labelText, string? description, PropertyInfo property, object target, ApplicationStyling styling)
             : base(labelText, description, styling)

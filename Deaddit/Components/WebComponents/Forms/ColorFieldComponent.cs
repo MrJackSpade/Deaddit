@@ -10,12 +10,17 @@ namespace Deaddit.Components.WebComponents.Forms
     [HtmlEntity("div")]
     public class ColorFieldComponent : FormFieldComponent
     {
-        private readonly InputComponent _input;
         private readonly DivComponent _colorPreview;
+
         private readonly SpanComponent _errorLabel;
+
+        private readonly InputComponent _input;
+
         private readonly PropertyInfo _property;
-        private readonly object _target;
+
         private readonly ApplicationStyling _styling;
+
+        private readonly object _target;
 
         public ColorFieldComponent(string labelText, string? description, PropertyInfo property, object target, ApplicationStyling styling)
             : base(labelText, description, styling)

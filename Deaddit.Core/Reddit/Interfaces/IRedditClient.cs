@@ -3,6 +3,7 @@ using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Reddit.Models.Requests;
 using Deaddit.Core.Reddit.Models.ThingDefinitions;
 using Reddit.Api.Models.Enums;
+using Reddit.Api.Models.Json.Users;
 
 namespace Deaddit.Core.Reddit.Interfaces
 {
@@ -22,7 +23,7 @@ namespace Deaddit.Core.Reddit.Interfaces
 
         Task Delete(ApiThing thing);
 
-        Task<Dictionary<string, UserPartial>> GetPartialUserData(IEnumerable<string> usernames);
+        Task<Dictionary<string, UserPartialData>> GetPartialUserData(IEnumerable<string> usernames);
 
         Task<ApiPost?> GetPost(string id);
 

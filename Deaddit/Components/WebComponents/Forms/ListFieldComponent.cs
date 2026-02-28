@@ -9,15 +9,19 @@ namespace Deaddit.Components.WebComponents.Forms
     [HtmlEntity("div")]
     public class ListFieldComponent : FormFieldComponent
     {
-        private readonly DivComponent _itemsContainer;
         private readonly ButtonComponent _addButton;
-        private readonly PropertyInfo _property;
-        private readonly object _target;
+
+        private readonly DivComponent _itemsContainer;
+
         private readonly Type _itemType;
-        private readonly ApplicationStyling _styling;
+
         private readonly IList _list;
 
-        public event EventHandler<object>? OnEditItem;
+        private readonly PropertyInfo _property;
+
+        private readonly ApplicationStyling _styling;
+
+        private readonly object _target;
 
         public ListFieldComponent(string labelText, string? description, PropertyInfo property, object target, ApplicationStyling styling)
             : base(labelText, description, styling)
@@ -55,23 +59,7 @@ namespace Deaddit.Components.WebComponents.Forms
             this.AddInput(_addButton);
         }
 
-        private void RenderItems()
-        {
-            _itemsContainer.Children.Clear();
-
-            for (int i = 0; i < _list.Count; i++)
-            {
-                object? item = _list[i];
-                if (item == null)
-                {
-                    continue;
-                }
-
-                int index = i;
-                DivComponent itemRow = this.CreateItemRow(item, index);
-                _itemsContainer.Children.Add(itemRow);
-            }
-        }
+        public event EventHandler<object>? OnEditItem;
 
         private DivComponent CreateItemRow(object item, int index)
         {
@@ -141,6 +129,24 @@ namespace Deaddit.Components.WebComponents.Forms
                 _itemsContainer.Children.Add(itemRow);
 
                 OnEditItem?.Invoke(this, newItem);
+            }
+        }
+
+        private void RenderItems()
+        {
+            _itemsContainer.Children.Clear();
+
+            for (int i = 0; i < _list.Count; i++)
+            {
+                object? item = _list[i];
+                if (item == null)
+                {
+                    continue;
+                }
+
+                int index = i;
+                DivComponent itemRow = this.CreateItemRow(item, index);
+                _itemsContainer.Children.Add(itemRow);
             }
         }
     }

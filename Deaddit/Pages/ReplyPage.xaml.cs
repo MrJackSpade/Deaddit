@@ -16,6 +16,8 @@ namespace Deaddit.Pages
 {
     public partial class ReplyPage : ContentPage
     {
+        private readonly AIConfiguration _aiConfiguration;
+
         private readonly IAppNavigator _appNavigator;
 
         private readonly IClaudeService _claudeService;
@@ -27,10 +29,6 @@ namespace Deaddit.Pages
         private readonly ApiThing _replyTo;
 
         private readonly ApiThing _toEdit;
-
-        public event EventHandler<ReplySubmittedEventArgs>? OnSubmitted;
-
-        private readonly AIConfiguration _aiConfiguration;
 
         public ReplyPage(ApiThing? replyTo, ApiThing? toEdit, AIConfiguration aiConfiguration, IClaudeService claudeService, IDisplayMessages displayExceptions, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling)
         {
@@ -144,6 +142,40 @@ namespace Deaddit.Pages
             }
         }
 
+        public event EventHandler<ReplySubmittedEventArgs>? OnSubmitted;
+
+        public async void OnCancelClicked(object? sender, EventArgs e)
+        {
+            await Navigation.PopAsync();
+        }
+
+        public void OnPreviewClicked(object? sender, EventArgs e)
+        {
+        }
+
+        public async void OnSubmitClicked(object? sender, EventArgs e)
+        {
+            ApiComment meta;
+
+            if (_toEdit is ApiComment comment)
+            {
+                comment.Body = textEditor.Text;
+                meta = await _redditClient.Update(comment);
+            }
+            else
+            {
+                string commentBody = textEditor.Text;
+                meta = await _redditClient.Comment(_replyTo, commentBody);
+            }
+
+            if (meta != null)
+            {
+                OnSubmitted?.Invoke(this, new ReplySubmittedEventArgs(_replyTo, meta));
+
+                await Navigation.PopAsync();
+            }
+        }
+
         private string GenerateAiHistory(ApiThing replyTo)
         {
             string history = string.Empty;
@@ -168,39 +200,6 @@ namespace Deaddit.Pages
             }
 
             return history;
-        }
-
-        public async void OnCancelClicked(object? sender, EventArgs e)
-        {
-            await Navigation.PopAsync();
-        }
-
-        public void OnPreviewClicked(object? sender, EventArgs e)
-        {
-        }
-
-        public async void OnSubmitClicked(object? sender, EventArgs e)
-        {
-
-            ApiComment meta;
-
-            if (_toEdit is ApiComment comment)
-            {
-                comment.Body = textEditor.Text;
-                meta = await _redditClient.Update(comment);
-            }
-            else
-            {
-                string commentBody = textEditor.Text;
-                meta = await _redditClient.Comment(_replyTo, commentBody);
-            }
-
-            if (meta != null)
-            {
-                OnSubmitted?.Invoke(this, new ReplySubmittedEventArgs(_replyTo, meta));
-
-                await Navigation.PopAsync();
-            }
         }
 
         private void WebElement_OnJavascriptError(object? sender, Exception e)

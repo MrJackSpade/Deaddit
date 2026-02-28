@@ -8,8 +8,6 @@ namespace Deaddit.Components.WebComponents.Partials.Post
 {
     public class TextContainerComponent : DivComponent
     {
-        public event EventHandler Clicked;
-
         public TextContainerComponent(ApiPost post, ApplicationStyling applicationStyling, ApplicationHacks applicationHacks)
         {
             Display = "flex";
@@ -87,6 +85,8 @@ namespace Deaddit.Components.WebComponents.Partials.Post
 
             OnClick += (s, e) => Clicked?.Invoke(this, EventArgs.Empty);
         }
+
+        public event EventHandler Clicked;
 
         public void ShowTimeUser(bool show)
         {

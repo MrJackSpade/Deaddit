@@ -3,6 +3,7 @@ using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Reddit.Models.Requests;
 using Deaddit.Core.Reddit.Models.ThingDefinitions;
 using Reddit.Api.Models.Enums;
+using Reddit.Api.Models.Json.Users;
 
 namespace Deaddit.Core.Reddit.Interfaces
 {
@@ -53,9 +54,15 @@ namespace Deaddit.Core.Reddit.Interfaces
         Task Delete(ApiThing thing);
 
         /// <summary>
+        /// Displays an exception to the user.
+        /// Returns true if the exception was handled.
+        /// </summary>
+        Task<bool> DisplayException(Exception ex);
+
+        /// <summary>
         /// Gets partial user data for multiple usernames.
         /// </summary>
-        Task<Dictionary<string, UserPartial>> GetPartialUserData(IEnumerable<string> usernames);
+        Task<Dictionary<string, UserPartialData>> GetPartialUserData(IEnumerable<string> usernames);
 
         /// <summary>
         /// Gets a single post by ID.
@@ -141,11 +148,5 @@ namespace Deaddit.Core.Reddit.Interfaces
         /// Updates/edits a thing's content.
         /// </summary>
         Task<ApiComment?> Update(ApiThing thing);
-
-        /// <summary>
-        /// Displays an exception to the user.
-        /// Returns true if the exception was handled.
-        /// </summary>
-        Task<bool> DisplayException(Exception ex);
     }
 }

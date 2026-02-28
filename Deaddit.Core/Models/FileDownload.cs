@@ -4,12 +4,6 @@ namespace Deaddit.Core.Models
 {
     public class FileDownload
     {
-        public string DownloadUrl { get; set; }
-
-        public string FileName { get; set; }
-
-        public string LaunchUrl { get; set; }
-
         public FileDownload(string? fileName, string? launchUrl, string? downloadUrl)
         {
             Ensure.NotNullOrWhiteSpace(fileName);
@@ -39,5 +33,11 @@ namespace Deaddit.Core.Models
                 FileName = FileName[..FileName.IndexOf('?')];
             }
         }
+
+        public string DownloadUrl { get; set; }
+
+        public string FileName { get; set; }
+
+        public string LaunchUrl { get; set; }
     }
 }

@@ -10,13 +10,6 @@ namespace Deaddit.Core.Configurations.Models
 
     public class SubRedditSubscription
     {
-        public string? DisplayString { get; set; }
-
-        public ApiPostSort Sort { get; set; } = ApiPostSort.Hot;
-
-        [JsonPropertyName("SubReddit")]
-        public string? ThingName { get; set; }
-
         public SubRedditSubscription()
         {
         }
@@ -27,5 +20,12 @@ namespace Deaddit.Core.Configurations.Models
             DisplayString = displayString;
             ThingName = subReddit;
         }
+
+        public string? DisplayString { get; set; }
+
+        public ApiPostSort Sort { get; set; } = ApiPostSort.Hot;
+
+        [JsonPropertyName("SubReddit")]
+        public string? ThingName { get; set; }
     }
 }

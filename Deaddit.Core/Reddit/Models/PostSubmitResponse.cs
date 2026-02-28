@@ -2,12 +2,18 @@ using System.Text.Json.Serialization;
 
 namespace Deaddit.Core.Reddit.Models
 {
+    public class Json
+    {
+        [JsonPropertyName("data")]
+        public PostSubmitData Data { get; set; }
+
+        [JsonPropertyName("errors")]
+        public List<string> Errors { get; set; }
+    }
+
     // Root myDeserializedClass = JsonSerializer.Deserialize<Root>(myJsonResponse);
     public class PostSubmitData
     {
-        [JsonPropertyName("url")]
-        public string Url { get; set; }
-
         [JsonPropertyName("drafts_count")]
         public int DraftsCount { get; set; }
 
@@ -16,15 +22,9 @@ namespace Deaddit.Core.Reddit.Models
 
         [JsonPropertyName("name")]
         public string Name { get; set; }
-    }
 
-    public class Json
-    {
-        [JsonPropertyName("errors")]
-        public List<string> Errors { get; set; }
-
-        [JsonPropertyName("data")]
-        public PostSubmitData Data { get; set; }
+        [JsonPropertyName("url")]
+        public string Url { get; set; }
     }
 
     public class PostSubmitResponse

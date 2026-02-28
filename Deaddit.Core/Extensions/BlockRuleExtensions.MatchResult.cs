@@ -6,9 +6,9 @@ namespace Deaddit.Core.Extensions
     {
         public class MatchResult
         {
-            public TriggerState State { get; private set; } = TriggerState.Skip;
-
             public bool IsMatch => State == TriggerState.Match;
+
+            public TriggerState State { get; private set; } = TriggerState.Skip;
 
             public void Apply(TriggerState state)
             {

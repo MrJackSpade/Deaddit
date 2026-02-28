@@ -15,6 +15,10 @@ namespace Deaddit.Interfaces
     {
         RedditCommentWebComponent CreateCommentWebComponent(ApiComment newComment, ApiPost post, SelectionGroup selectionGroup);
 
+        HistoryComponent CreateHistoryComponent();
+
+        HistoryWebComponent CreateHistoryWebComponent();
+
         RedditMessageWebComponent CreateMessageWebComponent(ApiMessage message, SelectionGroup selectionGroup);
 
         MoreCommentsWebComponent CreateMoreCommentsWebComponent(IMore more);
@@ -25,13 +29,11 @@ namespace Deaddit.Interfaces
 
         SubscriptionWebComponent CreateSubscriptionWebComponent(ThingDefinition subscriptionThing, SelectionGroup? group = null);
 
-        HistoryComponent CreateHistoryComponent();
-
-        HistoryWebComponent CreateHistoryWebComponent();
-
         Task<EmbeddedBrowser> OpenBrowser(string url);
 
         Task<ReplyPage> OpenEditPage(ApiThing toEdit);
+
+        Task<HistoryPage> OpenHistory();
 
         Task<EmbeddedImage> OpenImages(FileDownload[] urls);
 
@@ -58,7 +60,5 @@ namespace Deaddit.Interfaces
         Task<ThingCollectionPage> OpenUser(string username, UserProfileSort userProfileSort = UserProfileSort.New);
 
         Task<EmbeddedVideo> OpenVideo(FileDownload url);
-
-        Task<HistoryPage> OpenHistory();
     }
 }

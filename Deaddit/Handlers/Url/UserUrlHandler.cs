@@ -12,6 +12,11 @@ namespace Deaddit.Handlers.Url
 
         private readonly IAppNavigator _appNavigator = appNavigator;
 
+        public bool CanDownload(string url, IAggregatePostHandler? aggregatePostHandler)
+        {
+            return false;
+        }
+
         public bool CanLaunch(string url, IAggregatePostHandler aggregatePostHandler)
         {
             if (aggregatePostHandler is null)
@@ -22,9 +27,9 @@ namespace Deaddit.Handlers.Url
             return Regex.IsMatch(url, SubredditRegex);
         }
 
-        public bool CanDownload(string url, IAggregatePostHandler? aggregatePostHandler)
+        public Task<FileDownload> Download(string url, IAggregatePostHandler aggregatePostHandler)
         {
-            return false;
+            throw new NotSupportedException();
         }
 
         public async Task Launch(string url, IAggregatePostHandler caller)
@@ -36,11 +41,6 @@ namespace Deaddit.Handlers.Url
             string id = match.Groups[1].Value;
 
             await _appNavigator.OpenUser(id);
-        }
-
-        public Task<FileDownload> Download(string url, IAggregatePostHandler aggregatePostHandler)
-        {
-            throw new NotSupportedException();
         }
     }
 }

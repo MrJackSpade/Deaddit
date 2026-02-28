@@ -6,14 +6,11 @@ namespace Maui.WebComponents.Components
     [HtmlEntity("input")]
     public class InputComponent : WebComponent
     {
-        [HtmlAttribute]
-        public string? Type { get; set; } = "text";
+        [HtmlEvent("onchange")]
+        public event EventHandler<InputEventArgs>? OnChange;
 
-        [HtmlAttribute]
-        public string? Value { get; set; }
-
-        [HtmlAttribute]
-        public string? Placeholder { get; set; }
+        [HtmlEvent("oninput")]
+        public event EventHandler<InputEventArgs>? OnInput;
 
         [HtmlAttribute]
         public string? Checked { get; set; }
@@ -21,10 +18,13 @@ namespace Maui.WebComponents.Components
         [HtmlAttribute]
         public string? Name { get; set; }
 
-        [HtmlEvent("oninput")]
-        public event EventHandler<InputEventArgs>? OnInput;
+        [HtmlAttribute]
+        public string? Placeholder { get; set; }
 
-        [HtmlEvent("onchange")]
-        public event EventHandler<InputEventArgs>? OnChange;
+        [HtmlAttribute]
+        public string? Type { get; set; } = "text";
+
+        [HtmlAttribute]
+        public string? Value { get; set; }
     }
 }

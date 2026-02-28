@@ -9,9 +9,11 @@ namespace Deaddit.Components.WebComponents.Forms
     [HtmlEntity("div")]
     public class MultilineTextFieldComponent : FormFieldComponent
     {
-        private readonly TextAreaComponent _textArea;
         private readonly PropertyInfo _property;
+
         private readonly object _target;
+
+        private readonly TextAreaComponent _textArea;
 
         public MultilineTextFieldComponent(string labelText, string? description, PropertyInfo property, object target, ApplicationStyling styling)
             : base(labelText, description, styling)

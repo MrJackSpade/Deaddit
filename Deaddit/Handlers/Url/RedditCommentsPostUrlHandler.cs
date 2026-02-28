@@ -14,6 +14,11 @@ namespace Deaddit.Handlers.Url
 
         private readonly IRedditClient _redditClient = redditClient;
 
+        public bool CanDownload(string url, IAggregatePostHandler? aggregatePostHandler)
+        {
+            return false;
+        }
+
         public bool CanLaunch(string url, IAggregatePostHandler aggregatePostHandler)
         {
             if (aggregatePostHandler is null)
@@ -24,9 +29,9 @@ namespace Deaddit.Handlers.Url
             return Regex.IsMatch(url, @".*/r\/[^\/]+\/comments\/[^\/]+\/[^\/]+\/?.*$");
         }
 
-        public bool CanDownload(string url, IAggregatePostHandler? aggregatePostHandler)
+        public Task<FileDownload> Download(string url, IAggregatePostHandler aggregatePostHandler)
         {
-            return false;
+            throw new NotSupportedException();
         }
 
         public async Task Launch(string url, IAggregatePostHandler caller)
@@ -40,11 +45,6 @@ namespace Deaddit.Handlers.Url
             ApiPost post = await _redditClient.GetPost(id);
 
             await _appNavigator.OpenPost(post);
-        }
-
-        public Task<FileDownload> Download(string url, IAggregatePostHandler aggregatePostHandler)
-        {
-            throw new NotSupportedException();
         }
     }
 }
