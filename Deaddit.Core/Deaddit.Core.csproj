@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Reddit.Api\Reddit.Api\Reddit.Api.csproj" />
+    <ProjectReference Include="..\Reddit.Api\Reddit.Api\Reddit.Api.csproj" />
   </ItemGroup>
 
 </Project>

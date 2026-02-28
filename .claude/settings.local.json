@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(dotnet build:*)"
+      "Bash(dotnet build:*)",
+      "Bash(cd:*)",
+      "Bash(cd /c/git/Deaddit/Reddit.Api && dotnet test Reddit.Api.Tests/Reddit.Api.Tests.csproj --verbosity normal 2>&1)",
+      "Bash(cd /c/git/Deaddit/Reddit.Api && dotnet test Reddit.Api.Tests --logger \"console;verbosity=normal\" 2>&1)",
+      "Bash(cd /c/git/Deaddit/Reddit.Api && dotnet test Reddit.Api.Tests --logger \"console;verbosity=normal\" --filter \"AutocompleteSubreddits|GetMyBlocked\" 2>&1)",
+      "Bash(cd /c/git/Deaddit/Reddit.Api && dotnet test Reddit.Api.Tests --filter \"FullyQualifiedName~UnauthenticatedTests\" --logger \"console;verbosity=normal\" 2>&1)"
     ]
   }
 }
