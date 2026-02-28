@@ -1,5 +1,5 @@
-﻿using Reddit.Api.Interfaces;
-using Reddit.Api.Models.Api;
+﻿using Deaddit.Core.Reddit.Interfaces;
+using Deaddit.Core.Reddit.Models.Api;
 using System.Diagnostics;
 using System.Text;
 

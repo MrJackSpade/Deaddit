@@ -1,7 +1,7 @@
 ﻿using Deaddit.Core.Configurations.Models;
+using Deaddit.Core.Reddit.Models;
+using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils.Blocking;
-using Reddit.Api.Models;
-using Reddit.Api.Models.Api;
 using static Deaddit.Core.Utils.Blocking.BlockListHelper;
 
 namespace Deaddit.Core.Extensions

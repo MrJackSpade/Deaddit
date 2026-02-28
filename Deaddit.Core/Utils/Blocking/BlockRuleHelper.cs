@@ -1,5 +1,5 @@
 ﻿using Deaddit.Core.Configurations.Models;
-using Reddit.Api.Models.Api;
+using Deaddit.Core.Reddit.Models.Api;
 
 namespace Deaddit.Core.Utils.Blocking
 {

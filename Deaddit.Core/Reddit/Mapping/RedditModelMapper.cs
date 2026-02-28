@@ -1,5 +1,5 @@
-using Reddit.Api.Models;
-using Reddit.Api.Models.Api;
+using Deaddit.Core.Reddit.Models;
+using Deaddit.Core.Reddit.Models.Api;
 using Reddit.Api.Models.Json.Common;
 using Reddit.Api.Models.Json.Listings;
 using Reddit.Api.Models.Json.Multis;
@@ -565,7 +565,7 @@ namespace Deaddit.Core.Reddit.Mapping
                 return null;
             }
 
-            if (DynamicColor.TryParse(color, out var result))
+            if (DynamicColor.TryParse(color, out DynamicColor? result))
             {
                 return result;
             }

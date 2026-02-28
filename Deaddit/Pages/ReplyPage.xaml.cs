@@ -4,14 +4,13 @@ using Deaddit.Configurations;
 using Deaddit.Configurations.Ai;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
+using Deaddit.Core.Reddit.Interfaces;
+using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.Pages.Models;
-using Reddit.Api.Interfaces;
-using Reddit.Api.Models.Api;
-using System.Text;
 
 namespace Deaddit.Pages
 {
@@ -152,10 +151,10 @@ namespace Deaddit.Pages
             if (replyTo is ApiPost post)
             {
                 history = $"**{post.Author}**: {post.Title}\n\n";
-                
-                if(!string.IsNullOrWhiteSpace(post.Body))
+
+                if (!string.IsNullOrWhiteSpace(post.Body))
                 {
-                    history +=  post.Body + "\n\n";
+                    history += post.Body + "\n\n";
                 }
             }
             else
@@ -163,7 +162,7 @@ namespace Deaddit.Pages
                 history = $"**{replyTo.Author}**: {replyTo.Body}\n\n";
             }
 
-            if(replyTo.Parent != null)
+            if (replyTo.Parent != null)
             {
                 history = this.GenerateAiHistory(replyTo.Parent) + history;
             }

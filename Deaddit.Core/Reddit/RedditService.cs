@@ -1,12 +1,12 @@
+using Deaddit.Core.Reddit.Extensions;
+using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Mapping;
-using Reddit.Api.Extensions;
-using Reddit.Api.Interfaces;
-using Reddit.Api.Models;
-using Reddit.Api.Models.Api;
+using Deaddit.Core.Reddit.Models;
+using Deaddit.Core.Reddit.Models.Api;
+using Deaddit.Core.Reddit.Models.Requests;
+using Deaddit.Core.Reddit.Models.ThingDefinitions;
 using Reddit.Api.Models.Json.Common;
 using Reddit.Api.Models.Json.Listings;
-using Reddit.Api.Models.Requests;
-using Reddit.Api.Models.ThingDefinitions;
 using System.Diagnostics;
 using NewClient = Reddit.Api.Client;
 
@@ -19,6 +19,7 @@ namespace Deaddit.Core.Reddit
     public class RedditService : IRedditClient
     {
         private readonly NewClient.IRedditClient _client;
+
         private readonly HttpClient _httpClient;
 
         public RedditService(IRedditCredentials credentials, HttpClient httpClient)
@@ -26,7 +27,7 @@ namespace Deaddit.Core.Reddit
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
 
             // Create the new client internally using provided credentials
-            var clientCredentials = new NewClient.RedditCredentials
+            NewClient.RedditCredentials clientCredentials = new()
             {
                 Username = credentials.UserName,
                 Password = credentials.Password,
@@ -47,11 +48,11 @@ namespace Deaddit.Core.Reddit
         {
             try
             {
-                await TryAuthenticate();
+                await this.TryAuthenticate();
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
-                var result = await _client.GetSubredditAboutAsync(subreddit.Name);
+                Thing<global::Reddit.Api.Models.Json.Subreddits.Subreddit>? result = await _client.GetSubredditAboutAsync(subreddit.Name);
 
                 stopwatch.Stop();
                 Debug.WriteLine($"[DEBUG] Time spent in About method: {stopwatch.ElapsedMilliseconds}ms");
@@ -60,7 +61,7 @@ namespace Deaddit.Core.Reddit
             }
             catch (Exception ex)
             {
-                if (!await DisplayException(ex))
+                if (!await this.DisplayException(ex))
                 {
                     throw;
                 }
@@ -72,11 +73,11 @@ namespace Deaddit.Core.Reddit
         {
             try
             {
-                await EnsureAuthenticated();
+                await this.EnsureAuthenticated();
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
-                var result = await _client.CommentAsync(replyTo.Name, comment);
+                Thing<Comment>? result = await _client.CommentAsync(replyTo.Name, comment);
 
                 stopwatch.Stop();
                 Debug.WriteLine($"[DEBUG] Time spent in Comment method: {stopwatch.ElapsedMilliseconds}ms");
@@ -85,7 +86,7 @@ namespace Deaddit.Core.Reddit
             }
             catch (Exception ex)
             {
-                if (!await DisplayException(ex))
+                if (!await this.DisplayException(ex))
                 {
                     throw;
                 }
@@ -99,11 +100,11 @@ namespace Deaddit.Core.Reddit
 
             try
             {
-                await TryAuthenticate();
+                await this.TryAuthenticate();
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
-                var (_, comments) = await _client.GetCommentsAsync(
+                (Thing<Link> _, Listing<Thing<Comment>> comments) = await _client.GetCommentsAsync(
                     post.Id!,
                     focusComment?.Id,
                     sort: null,
@@ -114,7 +115,7 @@ namespace Deaddit.Core.Reddit
 
                 if (comments?.Data?.Children != null)
                 {
-                    foreach (var child in comments.Data.Children)
+                    foreach (Thing<Comment> child in comments.Data.Children)
                     {
                         if (child?.Data == null)
                         {
@@ -124,17 +125,17 @@ namespace Deaddit.Core.Reddit
                         // Check if this is a "more" item
                         if (child.Kind == "more")
                         {
-                            var more = RedditModelMapper.MapMore(child.Data);
+                            ApiMore more = RedditModelMapper.MapMore(child.Data);
                             more.Parent = responseParent;
                             toReturn.Add(more);
                         }
                         else
                         {
-                            var apiComment = RedditModelMapper.Map(child.Data);
+                            ApiComment apiComment = RedditModelMapper.Map(child.Data);
                             if (apiComment != null && apiComment.Id != post.Id)
                             {
                                 apiComment.Parent = responseParent;
-                                MapCommentReplies(apiComment, child.Data, apiComment);
+                                this.MapCommentReplies(apiComment, child.Data, apiComment);
                                 toReturn.Add(apiComment);
                             }
                         }
@@ -146,7 +147,7 @@ namespace Deaddit.Core.Reddit
             }
             catch (Exception ex)
             {
-                if (!await DisplayException(ex))
+                if (!await this.DisplayException(ex))
                 {
                     throw;
                 }
@@ -159,12 +160,12 @@ namespace Deaddit.Core.Reddit
         {
             try
             {
-                await EnsureAuthenticated();
+                await this.EnsureAuthenticated();
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
                 string kindString = kind.ToString().ToLower();
-                var request = new global::Reddit.Api.Models.Json.LinksComments.SubmitRequest
+                global::Reddit.Api.Models.Json.LinksComments.SubmitRequest request = new()
                 {
                     Subreddit = subreddit,
                     Title = title,
@@ -180,21 +181,21 @@ namespace Deaddit.Core.Reddit
                     request.Url = content;
                 }
 
-                var result = await _client.SubmitAsync(request);
+                global::Reddit.Api.Models.Json.LinksComments.SubmitResponseData? result = await _client.SubmitAsync(request);
 
                 stopwatch.Stop();
                 Debug.WriteLine($"[DEBUG] Time spent in CreatePost method: {stopwatch.ElapsedMilliseconds}ms");
 
                 if (result?.Name != null)
                 {
-                    return await GetPost(result.Name);
+                    return await this.GetPost(result.Name);
                 }
 
                 return null;
             }
             catch (Exception ex)
             {
-                if (!await DisplayException(ex))
+                if (!await this.DisplayException(ex))
                 {
                     throw;
                 }
@@ -206,7 +207,7 @@ namespace Deaddit.Core.Reddit
         {
             try
             {
-                await EnsureAuthenticated();
+                await this.EnsureAuthenticated();
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
@@ -217,28 +218,33 @@ namespace Deaddit.Core.Reddit
             }
             catch (Exception ex)
             {
-                if (!await DisplayException(ex))
+                if (!await this.DisplayException(ex))
                 {
                     throw;
                 }
             }
         }
 
+        public virtual Task<bool> DisplayException(Exception ex)
+        {
+            return Task.FromResult(false);
+        }
+
         public async Task<Dictionary<string, UserPartial>> GetPartialUserData(IEnumerable<string> usernames)
         {
             try
             {
-                var usernameList = usernames.ToList();
+                List<string> usernameList = usernames.ToList();
                 if (usernameList.Count == 0)
                 {
                     return [];
                 }
 
-                await EnsureAuthenticated();
+                await this.EnsureAuthenticated();
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
-                var result = await _client.GetUserDataByIdsAsync(usernameList);
+                global::Reddit.Api.Models.Json.Users.UserDataByIdsResponse? result = await _client.GetUserDataByIdsAsync(usernameList);
 
                 stopwatch.Stop();
                 Debug.WriteLine($"[DEBUG] Time spent in GetPartialUserData method: {stopwatch.ElapsedMilliseconds}ms");
@@ -248,8 +254,8 @@ namespace Deaddit.Core.Reddit
                     return [];
                 }
 
-                var toReturn = new Dictionary<string, UserPartial>();
-                foreach (var kvp in result)
+                Dictionary<string, UserPartial> toReturn = new();
+                foreach (KeyValuePair<string, global::Reddit.Api.Models.Json.Users.UserPartialData> kvp in result)
                 {
                     toReturn[kvp.Key] = new UserPartial
                     {
@@ -264,7 +270,7 @@ namespace Deaddit.Core.Reddit
             }
             catch (Exception ex)
             {
-                if (!await DisplayException(ex))
+                if (!await this.DisplayException(ex))
                 {
                     throw;
                 }
@@ -276,13 +282,13 @@ namespace Deaddit.Core.Reddit
         {
             try
             {
-                await EnsureAuthenticated();
+                await this.EnsureAuthenticated();
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
                 string fullname = id.StartsWith("t3_") ? id : $"t3_{id}";
 
-                var result = await _client.GetInfoAsync([fullname]);
+                Listing<Thing<Link>>? result = await _client.GetInfoAsync([fullname]);
 
                 stopwatch.Stop();
                 Debug.WriteLine($"[DEBUG] Time spent in GetPost method: {stopwatch.ElapsedMilliseconds}ms");
@@ -296,7 +302,7 @@ namespace Deaddit.Core.Reddit
             }
             catch (Exception ex)
             {
-                if (!await DisplayException(ex))
+                if (!await this.DisplayException(ex))
                 {
                     throw;
                 }
@@ -308,17 +314,17 @@ namespace Deaddit.Core.Reddit
         {
             try
             {
-                await EnsureAuthenticated();
+                await this.EnsureAuthenticated();
 
-                var fullnames = ids.Select(id => id.StartsWith("t3_") ? id : $"t3_{id}");
+                IEnumerable<string> fullnames = ids.Select(id => id.StartsWith("t3_") ? id : $"t3_{id}");
 
-                var result = await _client.GetByIdAsync(fullnames);
+                Listing<Thing<Link>>? result = await _client.GetByIdAsync(fullnames);
 
                 return RedditModelMapper.MapPostsTyped(result);
             }
             catch (Exception ex)
             {
-                if (!await DisplayException(ex))
+                if (!await this.DisplayException(ex))
                 {
                     throw;
                 }
@@ -332,7 +338,7 @@ namespace Deaddit.Core.Reddit
 
             try
             {
-                await TryAuthenticate();
+                await this.TryAuthenticate();
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
@@ -342,14 +348,14 @@ namespace Deaddit.Core.Reddit
 
                 if (endpoint.StartsWith("r/"))
                 {
-                    var parts = endpoint.Split('/');
+                    string[] parts = endpoint.Split('/');
                     if (parts.Length >= 2)
                     {
                         subreddit = parts[1];
                     }
                 }
 
-                var parameters = new ListingParameters
+                ListingParameters parameters = new()
                 {
                     After = after,
                     Limit = Math.Min(100, pageSize),
@@ -379,11 +385,11 @@ namespace Deaddit.Core.Reddit
                     return toReturn;
                 }
 
-                foreach (var child in result.Data.Children)
+                foreach (Thing<Link> child in result.Data.Children)
                 {
                     if (child?.Data != null)
                     {
-                        var post = RedditModelMapper.Map(child.Data);
+                        ApiPost post = RedditModelMapper.Map(child.Data);
                         if (post != null)
                         {
                             toReturn.Add(post);
@@ -398,7 +404,7 @@ namespace Deaddit.Core.Reddit
             }
             catch (Exception ex)
             {
-                if (!await DisplayException(ex))
+                if (!await this.DisplayException(ex))
                 {
                     throw;
                 }
@@ -409,7 +415,7 @@ namespace Deaddit.Core.Reddit
 
         public async Task<Stream> GetStream(string url)
         {
-            await EnsureAuthenticated();
+            await this.EnsureAuthenticated();
             return await _httpClient.GetStreamAsync(url);
         }
 
@@ -417,9 +423,9 @@ namespace Deaddit.Core.Reddit
         {
             try
             {
-                await TryAuthenticate();
+                await this.TryAuthenticate();
 
-                var result = await _client.GetUserAboutAsync(username);
+                Thing<global::Reddit.Api.Models.Json.Users.User>? result = await _client.GetUserAboutAsync(username);
                 return RedditModelMapper.Map(result);
             }
             catch (Exception)
@@ -432,7 +438,7 @@ namespace Deaddit.Core.Reddit
         {
             try
             {
-                await EnsureAuthenticated();
+                await this.EnsureAuthenticated();
 
                 if (state)
                 {
@@ -445,7 +451,7 @@ namespace Deaddit.Core.Reddit
             }
             catch (Exception ex)
             {
-                if (!await DisplayException(ex))
+                if (!await this.DisplayException(ex))
                 {
                     throw;
                 }
@@ -456,7 +462,7 @@ namespace Deaddit.Core.Reddit
         {
             try
             {
-                await EnsureAuthenticated();
+                await this.EnsureAuthenticated();
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
@@ -467,7 +473,7 @@ namespace Deaddit.Core.Reddit
             }
             catch (Exception ex)
             {
-                if (!await DisplayException(ex))
+                if (!await this.DisplayException(ex))
                 {
                     throw;
                 }
@@ -480,7 +486,7 @@ namespace Deaddit.Core.Reddit
 
             try
             {
-                await EnsureAuthenticated();
+                await this.EnsureAuthenticated();
 
                 if (moreItem.ChildNames == null || moreItem.ChildNames.Count == 0)
                 {
@@ -489,7 +495,7 @@ namespace Deaddit.Core.Reddit
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
-                var result = await _client.GetMoreChildrenAsync(
+                List<Thing<Comment>>? result = await _client.GetMoreChildrenAsync(
                     post.Name,
                     moreItem.ChildNames,
                     sort: null,
@@ -500,11 +506,11 @@ namespace Deaddit.Core.Reddit
                     // Build tree structure
                     Dictionary<string, ApiComment> tree = [];
 
-                    foreach (var thing in result)
+                    foreach (Thing<Comment> thing in result)
                     {
                         if (thing?.Data != null && thing.Kind != "more")
                         {
-                            var comment = RedditModelMapper.Map(thing.Data);
+                            ApiComment comment = RedditModelMapper.Map(thing.Data);
                             if (comment != null)
                             {
                                 tree[comment.Name] = comment;
@@ -514,7 +520,7 @@ namespace Deaddit.Core.Reddit
 
                     // Link parents
                     List<ApiThing> allThings = [];
-                    foreach (var thing in result)
+                    foreach (Thing<Comment> thing in result)
                     {
                         if (thing?.Data == null)
                         {
@@ -523,21 +529,21 @@ namespace Deaddit.Core.Reddit
 
                         if (thing.Kind == "more")
                         {
-                            var more = RedditModelMapper.MapMore(thing.Data);
+                            ApiMore more = RedditModelMapper.MapMore(thing.Data);
                             allThings.Add(more);
                         }
-                        else if (tree.TryGetValue(thing.Data.Name, out var comment))
+                        else if (tree.TryGetValue(thing.Data.Name, out ApiComment? comment))
                         {
                             allThings.Add(comment);
                         }
                     }
 
                     // Nest children under parents
-                    foreach (var apiThing in allThings.ToList())
+                    foreach (ApiThing? apiThing in allThings.ToList())
                     {
                         if (apiThing is ApiComment apiComment)
                         {
-                            if (apiComment.ParentId != null && tree.TryGetValue(apiComment.ParentId, out var parent))
+                            if (apiComment.ParentId != null && tree.TryGetValue(apiComment.ParentId, out ApiComment? parent))
                             {
                                 parent.AddReply(apiComment);
                                 allThings.Remove(apiThing);
@@ -546,7 +552,7 @@ namespace Deaddit.Core.Reddit
 
                         if (apiThing is ApiMore apiMore)
                         {
-                            if (apiMore.ParentId != null && tree.TryGetValue(apiMore.ParentId, out var parent))
+                            if (apiMore.ParentId != null && tree.TryGetValue(apiMore.ParentId, out ApiComment? parent))
                             {
                                 parent.AddReply(apiMore);
                                 allThings.Remove(apiThing);
@@ -555,7 +561,7 @@ namespace Deaddit.Core.Reddit
                     }
 
                     // Set parent for remaining top-level items
-                    foreach (var apiThing in allThings)
+                    foreach (ApiThing apiThing in allThings)
                     {
                         if (moreItem.Parent != null)
                         {
@@ -570,7 +576,7 @@ namespace Deaddit.Core.Reddit
             }
             catch (Exception ex)
             {
-                if (!await DisplayException(ex))
+                if (!await this.DisplayException(ex))
                 {
                     throw;
                 }
@@ -585,9 +591,9 @@ namespace Deaddit.Core.Reddit
 
             try
             {
-                await EnsureAuthenticated();
+                await this.EnsureAuthenticated();
 
-                var result = await _client.GetMyMultisAsync();
+                List<global::Reddit.Api.Models.Json.Multis.MultiResponse>? result = await _client.GetMyMultisAsync();
 
                 if (result != null)
                 {
@@ -596,7 +602,7 @@ namespace Deaddit.Core.Reddit
             }
             catch (Exception ex)
             {
-                if (!await DisplayException(ex))
+                if (!await this.DisplayException(ex))
                 {
                     throw;
                 }
@@ -609,7 +615,7 @@ namespace Deaddit.Core.Reddit
         {
             try
             {
-                await EnsureAuthenticated();
+                await this.EnsureAuthenticated();
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
@@ -621,7 +627,7 @@ namespace Deaddit.Core.Reddit
             }
             catch (Exception ex)
             {
-                if (!await DisplayException(ex))
+                if (!await this.DisplayException(ex))
                 {
                     throw;
                 }
@@ -632,7 +638,7 @@ namespace Deaddit.Core.Reddit
         {
             try
             {
-                await EnsureAuthenticated();
+                await this.EnsureAuthenticated();
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
@@ -644,7 +650,7 @@ namespace Deaddit.Core.Reddit
             }
             catch (Exception ex)
             {
-                if (!await DisplayException(ex))
+                if (!await this.DisplayException(ex))
                 {
                     throw;
                 }
@@ -655,13 +661,13 @@ namespace Deaddit.Core.Reddit
         {
             try
             {
-                await EnsureAuthenticated();
+                await this.EnsureAuthenticated();
 
                 await _client.SetSendRepliesAsync(thing.Name, enabled);
             }
             catch (Exception ex)
             {
-                if (!await DisplayException(ex))
+                if (!await this.DisplayException(ex))
                 {
                     throw;
                 }
@@ -672,7 +678,7 @@ namespace Deaddit.Core.Reddit
         {
             try
             {
-                await EnsureAuthenticated();
+                await this.EnsureAuthenticated();
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
@@ -690,7 +696,7 @@ namespace Deaddit.Core.Reddit
             }
             catch (Exception ex)
             {
-                if (!await DisplayException(ex))
+                if (!await this.DisplayException(ex))
                 {
                     throw;
                 }
@@ -701,7 +707,7 @@ namespace Deaddit.Core.Reddit
         {
             try
             {
-                await EnsureAuthenticated();
+                await this.EnsureAuthenticated();
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
@@ -719,7 +725,7 @@ namespace Deaddit.Core.Reddit
             }
             catch (Exception ex)
             {
-                if (!await DisplayException(ex))
+                if (!await this.DisplayException(ex))
                 {
                     throw;
                 }
@@ -730,7 +736,7 @@ namespace Deaddit.Core.Reddit
         {
             try
             {
-                await EnsureAuthenticated();
+                await this.EnsureAuthenticated();
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
@@ -741,7 +747,7 @@ namespace Deaddit.Core.Reddit
             }
             catch (Exception ex)
             {
-                if (!await DisplayException(ex))
+                if (!await this.DisplayException(ex))
                 {
                     throw;
                 }
@@ -752,7 +758,7 @@ namespace Deaddit.Core.Reddit
         {
             try
             {
-                await EnsureAuthenticated();
+                await this.EnsureAuthenticated();
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
@@ -770,7 +776,7 @@ namespace Deaddit.Core.Reddit
             }
             catch (Exception ex)
             {
-                if (!await DisplayException(ex))
+                if (!await this.DisplayException(ex))
                 {
                     throw;
                 }
@@ -781,11 +787,11 @@ namespace Deaddit.Core.Reddit
         {
             try
             {
-                await EnsureAuthenticated();
+                await this.EnsureAuthenticated();
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
-                var result = await _client.EditAsync(thing.Name, thing.Body);
+                Thing<Comment>? result = await _client.EditAsync(thing.Name, thing.Body);
 
                 stopwatch.Stop();
                 Debug.WriteLine($"[DEBUG] Time spent in Update method: {stopwatch.ElapsedMilliseconds}ms");
@@ -794,7 +800,7 @@ namespace Deaddit.Core.Reddit
             }
             catch (Exception ex)
             {
-                if (!await DisplayException(ex))
+                if (!await this.DisplayException(ex))
                 {
                     throw;
                 }
@@ -802,18 +808,18 @@ namespace Deaddit.Core.Reddit
             }
         }
 
-        public virtual Task<bool> DisplayException(Exception ex)
-        {
-            return Task.FromResult(false);
-        }
-
         #region Private Methods
 
-        private async Task TryAuthenticate()
+        private static void SetParent(ApiThing parent, ApiThing child)
         {
-            if (_client.CanAuthenticate && !_client.IsAuthenticated)
+            child.Parent = parent;
+
+            if (child is ApiComment apiComment && apiComment.Replies != null)
             {
-                await _client.AuthenticateAsync();
+                foreach (ApiThing reply in apiComment.Replies.Children)
+                {
+                    SetParent(child, reply);
+                }
             }
         }
 
@@ -831,19 +837,6 @@ namespace Deaddit.Core.Reddit
                 else
                 {
                     throw new InvalidOperationException("Cannot authenticate - no valid credentials");
-                }
-            }
-        }
-
-        private static void SetParent(ApiThing parent, ApiThing child)
-        {
-            child.Parent = parent;
-
-            if (child is ApiComment apiComment && apiComment.Replies != null)
-            {
-                foreach (var reply in apiComment.Replies.Children)
-                {
-                    SetParent(child, reply);
                 }
             }
         }
@@ -866,7 +859,7 @@ namespace Deaddit.Core.Reddit
                 // Try to parse as listing
                 try
                 {
-                    var listing = System.Text.Json.JsonSerializer.Deserialize<Listing<Thing<Comment>>>(je.GetRawText());
+                    Listing<Thing<Comment>>? listing = System.Text.Json.JsonSerializer.Deserialize<Listing<Thing<Comment>>>(je.GetRawText());
                     if (listing?.Data?.Children != null)
                     {
                         apiComment.Replies = new ApiThingCollection
@@ -874,7 +867,7 @@ namespace Deaddit.Core.Reddit
                             Children = []
                         };
 
-                        foreach (var child in listing.Data.Children)
+                        foreach (Thing<Comment> child in listing.Data.Children)
                         {
                             if (child?.Data == null)
                             {
@@ -883,17 +876,17 @@ namespace Deaddit.Core.Reddit
 
                             if (child.Kind == "more")
                             {
-                                var more = RedditModelMapper.MapMore(child.Data);
+                                ApiMore more = RedditModelMapper.MapMore(child.Data);
                                 more.Parent = apiComment;
                                 apiComment.Replies.Children.Add(more);
                             }
                             else
                             {
-                                var reply = RedditModelMapper.Map(child.Data);
+                                ApiComment reply = RedditModelMapper.Map(child.Data);
                                 if (reply != null)
                                 {
                                     reply.Parent = apiComment;
-                                    MapCommentReplies(reply, child.Data, reply);
+                                    this.MapCommentReplies(reply, child.Data, reply);
                                     apiComment.Replies.Children.Add(reply);
                                 }
                             }
@@ -907,6 +900,14 @@ namespace Deaddit.Core.Reddit
             }
         }
 
-        #endregion
+        private async Task TryAuthenticate()
+        {
+            if (_client.CanAuthenticate && !_client.IsAuthenticated)
+            {
+                await _client.AuthenticateAsync();
+            }
+        }
+
+        #endregion Private Methods
     }
 }

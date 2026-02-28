@@ -32,7 +32,7 @@ namespace Deaddit.Components.WebComponents.Forms
                 BoxSizing = "border-box"
             };
 
-            _input.OnInput += OnInputChanged;
+            _input.OnInput += this.OnInputChanged;
             this.AddInput(_input);
         }
 

@@ -1,5 +1,5 @@
+using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Interfaces;
-using Reddit.Api.Models.Api;
 using System.Text.Json;
 
 namespace Deaddit.Utils

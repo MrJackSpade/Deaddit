@@ -32,7 +32,7 @@ namespace Deaddit.Components.WebComponents.Forms
                 InnerText = property.GetValue(target)?.ToString() ?? string.Empty
             };
 
-            _textArea.OnInput += OnInputChanged;
+            _textArea.OnInput += this.OnInputChanged;
             this.AddInput(_textArea);
         }
 

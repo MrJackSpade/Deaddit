@@ -1,5 +1,5 @@
-﻿using Maui.WebComponents.Components;
-using Reddit.Api.Models.Api;
+﻿using Deaddit.Core.Reddit.Models.Api;
+using Maui.WebComponents.Components;
 
 namespace Deaddit.Pages
 {

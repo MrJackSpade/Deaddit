@@ -1,9 +1,9 @@
 ﻿using Deaddit.Core.Interfaces;
 using Deaddit.Core.Models;
+using Deaddit.Core.Reddit.Interfaces;
+using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils.Validation;
 using Deaddit.Interfaces;
-using Reddit.Api.Interfaces;
-using Reddit.Api.Models.Api;
 using System.Text.RegularExpressions;
 
 namespace Deaddit.Handlers.Url

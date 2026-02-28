@@ -1,12 +1,12 @@
 ﻿using Deaddit.Core.Attributes;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Extensions;
+using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Utils.DeepCopy;
 using Deaddit.Core.Utils.Extensions;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
 using Deaddit.Pages.Models;
-using Reddit.Api.Models;
 using System.Collections;
 using System.Diagnostics;
 using System.Reflection;

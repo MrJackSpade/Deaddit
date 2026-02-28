@@ -1,11 +1,11 @@
 ﻿using Deaddit.Components.WebComponents;
 using Deaddit.Core.Extensions;
+using Deaddit.Core.Reddit.Extensions;
+using Deaddit.Core.Reddit.Interfaces;
+using Deaddit.Core.Reddit.Models;
+using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Interfaces;
 using Maui.WebComponents.Components;
-using Reddit.Api.Extensions;
-using Reddit.Api.Interfaces;
-using Reddit.Api.Models;
-using Reddit.Api.Models.Api;
 
 namespace Deaddit.Extensions
 {

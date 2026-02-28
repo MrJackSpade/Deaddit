@@ -46,7 +46,7 @@ namespace Deaddit.Components.WebComponents.Forms
                 _select.Children.Add(option);
             }
 
-            _select.OnChange += OnSelectionChanged;
+            _select.OnChange += this.OnSelectionChanged;
             this.AddInput(_select);
         }
 

@@ -1,7 +1,7 @@
 ﻿using Deaddit.Core.Interfaces;
 using Deaddit.Core.Models;
+using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Utils;
-using Reddit.Api.Models.Api;
 
 namespace Deaddit.Handlers.Post
 {

@@ -45,7 +45,7 @@ namespace Deaddit.Components.WebComponents.Forms
                 MarginTop = "4px"
             };
 
-            _input.OnInput += OnInputChanged;
+            _input.OnInput += this.OnInputChanged;
             this.AddInput(_input);
             this.AddInput(_errorLabel);
         }
