@@ -23,18 +23,18 @@ namespace Maui.WebComponents
 
         private string _lastDifferentiator;
 
-        public event EventHandler<string> ClickUrl;
-
-        public event EventHandler<Exception>? OnJavascriptError;
-
-        public event EventHandler? OnScrollBottom;
-
         public WebElement()
         {
             DocumentStyles.OnStyleRuleAdded += this.UpdateStyle;
             Source = new HtmlWebViewSource { Html = this.RenderInitialHtml() };
             Navigating += this.OnNavigating;
         }
+
+        public event EventHandler<string> ClickUrl;
+
+        public event EventHandler<Exception>? OnJavascriptError;
+
+        public event EventHandler? OnScrollBottom;
 
         public async Task Clear()
         {
@@ -148,48 +148,6 @@ namespace Maui.WebComponents
             }
         }
 
-        private static string EncodeHtml(string html)
-        {
-            if (html is null)
-            {
-                return string.Empty;
-            }
-
-            return Convert.ToBase64String(Encoding.UTF8.GetBytes(html));
-        }
-
-        private static void RaiseEvent(WebComponent component, EventInfo eventInfo, string argsJson)
-        {
-            // Parse args and create typed EventArgs
-            EventArgs eventArgs = CreateEventArgs(eventInfo, argsJson);
-
-            // Get the backing field of the event (this relies on the field name matching the event name)
-            FieldInfo? field = null;
-
-            Type? searchType = component.GetType();
-
-            while (field == null && searchType != null)
-            {
-                field = searchType.GetField(eventInfo.Name, BindingFlags.Instance | BindingFlags.NonPublic);
-                searchType = searchType.BaseType;
-            }
-
-            if (field != null)
-            {
-                if (field.GetValue(component) is MulticastDelegate eventDelegate)
-                {
-                    // Prepare arguments for the event handler
-                    object[] invokeArgs = [component, eventArgs];
-
-                    // Invoke each subscribed event handler
-                    foreach (Delegate handler in eventDelegate.GetInvocationList())
-                    {
-                        handler.DynamicInvoke(invokeArgs);
-                    }
-                }
-            }
-        }
-
         private static EventArgs CreateEventArgs(EventInfo eventInfo, string argsJson)
         {
             try
@@ -247,6 +205,48 @@ namespace Maui.WebComponents
             }
 
             return EventArgs.Empty;
+        }
+
+        private static string EncodeHtml(string html)
+        {
+            if (html is null)
+            {
+                return string.Empty;
+            }
+
+            return Convert.ToBase64String(Encoding.UTF8.GetBytes(html));
+        }
+
+        private static void RaiseEvent(WebComponent component, EventInfo eventInfo, string argsJson)
+        {
+            // Parse args and create typed EventArgs
+            EventArgs eventArgs = CreateEventArgs(eventInfo, argsJson);
+
+            // Get the backing field of the event (this relies on the field name matching the event name)
+            FieldInfo? field = null;
+
+            Type? searchType = component.GetType();
+
+            while (field == null && searchType != null)
+            {
+                field = searchType.GetField(eventInfo.Name, BindingFlags.Instance | BindingFlags.NonPublic);
+                searchType = searchType.BaseType;
+            }
+
+            if (field != null)
+            {
+                if (field.GetValue(component) is MulticastDelegate eventDelegate)
+                {
+                    // Prepare arguments for the event handler
+                    object[] invokeArgs = [component, eventArgs];
+
+                    // Invoke each subscribed event handler
+                    foreach (Delegate handler in eventDelegate.GetInvocationList())
+                    {
+                        handler.DynamicInvoke(invokeArgs);
+                    }
+                }
+            }
         }
 
         private static string RenderComponent(WebComponent component)

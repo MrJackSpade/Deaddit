@@ -6,22 +6,22 @@ namespace Maui.WebComponents.Components
     [HtmlEntity("textarea")]
     public class TextAreaComponent : WebComponent
     {
-        [HtmlAttribute]
-        public string? Rows { get; set; }
+        [HtmlEvent("onchange")]
+        public event EventHandler<InputEventArgs>? OnChange;
+
+        [HtmlEvent("oninput")]
+        public event EventHandler<InputEventArgs>? OnInput;
 
         [HtmlAttribute]
         public string? Cols { get; set; }
 
         [HtmlAttribute]
+        public string? Name { get; set; }
+
+        [HtmlAttribute]
         public string? Placeholder { get; set; }
 
         [HtmlAttribute]
-        public string? Name { get; set; }
-
-        [HtmlEvent("oninput")]
-        public event EventHandler<InputEventArgs>? OnInput;
-
-        [HtmlEvent("onchange")]
-        public event EventHandler<InputEventArgs>? OnChange;
+        public string? Rows { get; set; }
     }
 }

@@ -38,7 +38,11 @@ namespace Deaddit.Components.WebComponents
 
         private readonly IConfigurationService _configurationService;
 
+        private readonly IDisplayMessages _displayMessages;
+
         private readonly string _highlightColor;
+
+        private readonly IHistoryTracker _historyTracker;
 
         private readonly MultiSelector _multiselector;
 
@@ -52,19 +56,7 @@ namespace Deaddit.Components.WebComponents
 
         private readonly IVisitTracker _visitTracker;
 
-        private readonly IDisplayMessages _displayMessages;
-
-        private readonly IHistoryTracker _historyTracker;
-
         private bool _isFromHistoryPage = false;
-
-        public bool IsListView => _selectionGroup != null;
-
-        public bool SelectEnabled => true;
-
-        public event EventHandler<BlockRule> BlockAdded;
-
-        public event EventHandler<OnHideClickedEventArgs> HideClicked;
 
         public RedditPostWebComponent(ApiPost post, PostState postHandling, IDisplayMessages displayMessages, ISelectBoxDisplay selectBoxDisplay, IAggregatePostHandler apiPostHandler, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration, IConfigurationService configurationService, IAppNavigator appNavigator, IVisitTracker visitTracker, IHistoryTracker historyTracker, INavigation navigation, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup? selectionGroup)
         {
@@ -160,6 +152,14 @@ namespace Deaddit.Components.WebComponents
             }
         }
 
+        public event EventHandler<BlockRule> BlockAdded;
+
+        public event EventHandler<OnHideClickedEventArgs> HideClicked;
+
+        public bool IsListView => _selectionGroup != null;
+
+        public bool SelectEnabled => true;
+
         public Task Select()
         {
             BackgroundColor = _highlightColor;
@@ -169,6 +169,11 @@ namespace Deaddit.Components.WebComponents
             return Task.CompletedTask;
         }
 
+        public void SetHistorySource()
+        {
+            _isFromHistoryPage = true;
+        }
+
         public Task Unselect()
         {
             BackgroundColor = _backgroundColor;
@@ -176,11 +181,6 @@ namespace Deaddit.Components.WebComponents
             _textContainer.ShowTimeUser(false);
             _actionButtons.Display = "none";
             return Task.CompletedTask;
-        }
-
-        public void SetHistorySource()
-        {
-            _isFromHistoryPage = true;
         }
 
         private async void CommentsButton_OnClick(object? sender, EventArgs e)
@@ -237,16 +237,6 @@ namespace Deaddit.Components.WebComponents
             new(_post.LinkFlairText, async () => await this.NewBlockRule(BlockRuleHelper.FromFlair(_post))));
         }
 
-        private async Task OnMoreWhitelistClicked()
-        {
-            await _multiselector.Select(
-            "Whitelist:",
-            new($"/u/{_post.Author}", async () => await this.NewBlockRule(BlockRuleHelper.FromAuthor(_post), true)),
-            new($"/r/{_post.SubRedditName}", async () => await this.NewBlockRule(BlockRuleHelper.FromSubReddit(_post), true)),
-            new(_post.Domain, async () => await this.NewBlockRule(BlockRuleHelper.FromDomain(_post), true)),
-            new(_post.LinkFlairText, async () => await this.NewBlockRule(BlockRuleHelper.FromFlair(_post), true)));
-        }
-
         private async void OnMoreClicked(object? sender, EventArgs e)
         {
             await _multiselector.Select(
@@ -271,6 +261,42 @@ namespace Deaddit.Components.WebComponents
             "View:",
             new($"/u/{_post.Author}", async () => await _appNavigator.OpenUser(_post.Author)),
             new($"/r/{_post.SubRedditName}", async () => await _appNavigator.OpenSubReddit(_post.SubRedditName, ApiPostSort.Hot)));
+        }
+
+        private async Task OnMoreWhitelistClicked()
+        {
+            await _multiselector.Select(
+            "Whitelist:",
+            new($"/u/{_post.Author}", async () => await this.NewBlockRule(BlockRuleHelper.FromAuthor(_post), true)),
+            new($"/r/{_post.SubRedditName}", async () => await this.NewBlockRule(BlockRuleHelper.FromSubReddit(_post), true)),
+            new(_post.Domain, async () => await this.NewBlockRule(BlockRuleHelper.FromDomain(_post), true)),
+            new(_post.LinkFlairText, async () => await this.NewBlockRule(BlockRuleHelper.FromFlair(_post), true)));
+        }
+
+        private async Task OnShareFileClicked()
+        {
+            // Try post handler first (galleries, Reddit videos)
+            if (_apiPostHandler.CanShare(_post))
+            {
+                await _apiPostHandler.Share(_post);
+                return;
+            }
+
+            // Fall back to URL handler (images, videos by URL)
+            if (_apiPostHandler.UrlHandler.CanDownload(_post.Url, _apiPostHandler))
+            {
+                FileDownload download = await _apiPostHandler.UrlHandler.Download(_post.Url, _apiPostHandler);
+                await Share.Default.ShareFiles(_post.Title, download);
+            }
+        }
+
+        private async Task OnShareLinkClicked()
+        {
+            await Share.Default.RequestAsync(new ShareTextRequest
+            {
+                Text = _post.Url,
+                Title = _post.Title
+            });
         }
 
         private async void SaveButton_OnClick(object? sender, EventArgs e)
@@ -301,32 +327,6 @@ namespace Deaddit.Components.WebComponents
             else
             {
                 await this.OnShareLinkClicked();
-            }
-        }
-
-        private async Task OnShareLinkClicked()
-        {
-            await Share.Default.RequestAsync(new ShareTextRequest
-            {
-                Text = _post.Url,
-                Title = _post.Title
-            });
-        }
-
-        private async Task OnShareFileClicked()
-        {
-            // Try post handler first (galleries, Reddit videos)
-            if (_apiPostHandler.CanShare(_post))
-            {
-                await _apiPostHandler.Share(_post);
-                return;
-            }
-
-            // Fall back to URL handler (images, videos by URL)
-            if (_apiPostHandler.UrlHandler.CanDownload(_post.Url, _apiPostHandler))
-            {
-                FileDownload download = await _apiPostHandler.UrlHandler.Download(_post.Url, _apiPostHandler);
-                await Share.Default.ShareFiles(_post.Title, download);
             }
         }
 

@@ -5,57 +5,23 @@ using Deaddit.Interfaces;
 
 namespace Deaddit.Handlers.Url
 {
-    class RedGifsHandler(IAppNavigator appNavigator) : IUrlHandler
+    internal class RedGifsHandler(IAppNavigator appNavigator) : IUrlHandler
     {
         private readonly IAppNavigator _appNavigator = appNavigator;
-
-        public bool CanLaunch(string url, IAggregatePostHandler? aggregatePostHandler)
-        {
-            return this.IsRedGifs(url);
-        }
 
         public bool CanDownload(string url, IAggregatePostHandler? aggregatePostHandler)
         {
             return false; // RedGifs requires URL resolution, not directly downloadable
         }
 
+        public bool CanLaunch(string url, IAggregatePostHandler? aggregatePostHandler)
+        {
+            return this.IsRedGifs(url);
+        }
+
         public Task<FileDownload> Download(string url, IAggregatePostHandler aggregatePostHandler)
         {
             throw new NotSupportedException();
-        }
-
-        private bool IsRedGifs(string url)
-        {
-            if (UrlHelper.GetMimeTypeFromUri(url).StartsWith("image/"))
-            {
-                return false;
-            }
-
-            return Uri.TryCreate(url, UriKind.Absolute, out Uri? uri) && uri.Host.EndsWith("redgifs.com", StringComparison.OrdinalIgnoreCase);
-        }
-
-        private async Task<bool> Exists(string url)
-        {
-            bool exists = await Task.Run(async () =>
-            {
-                using HttpClient client = new();
-
-                try
-                {
-                    HttpRequestMessage request = new(HttpMethod.Head, url);
-                    HttpResponseMessage response = await client.SendAsync(request);
-
-                    return response.IsSuccessStatusCode;
-                }
-                catch (HttpRequestException ex)
-                {
-                    Console.WriteLine("Request error: " + ex.Message);
-                }
-
-                return false;
-            });
-
-            return exists;
         }
 
         public async Task Launch(string url, IAggregatePostHandler aggregatePostHandler)
@@ -128,6 +94,40 @@ namespace Deaddit.Handlers.Url
             }
 
             await _appNavigator.OpenVideo(new FileDownload(newUrl));
+        }
+
+        private async Task<bool> Exists(string url)
+        {
+            bool exists = await Task.Run(async () =>
+            {
+                using HttpClient client = new();
+
+                try
+                {
+                    HttpRequestMessage request = new(HttpMethod.Head, url);
+                    HttpResponseMessage response = await client.SendAsync(request);
+
+                    return response.IsSuccessStatusCode;
+                }
+                catch (HttpRequestException ex)
+                {
+                    Console.WriteLine("Request error: " + ex.Message);
+                }
+
+                return false;
+            });
+
+            return exists;
+        }
+
+        private bool IsRedGifs(string url)
+        {
+            if (UrlHelper.GetMimeTypeFromUri(url).StartsWith("image/"))
+            {
+                return false;
+            }
+
+            return Uri.TryCreate(url, UriKind.Absolute, out Uri? uri) && uri.Host.EndsWith("redgifs.com", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

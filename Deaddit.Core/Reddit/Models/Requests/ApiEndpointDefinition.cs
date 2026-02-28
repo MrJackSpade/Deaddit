@@ -5,8 +5,6 @@ namespace Deaddit.Core.Reddit.Models.Requests
 {
     public class ApiEndpointDefinition
     {
-        public string Url { get; private set; }
-
         public ApiEndpointDefinition(string url)
         {
             Url = url;
@@ -16,6 +14,8 @@ namespace Deaddit.Core.Reddit.Models.Requests
                 Url = "/" + Url;
             }
         }
+
+        public string Url { get; private set; }
 
         public ApiEndpointDefinition WithCallingUser(string user)
         {

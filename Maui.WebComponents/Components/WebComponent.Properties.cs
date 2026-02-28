@@ -34,6 +34,12 @@ namespace Maui.WebComponents.Components
             set => this.Style("border", value);
         }
 
+        public string? BorderBottom
+        {
+            get => this.Style("border-bottom");
+            set => this.Style("border-bottom", value);
+        }
+
         public string? BorderBottomColor
         {
             get => this.Style("border-bottom-color");
@@ -44,12 +50,6 @@ namespace Maui.WebComponents.Components
         {
             get => this.Style("border-color");
             set => this.Style("border-color", value);
-        }
-
-        public string? BorderBottom
-        {
-            get => this.Style("border-bottom");
-            set => this.Style("border-bottom", value);
         }
 
         public string? BorderLeft

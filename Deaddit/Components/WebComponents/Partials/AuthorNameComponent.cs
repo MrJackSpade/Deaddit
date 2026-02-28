@@ -1,10 +1,10 @@
 ﻿using Deaddit.Core.Configurations.Models;
-using Reddit.Api.Models.Enums;
 using Maui.WebComponents.Components;
+using Reddit.Api.Models.Enums;
 
 namespace Deaddit.Components.WebComponents.Partials
 {
-    class AuthorNameComponent : SpanComponent
+    internal class AuthorNameComponent : SpanComponent
     {
         public AuthorNameComponent(string author, ApplicationStyling applicationStyling, DistinguishedKind distinguishedKind, bool isOp)
         {

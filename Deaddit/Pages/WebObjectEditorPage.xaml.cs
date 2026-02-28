@@ -16,14 +16,18 @@ namespace Deaddit.Pages
     public partial class WebObjectEditorPage : ContentPage
     {
         private readonly ApplicationStyling _applicationStyling;
-        private readonly DeepCopyHelper _deepCopyHelper;
-        private readonly DivComponent _formContainer;
-        private readonly INavigation _navigation;
-        private readonly object _original;
-        private readonly object _toEdit;
-        private readonly bool _topLevel;
 
-        public event EventHandler<ObjectEditorSaveEventArgs>? OnSave;
+        private readonly DeepCopyHelper _deepCopyHelper;
+
+        private readonly DivComponent _formContainer;
+
+        private readonly INavigation _navigation;
+
+        private readonly object _original;
+
+        private readonly object _toEdit;
+
+        private readonly bool _topLevel;
 
         public WebObjectEditorPage(object original, ApplicationStyling applicationStyling, INavigation navigation)
             : this(original, true, applicationStyling, navigation)
@@ -75,16 +79,7 @@ namespace Deaddit.Pages
             }
         }
 
-        protected override async void OnAppearing()
-        {
-            base.OnAppearing();
-
-            await webElement.Clear();
-
-            this.GenerateEditor(_toEdit);
-
-            await webElement.AddChild(_formContainer);
-        }
+        public event EventHandler<ObjectEditorSaveEventArgs>? OnSave;
 
         public static int GetPropertyOrder(PropertyInfo pi)
         {
@@ -119,54 +114,15 @@ namespace Deaddit.Pages
             await _navigation.PopAsync();
         }
 
-        private void GenerateEditor(object obj)
+        protected override async void OnAppearing()
         {
-            _formContainer.Children.Clear();
+            base.OnAppearing();
 
-            PropertyInfo[] properties = obj.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            await webElement.Clear();
 
-            foreach (PropertyInfo prop in properties.OrderBy(GetPropertyOrder))
-            {
-                if (prop.HasCustomAttribute<EditorIgnoreAttribute>())
-                {
-                    continue;
-                }
+            this.GenerateEditor(_toEdit);
 
-                Type propertyType = prop.PropertyType;
-
-                string labelText = prop.Name;
-                string? descriptionText = null;
-                bool masked = false;
-                bool multiline = false;
-
-                if (prop.GetCustomAttribute<EditorDisplayAttribute>() is EditorDisplayAttribute da)
-                {
-                    if (!string.IsNullOrWhiteSpace(da.Name))
-                    {
-                        labelText = da.Name;
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(da.Description))
-                    {
-                        descriptionText = da.Description;
-                    }
-
-                    masked = da.Masked;
-                    multiline = da.Multiline;
-                }
-
-                FormFieldComponent? field = this.CreateFieldForType(prop, obj, labelText, descriptionText, masked, multiline);
-
-                if (field != null)
-                {
-                    if (!string.IsNullOrWhiteSpace(descriptionText))
-                    {
-                        field.OnInfoClicked += async (s, e) => await this.DisplayAlert(labelText, descriptionText, "OK");
-                    }
-
-                    _formContainer.Children.Add(field);
-                }
-            }
+            await webElement.AddChild(_formContainer);
         }
 
         private FormFieldComponent? CreateFieldForType(PropertyInfo prop, object obj, string labelText, string? description, bool masked, bool multiline)
@@ -243,6 +199,56 @@ namespace Deaddit.Pages
             }
 
             return null;
+        }
+
+        private void GenerateEditor(object obj)
+        {
+            _formContainer.Children.Clear();
+
+            PropertyInfo[] properties = obj.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+            foreach (PropertyInfo prop in properties.OrderBy(GetPropertyOrder))
+            {
+                if (prop.HasCustomAttribute<EditorIgnoreAttribute>())
+                {
+                    continue;
+                }
+
+                Type propertyType = prop.PropertyType;
+
+                string labelText = prop.Name;
+                string? descriptionText = null;
+                bool masked = false;
+                bool multiline = false;
+
+                if (prop.GetCustomAttribute<EditorDisplayAttribute>() is EditorDisplayAttribute da)
+                {
+                    if (!string.IsNullOrWhiteSpace(da.Name))
+                    {
+                        labelText = da.Name;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(da.Description))
+                    {
+                        descriptionText = da.Description;
+                    }
+
+                    masked = da.Masked;
+                    multiline = da.Multiline;
+                }
+
+                FormFieldComponent? field = this.CreateFieldForType(prop, obj, labelText, descriptionText, masked, multiline);
+
+                if (field != null)
+                {
+                    if (!string.IsNullOrWhiteSpace(descriptionText))
+                    {
+                        field.OnInfoClicked += async (s, e) => await this.DisplayAlert(labelText, descriptionText, "OK");
+                    }
+
+                    _formContainer.Children.Add(field);
+                }
+            }
         }
     }
 }

@@ -9,8 +9,6 @@ namespace Deaddit.Components.WebComponents.Partials.User
     {
         private readonly ApplicationStyling _applicationStyling;
 
-        public event EventHandler Clicked;
-
         public TextContainerComponent(ApiUser user, ApplicationStyling applicationStyling)
         {
             _applicationStyling = applicationStyling;
@@ -51,6 +49,8 @@ namespace Deaddit.Components.WebComponents.Partials.User
             this.AddMeta($"{user.NumComments} comments");
             this.AddMeta($"{user.CreatedUtc} created");
         }
+
+        public event EventHandler Clicked;
 
         private void AddMeta(string text)
         {

@@ -8,6 +8,7 @@ using Deaddit.Core.Reddit.Models.ThingDefinitions;
 using Reddit.Api.Models.Enums;
 using Reddit.Api.Models.Json.Common;
 using Reddit.Api.Models.Json.Listings;
+using Reddit.Api.Models.Json.Users;
 using System.Diagnostics;
 using NewClient = Reddit.Api.Client;
 
@@ -242,7 +243,7 @@ namespace Deaddit.Core.Reddit
             return Task.FromResult(false);
         }
 
-        public async Task<Dictionary<string, UserPartial>> GetPartialUserData(IEnumerable<string> usernames)
+        public async Task<Dictionary<string, UserPartialData>> GetPartialUserData(IEnumerable<string> usernames)
         {
             try
             {
@@ -266,19 +267,7 @@ namespace Deaddit.Core.Reddit
                     return [];
                 }
 
-                Dictionary<string, UserPartial> toReturn = new();
-                foreach (KeyValuePair<string, global::Reddit.Api.Models.Json.Users.UserPartialData> kvp in result)
-                {
-                    toReturn[kvp.Key] = new UserPartial
-                    {
-                        Name = kvp.Value.Name,
-                        ProfileColor = kvp.Value.ProfileColor,
-                        ProfileImg = kvp.Value.ProfileImg,
-                        ProfileOver18 = kvp.Value.ProfileOver18 ?? false
-                    };
-                }
-
-                return toReturn;
+                return new Dictionary<string, UserPartialData>(result);
             }
             catch (Exception ex)
             {

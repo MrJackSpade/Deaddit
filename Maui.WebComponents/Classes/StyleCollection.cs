@@ -7,9 +7,9 @@ namespace Maui.WebComponents.Classes
     {
         private readonly List<StyleRule> _styles = [];
 
-        public int Count => _styles.Count;
-
         internal event EventHandler<OnStyleRuleAddedEventArgs>? OnStyleRuleAdded;
+
+        public int Count => _styles.Count;
 
         public void Add(StyleRule styleRule)
         {

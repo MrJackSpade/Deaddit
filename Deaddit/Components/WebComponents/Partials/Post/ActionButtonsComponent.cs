@@ -12,16 +12,6 @@ namespace Deaddit.Components.WebComponents.Partials.Post
 
         private readonly ButtonComponent _saveButton;
 
-        public event EventHandler CommentsClicked;
-
-        public event EventHandler HideClicked;
-
-        public event EventHandler MoreClicked;
-
-        public event EventHandler SaveClicked;
-
-        public event EventHandler ShareClicked;
-
         public ActionButtonsComponent(ApplicationStyling applicationStyling, ApiPost post)
         {
             _applicationStyling = applicationStyling;
@@ -50,6 +40,16 @@ namespace Deaddit.Components.WebComponents.Partials.Post
             Children.Add(moreButton);
             Children.Add(commentsButton);
         }
+
+        public event EventHandler CommentsClicked;
+
+        public event EventHandler HideClicked;
+
+        public event EventHandler MoreClicked;
+
+        public event EventHandler SaveClicked;
+
+        public event EventHandler ShareClicked;
 
         public void UpdateSaveButtonText()
         {

@@ -19,11 +19,9 @@ namespace Deaddit.Pages
 
         private readonly IRedditClient _redditClient;
 
-        private readonly ApiUser _user;
-
         private readonly ApiMessage? _replyTo;
 
-        public event EventHandler<MessageSubmittedEventArgs>? OnSubmitted;
+        private readonly ApiUser _user;
 
         public MessagePage(ApiUser user, ApiMessage? replyTo, IDisplayMessages displayExceptions, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling)
         {
@@ -49,6 +47,8 @@ namespace Deaddit.Pages
                 webElement.AddChild(_appNavigator.CreateMessageWebComponent(replyTo, null));
             }
         }
+
+        public event EventHandler<MessageSubmittedEventArgs>? OnSubmitted;
 
         public async void OnCancelClicked(object? sender, EventArgs e)
         {

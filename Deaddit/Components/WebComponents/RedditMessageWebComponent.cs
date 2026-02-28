@@ -25,11 +25,11 @@ namespace Deaddit.Components.WebComponents
 
         private readonly MessageBarComponent _bottomBar;
 
-        private readonly HtmlBodyComponent _messageBody;
-
         private readonly DivComponent _commentContainer;
 
         private readonly ApiMessage _message;
+
+        private readonly HtmlBodyComponent _messageBody;
 
         private readonly MessageHeaderComponent _messageHeader;
 
@@ -42,16 +42,6 @@ namespace Deaddit.Components.WebComponents
         private readonly RepliesContainerComponent _replies;
 
         private readonly TopBarComponent _topBar;
-
-        public IAppNavigator AppNavigator { get; }
-
-        public BlockConfiguration BlockConfiguration { get; }
-
-        public bool SelectEnabled { get; private set; }
-
-        public SelectionGroup SelectionGroup { get; private set; }
-
-        public event EventHandler<OnDeleteClickedEventArgs> OnDelete;
 
         public RedditMessageWebComponent(ApiMessage message, ISelectBoxDisplay selectBoxDisplay, INavigation navigation, AppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup selectionGroup, BlockConfiguration blockConfiguration)
         {
@@ -102,6 +92,16 @@ namespace Deaddit.Components.WebComponents
 
             _commentContainer.OnClick += this.SelectClick;
         }
+
+        public event EventHandler<OnDeleteClickedEventArgs> OnDelete;
+
+        public IAppNavigator AppNavigator { get; }
+
+        public BlockConfiguration BlockConfiguration { get; }
+
+        public bool SelectEnabled { get; private set; }
+
+        public SelectionGroup SelectionGroup { get; private set; }
 
         public async void OnMoreClicked(object? sender, EventArgs e)
         {

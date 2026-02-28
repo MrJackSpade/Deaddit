@@ -19,12 +19,6 @@ namespace Deaddit.Components
 
         private readonly ThingDefinition _subscriptionThing;
 
-        public bool Selected { get; private set; }
-
-        public bool SelectEnabled { get; private set; }
-
-        public event EventHandler<SubRedditSubscriptionRemoveEventArgs>? OnRemove;
-
         public SubscriptionComponent(ThingDefinition subscriptionThing, bool removable, IAppNavigator appNavigator, ApplicationStyling applicationTheme, SelectionGroup selectionTracker)
         {
             SelectEnabled = removable;
@@ -41,6 +35,12 @@ namespace Deaddit.Components
                 settingsButton.IsVisible = false;
             }
         }
+
+        public event EventHandler<SubRedditSubscriptionRemoveEventArgs>? OnRemove;
+
+        public bool Selected { get; private set; }
+
+        public bool SelectEnabled { get; private set; }
 
         public void OnRemoveClick(object? sender, EventArgs e)
         {

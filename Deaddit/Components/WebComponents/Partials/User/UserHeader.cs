@@ -7,9 +7,10 @@ namespace Deaddit.Components.WebComponents.Partials.User
 {
     public class UserHeader : DivComponent
     {
+        private readonly IAppNavigator _appNavigator;
+
         private readonly ApiUser _userData;
 
-        private readonly IAppNavigator _appNavigator;
         public UserHeader(ApiUser userData, IAppNavigator appNavigator, ApplicationStyling applicationStyling, bool showMessage)
         {
             _userData = userData;

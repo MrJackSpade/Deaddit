@@ -7,19 +7,11 @@ namespace Deaddit.Components.WebComponents.Forms
     [HtmlEntity("div")]
     public class FormFieldComponent : DivComponent
     {
-        private readonly LabelComponent _label;
         private readonly ButtonComponent? _infoButton;
+
         private readonly DivComponent _inputContainer;
 
-        public string? LabelText
-        {
-            get => _label.InnerText;
-            set => _label.InnerText = value;
-        }
-
-        public string? Description { get; }
-
-        public event EventHandler? OnInfoClicked;
+        private readonly LabelComponent _label;
 
         public FormFieldComponent(string labelText, string? description, ApplicationStyling styling)
         {
@@ -73,6 +65,16 @@ namespace Deaddit.Components.WebComponents.Forms
                 FlexDirection = "column"
             };
             Children.Add(_inputContainer);
+        }
+
+        public event EventHandler? OnInfoClicked;
+
+        public string? Description { get; }
+
+        public string? LabelText
+        {
+            get => _label.InnerText;
+            set => _label.InnerText = value;
         }
 
         protected void AddInput(WebComponent input)

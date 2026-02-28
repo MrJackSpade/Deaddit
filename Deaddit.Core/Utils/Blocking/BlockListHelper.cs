@@ -58,6 +58,7 @@ namespace Deaddit.Core.Utils.Blocking
                         StringComparison.Ordinal => Regex.IsMatch(ruleValue, ruleValue) ? TriggerState.Match : TriggerState.NoMatch,
                         _ => throw new EnumNotImplementedException(stringComparison),
                     };
+
                 case StringMatchType.String:
                     bool match;
                     if (partial)
@@ -70,6 +71,7 @@ namespace Deaddit.Core.Utils.Blocking
                     }
 
                     return match ? TriggerState.Match : TriggerState.NoMatch;
+
                 default:
                     throw new EnumNotImplementedException(matchType);
             }

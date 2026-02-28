@@ -20,10 +20,6 @@ namespace Deaddit.Components.WebComponents.Partials.Post
 
         private readonly SpanComponent _upvoteButton;
 
-        public event EventHandler DownvoteClicked;
-
-        public event EventHandler UpvoteClicked;
-
         public VoteContainerComponent(ApplicationStyling applicationStyling, ApiPost post, IRedditClient redditClient)
         {
             _applicationStyling = applicationStyling;
@@ -68,6 +64,10 @@ namespace Deaddit.Components.WebComponents.Partials.Post
             Children.Add(_score);
             Children.Add(_downvoteButton);
         }
+
+        public event EventHandler DownvoteClicked;
+
+        public event EventHandler UpvoteClicked;
 
         public void UpdateScore()
         {

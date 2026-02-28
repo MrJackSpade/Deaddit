@@ -9,10 +9,10 @@ namespace Deaddit.Components.WebComponents.Forms
     public class NestedObjectFieldComponent : FormFieldComponent
     {
         private readonly ButtonComponent _editButton;
-        private readonly PropertyInfo _property;
-        private readonly object _target;
 
-        public event EventHandler<object>? OnEditClicked;
+        private readonly PropertyInfo _property;
+
+        private readonly object _target;
 
         public NestedObjectFieldComponent(string labelText, string? description, PropertyInfo property, object target, ApplicationStyling styling)
             : base(labelText, description, styling)
@@ -34,6 +34,8 @@ namespace Deaddit.Components.WebComponents.Forms
             _editButton.OnClick += this.OnEditButtonClicked;
             this.AddInput(_editButton);
         }
+
+        public event EventHandler<object>? OnEditClicked;
 
         private void OnEditButtonClicked(object? sender, EventArgs e)
         {

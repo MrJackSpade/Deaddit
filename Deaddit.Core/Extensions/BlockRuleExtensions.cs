@@ -1,14 +1,14 @@
 ﻿using Deaddit.Core.Configurations.Models;
-using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils.Blocking;
+using Reddit.Api.Models.Json.Users;
 using static Deaddit.Core.Utils.Blocking.BlockListHelper;
 
 namespace Deaddit.Core.Extensions
 {
     public static partial class BlockRuleExtensions
     {
-        public static bool IsAllowed(this BlockConfiguration blockConfiguration, ApiThing thing, Dictionary<string, UserPartial>? userData = null)
+        public static bool IsAllowed(this BlockConfiguration blockConfiguration, ApiThing thing, Dictionary<string, UserPartialData>? userData = null)
         {
             foreach (BlockRule br in blockConfiguration.WhiteList.Rules)
             {
@@ -26,11 +26,11 @@ namespace Deaddit.Core.Extensions
                 }
             }
 
-            if (userData is not null && thing.AuthorFullName is not null && userData.TryGetValue(thing.AuthorFullName, out UserPartial user))
+            if (userData is not null && thing.AuthorFullName is not null && userData.TryGetValue(thing.AuthorFullName, out UserPartialData? user))
             {
-                if (blockConfiguration.MinAccountAgeDays > 0)
+                if (blockConfiguration.MinAccountAgeDays > 0 && user.CreatedUtc.HasValue)
                 {
-                    if ((DateTime.UtcNow - user.CreatedUtc).TotalDays < blockConfiguration.MinAccountAgeDays)
+                    if ((DateTime.UtcNow - (DateTime)user.CreatedUtc).TotalDays < blockConfiguration.MinAccountAgeDays)
                     {
                         return false;
                     }

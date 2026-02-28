@@ -5,6 +5,9 @@ namespace Deaddit.Configurations
 {
     public class EditorConfiguration
     {
+        [EditorDisplay(Name = "AI Configuration")]
+        public AIConfiguration AIConfiguration { get; set; } = new AIConfiguration();
+
         [EditorDisplay(Name = "Hacks")]
         public ApplicationHacks ApplicationHacks { get; set; } = new ApplicationHacks();
 
@@ -13,9 +16,6 @@ namespace Deaddit.Configurations
 
         [EditorDisplay(Name = "Credentials")]
         public RedditCredentials Credentials { get; set; } = new RedditCredentials();
-
-        [EditorDisplay(Name = "AI Configuration")]
-        public AIConfiguration AIConfiguration { get; set; } = new AIConfiguration();
 
         [EditorDisplay(Name = "Styling")]
         public ApplicationStyling Styling { get; set; } = new ApplicationStyling();

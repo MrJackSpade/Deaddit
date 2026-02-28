@@ -2,13 +2,6 @@
 {
     public static class M3U8Downloader
     {
-        public class MediaData
-        {
-            public byte[] AudioData { get; set; }
-
-            public byte[] VideoData { get; set; }
-        }
-
         public static async Task<MediaData> DownloadM3U8Async(string m3u8Url)
         {
             using HttpClient client = new();
@@ -180,6 +173,13 @@
             }
 
             return segmentUrls;
+        }
+
+        public class MediaData
+        {
+            public byte[] AudioData { get; set; }
+
+            public byte[] VideoData { get; set; }
         }
     }
 }

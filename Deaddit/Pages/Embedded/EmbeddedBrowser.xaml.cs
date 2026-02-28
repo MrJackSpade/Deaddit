@@ -8,6 +8,7 @@ namespace Deaddit
         private readonly ApplicationStyling _applicationStyling;
 
         private readonly string _url;
+
         public EmbeddedBrowser(string url, ApplicationStyling applicationTheme)
         {
             _url = url;
@@ -34,13 +35,6 @@ namespace Deaddit
             Navigation.PopAsync();
         }
 
-        public void OnBypassClicked(object? sender, EventArgs e)
-        {
-            webView.Source = new UrlWebViewSource
-            {
-                Url = "https://www.removepaywall.com/search?url=" + _url
-            };
-        }
         public async void OnBrowserClicked(object? sender, EventArgs e)
         {
             try
@@ -52,6 +46,14 @@ namespace Deaddit
             {
                 // An unexpected error occurred. No browser may be installed on the device.
             }
+        }
+
+        public void OnBypassClicked(object? sender, EventArgs e)
+        {
+            webView.Source = new UrlWebViewSource
+            {
+                Url = "https://www.removepaywall.com/search?url=" + _url
+            };
         }
 
         public void OnSaveClicked(object? sender, EventArgs e)

@@ -2,6 +2,8 @@
 {
     public class DisplayException : Exception
     {
-        public DisplayException(string message) : base(message) { }
+        public DisplayException(string message) : base(message)
+        {
+        }
     }
 }

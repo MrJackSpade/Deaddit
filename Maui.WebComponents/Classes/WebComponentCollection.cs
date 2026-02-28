@@ -8,13 +8,13 @@ namespace Maui.WebComponents.Classes
     {
         private readonly List<WebComponent> _components = [];
 
-        public int Count => _components.Count;
-
         internal event EventHandler<OnWebComponentAddedEventArgs>? OnWebComponentAdded;
 
         internal event EventHandler<OnWebComponentInsertEventArgs>? OnWebComponentInsert;
 
         internal event EventHandler<OnWebComponentRemovedEventArgs>? OnWebComponentRemoved;
+
+        public int Count => _components.Count;
 
         public void Add(WebComponent component)
         {

@@ -11,7 +11,6 @@ namespace Deaddit.Core.Reddit.Models
 
     public class PostMessageResponseMeta
     {
-
         [JsonPropertyName("errors")]
         public List<string> Errors { get; init; } = [];
     }

@@ -6,9 +6,9 @@ namespace Maui.WebComponents.Components
     public class OptionComponent : WebComponent
     {
         [HtmlAttribute]
-        public string? Value { get; set; }
+        public string? Selected { get; set; }
 
         [HtmlAttribute]
-        public string? Selected { get; set; }
+        public string? Value { get; set; }
     }
 }

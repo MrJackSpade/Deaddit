@@ -1,12 +1,9 @@
-using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
-using Reddit.Api.Models.Enums;
 using Reddit.Api.Models.Json.Common;
 using Reddit.Api.Models.Json.Listings;
 using Reddit.Api.Models.Json.Multis;
 using Reddit.Api.Models.Json.Subreddits;
 using Reddit.Api.Models.Json.Users;
-using System.Web;
 
 namespace Deaddit.Core.Reddit.Mapping
 {
@@ -36,8 +33,8 @@ namespace Deaddit.Core.Reddit.Mapping
                 AuthorFlairBackgroundColor = source.AuthorFlairBackgroundColor,
                 AuthorFlairTextColor = source.AuthorFlairTextColor,
                 AuthorFlairTemplateId = source.AuthorFlairTemplateId,
-                Body = HttpUtility.HtmlDecode(source.Selftext) ?? string.Empty,
-                BodyHtml = HttpUtility.HtmlDecode(source.SelftextHtml) ?? string.Empty,
+                Body = source.Selftext ?? string.Empty,
+                BodyHtml = source.SelftextHtml ?? string.Empty,
                 Url = source.Url,
                 UrlOverriddenByDest = source.UrlOverriddenByDest,
                 Domain = source.Domain,
@@ -79,7 +76,7 @@ namespace Deaddit.Core.Reddit.Mapping
                 CanModPost = source.CanModPost,
                 CanGild = source.CanGild,
                 NoFollow = source.NoFollow,
-                Distinguished = source.Distinguished ?? DistinguishedKind.Null,
+                Distinguished = source.Distinguished,
                 LinkFlairText = source.LinkFlairText,
                 LinkFlairCssClass = source.LinkFlairCssClass,
                 LinkFlairBackgroundColor = source.LinkFlairBackgroundColor,
@@ -124,7 +121,7 @@ namespace Deaddit.Core.Reddit.Mapping
             return Map(source.Data);
         }
 
-        #endregion
+        #endregion Link/Post Mapping
 
         #region Comment Mapping
 
@@ -146,8 +143,8 @@ namespace Deaddit.Core.Reddit.Mapping
                 AuthorFlairBackgroundColor = source.AuthorFlairBackgroundColor,
                 AuthorFlairTextColor = source.AuthorFlairTextColor,
                 AuthorFlairTemplateId = source.AuthorFlairTemplateId,
-                Body = HttpUtility.HtmlDecode(source.Body),
-                BodyHtml = HttpUtility.HtmlDecode(source.BodyHtml) ?? string.Empty,
+                Body = source.Body,
+                BodyHtml = source.BodyHtml ?? string.Empty,
                 LinkId = source.LinkId,
                 ParentId = source.ParentId,
                 LinkTitle = source.LinkTitle,
@@ -175,10 +172,10 @@ namespace Deaddit.Core.Reddit.Mapping
                 CanGild = source.CanGild,
                 NoFollow = source.NoFollow,
                 SendReplies = source.SendReplies,
-                Distinguished = source.Distinguished ?? DistinguishedKind.Null,
+                Distinguished = source.Distinguished,
                 Collapsed = source.Collapsed,
                 CollapsedReason = source.CollapsedReason,
-                CollapsedReasonCode = source.CollapsedReasonCode ?? CollapsedReasonCode.Null,
+                CollapsedReasonCode = source.CollapsedReasonCode,
                 Controversiality = source.Controversiality,
                 Depth = source.Depth,
                 Gilded = source.Gilded,
@@ -204,7 +201,7 @@ namespace Deaddit.Core.Reddit.Mapping
             return Map(source.Data);
         }
 
-        #endregion
+        #endregion Comment Mapping
 
         #region Subreddit Mapping
 
@@ -222,12 +219,12 @@ namespace Deaddit.Core.Reddit.Mapping
                 DisplayName = source.DisplayName,
                 DisplayNamePrefixed = source.DisplayNamePrefixed,
                 Title = source.Title,
-                PublicDescription = HttpUtility.HtmlDecode(source.PublicDescription),
-                PublicDescriptionHtml = HttpUtility.HtmlDecode(source.PublicDescriptionHtml),
-                Description = HttpUtility.HtmlDecode(source.Description),
-                DescriptionHtml = HttpUtility.HtmlDecode(source.DescriptionHtml),
-                SubmitText = HttpUtility.HtmlDecode(source.SubmitText),
-                SubmitTextHtml = HttpUtility.HtmlDecode(source.SubmitTextHtml),
+                PublicDescription = source.PublicDescription,
+                PublicDescriptionHtml = source.PublicDescriptionHtml,
+                Description = source.Description,
+                DescriptionHtml = source.DescriptionHtml,
+                SubmitText = source.SubmitText,
+                SubmitTextHtml = source.SubmitTextHtml,
                 SubredditType = source.SubredditType,
                 SubmissionType = source.SubmissionType,
                 Subscribers = source.Subscribers,
@@ -235,10 +232,10 @@ namespace Deaddit.Core.Reddit.Mapping
                 AccountsActive = source.AccountsActive,
                 CreatedUtc = source.CreatedUtc,
                 IsNSFW = source.Over18,
-                UserIsSubscriber = source.UserIsSubscriber ?? false,
-                UserIsModerator = source.UserIsModerator ?? false,
-                UserIsContributor = source.UserIsContributor ?? false,
-                UserIsBanned = source.UserIsBanned ?? false,
+                UserIsSubscriber = source.UserIsSubscriber,
+                UserIsModerator = source.UserIsModerator,
+                UserIsContributor = source.UserIsContributor,
+                UserIsBanned = source.UserIsBanned,
                 UserIsMuted = source.UserIsMuted,
                 UserHasFavorited = source.UserHasFavorited,
                 UserFlairEnabledInSr = source.UserFlairEnabledInSr,
@@ -294,8 +291,8 @@ namespace Deaddit.Core.Reddit.Mapping
                 RestrictPosting = source.RestrictPosting,
                 CommentScoreHideMins = source.CommentScoreHideMins,
                 SuggestedCommentSort = source.SuggestedCommentSort,
-                AcceptFollowers = source.AcceptFollowers ?? false,
-                DisableContributorRequests = source.DisableContributorRequests ?? false,
+                AcceptFollowers = source.AcceptFollowers,
+                DisableContributorRequests = source.DisableContributorRequests,
                 CollapseDeletedComments = source.CollapseDeletedComments,
                 PublicTraffic = source.PublicTraffic
             };
@@ -311,7 +308,7 @@ namespace Deaddit.Core.Reddit.Mapping
             return Map(source.Data);
         }
 
-        #endregion
+        #endregion Subreddit Mapping
 
         #region User Mapping
 
@@ -336,18 +333,18 @@ namespace Deaddit.Core.Reddit.Mapping
                 IsMod = source.IsMod,
                 IsEmployee = source.IsEmployee,
                 Verified = source.Verified,
-                HasVerifiedEmail = source.HasVerifiedEmail ?? false,
+                HasVerifiedEmail = source.HasVerifiedEmail,
                 IconImg = source.IconImg,
                 SnoovatarImg = source.SnoovatarImg,
                 SnoovatarSize = source.SnoovatarSize ?? [],
                 HideFromRobots = source.HideFromRobots,
-                PrefShowSnoovatar = source.PrefShowSnoovatar ?? false,
-                AcceptChats = source.AcceptChats ?? false,
-                AcceptPms = source.AcceptPms ?? false,
-                AcceptFollowers = source.AcceptFollowers ?? false,
-                IsBlocked = source.IsBlocked ?? false,
-                IsFriend = source.IsFriend ?? false,
-                HasSubscribed = source.HasSubscribed ?? false
+                PrefShowSnoovatar = source.PrefShowSnoovatar,
+                AcceptChats = source.AcceptChats,
+                AcceptPms = source.AcceptPms,
+                AcceptFollowers = source.AcceptFollowers,
+                IsBlocked = source.IsBlocked,
+                IsFriend = source.IsFriend,
+                HasSubscribed = source.HasSubscribed
             };
         }
 
@@ -361,7 +358,7 @@ namespace Deaddit.Core.Reddit.Mapping
             return Map(source.Data);
         }
 
-        #endregion
+        #endregion User Mapping
 
         #region Multi Mapping
 
@@ -387,16 +384,16 @@ namespace Deaddit.Core.Reddit.Mapping
                 Name = source.Name,
                 DisplayName = source.DisplayName,
                 Path = source.Path,
-                DescriptionMd = HttpUtility.HtmlDecode(source.DescriptionMd),
-                DescriptionHtml = HttpUtility.HtmlDecode(source.DescriptionHtml),
+                DescriptionMd = source.DescriptionMd,
+                DescriptionHtml = source.DescriptionHtml,
                 IconUrl = source.IconUrl,
                 Visibility = source.Visibility,
                 Over18 = source.Over18,
                 Owner = source.Owner,
                 OwnerId = source.OwnerId,
                 CanEdit = source.CanEdit,
-                IsSubscriber = source.IsSubscriber ?? false,
-                IsFavorited = source.IsFavorited ?? false,
+                IsSubscriber = source.IsSubscriber,
+                IsFavorited = source.IsFavorited,
                 NumSubscribers = source.NumSubscribers,
                 CopiedFrom = source.CopiedFrom,
                 Created = source.Created,
@@ -415,7 +412,7 @@ namespace Deaddit.Core.Reddit.Mapping
             return source.Select(Map).Where(m => m != null).ToList();
         }
 
-        #endregion
+        #endregion Multi Mapping
 
         #region More Mapping
 
@@ -437,9 +434,22 @@ namespace Deaddit.Core.Reddit.Mapping
             };
         }
 
-        #endregion
+        #endregion More Mapping
 
         #region Collection Mappings
+
+        public static List<ApiThing> MapComments(Listing<Thing<Comment>>? listing)
+        {
+            if (listing?.Data?.Children == null)
+            {
+                return [];
+            }
+
+            return listing.Data.Children
+                .Where(c => c?.Data != null)
+                .Select(c => (ApiThing)Map(c.Data!))
+                .ToList();
+        }
 
         public static List<ApiThing> MapPosts(Listing<Thing<Link>>? listing)
         {
@@ -467,20 +477,6 @@ namespace Deaddit.Core.Reddit.Mapping
                 .ToList();
         }
 
-        public static List<ApiThing> MapComments(Listing<Thing<Comment>>? listing)
-        {
-            if (listing?.Data?.Children == null)
-            {
-                return [];
-            }
-
-            return listing.Data.Children
-                .Where(c => c?.Data != null)
-                .Select(c => (ApiThing)Map(c.Data!))
-                .ToList();
-        }
-
-        #endregion
-
+        #endregion Collection Mappings
     }
 }

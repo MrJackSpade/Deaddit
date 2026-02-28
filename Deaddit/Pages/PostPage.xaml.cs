@@ -52,16 +52,6 @@ namespace Deaddit.Pages
 
         private readonly ButtonComponent shareButton;
 
-        public IAppNavigator AppNavigator { get; }
-
-        public BlockConfiguration BlockConfiguration { get; }
-
-        WebComponent IHasChildren.ChildContainer => commentContainer;
-
-        public ApiPost Post { get; }
-
-        public SelectionGroup SelectionGroup { get; }
-
         public PostPage(ApiPost post, ApiComment? focus, ISelectBoxDisplay selectBoxDisplay, IDisplayMessages displayExceptions, IAggregateUrlHandler urlHandler, IAggregatePostHandler aggregatePostHandler, IAppNavigator appNavigator, IConfigurationService configurationService, IRedditClient redditClient, ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration)
         {
             NavigationPage.SetHasNavigationBar(this, false);
@@ -98,7 +88,7 @@ namespace Deaddit.Pages
 
             if (!string.IsNullOrWhiteSpace(post.Body))
             {
-                //Include hidden characters for removal here 
+                //Include hidden characters for removal here
                 string postBodyVisible = new(post.Body.Trim().Where(c => c != (char)8204).ToArray());
 
                 if (postBodyVisible.Length > applicationHacks.MinimumPostBodyLenth)
@@ -144,6 +134,16 @@ namespace Deaddit.Pages
 
             webElement.AddChild(commentContainer);
         }
+
+        public IAppNavigator AppNavigator { get; }
+
+        public BlockConfiguration BlockConfiguration { get; }
+
+        WebComponent IHasChildren.ChildContainer => commentContainer;
+
+        public ApiPost Post { get; }
+
+        public SelectionGroup SelectionGroup { get; }
 
         public void InitChildContainer()
         {
@@ -204,24 +204,6 @@ namespace Deaddit.Pages
                 "Share:",
                 new($"File", this.OnShareFileClicked),
                 new($"Link", this.OnShareLinkClicked));
-        }
-
-        private async Task OnShareLinkClicked()
-        {
-            await Share.Default.RequestAsync(new ShareTextRequest
-            {
-                Text = Post.Url,
-                Title = Post.Title
-            });
-        }
-
-        private async Task OnShareFileClicked()
-        {
-            await Share.Default.RequestAsync(new ShareTextRequest
-            {
-                Uri = Post.Url,
-                Title = Post.Title
-            });
         }
 
         public async Task TryLoad()
@@ -323,6 +305,24 @@ namespace Deaddit.Pages
             "View:",
             new($"/u/{Post.Author}", async () => await AppNavigator.OpenUser(Post.Author)),
             new($"/r/{Post.SubRedditName}", async () => await AppNavigator.OpenSubReddit(Post.SubRedditName, ApiPostSort.Hot)));
+        }
+
+        private async Task OnShareFileClicked()
+        {
+            await Share.Default.RequestAsync(new ShareTextRequest
+            {
+                Uri = Post.Url,
+                Title = Post.Title
+            });
+        }
+
+        private async Task OnShareLinkClicked()
+        {
+            await Share.Default.RequestAsync(new ShareTextRequest
+            {
+                Text = Post.Url,
+                Title = Post.Title
+            });
         }
 
         private void ReplyPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)

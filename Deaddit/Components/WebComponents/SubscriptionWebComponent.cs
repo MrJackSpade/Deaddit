@@ -12,23 +12,19 @@ namespace Deaddit.Components.WebComponents
     [HtmlEntity("subscription-item")]
     public class SubscriptionWebComponent : DivComponent, ISelectionGroupItem, ISubscriptionComponent
     {
+        private readonly DivComponent _actionButtons;
+
         private readonly ApplicationStyling _applicationStyling;
 
         private readonly IAppNavigator _appNavigator;
-
-        private readonly DivComponent _actionButtons;
-
-        private readonly SelectionGroup? _selectionGroup;
-
-        private readonly ThingDefinition _subscriptionThing;
 
         private readonly string _backgroundColor;
 
         private readonly string _highlightColor;
 
-        public bool SelectEnabled { get; }
+        private readonly SelectionGroup? _selectionGroup;
 
-        public event EventHandler<SubRedditSubscriptionRemoveEventArgs>? OnRemove;
+        private readonly ThingDefinition _subscriptionThing;
 
         public SubscriptionWebComponent(ThingDefinition subscriptionThing, bool removable, IAppNavigator appNavigator, ApplicationStyling applicationStyling, SelectionGroup? selectionGroup)
         {
@@ -99,6 +95,10 @@ namespace Deaddit.Components.WebComponents
             Children.Add(_actionButtons);
         }
 
+        public event EventHandler<SubRedditSubscriptionRemoveEventArgs>? OnRemove;
+
+        public bool SelectEnabled { get; }
+
         public Task Select()
         {
             BackgroundColor = _highlightColor;
@@ -118,17 +118,17 @@ namespace Deaddit.Components.WebComponents
             await _appNavigator.OpenThing(_subscriptionThing);
         }
 
+        private void RemoveButton_OnClick(object? sender, EventArgs e)
+        {
+            OnRemove?.Invoke(this, new SubRedditSubscriptionRemoveEventArgs(this, _subscriptionThing));
+        }
+
         private async void SettingsButton_OnClick(object? sender, EventArgs e)
         {
             if (_selectionGroup != null)
             {
                 await _selectionGroup.Toggle(this);
             }
-        }
-
-        private void RemoveButton_OnClick(object? sender, EventArgs e)
-        {
-            OnRemove?.Invoke(this, new SubRedditSubscriptionRemoveEventArgs(this, _subscriptionThing));
         }
     }
 }

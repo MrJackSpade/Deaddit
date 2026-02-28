@@ -10,7 +10,9 @@ namespace Deaddit.Components.WebComponents.Forms
     public class TextFieldComponent : FormFieldComponent
     {
         private readonly InputComponent _input;
+
         private readonly PropertyInfo _property;
+
         private readonly object _target;
 
         public TextFieldComponent(string labelText, string? description, bool masked, PropertyInfo property, object target, ApplicationStyling styling)

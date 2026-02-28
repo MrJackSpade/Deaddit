@@ -6,10 +6,12 @@ namespace Deaddit.Utils
 {
     public class PreferencesHistoryTracker : IHistoryTracker
     {
-        private const string PreferenceKey = "PostHistory";
         private const int MaxHistorySize = 1000;
 
+        private const string PreferenceKey = "PostHistory";
+
         private readonly object _lock = new();
+
         private List<string>? _history;
 
         public void AddToHistory(ApiPost post, bool fromHistoryPage = false)
