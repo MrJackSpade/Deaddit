@@ -1,0 +1,3 @@
+[submodule "Reddit.Api"]
+	path = Reddit.Api
+	url = https://github.com/MrJackSpade/Reddit.Api.git
