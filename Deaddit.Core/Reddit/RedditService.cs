@@ -65,6 +65,7 @@ namespace Deaddit.Core.Reddit
                 {
                     throw;
                 }
+
                 return null;
             }
         }
@@ -90,6 +91,7 @@ namespace Deaddit.Core.Reddit
                 {
                     throw;
                 }
+
                 return null;
             }
         }
@@ -199,6 +201,7 @@ namespace Deaddit.Core.Reddit
                 {
                     throw;
                 }
+
                 return null;
             }
         }
@@ -274,6 +277,7 @@ namespace Deaddit.Core.Reddit
                 {
                     throw;
                 }
+
                 return [];
             }
         }
@@ -306,6 +310,7 @@ namespace Deaddit.Core.Reddit
                 {
                     throw;
                 }
+
                 return null;
             }
         }
@@ -328,6 +333,7 @@ namespace Deaddit.Core.Reddit
                 {
                     throw;
                 }
+
                 return [];
             }
         }
@@ -567,6 +573,7 @@ namespace Deaddit.Core.Reddit
                         {
                             SetParent(moreItem.Parent, apiThing);
                         }
+
                         toReturn.Add(apiThing);
                     }
                 }
@@ -804,6 +811,7 @@ namespace Deaddit.Core.Reddit
                 {
                     throw;
                 }
+
                 return null;
             }
         }

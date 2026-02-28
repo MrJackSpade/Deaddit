@@ -5,6 +5,7 @@ using Reddit.Api.Models.Json.Listings;
 using Reddit.Api.Models.Json.Multis;
 using Reddit.Api.Models.Json.Subreddits;
 using Reddit.Api.Models.Json.Users;
+using System.Web;
 
 namespace Deaddit.Core.Reddit.Mapping
 {
@@ -34,8 +35,8 @@ namespace Deaddit.Core.Reddit.Mapping
                 AuthorFlairBackgroundColor = ParseColor(source.AuthorFlairBackgroundColor),
                 AuthorFlairTextColor = ParseColor(source.AuthorFlairTextColor),
                 AuthorFlairTemplateId = source.AuthorFlairTemplateId,
-                Body = source.Selftext ?? string.Empty,
-                BodyHtml = source.SelftextHtml ?? string.Empty,
+                Body = HttpUtility.HtmlDecode(source.Selftext) ?? string.Empty,
+                BodyHtml = HttpUtility.HtmlDecode(source.SelftextHtml) ?? string.Empty,
                 Url = source.Url,
                 UrlOverriddenByDest = source.UrlOverriddenByDest,
                 Domain = source.Domain,
@@ -144,8 +145,8 @@ namespace Deaddit.Core.Reddit.Mapping
                 AuthorFlairBackgroundColor = ParseColor(source.AuthorFlairBackgroundColor),
                 AuthorFlairTextColor = ParseColor(source.AuthorFlairTextColor),
                 AuthorFlairTemplateId = source.AuthorFlairTemplateId,
-                Body = source.Body,
-                BodyHtml = source.BodyHtml ?? string.Empty,
+                Body = HttpUtility.HtmlDecode(source.Body),
+                BodyHtml = HttpUtility.HtmlDecode(source.BodyHtml) ?? string.Empty,
                 LinkId = source.LinkId,
                 ParentId = source.ParentId,
                 LinkTitle = source.LinkTitle,
@@ -220,12 +221,12 @@ namespace Deaddit.Core.Reddit.Mapping
                 DisplayName = source.DisplayName,
                 DisplayNamePrefixed = source.DisplayNamePrefixed,
                 Title = source.Title,
-                PublicDescription = source.PublicDescription,
-                PublicDescriptionHtml = source.PublicDescriptionHtml,
-                Description = source.Description,
-                DescriptionHtml = source.DescriptionHtml,
-                SubmitText = source.SubmitText,
-                SubmitTextHtml = source.SubmitTextHtml,
+                PublicDescription = HttpUtility.HtmlDecode(source.PublicDescription),
+                PublicDescriptionHtml = HttpUtility.HtmlDecode(source.PublicDescriptionHtml),
+                Description = HttpUtility.HtmlDecode(source.Description),
+                DescriptionHtml = HttpUtility.HtmlDecode(source.DescriptionHtml),
+                SubmitText = HttpUtility.HtmlDecode(source.SubmitText),
+                SubmitTextHtml = HttpUtility.HtmlDecode(source.SubmitTextHtml),
                 SubredditType = source.SubredditType,
                 SubmissionType = source.SubmissionType,
                 Subscribers = source.Subscribers,
@@ -385,8 +386,8 @@ namespace Deaddit.Core.Reddit.Mapping
                 Name = source.Name,
                 DisplayName = source.DisplayName,
                 Path = source.Path,
-                DescriptionMd = source.DescriptionMd,
-                DescriptionHtml = source.DescriptionHtml,
+                DescriptionMd = HttpUtility.HtmlDecode(source.DescriptionMd),
+                DescriptionHtml = HttpUtility.HtmlDecode(source.DescriptionHtml),
                 IconUrl = source.IconUrl,
                 Visibility = source.Visibility,
                 Over18 = source.Over18,
@@ -525,6 +526,7 @@ namespace Deaddit.Core.Reddit.Mapping
                 {
                     return OptionalDateTime.Null;
                 }
+
                 if (je.ValueKind == System.Text.Json.JsonValueKind.Number && je.TryGetDouble(out double timestamp))
                 {
                     return MapDateTime(timestamp);
