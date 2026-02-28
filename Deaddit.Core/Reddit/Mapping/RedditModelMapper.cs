@@ -70,7 +70,7 @@ namespace Deaddit.Core.Reddit.Mapping
                 Saved = source.Saved,
                 Clicked = source.Clicked,
                 Visited = source.Visited,
-                Likes = MapUpvoteState(source.Likes),
+                Likes = source.Likes,
                 HideScore = source.HideScore,
                 ContestMode = source.ContestMode,
                 Pinned = source.Pinned,
@@ -168,7 +168,7 @@ namespace Deaddit.Core.Reddit.Mapping
                 Stickied = source.Stickied,
                 IsArchived = source.Archived,
                 Saved = source.Saved,
-                Likes = MapUpvoteState(source.Likes),
+                Likes = source.Likes,
                 ScoreHidden = source.ScoreHidden,
                 IsSubmitter = source.IsSubmitter,
                 CanModPost = source.CanModPost,
@@ -478,30 +478,6 @@ namespace Deaddit.Core.Reddit.Mapping
                 .Where(c => c?.Data != null)
                 .Select(c => (ApiThing)Map(c.Data!))
                 .ToList();
-        }
-
-        #endregion
-
-        #region Primitive Conversions
-
-        public static UpvoteState MapUpvoteState(bool? likes)
-        {
-            if (!likes.HasValue)
-            {
-                return UpvoteState.None;
-            }
-
-            return likes.Value ? UpvoteState.Upvote : UpvoteState.Downvote;
-        }
-
-        public static int MapUpvoteStateToInt(UpvoteState state)
-        {
-            return state switch
-            {
-                UpvoteState.Upvote => 1,
-                UpvoteState.Downvote => -1,
-                _ => 0
-            };
         }
 
         #endregion

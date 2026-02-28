@@ -107,7 +107,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public bool? IsLocked { get; init; }
 
         [JsonPropertyName("likes")]
-        public UpvoteState Likes { get; set; }
+        public VoteState Likes { get; set; }
 
         [JsonPropertyName("media_metadata")]
         public Dictionary<string, MediaMetaData>? MediaMetaData { get; init; } = [];

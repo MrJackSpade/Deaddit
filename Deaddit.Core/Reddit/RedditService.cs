@@ -627,7 +627,7 @@ namespace Deaddit.Core.Reddit
             return toReturn;
         }
 
-        public async Task SetUpvoteState(ApiThing thing, UpvoteState state)
+        public async Task SetVoteState(ApiThing thing, VoteState state)
         {
             try
             {
@@ -635,11 +635,10 @@ namespace Deaddit.Core.Reddit
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
-                int direction = RedditModelMapper.MapUpvoteStateToInt(state);
-                await _client.VoteAsync(thing.Name, direction);
+                await _client.VoteAsync(thing.Name, (int)state);
 
                 stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in SetUpvoteState method: {stopwatch.ElapsedMilliseconds}ms");
+                Debug.WriteLine($"[DEBUG] Time spent in SetVoteState method: {stopwatch.ElapsedMilliseconds}ms");
             }
             catch (Exception ex)
             {

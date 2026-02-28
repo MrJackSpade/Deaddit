@@ -4,7 +4,6 @@ using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Extensions;
 using Deaddit.Core.Reddit.Interfaces;
-using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Blocking;
@@ -17,6 +16,7 @@ using Deaddit.Pages;
 using Deaddit.Utils;
 using Maui.WebComponents.Attributes;
 using Maui.WebComponents.Components;
+using Reddit.Api.Models.Enums;
 using System.Web;
 
 namespace Deaddit.Components.WebComponents
@@ -216,26 +216,26 @@ namespace Deaddit.Components.WebComponents
 
         public void OnUpvoteClicked(object? sender, EventArgs e)
         {
-            if (_comment.Likes == UpvoteState.Upvote)
+            if (_comment.Likes == VoteState.Upvote)
             {
                 _comment.Score--;
-                _commentHeader.SetIndicatorState(UpvoteState.None);
-                _redditClient.SetUpvoteState(_comment, UpvoteState.None);
-                _bottomBar.SetUpvoteState(UpvoteState.None);
+                _commentHeader.SetIndicatorState(VoteState.None);
+                _redditClient.SetVoteState(_comment, VoteState.None);
+                _bottomBar.SetVoteState(VoteState.None);
             }
-            else if (_comment.Likes == UpvoteState.Downvote)
+            else if (_comment.Likes == VoteState.Downvote)
             {
                 _comment.Score += 2;
-                _commentHeader.SetIndicatorState(UpvoteState.Upvote);
-                _redditClient.SetUpvoteState(_comment, UpvoteState.Upvote);
-                _bottomBar.SetUpvoteState(UpvoteState.Upvote);
+                _commentHeader.SetIndicatorState(VoteState.Upvote);
+                _redditClient.SetVoteState(_comment, VoteState.Upvote);
+                _bottomBar.SetVoteState(VoteState.Upvote);
             }
             else
             {
                 _comment.Score++;
-                _commentHeader.SetIndicatorState(UpvoteState.Upvote);
-                _redditClient.SetUpvoteState(_comment, UpvoteState.Upvote);
-                _bottomBar.SetUpvoteState(UpvoteState.Upvote);
+                _commentHeader.SetIndicatorState(VoteState.Upvote);
+                _redditClient.SetVoteState(_comment, VoteState.Upvote);
+                _bottomBar.SetVoteState(VoteState.Upvote);
             }
         }
 
@@ -344,26 +344,26 @@ namespace Deaddit.Components.WebComponents
 
         private void OnDownvoteClicked(object? sender, EventArgs e)
         {
-            if (_comment.Likes == UpvoteState.Downvote)
+            if (_comment.Likes == VoteState.Downvote)
             {
                 _comment.Score++;
-                _commentHeader.SetIndicatorState(UpvoteState.None);
-                _redditClient.SetUpvoteState(_comment, UpvoteState.None);
-                _bottomBar.SetUpvoteState(UpvoteState.None);
+                _commentHeader.SetIndicatorState(VoteState.None);
+                _redditClient.SetVoteState(_comment, VoteState.None);
+                _bottomBar.SetVoteState(VoteState.None);
             }
-            else if (_comment.Likes == UpvoteState.Upvote)
+            else if (_comment.Likes == VoteState.Upvote)
             {
                 _comment.Score -= 2;
-                _commentHeader.SetIndicatorState(UpvoteState.Downvote);
-                _redditClient.SetUpvoteState(_comment, UpvoteState.Downvote);
-                _bottomBar.SetUpvoteState(UpvoteState.Downvote);
+                _commentHeader.SetIndicatorState(VoteState.Downvote);
+                _redditClient.SetVoteState(_comment, VoteState.Downvote);
+                _bottomBar.SetVoteState(VoteState.Downvote);
             }
             else
             {
                 _comment.Score--;
-                _commentHeader.SetIndicatorState(UpvoteState.Downvote);
-                _redditClient.SetUpvoteState(_comment, UpvoteState.Downvote);
-                _bottomBar.SetUpvoteState(UpvoteState.Downvote);
+                _commentHeader.SetIndicatorState(VoteState.Downvote);
+                _redditClient.SetVoteState(_comment, VoteState.Downvote);
+                _bottomBar.SetVoteState(VoteState.Downvote);
             }
         }
 
