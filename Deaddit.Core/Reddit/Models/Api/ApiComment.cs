@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using Reddit.Api.Models.Enums;
+using System.Text.Json.Serialization;
 
 namespace Deaddit.Core.Reddit.Models.Api
 {
@@ -29,7 +30,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public string? CollapsedReason { get; init; }
 
         [JsonPropertyName("collapsed_reason_code")]
-        public CollapsedReasonKind CollapsedReasonCode { get; init; }
+        public CollapsedReasonCode CollapsedReasonCode { get; init; }
 
         [JsonPropertyName("comment_type")]
         public object? CommentType { get; init; }

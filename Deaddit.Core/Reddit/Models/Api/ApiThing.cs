@@ -1,4 +1,5 @@
 ﻿using Deaddit.Core.Reddit.Json.Attributes;
+using Reddit.Api.Models.Enums;
 using System.Text.Json.Serialization;
 
 namespace Deaddit.Core.Reddit.Models.Api

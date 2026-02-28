@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using Reddit.Api.Models.Enums;
+using System.Text.Json.Serialization;
 
 namespace Deaddit.Core.Reddit.Models.Api
 {
@@ -239,7 +240,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public int Subscribers { get; init; }
 
         [JsonPropertyName("suggested_comment_sort")]
-        public ApiCommentSort SuggestedCommentSort { get; init; }
+        public CommentSort? SuggestedCommentSort { get; init; }
 
         [JsonPropertyName("title")]
         public string? Title { get; init; }

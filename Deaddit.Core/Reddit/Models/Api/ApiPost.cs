@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using Reddit.Api.Models.Enums;
+using System.Diagnostics;
 using System.Text.Json.Serialization;
 
 namespace Deaddit.Core.Reddit.Models.Api
@@ -145,7 +146,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public long SubredditSubscribers { get; init; }
 
         [JsonPropertyName("suggested_sort")]
-        public ApiCommentSort SuggestedSort { get; init; }
+        public CommentSort? SuggestedSort { get; init; }
 
         [JsonPropertyName("thumbnail")]
         public string? Thumbnail { get; init; }

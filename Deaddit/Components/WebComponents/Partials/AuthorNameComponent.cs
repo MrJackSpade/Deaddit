@@ -1,5 +1,5 @@
 ﻿using Deaddit.Core.Configurations.Models;
-using Deaddit.Core.Reddit.Models.Api;
+using Reddit.Api.Models.Enums;
 using Maui.WebComponents.Components;
 
 namespace Deaddit.Components.WebComponents.Partials
@@ -14,7 +14,8 @@ namespace Deaddit.Components.WebComponents.Partials
 
             switch (distinguishedKind)
             {
-                case DistinguishedKind.None:
+                case DistinguishedKind.Null:
+                case DistinguishedKind.Empty:
                     if (isOp)
                     {
                         BackgroundColor = applicationStyling.OpBackgroundColor.ToHex();
