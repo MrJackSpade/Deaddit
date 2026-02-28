@@ -13,7 +13,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public string? CopiedFrom { get; set; }
 
         [JsonPropertyName("created")]
-        public double Created { get; set; }
+        public OptionalDateTime Created { get; set; }
 
         [JsonPropertyName("created_utc")]
         public OptionalDateTime CreatedUtc { get; set; }
