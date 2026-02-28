@@ -33,8 +33,8 @@ namespace Deaddit.Core.Reddit.Mapping
                 AuthorFullName = source.AuthorFullname,
                 AuthorFlairText = source.AuthorFlairText,
                 AuthorFlairCssClass = source.AuthorFlairCssClass,
-                AuthorFlairBackgroundColor = ParseColor(source.AuthorFlairBackgroundColor),
-                AuthorFlairTextColor = ParseColor(source.AuthorFlairTextColor),
+                AuthorFlairBackgroundColor = source.AuthorFlairBackgroundColor,
+                AuthorFlairTextColor = source.AuthorFlairTextColor,
                 AuthorFlairTemplateId = source.AuthorFlairTemplateId,
                 Body = HttpUtility.HtmlDecode(source.Selftext) ?? string.Empty,
                 BodyHtml = HttpUtility.HtmlDecode(source.SelftextHtml) ?? string.Empty,
@@ -82,8 +82,8 @@ namespace Deaddit.Core.Reddit.Mapping
                 Distinguished = source.Distinguished ?? DistinguishedKind.Null,
                 LinkFlairText = source.LinkFlairText,
                 LinkFlairCssClass = source.LinkFlairCssClass,
-                LinkFlairBackgroundColor = ParseColor(source.LinkFlairBackgroundColor),
-                LinkFlairTextColor = ParseColor(source.LinkFlairTextColor),
+                LinkFlairBackgroundColor = source.LinkFlairBackgroundColor,
+                LinkFlairTextColor = source.LinkFlairTextColor,
                 LinkFlairTemplateId = source.LinkFlairTemplateId,
                 LinkFlairType = source.LinkFlairType,
                 Thumbnail = source.Thumbnail,
@@ -143,8 +143,8 @@ namespace Deaddit.Core.Reddit.Mapping
                 AuthorFullName = source.AuthorFullname,
                 AuthorFlairText = source.AuthorFlairText,
                 AuthorFlairCssClass = source.AuthorFlairCssClass,
-                AuthorFlairBackgroundColor = ParseColor(source.AuthorFlairBackgroundColor),
-                AuthorFlairTextColor = ParseColor(source.AuthorFlairTextColor),
+                AuthorFlairBackgroundColor = source.AuthorFlairBackgroundColor,
+                AuthorFlairTextColor = source.AuthorFlairTextColor,
                 AuthorFlairTemplateId = source.AuthorFlairTemplateId,
                 Body = HttpUtility.HtmlDecode(source.Body),
                 BodyHtml = HttpUtility.HtmlDecode(source.BodyHtml) ?? string.Empty,
@@ -246,7 +246,7 @@ namespace Deaddit.Core.Reddit.Mapping
                 UserFlairCssClass = source.UserFlairCssClass,
                 UserFlairPosition = source.UserFlairPosition,
                 UserFlairText = source.UserFlairText,
-                UserFlairTextColor = ParseColor(source.UserFlairTextColor),
+                UserFlairTextColor = source.UserFlairTextColor,
                 UserFlairType = source.UserFlairType,
                 CanAssignLinkFlair = source.CanAssignLinkFlair,
                 CanAssignUserFlair = source.CanAssignUserFlair,
@@ -273,8 +273,8 @@ namespace Deaddit.Core.Reddit.Mapping
                 BannerBackgroundImage = source.BannerBackgroundImage,
                 BannerBackgroundColor = source.BannerBackgroundColor,
                 MobileBannerImage = source.MobileBannerImage,
-                PrimaryColor = ParseColor(source.PrimaryColor),
-                KeyColor = ParseColor(source.KeyColor),
+                PrimaryColor = source.PrimaryColor,
+                KeyColor = source.KeyColor,
                 Url = source.Url,
                 Lang = source.Lang,
                 WikiEnabled = source.WikiEnabled,
@@ -482,23 +482,5 @@ namespace Deaddit.Core.Reddit.Mapping
 
         #endregion
 
-        #region Helper Methods
-
-        private static DynamicColor? ParseColor(string? color)
-        {
-            if (string.IsNullOrWhiteSpace(color) || color == "transparent")
-            {
-                return null;
-            }
-
-            if (DynamicColor.TryParse(color, out DynamicColor? result))
-            {
-                return result;
-            }
-
-            return null;
-        }
-
-        #endregion
     }
 }

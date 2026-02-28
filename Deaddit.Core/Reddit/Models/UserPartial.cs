@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using Reddit.Api.Models;
+using System.Text.Json.Serialization;
 
 namespace Deaddit.Core.Reddit.Models
 {
@@ -17,7 +18,7 @@ namespace Deaddit.Core.Reddit.Models
         public string? Name { get; set; }
 
         [JsonPropertyName("profile_color")]
-        public string? ProfileColor { get; set; }
+        public JsonColor ProfileColor { get; set; }
 
         [JsonPropertyName("profile_img")]
         public string? ProfileImg { get; set; }

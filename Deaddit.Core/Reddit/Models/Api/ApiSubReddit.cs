@@ -1,4 +1,5 @@
-﻿using Reddit.Api.Models.Enums;
+﻿using Reddit.Api.Models;
+using Reddit.Api.Models.Enums;
 using System.Text.Json.Serialization;
 
 namespace Deaddit.Core.Reddit.Models.Api
@@ -57,7 +58,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public bool? AllowVideos { get; init; }
 
         [JsonPropertyName("banner_background_color")]
-        public string? BannerBackgroundColor { get; init; }
+        public JsonColor BannerBackgroundColor { get; init; }
 
         [JsonPropertyName("banner_background_image")]
         public string? BannerBackgroundImage { get; init; }
@@ -132,7 +133,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public bool? HideAds { get; init; }
 
         [JsonPropertyName("icon_color")]
-        public DynamicColor? IconColor { get; set; }
+        public JsonColor IconColor { get; set; }
 
         [JsonPropertyName("icon_img")]
         public string? IconImg { get; init; }
@@ -156,7 +157,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public bool? IsNSFW { get; init; }
 
         [JsonPropertyName("key_color")]
-        public DynamicColor? KeyColor { get; init; }
+        public JsonColor KeyColor { get; init; }
 
         [JsonPropertyName("lang")]
         public string? Lang { get; init; }
@@ -165,7 +166,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public bool LinkFlairEnabled { get; init; }
 
         [JsonPropertyName("link_flair_position")]
-        public string? LinkFlairPosition { get; init; }
+        public FlairPosition LinkFlairPosition { get; init; }
 
         [JsonPropertyName("mobile_banner_image")]
         public string? MobileBannerImage { get; init; }
@@ -186,7 +187,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public List<string> PreviousNames { get; set; } = [];
 
         [JsonPropertyName("primary_color")]
-        public DynamicColor? PrimaryColor { get; init; }
+        public JsonColor PrimaryColor { get; init; }
 
         [JsonPropertyName("public_description")]
         public string? PublicDescription { get; init; }
@@ -222,7 +223,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public bool? SpoilersEnabled { get; init; }
 
         [JsonPropertyName("submission_type")]
-        public string? SubmissionType { get; init; }
+        public SubmissionType SubmissionType { get; init; }
 
         [JsonPropertyName("submit_link_label")]
         public string? SubmitLinkLabel { get; init; }
@@ -252,7 +253,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public bool? UserCanFlairInSr { get; init; }
 
         [JsonPropertyName("user_flair_background_color")]
-        public string? UserFlairBackgroundColor { get; init; }
+        public JsonColor UserFlairBackgroundColor { get; init; }
 
         [JsonPropertyName("user_flair_css_class")]
         public string? UserFlairCssClass { get; init; }
@@ -261,7 +262,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public bool? UserFlairEnabledInSr { get; init; }
 
         [JsonPropertyName("user_flair_position")]
-        public string? UserFlairPosition { get; init; }
+        public FlairPosition UserFlairPosition { get; init; }
 
         [JsonPropertyName("user_flair_richtext")]
         public List<string> UserFlairRichtext { get; init; } = [];
@@ -273,7 +274,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public string? UserFlairText { get; init; }
 
         [JsonPropertyName("user_flair_text_color")]
-        public DynamicColor? UserFlairTextColor { get; init; }
+        public JsonColor UserFlairTextColor { get; init; }
 
         [JsonPropertyName("user_flair_type")]
         public string? UserFlairType { get; init; }

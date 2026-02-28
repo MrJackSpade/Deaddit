@@ -36,7 +36,7 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
 
             if (!string.IsNullOrWhiteSpace(comment.AuthorFlairText))
             {
-                string flairColor = comment.AuthorFlairBackgroundColor?.ToHex() ?? applicationStyling.SubTextColor.ToHex();
+                string flairColor = comment.AuthorFlairBackgroundColor.ToHex() ?? applicationStyling.SubTextColor.ToHex();
                 FlairComponent userFlair = new(comment.AuthorFlairText, flairColor, applicationStyling);
                 Children.Add(userFlair);
             }
