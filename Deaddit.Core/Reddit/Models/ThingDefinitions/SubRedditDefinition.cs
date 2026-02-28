@@ -1,4 +1,5 @@
 ﻿using Deaddit.Core.Reddit.Models.Requests;
+using Reddit.Api.Models.Enums;
 
 namespace Deaddit.Core.Reddit.Models.ThingDefinitions
 {
