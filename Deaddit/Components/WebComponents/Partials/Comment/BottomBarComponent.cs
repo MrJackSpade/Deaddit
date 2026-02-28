@@ -1,6 +1,6 @@
 ﻿using Deaddit.Core.Configurations.Models;
-using Deaddit.Core.Reddit.Models;
 using Maui.WebComponents.Components;
+using Reddit.Api.Models.Enums;
 
 namespace Deaddit.Components.WebComponents.Partials.Comment
 {
@@ -22,30 +22,30 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
 
         public event EventHandler? OnUpvoteClicked;
 
-        public BottomBarComponent(ApplicationStyling applicationStyling, UpvoteState initialState)
+        public BottomBarComponent(ApplicationStyling applicationStyling, VoteState initialState)
         {
             _applicationStyling = applicationStyling;
 
             Display = "none";
             this.InitializeButtons();
-            this.SetUpvoteState(initialState);
+            this.SetVoteState(initialState);
         }
 
-        public void SetUpvoteState(UpvoteState upvote)
+        public void SetVoteState(VoteState upvote)
         {
             switch (upvote)
             {
-                case UpvoteState.None:
+                case VoteState.None:
                     _upvoteButton.Color = _applicationStyling.TextColor.ToHex();
                     _downvoteButton.Color = _applicationStyling.TextColor.ToHex();
                     break;
 
-                case UpvoteState.Upvote:
+                case VoteState.Upvote:
                     _upvoteButton.Color = _applicationStyling.UpvoteColor.ToHex();
                     _downvoteButton.Color = _applicationStyling.TextColor.ToHex();
                     break;
 
-                case UpvoteState.Downvote:
+                case VoteState.Downvote:
                     _upvoteButton.Color = _applicationStyling.TextColor.ToHex();
                     _downvoteButton.Color = _applicationStyling.DownvoteColor.ToHex();
                     break;

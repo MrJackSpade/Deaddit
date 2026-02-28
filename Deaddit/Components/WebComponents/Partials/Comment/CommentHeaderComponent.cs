@@ -1,8 +1,8 @@
 ﻿using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Extensions;
-using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Maui.WebComponents.Components;
+using Reddit.Api.Models.Enums;
 
 namespace Deaddit.Components.WebComponents.Partials.Comment
 {
@@ -46,26 +46,26 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
             this.SetIndicatorState(_comment.Likes);
         }
 
-        public void SetIndicatorState(UpvoteState state)
+        public void SetIndicatorState(VoteState state)
         {
             switch (state)
             {
-                case UpvoteState.Upvote:
-                    _comment.Likes = UpvoteState.Upvote;
+                case VoteState.Upvote:
+                    _comment.Likes = VoteState.Upvote;
                     _voteIndicator.InnerText = "▲";
                     _voteIndicator.Color = _applicationStyling.UpvoteColor.ToHex();
                     _voteIndicator.Display = "inline-block";
                     break;
 
-                case UpvoteState.Downvote:
-                    _comment.Likes = UpvoteState.Downvote;
+                case VoteState.Downvote:
+                    _comment.Likes = VoteState.Downvote;
                     _voteIndicator.InnerText = "▼";
                     _voteIndicator.Color = _applicationStyling.DownvoteColor.ToHex();
                     _voteIndicator.Display = "inline-block";
                     break;
 
                 default:
-                    _comment.Likes = UpvoteState.None;
+                    _comment.Likes = VoteState.None;
                     _voteIndicator.InnerText = string.Empty;
                     _voteIndicator.Color = _applicationStyling.TextColor.ToHex();
                     _voteIndicator.Display = "none";

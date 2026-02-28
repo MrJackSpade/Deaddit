@@ -2,6 +2,7 @@
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Reddit.Models.Requests;
 using Deaddit.Core.Reddit.Models.ThingDefinitions;
+using Reddit.Api.Models.Enums;
 
 namespace Deaddit.Core.Reddit.Interfaces
 {
@@ -41,7 +42,7 @@ namespace Deaddit.Core.Reddit.Interfaces
 
         Task<List<ApiMulti>> Multis();
 
-        Task SetUpvoteState(ApiThing thing, UpvoteState state);
+        Task SetVoteState(ApiThing thing, VoteState state);
 
         Task ToggleInboxReplies(ApiThing thing, bool enabled);
 

@@ -1,8 +1,8 @@
 ﻿using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Reddit.Interfaces;
-using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Maui.WebComponents.Components;
+using Reddit.Api.Models.Enums;
 
 namespace Deaddit.Components.WebComponents.Partials.Post
 {
@@ -82,12 +82,12 @@ namespace Deaddit.Components.WebComponents.Partials.Post
 
             switch (_post.Likes)
             {
-                case UpvoteState.Upvote:
+                case VoteState.Upvote:
                     _upvoteButton.Color = _applicationStyling.UpvoteColor.ToHex();
                     _score.Color = _applicationStyling.UpvoteColor.ToHex();
                     break;
 
-                case UpvoteState.Downvote:
+                case VoteState.Downvote:
                     _downvoteButton.Color = _applicationStyling.DownvoteColor.ToHex();
                     _score.Color = _applicationStyling.DownvoteColor.ToHex();
                     break;
@@ -98,23 +98,23 @@ namespace Deaddit.Components.WebComponents.Partials.Post
         {
             switch (_post.Likes)
             {
-                case UpvoteState.None:
+                case VoteState.None:
                     _post.Score--;
-                    _post.Likes = UpvoteState.Downvote;
+                    _post.Likes = VoteState.Downvote;
                     _score.Color = _applicationStyling.DownvoteColor.ToHex();
                     _downvoteButton.Color = _applicationStyling.DownvoteColor.ToHex();
                     break;
 
-                case UpvoteState.Downvote:
+                case VoteState.Downvote:
                     _post.Score++;
-                    _post.Likes = UpvoteState.None;
+                    _post.Likes = VoteState.None;
                     _score.Color = _applicationStyling.TextColor.ToHex();
                     _downvoteButton.Color = _applicationStyling.TextColor.ToHex();
                     break;
 
-                case UpvoteState.Upvote:
+                case VoteState.Upvote:
                     _post.Score -= 2;
-                    _post.Likes = UpvoteState.Downvote;
+                    _post.Likes = VoteState.Downvote;
                     _score.Color = _applicationStyling.DownvoteColor.ToHex();
                     _upvoteButton.Color = _applicationStyling.TextColor.ToHex();
                     _downvoteButton.Color = _applicationStyling.DownvoteColor.ToHex();
@@ -122,30 +122,30 @@ namespace Deaddit.Components.WebComponents.Partials.Post
             }
 
             _score.InnerText = _post.Score?.ToString() ?? string.Empty;
-            _redditClient.SetUpvoteState(_post, _post.Likes);
+            _redditClient.SetVoteState(_post, _post.Likes);
         }
 
         private void Upvote(object? sender, EventArgs e)
         {
             switch (_post.Likes)
             {
-                case UpvoteState.None:
+                case VoteState.None:
                     _post.Score++;
-                    _post.Likes = UpvoteState.Upvote;
+                    _post.Likes = VoteState.Upvote;
                     _score.Color = _applicationStyling.UpvoteColor.ToHex();
                     _upvoteButton.Color = _applicationStyling.UpvoteColor.ToHex();
                     break;
 
-                case UpvoteState.Upvote:
+                case VoteState.Upvote:
                     _post.Score--;
-                    _post.Likes = UpvoteState.None;
+                    _post.Likes = VoteState.None;
                     _score.Color = _applicationStyling.TextColor.ToHex();
                     _upvoteButton.Color = _applicationStyling.TextColor.ToHex();
                     break;
 
-                case UpvoteState.Downvote:
+                case VoteState.Downvote:
                     _post.Score += 2;
-                    _post.Likes = UpvoteState.Upvote;
+                    _post.Likes = VoteState.Upvote;
                     _score.Color = _applicationStyling.UpvoteColor.ToHex();
                     _upvoteButton.Color = _applicationStyling.UpvoteColor.ToHex();
                     _downvoteButton.Color = _applicationStyling.TextColor.ToHex();
@@ -153,7 +153,7 @@ namespace Deaddit.Components.WebComponents.Partials.Post
             }
 
             _score.InnerText = _post.Score.ToString();
-            _redditClient.SetUpvoteState(_post, _post.Likes);
+            _redditClient.SetVoteState(_post, _post.Likes);
         }
     }
 }

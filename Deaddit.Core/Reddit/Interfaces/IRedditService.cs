@@ -2,6 +2,7 @@ using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Reddit.Models.Requests;
 using Deaddit.Core.Reddit.Models.ThingDefinitions;
+using Reddit.Api.Models.Enums;
 
 namespace Deaddit.Core.Reddit.Interfaces
 {
@@ -104,7 +105,7 @@ namespace Deaddit.Core.Reddit.Interfaces
         /// <summary>
         /// Sets the upvote state on a thing.
         /// </summary>
-        Task SetUpvoteState(ApiThing thing, UpvoteState state);
+        Task SetVoteState(ApiThing thing, VoteState state);
 
         /// <summary>
         /// Toggles distinguish and sticky on a thing.
