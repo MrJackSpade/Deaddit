@@ -192,19 +192,59 @@ namespace Deaddit
                         }
                     });
 
-                    // Double tap to reset
+                    // Double tap/click to toggle between fit-to-window and 100%
                     let lastTap = 0;
+                    let lastTapX = 0;
+                    let lastTapY = 0;
+
+                    function getActualSizeScale() {
+                        const img = wrapper.querySelector('img');
+                        if (!img || !img.naturalWidth) return 1;
+                        const displayedWidth = img.offsetWidth;
+                        return img.naturalWidth / displayedWidth;
+                    }
+
+                    function toggleZoom(clientX, clientY) {
+                        const actualSizeScale = getActualSizeScale();
+                        const isFitToWindow = scale < 1.05;
+
+                        if (isFitToWindow && actualSizeScale > 1.05) {
+                            // Zoom to 100% centered on tap/click position
+                            const containerRect = container.getBoundingClientRect();
+                            const targetScale = Math.min(actualSizeScale, maxScale);
+
+                            // Calculate position to center zoom on click point
+                            posX = clientX - (clientX - posX) * (targetScale / scale);
+                            posY = clientY - (clientY - posY) * (targetScale / scale);
+                            scale = targetScale;
+
+                            clampPosition();
+                        } else {
+                            // Reset to fit-to-window
+                            scale = 1;
+                            posX = 0;
+                            posY = 0;
+                        }
+                        updateTransform();
+                    }
+
                     container.addEventListener('touchend', (e) => {
                         if (e.touches.length === 0 && !isPinching) {
                             const now = Date.now();
+                            const touch = e.changedTouches[0];
                             if (now - lastTap < 300) {
-                                scale = 1;
-                                posX = 0;
-                                posY = 0;
-                                updateTransform();
+                                toggleZoom(lastTapX, lastTapY);
                             }
                             lastTap = now;
+                            lastTapX = touch.clientX;
+                            lastTapY = touch.clientY;
                         }
+                    });
+
+                    // Mouse double-click support
+                    container.addEventListener('dblclick', (e) => {
+                        e.preventDefault();
+                        toggleZoom(e.clientX, e.clientY);
                     });
                 </script>
             </body>
