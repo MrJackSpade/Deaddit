@@ -17,6 +17,7 @@ using Deaddit.Utils;
 using Maui.WebComponents.Attributes;
 using Maui.WebComponents.Components;
 using Reddit.Api.Models.Enums;
+using Reddit.Api.Models.Json.Subreddits;
 using System.Web;
 
 namespace Deaddit.Components.WebComponents
@@ -167,7 +168,8 @@ namespace Deaddit.Components.WebComponents
                             _comment.Saved = saveState;
                         }),
                         new("Copy Raw", async () => await Clipboard.SetTextAsync(_comment.Body)),
-                        new("Copy Permalink", async () => await Clipboard.SetTextAsync(_comment.Permalink))
+                        new("Copy Permalink", async () => await Clipboard.SetTextAsync(_comment.Permalink)),
+                        new("Report...", this.OnReportClicked)
                     );
                 }
                 else
@@ -391,6 +393,83 @@ namespace Deaddit.Components.WebComponents
             RedditCommentWebComponent redditCommentComponent = AppNavigator.CreateCommentWebComponent(e.NewComment, Post, SelectionGroup);
             redditCommentComponent.OnDelete += (s, e) => _replies.Children.Remove(redditCommentComponent);
             _replies.Children.Insert(0, redditCommentComponent);
+        }
+
+        private async Task OnReportClicked()
+        {
+            await _multiselector.Select(
+                "Report:",
+                new("Breaks Reddit Rules", this.OnReportRedditRulesClicked),
+                new("Breaks Subreddit Rules", this.OnReportSubredditRulesClicked));
+        }
+
+        private async Task OnReportRedditRulesClicked()
+        {
+            try
+            {
+                string? subreddit = Post?.SubRedditName;
+                if (string.IsNullOrEmpty(subreddit))
+                {
+                    await _navigation.NavigationStack[^1].DisplayAlert("Report", "Unable to determine subreddit", "OK");
+                    return;
+                }
+
+                SubredditRulesResponse? rules = await _redditClient.GetSubredditRules(subreddit);
+
+                if (rules?.SiteRules == null || rules.SiteRules.Count == 0)
+                {
+                    await _navigation.NavigationStack[^1].DisplayAlert("Report", "No Reddit rules available", "OK");
+                    return;
+                }
+
+                MultiSelectOption[] items = rules.SiteRules.Select(rule =>
+                    new MultiSelectOption(rule, async () =>
+                    {
+                        await _redditClient.Report(_comment, siteReason: rule);
+                        await _navigation.NavigationStack[^1].DisplayAlert("Report", "Comment reported successfully", "OK");
+                    })).ToArray();
+
+                await _multiselector.Select("Select Rule:", items);
+            }
+            catch (Exception ex)
+            {
+                await _displayMessages.DisplayException(ex);
+            }
+        }
+
+        private async Task OnReportSubredditRulesClicked()
+        {
+            try
+            {
+                string? subreddit = Post?.SubRedditName;
+                if (string.IsNullOrEmpty(subreddit))
+                {
+                    await _navigation.NavigationStack[^1].DisplayAlert("Report", "Unable to determine subreddit", "OK");
+                    return;
+                }
+
+                SubredditRulesResponse? rules = await _redditClient.GetSubredditRules(subreddit);
+
+                if (rules?.Rules == null || rules.Rules.Count == 0)
+                {
+                    await _navigation.NavigationStack[^1].DisplayAlert("Report", $"r/{subreddit} has no specific rules", "OK");
+                    return;
+                }
+
+                MultiSelectOption[] items = rules.Rules.Select(rule =>
+                    new MultiSelectOption(rule.ShortName, async () =>
+                    {
+                        string ruleReason = rule.ViolationReason ?? rule.ShortName;
+                        await _redditClient.Report(_comment, ruleReason: ruleReason);
+                        await _navigation.NavigationStack[^1].DisplayAlert("Report", "Comment reported successfully", "OK");
+                    })).ToArray();
+
+                await _multiselector.Select("Select Rule:", items);
+            }
+            catch (Exception ex)
+            {
+                await _displayMessages.DisplayException(ex);
+            }
         }
 
         private async void SelectClick(object? sender, EventArgs e)
