@@ -64,11 +64,11 @@ namespace Deaddit.Utils
         {
             if (selectionGroup is null)
             {
-                return new RedditCommentWebComponent(comment, post, false, ConfigurationService, DisplayMessages, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, selectionGroup ?? new SelectionGroup(), BlockConfiguration);
+                return new RedditCommentWebComponent(comment, post, false, ConfigurationService, DisplayMessages, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, ApplicationHacks, selectionGroup ?? new SelectionGroup(), BlockConfiguration);
             }
             else
             {
-                return new RedditCommentWebComponent(comment, post, true, ConfigurationService, DisplayMessages, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, selectionGroup ?? new SelectionGroup(), BlockConfiguration);
+                return new RedditCommentWebComponent(comment, post, true, ConfigurationService, DisplayMessages, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, ApplicationHacks, selectionGroup ?? new SelectionGroup(), BlockConfiguration);
             }
         }
 

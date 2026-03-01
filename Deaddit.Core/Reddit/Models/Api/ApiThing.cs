@@ -1,6 +1,7 @@
 ﻿using Deaddit.Core.Reddit.Json.Attributes;
 using Reddit.Api.Models;
 using Reddit.Api.Models.Enums;
+using Reddit.Api.Models.Json.Listings;
 using System.Text.Json.Serialization;
 
 namespace Deaddit.Core.Reddit.Models.Api
@@ -29,7 +30,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public string? AuthorFlairCssClass { get; init; }
 
         [JsonPropertyName("author_flair_richtext")]
-        public List<AuthorFlair> AuthorFlairRichText { get; init; } = [];
+        public List<FlairRichtext> AuthorFlairRichText { get; init; } = [];
 
         [JsonPropertyName("author_flair_template_id")]
         public string? AuthorFlairTemplateId { get; init; }

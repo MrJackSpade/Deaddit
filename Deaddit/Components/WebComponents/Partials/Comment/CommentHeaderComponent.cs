@@ -16,7 +16,7 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
 
         private readonly SpanComponent _voteIndicator;
 
-        public CommentHeaderComponent(ApplicationStyling applicationStyling, ApiComment comment, ApiPost parentPost)
+        public CommentHeaderComponent(ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, ApiComment comment, ApiPost parentPost)
         {
             _applicationStyling = applicationStyling;
             _comment = comment;
@@ -34,9 +34,14 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
             Children.Add(_voteIndicator);
             Children.Add(authorSpan);
 
-            if (!string.IsNullOrWhiteSpace(comment.AuthorFlairText))
+            string flairColor = comment.AuthorFlairBackgroundColor.ToHex() ?? applicationStyling.SubTextColor.ToHex();
+            if (applicationHacks.ShouldResolveFlairImages() && comment.AuthorFlairRichText.Count > 0)
             {
-                string flairColor = comment.AuthorFlairBackgroundColor.ToHex() ?? applicationStyling.SubTextColor.ToHex();
+                RichTextFlairComponent userFlair = new(comment.AuthorFlairRichText, flairColor, applicationStyling);
+                Children.Add(userFlair);
+            }
+            else if (!string.IsNullOrWhiteSpace(comment.AuthorFlairText))
+            {
                 FlairComponent userFlair = new(comment.AuthorFlairText, flairColor, applicationStyling);
                 Children.Add(userFlair);
             }

@@ -11,8 +11,8 @@ namespace Deaddit.Core.Configurations.Models
         [EditorDisplay(Name = "Default Region", Order = 4)]
         public Region DefaultRegion { get; set; } = Region.GLOBAL;
 
-        [EditorDisplay(Name = "Flair Image Handling", Order = 1)]
-        public FlairImageHandling FlairImageHandling { get; set; } = FlairImageHandling.None;
+        [EditorDisplay(Name = "Skip Resolving Flair Images", Order = 1)]
+        public bool SkipResolvingFlairImages { get; set; } = false;
 
         [EditorDisplay(Name = "Minimum Comment Body Length", Order = 4)]
         public int MinimumCommentBodyLenth { get; set; } = 0;
