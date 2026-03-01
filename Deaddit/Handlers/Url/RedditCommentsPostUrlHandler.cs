@@ -38,13 +38,17 @@ namespace Deaddit.Handlers.Url
         {
             Ensure.NotNull(caller);
 
-            Match match = Regex.Match(url, @"\/r\/[^\/]+\/comments\/([a-z0-9]+)/", RegexOptions.IgnoreCase);
+            // Match post ID and optional comment ID: /r/sub/comments/postid/slug/commentid/
+            Match match = Regex.Match(url, @"\/r\/[^\/]+\/comments\/([a-z0-9]+)(?:\/[^\/]*\/([a-z0-9]+))?", RegexOptions.IgnoreCase);
 
-            string id = match.Groups[1].Value;
+            string postId = match.Groups[1].Value;
+            string? commentId = match.Groups[2].Success ? match.Groups[2].Value : null;
 
-            ApiPost post = await _redditClient.GetPost(id);
+            ApiPost post = await _redditClient.GetPost(postId);
 
-            await _appNavigator.OpenPost(post);
+            ApiComment? focusComment = commentId != null ? new ApiComment { Id = commentId } : null;
+
+            await _appNavigator.OpenPost(post, focusComment);
         }
     }
 }
