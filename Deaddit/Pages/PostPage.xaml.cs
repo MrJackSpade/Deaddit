@@ -329,6 +329,8 @@ namespace Deaddit.Pages
         {
             Ensure.NotNull(e.NewComment, "New Comment Data");
 
+            e.NewComment.Likes = Reddit.Api.Models.Enums.VoteState.Upvote;
+
             RedditCommentWebComponent redditCommentComponent = AppNavigator.CreateCommentWebComponent(e.NewComment, Post, SelectionGroup);
 
             redditCommentComponent.OnDelete += (s, e) => commentContainer.Children.Remove(redditCommentComponent);
