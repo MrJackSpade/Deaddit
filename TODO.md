@@ -13,3 +13,4 @@
 11. Double click to zoom
 12. AI comment summary
 13. Flair image loading
+~~14. Report Functionality~~

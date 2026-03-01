@@ -48,7 +48,7 @@ namespace Deaddit.Core.Reddit.Interfaces
         /// <summary>
         /// Creates a new post.
         /// </summary>
-        Task<ApiPost?> CreatePost(string subreddit, string title, string content, PostKind kind);
+        Task<ApiPost?> CreatePost(string subreddit, string title, string content, SubmitKind kind);
 
         /// <summary>
         /// Deletes a thing.

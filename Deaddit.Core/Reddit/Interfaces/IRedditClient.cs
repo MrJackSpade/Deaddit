@@ -56,5 +56,9 @@ namespace Deaddit.Core.Reddit.Interfaces
         Task ToggleVisibility(ApiThing thing, bool visible);
 
         Task<ApiComment> Update(ApiThing thing);
+
+        Task Report(ApiThing thing, string? reason = null, string? siteReason = null, string? ruleReason = null);
+
+        Task<SubredditRulesResponse?> GetSubredditRules(string subreddit);
     }
 }

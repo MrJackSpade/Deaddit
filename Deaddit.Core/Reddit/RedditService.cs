@@ -7,6 +7,7 @@ using Deaddit.Core.Reddit.Models.Requests;
 using Deaddit.Core.Reddit.Models.ThingDefinitions;
 using Reddit.Api.Models.Enums;
 using Reddit.Api.Models.Json.Common;
+using Reddit.Api.Models.Json.LinksComments;
 using Reddit.Api.Models.Json.Listings;
 using Reddit.Api.Models.Json.Multis;
 using Reddit.Api.Models.Json.Subreddits;
@@ -162,7 +163,7 @@ namespace Deaddit.Core.Reddit
             return toReturn;
         }
 
-        public async Task<ApiPost?> CreatePost(string subreddit, string title, string content, PostKind kind)
+        public async Task<ApiPost?> CreatePost(string subreddit, string title, string content, SubmitKind kind)
         {
             try
             {
@@ -170,32 +171,23 @@ namespace Deaddit.Core.Reddit
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
-                SubmitKind submitKind = kind switch
-                {
-                    PostKind.Self => SubmitKind.Self,
-                    PostKind.Link => SubmitKind.Link,
-                    PostKind.Image => SubmitKind.Image,
-                    PostKind.Video => SubmitKind.Video,
-                    PostKind.VideoGif => SubmitKind.VideoGif,
-                    _ => SubmitKind.Self
-                };
-                global::Reddit.Api.Models.Json.LinksComments.SubmitRequest request = new()
+                SubmitRequest request = new()
                 {
                     Subreddit = subreddit,
                     Title = title,
-                    Kind = submitKind
+                    Kind = kind
                 };
 
-                if (kind is PostKind.Self)
+                if (kind is SubmitKind.Self)
                 {
                     request.Text = content;
                 }
-                else if (kind == PostKind.Link)
+                else if (kind == SubmitKind.Link)
                 {
                     request.Url = content;
                 }
 
-                global::Reddit.Api.Models.Json.LinksComments.SubmitResponseData? result = await _client.SubmitAsync(request);
+                SubmitResponseData? result = await _client.SubmitAsync(request);
 
                 stopwatch.Stop();
                 Debug.WriteLine($"[DEBUG] Time spent in CreatePost method: {stopwatch.ElapsedMilliseconds}ms");
@@ -803,6 +795,54 @@ namespace Deaddit.Core.Reddit
                 Debug.WriteLine($"[DEBUG] Time spent in Update method: {stopwatch.ElapsedMilliseconds}ms");
 
                 return RedditModelMapper.Map(result);
+            }
+            catch (Exception ex)
+            {
+                if (!await this.DisplayException(ex))
+                {
+                    throw;
+                }
+
+                return null;
+            }
+        }
+
+        public async Task Report(ApiThing thing, string? reason = null, string? siteReason = null, string? ruleReason = null)
+        {
+            try
+            {
+                await this.EnsureAuthenticated();
+
+                Stopwatch stopwatch = Stopwatch.StartNew();
+
+                await _client.ReportAsync(thing.Name, reason, siteReason, ruleReason);
+
+                stopwatch.Stop();
+                Debug.WriteLine($"[DEBUG] Time spent in Report method: {stopwatch.ElapsedMilliseconds}ms");
+            }
+            catch (Exception ex)
+            {
+                if (!await this.DisplayException(ex))
+                {
+                    throw;
+                }
+            }
+        }
+
+        public async Task<SubredditRulesResponse?> GetSubredditRules(string subreddit)
+        {
+            try
+            {
+                await this.TryAuthenticate();
+
+                Stopwatch stopwatch = Stopwatch.StartNew();
+
+                SubredditRulesResponse? result = await _client.GetSubredditRulesAsync(subreddit);
+
+                stopwatch.Stop();
+                Debug.WriteLine($"[DEBUG] Time spent in GetSubredditRules method: {stopwatch.ElapsedMilliseconds}ms");
+
+                return result;
             }
             catch (Exception ex)
             {

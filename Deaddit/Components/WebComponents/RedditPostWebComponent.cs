@@ -16,6 +16,7 @@ using Deaddit.Interfaces;
 using Deaddit.Pages;
 using Maui.WebComponents.Attributes;
 using Maui.WebComponents.Components;
+using Reddit.Api.Models.Json.Subreddits;
 
 namespace Deaddit.Components.WebComponents
 {
@@ -244,7 +245,8 @@ namespace Deaddit.Components.WebComponents
             new($"View...", this.OnMoreViewClicked),
             new($"Share...", this.OnMoreShareClicked),
             new($"Block...", this.OnMoreBlockClicked),
-            new($"Whitelist...", this.OnMoreWhitelistClicked));
+            new($"Whitelist...", this.OnMoreWhitelistClicked),
+            new($"Report...", this.OnReportClicked));
         }
 
         private async Task OnMoreShareClicked()
@@ -271,6 +273,69 @@ namespace Deaddit.Components.WebComponents
             new($"/r/{_post.SubRedditName}", async () => await this.NewBlockRule(BlockRuleHelper.FromSubReddit(_post), true)),
             new(_post.Domain, async () => await this.NewBlockRule(BlockRuleHelper.FromDomain(_post), true)),
             new(_post.LinkFlairText, async () => await this.NewBlockRule(BlockRuleHelper.FromFlair(_post), true)));
+        }
+
+        private async Task OnReportClicked()
+        {
+            await _multiselector.Select(
+                "Report:",
+                new("Breaks Reddit Rules", this.OnReportRedditRulesClicked),
+                new("Breaks Subreddit Rules", this.OnReportSubredditRulesClicked));
+        }
+
+        private async Task OnReportRedditRulesClicked()
+        {
+            try
+            {
+                SubredditRulesResponse? rules = await _redditClient.GetSubredditRules(_post.SubRedditName);
+
+                if (rules?.SiteRules == null || rules.SiteRules.Count == 0)
+                {
+                    await _navigation.NavigationStack[^1].DisplayAlert("Report", "No Reddit rules available", "OK");
+                    return;
+                }
+
+                MultiSelectOption[] items = rules.SiteRules.Select(rule =>
+                    new MultiSelectOption(rule, async () =>
+                    {
+                        await _redditClient.Report(_post, siteReason: rule);
+                        await _navigation.NavigationStack[^1].DisplayAlert("Report", "Post reported successfully", "OK");
+                    })).ToArray();
+
+                await _multiselector.Select("Select Rule:", items);
+            }
+            catch (Exception ex)
+            {
+                await _displayMessages.DisplayException(ex);
+            }
+        }
+
+        private async Task OnReportSubredditRulesClicked()
+        {
+            try
+            {
+                SubredditRulesResponse? rules = await _redditClient.GetSubredditRules(_post.SubRedditName);
+
+                if (rules?.Rules == null || rules.Rules.Count == 0)
+                {
+                    await _navigation.NavigationStack[^1].DisplayAlert("Report", $"r/{_post.SubRedditName} has no specific rules", "OK");
+                    return;
+                }
+
+                MultiSelectOption[] items = rules.Rules.Select(rule =>
+                    new MultiSelectOption(rule.ShortName, async () =>
+                    {
+                        string ruleReason = rule.ViolationReason ?? rule.ShortName;
+                        await _redditClient.Report(_post, ruleReason: ruleReason);
+                        await _navigation.NavigationStack[^1].DisplayAlert("Report", "Post reported successfully", "OK");
+                    })).ToArray();
+
+                await _multiselector.Select("Select Rule:", items);
+            }
+            catch (Exception ex)
+            {
+                await _displayMessages.DisplayException(ex);
+            }
         }
 
         private async Task OnShareFileClicked()
