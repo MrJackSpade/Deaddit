@@ -20,6 +20,8 @@ namespace Deaddit.Core.Reddit.Mapping
 
             return new ApiPost
             {
+                Media = source.Media,
+                SecureMedia = source.SecureMedia,
                 Id = source.Id,
                 Name = source.Name,
                 Title = source.Title,

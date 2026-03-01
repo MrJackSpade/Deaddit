@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using Reddit.Api.Models.Json.Listings;
+using System.Text.Json.Serialization;
 
 namespace Deaddit.Core.Reddit.Models.Api
 {
