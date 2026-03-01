@@ -69,15 +69,26 @@ namespace Deaddit.Components.WebComponents.Partials.Post
 
             Children.Add(title);
 
-            string? cleanedLinkFlair = applicationHacks.CleanFlair(post.LinkFlairText);
-            if (!string.IsNullOrWhiteSpace(cleanedLinkFlair))
+            string flairColor = post.LinkFlairBackgroundColor.ToHex() ?? applicationStyling.TextColor.ToHex();
+            if (applicationHacks.ShouldResolveFlairImages() && post.LinkFlairRichText.Count > 0)
             {
-                string color = post.LinkFlairBackgroundColor.ToHex() ?? applicationStyling.TextColor.ToHex();
-                FlairComponent linkFlair = new(cleanedLinkFlair, color, applicationStyling)
+                RichTextFlairComponent linkFlair = new(post.LinkFlairRichText, flairColor, applicationStyling)
                 {
                     AlignSelf = "flex-start"
                 };
                 Children.Add(linkFlair);
+            }
+            else
+            {
+                string? cleanedLinkFlair = applicationHacks.CleanFlair(post.LinkFlairText);
+                if (!string.IsNullOrWhiteSpace(cleanedLinkFlair))
+                {
+                    FlairComponent linkFlair = new(cleanedLinkFlair, flairColor, applicationStyling)
+                    {
+                        AlignSelf = "flex-start"
+                    };
+                    Children.Add(linkFlair);
+                }
             }
 
             Children.Add(metaData);

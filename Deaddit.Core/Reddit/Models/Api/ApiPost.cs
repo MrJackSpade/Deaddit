@@ -1,5 +1,6 @@
 ﻿using Reddit.Api.Models;
 using Reddit.Api.Models.Enums;
+using Reddit.Api.Models.Json.Listings;
 using System.Diagnostics;
 using System.Text.Json.Serialization;
 
@@ -81,7 +82,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public string? LinkFlairCssClass { get; init; }
 
         [JsonPropertyName("link_flair_richtext")]
-        public List<LinkFlair> LinkFlairRichText { get; init; } = [];
+        public List<FlairRichtext> LinkFlairRichText { get; init; } = [];
 
         [JsonPropertyName("link_flair_template_id")]
         public string? LinkFlairTemplateId { get; init; }

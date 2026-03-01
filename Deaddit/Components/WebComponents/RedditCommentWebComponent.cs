@@ -51,7 +51,7 @@ namespace Deaddit.Components.WebComponents
 
         private readonly TopBarComponent _topBar;
 
-        public RedditCommentWebComponent(ApiComment comment, ApiPost? post, bool selectEnabled, IConfigurationService configurationService, IDisplayMessages displayMessages, ISelectBoxDisplay selectBoxDisplay, INavigation navigation, AppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup selectionGroup, BlockConfiguration blockConfiguration)
+        public RedditCommentWebComponent(ApiComment comment, ApiPost? post, bool selectEnabled, IConfigurationService configurationService, IDisplayMessages displayMessages, ISelectBoxDisplay selectBoxDisplay, INavigation navigation, AppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, SelectionGroup selectionGroup, BlockConfiguration blockConfiguration)
         {
             _multiselector = new MultiSelector(selectBoxDisplay);
             _comment = comment;
@@ -76,7 +76,7 @@ namespace Deaddit.Components.WebComponents
 
             _replies = new RepliesContainerComponent(_applicationStyling);
 
-            _commentHeader = new CommentHeaderComponent(applicationStyling, comment, post);
+            _commentHeader = new CommentHeaderComponent(applicationStyling, applicationHacks, comment, post);
 
             SpanComponent authorSpan = new()
             {

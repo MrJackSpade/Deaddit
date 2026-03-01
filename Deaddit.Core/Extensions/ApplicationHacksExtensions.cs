@@ -29,14 +29,13 @@ namespace Deaddit.Core.Extensions
                 return null;
             }
 
-            return hacks.FlairImageHandling switch
-            {
-                FlairImageHandling.None => flair,
-                FlairImageHandling.Strip => StripTags(flair),
-                FlairImageHandling.Resolve => flair,//TODO: Implement flair image resolving
-                _ => throw new EnumNotImplementedException(hacks.FlairImageHandling),
-            };
+            // When skipping resolution, strip the :tag: markers since they look ugly without images
+            // When resolving, richtext handles display so text flair is just a fallback
+            return hacks.SkipResolvingFlairImages ? StripTags(flair) : flair;
         }
+
+        public static bool ShouldResolveFlairImages(this ApplicationHacks hacks)
+            => !hacks.SkipResolvingFlairImages;
 
         public static string? CleanTitle(this ApplicationHacks hacks, string? title)
         {
