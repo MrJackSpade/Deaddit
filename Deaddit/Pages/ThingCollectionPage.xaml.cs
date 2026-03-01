@@ -123,7 +123,7 @@ namespace Deaddit.Pages
         {
             if (_thingDefinition.Kind == ThingKind.Account)
             {
-                ApiUser userData = await _redditClient.GetUserData(_thingDefinition.Name);
+                User? userData = await _redditClient.GetUserData(_thingDefinition.Name);
                 _header = new(userData, _appNavigator, _applicationStyling, true);
                 await webElement.AddChild(_header);
             }

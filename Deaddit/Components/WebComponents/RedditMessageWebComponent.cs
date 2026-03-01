@@ -15,6 +15,7 @@ using Deaddit.Pages;
 using Deaddit.Utils;
 using Maui.WebComponents.Attributes;
 using Maui.WebComponents.Components;
+using Reddit.Api.Models.Json.Users;
 
 namespace Deaddit.Components.WebComponents
 {
@@ -121,7 +122,7 @@ namespace Deaddit.Components.WebComponents
 
         public async void OnReplyClicked(object? sender, EventArgs e)
         {
-            ApiUser author = await _redditClient.GetUserData(_message.Author);
+            User? author = await _redditClient.GetUserData(_message.Author);
             await AppNavigator.OpenMessagePage(author, _message);
         }
 

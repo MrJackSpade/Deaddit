@@ -3,6 +3,8 @@ using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Reddit.Models.Requests;
 using Deaddit.Core.Reddit.Models.ThingDefinitions;
 using Reddit.Api.Models.Enums;
+using Reddit.Api.Models.Json.Multis;
+using Reddit.Api.Models.Json.Subreddits;
 using Reddit.Api.Models.Json.Users;
 
 namespace Deaddit.Core.Reddit.Interfaces
@@ -31,7 +33,7 @@ namespace Deaddit.Core.Reddit.Interfaces
         /// <summary>
         /// Gets information about a subreddit.
         /// </summary>
-        Task<ApiSubReddit?> About(SubRedditDefinition subreddit);
+        Task<Subreddit?> About(SubRedditDefinition subreddit);
 
         /// <summary>
         /// Posts a comment in reply to a thing.
@@ -87,7 +89,7 @@ namespace Deaddit.Core.Reddit.Interfaces
         /// <summary>
         /// Gets user data by username.
         /// </summary>
-        Task<ApiUser?> GetUserData(string username);
+        Task<User?> GetUserData(string username);
 
         /// <summary>
         /// Marks a message as read or unread.
@@ -97,7 +99,7 @@ namespace Deaddit.Core.Reddit.Interfaces
         /// <summary>
         /// Sends a message to a user.
         /// </summary>
-        Task Message(ApiUser user, string subject, string body);
+        Task Message(User user, string subject, string body);
 
         /// <summary>
         /// Loads more comments.
@@ -107,7 +109,7 @@ namespace Deaddit.Core.Reddit.Interfaces
         /// <summary>
         /// Gets the user's multireddits.
         /// </summary>
-        Task<List<ApiMulti>> Multis();
+        Task<List<Multi>> Multis();
 
         /// <summary>
         /// Sets the upvote state on a thing.
@@ -137,7 +139,7 @@ namespace Deaddit.Core.Reddit.Interfaces
         /// <summary>
         /// Toggles subscription to a subreddit.
         /// </summary>
-        Task ToggleSubScription(ApiSubReddit subreddit, bool subscribed);
+        Task ToggleSubScription(Subreddit subreddit, bool subscribed);
 
         /// <summary>
         /// Toggles visibility (hide/unhide) on a thing.

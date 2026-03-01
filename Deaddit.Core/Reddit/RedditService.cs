@@ -8,6 +8,8 @@ using Deaddit.Core.Reddit.Models.ThingDefinitions;
 using Reddit.Api.Models.Enums;
 using Reddit.Api.Models.Json.Common;
 using Reddit.Api.Models.Json.Listings;
+using Reddit.Api.Models.Json.Multis;
+using Reddit.Api.Models.Json.Subreddits;
 using Reddit.Api.Models.Json.Users;
 using System.Diagnostics;
 using NewClient = Reddit.Api.Client;
@@ -46,7 +48,7 @@ namespace Deaddit.Core.Reddit
 
         public string? LoggedInUser => _client.AuthenticatedUser;
 
-        public async Task<ApiSubReddit?> About(SubRedditDefinition subreddit)
+        public async Task<Subreddit?> About(SubRedditDefinition subreddit)
         {
             try
             {
@@ -54,12 +56,12 @@ namespace Deaddit.Core.Reddit
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
-                Thing<global::Reddit.Api.Models.Json.Subreddits.Subreddit>? result = await _client.GetSubredditAboutAsync(subreddit.Name);
+                Thing<Subreddit>? result = await _client.GetSubredditAboutAsync(subreddit.Name);
 
                 stopwatch.Stop();
                 Debug.WriteLine($"[DEBUG] Time spent in About method: {stopwatch.ElapsedMilliseconds}ms");
 
-                return RedditModelMapper.Map(result);
+                return result?.Data;
             }
             catch (Exception ex)
             {
@@ -423,14 +425,14 @@ namespace Deaddit.Core.Reddit
             return await _httpClient.GetStreamAsync(url);
         }
 
-        public async Task<ApiUser?> GetUserData(string username)
+        public async Task<User?> GetUserData(string username)
         {
             try
             {
                 await this.TryAuthenticate();
 
-                Thing<global::Reddit.Api.Models.Json.Users.User>? result = await _client.GetUserAboutAsync(username);
-                return RedditModelMapper.Map(result);
+                Thing<User>? result = await _client.GetUserAboutAsync(username);
+                return result?.Data;
             }
             catch (Exception)
             {
@@ -462,7 +464,7 @@ namespace Deaddit.Core.Reddit
             }
         }
 
-        public async Task Message(ApiUser user, string subject, string body)
+        public async Task Message(User user, string subject, string body)
         {
             try
             {
@@ -590,19 +592,19 @@ namespace Deaddit.Core.Reddit
             return toReturn;
         }
 
-        public async Task<List<ApiMulti>> Multis()
+        public async Task<List<Multi>> Multis()
         {
-            List<ApiMulti> toReturn = [];
+            List<Multi> toReturn = [];
 
             try
             {
                 await this.EnsureAuthenticated();
 
-                List<global::Reddit.Api.Models.Json.Multis.MultiResponse>? result = await _client.GetMyMultisAsync();
+                List<MultiResponse>? result = await _client.GetMyMultisAsync();
 
                 if (result != null)
                 {
-                    toReturn = RedditModelMapper.Map(result);
+                    toReturn = result.Where(r => r.Data != null).Select(r => r.Data!).ToList();
                 }
             }
             catch (Exception ex)
@@ -736,7 +738,7 @@ namespace Deaddit.Core.Reddit
             }
         }
 
-        public async Task ToggleSubScription(ApiSubReddit subreddit, bool subscribed)
+        public async Task ToggleSubScription(Subreddit subreddit, bool subscribed)
         {
             try
             {

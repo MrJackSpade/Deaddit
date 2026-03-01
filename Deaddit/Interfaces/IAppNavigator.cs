@@ -8,6 +8,7 @@ using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Reddit.Models.ThingDefinitions;
 using Deaddit.Core.Utils;
 using Deaddit.Pages;
+using Reddit.Api.Models.Json.Users;
 
 namespace Deaddit.Interfaces
 {
@@ -37,7 +38,7 @@ namespace Deaddit.Interfaces
 
         Task<EmbeddedImage> OpenImages(FileDownload[] urls);
 
-        Task<MessagePage> OpenMessagePage(ApiUser user, ApiMessage? replyTo = null);
+        Task<MessagePage> OpenMessagePage(User user, ApiMessage? replyTo = null);
 
         Task<ThingCollectionPage> OpenMessages(InboxSort sort = InboxSort.Unread);
 

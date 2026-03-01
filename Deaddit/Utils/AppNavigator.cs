@@ -14,6 +14,7 @@ using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Validation;
 using Deaddit.Interfaces;
 using Deaddit.Pages;
+using Reddit.Api.Models.Json.Users;
 
 namespace Deaddit.Utils
 {
@@ -138,7 +139,7 @@ namespace Deaddit.Utils
             return browser;
         }
 
-        public async Task<MessagePage> OpenMessagePage(ApiUser user, ApiMessage? replyTo = null)
+        public async Task<MessagePage> OpenMessagePage(User user, ApiMessage? replyTo = null)
         {
             MessagePage replyPage = new(user, replyTo, DisplayMessages, this, RedditClient, ApplicationStyling);
             await Navigation.PushAsync(replyPage);

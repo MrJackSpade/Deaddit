@@ -1,7 +1,7 @@
 ﻿using Deaddit.Core.Configurations.Models;
-using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Interfaces;
 using Maui.WebComponents.Components;
+using RedditUser = Reddit.Api.Models.Json.Users.User;
 
 namespace Deaddit.Components.WebComponents.Partials.User
 {
@@ -9,9 +9,9 @@ namespace Deaddit.Components.WebComponents.Partials.User
     {
         private readonly IAppNavigator _appNavigator;
 
-        private readonly ApiUser _userData;
+        private readonly RedditUser _userData;
 
-        public UserHeader(ApiUser userData, IAppNavigator appNavigator, ApplicationStyling applicationStyling, bool showMessage)
+        public UserHeader(RedditUser userData, IAppNavigator appNavigator, ApplicationStyling applicationStyling, bool showMessage)
         {
             _userData = userData;
             _appNavigator = appNavigator;
