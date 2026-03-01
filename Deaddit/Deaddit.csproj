@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFrameworks>net9.0-android</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
+		<TargetFrameworks>net10.0-android</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
 		<WindowsSdkPackageVersion>10.0.19041.57</WindowsSdkPackageVersion>
 		<OutputType>Exe</OutputType>
 		<RootNamespace>Deaddit</RootNamespace>
@@ -189,7 +189,7 @@
 	  <ProjectReference Include="..\Maui.WebComponents\Maui.WebComponents.csproj" />
 	</ItemGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
+	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
 	  <PackageReference Include="Xamarin.AndroidX.LocalBroadcastManager">
 	    <Version>1.1.0.21</Version>
 	  </PackageReference>

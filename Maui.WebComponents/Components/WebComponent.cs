@@ -6,10 +6,6 @@ namespace Maui.WebComponents.Components
 {
     public partial class WebComponent
     {
-        private string _innerHTML = string.Empty;
-
-        private string _innerText = string.Empty;
-
         [HtmlEvent("onclick", true)]
         public event EventHandler? OnClick;
 
@@ -24,29 +20,29 @@ namespace Maui.WebComponents.Components
 
         public string InnerHTML
         {
-            get => _innerHTML;
+            get;
             set
             {
-                if (_innerHTML != value)
+                if (field != value)
                 {
-                    _innerHTML = value;
+                    field = value;
                     OnInnerHTMLChanged?.Invoke(this, new OnTextChangedEventArgs { Text = value });
                 }
             }
-        }
+        } = string.Empty;
 
         public string InnerText
         {
-            get => _innerText;
+            get;
             set
             {
-                if (_innerText != value)
+                if (field != value)
                 {
-                    _innerText = value;
+                    field = value;
                     OnInnerTextChanged?.Invoke(this, new OnTextChangedEventArgs { Text = value });
                 }
             }
-        }
+        } = string.Empty;
 
         public bool IsRendered { get; internal set; }
 
