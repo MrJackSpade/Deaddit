@@ -1,7 +1,6 @@
-﻿using Deaddit.Core.Configurations.Models;
-using Deaddit.Core.Reddit.Models.Api;
+using Deaddit.Core.Configurations.Models;
 using Maui.WebComponents.Components;
-using Reddit.Api.Models.Enums;
+using RedditUser = Reddit.Api.Models.Json.Users.User;
 
 namespace Deaddit.Components.WebComponents.Partials.User
 {
@@ -9,7 +8,7 @@ namespace Deaddit.Components.WebComponents.Partials.User
     {
         private readonly ApplicationStyling _applicationStyling;
 
-        public TextContainerComponent(ApiUser user, ApplicationStyling applicationStyling)
+        public TextContainerComponent(RedditUser user, ApplicationStyling applicationStyling)
         {
             _applicationStyling = applicationStyling;
 
@@ -21,32 +20,17 @@ namespace Deaddit.Components.WebComponents.Partials.User
 
             SpanComponent title = new()
             {
-                InnerText = user.SubReddit?.PublicDescription,
+                InnerText = user.Subreddit?.PublicDescription,
                 FontSize = $"{applicationStyling.CommentFontSize}px",
                 OverflowWrap = "break-word"
             };
 
-            switch (user.Distinguished)
-            {
-                case DistinguishedKind.Null:
-                case DistinguishedKind.Empty:
-                    Color = applicationStyling.TextColor.ToHex();
-                    break;
-
-                case DistinguishedKind.Moderator:
-                    Color = applicationStyling.ModeratorTitleTextColor.ToHex();
-                    break;
-
-                case DistinguishedKind.Admin:
-                    Color = applicationStyling.AdminTitleTextColor.ToHex();
-                    break;
-            }
+            Color = applicationStyling.TextColor.ToHex();
 
             Children.Add(title);
 
             this.AddMeta($"{user.CommentKarma} comment karma");
             this.AddMeta($"{user.LinkKarma} link karma");
-            this.AddMeta($"{user.NumComments} comments");
             this.AddMeta($"{user.CreatedUtc} created");
         }
 

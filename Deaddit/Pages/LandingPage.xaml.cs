@@ -8,6 +8,7 @@ using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Reddit.Models.ThingDefinitions;
+using Reddit.Api.Models.Json.Multis;
 using Deaddit.Core.Utils;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
@@ -125,7 +126,7 @@ namespace Deaddit.Pages
             {
                 await DataService.LoadAsync(webElement, async () =>
                 {
-                    foreach (ApiMulti multi in await _redditClient.Multis())
+                    foreach (Multi multi in await _redditClient.Multis())
                     {
                         if (!multi.Subreddits.NotNullAny())
                         {

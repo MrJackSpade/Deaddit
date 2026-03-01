@@ -1,13 +1,13 @@
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Interfaces;
-using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Reddit.Models.ThingDefinitions;
 using Deaddit.Interfaces;
 using Deaddit.Pages.Models;
 using Deaddit.Utils;
 using Maui.WebComponents.Components;
 using Maui.WebComponents.Extensions;
+using Reddit.Api.Models.Json.Subreddits;
 
 namespace Deaddit.Pages
 {
@@ -29,7 +29,7 @@ namespace Deaddit.Pages
 
         private readonly DivComponent _wrapperDiv;
 
-        private ApiSubReddit? _apiSubReddit;
+        private Subreddit? _apiSubReddit;
 
         public SubRedditAboutPage(SubRedditDefinition subredditName, IAggregatePostHandler aggregatePostHandler, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme)
         {

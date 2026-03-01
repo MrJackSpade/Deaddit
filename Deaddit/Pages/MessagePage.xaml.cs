@@ -8,6 +8,7 @@ using Deaddit.EventArguments;
 using Deaddit.Interfaces;
 using Deaddit.Pages.Models;
 using Maui.WebComponents.Extensions;
+using Reddit.Api.Models.Json.Users;
 
 namespace Deaddit.Pages
 {
@@ -21,9 +22,9 @@ namespace Deaddit.Pages
 
         private readonly ApiMessage? _replyTo;
 
-        private readonly ApiUser _user;
+        private readonly User _user;
 
-        public MessagePage(ApiUser user, ApiMessage? replyTo, IDisplayMessages displayExceptions, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling)
+        public MessagePage(User user, ApiMessage? replyTo, IDisplayMessages displayExceptions, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling)
         {
             _redditClient = redditClient;
             _user = user;

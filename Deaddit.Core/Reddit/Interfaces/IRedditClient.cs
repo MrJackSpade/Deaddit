@@ -3,6 +3,8 @@ using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Reddit.Models.Requests;
 using Deaddit.Core.Reddit.Models.ThingDefinitions;
 using Reddit.Api.Models.Enums;
+using Reddit.Api.Models.Json.Multis;
+using Reddit.Api.Models.Json.Subreddits;
 using Reddit.Api.Models.Json.Users;
 
 namespace Deaddit.Core.Reddit.Interfaces
@@ -15,7 +17,7 @@ namespace Deaddit.Core.Reddit.Interfaces
 
         public string? LoggedInUser { get; }
 
-        Task<ApiSubReddit> About(SubRedditDefinition subreddit);
+        Task<Subreddit?> About(SubRedditDefinition subreddit);
 
         Task<ApiComment> Comment(ApiThing replyTo, string comment);
 
@@ -33,15 +35,15 @@ namespace Deaddit.Core.Reddit.Interfaces
 
         Task<Stream> GetStream(string url);
 
-        Task<ApiUser?> GetUserData(string username);
+        Task<User?> GetUserData(string username);
 
         Task MarkRead(ApiThing message, bool state);
 
-        Task Message(ApiUser thing, string subject, string body);
+        Task Message(User thing, string subject, string body);
 
         Task<List<ApiThing>> MoreComments(ApiPost thing, IMore comment);
 
-        Task<List<ApiMulti>> Multis();
+        Task<List<Multi>> Multis();
 
         Task SetVoteState(ApiThing thing, VoteState state);
 
@@ -49,7 +51,7 @@ namespace Deaddit.Core.Reddit.Interfaces
 
         Task ToggleSave(ApiThing thing, bool saved);
 
-        Task ToggleSubScription(ApiSubReddit thing, bool subscribed);
+        Task ToggleSubScription(Subreddit thing, bool subscribed);
 
         Task ToggleVisibility(ApiThing thing, bool visible);
 
