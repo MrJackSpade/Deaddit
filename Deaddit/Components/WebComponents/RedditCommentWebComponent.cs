@@ -389,6 +389,7 @@ namespace Deaddit.Components.WebComponents
 
             e.NewComment.ParentId = _comment.Id;
             e.NewComment.Parent = _comment;
+            e.NewComment.Likes = VoteState.Upvote;
 
             RedditCommentWebComponent redditCommentComponent = AppNavigator.CreateCommentWebComponent(e.NewComment, Post, SelectionGroup);
             redditCommentComponent.OnDelete += (s, e) => _replies.Children.Remove(redditCommentComponent);
