@@ -59,6 +59,11 @@ namespace Deaddit.Utils
 
         public bool HasVisited(ApiThing thing)
         {
+            if(thing.SubRedditId == null)
+            {
+                return false;
+            }
+
             this.TryLoad(thing.SubRedditId);
 
             return _visited[thing.SubRedditId].Contains(thing.Name);

@@ -112,7 +112,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         public VoteState Likes { get; set; }
 
         [JsonPropertyName("media_metadata")]
-        public Dictionary<string, MediaMetaData>? MediaMetaData { get; init; } = [];
+        public Dictionary<string, MediaMetadata>? MediaMetaData { get; init; } = [];
 
         [JsonPropertyName("mod_note")]
         public string? ModNote { get; init; }
