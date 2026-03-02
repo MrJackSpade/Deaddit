@@ -1,6 +1,9 @@
 using Deaddit.Core.Reddit.Models.Api;
+using Reddit.Api.Models.Enums;
 using Reddit.Api.Models.Json.Common;
 using Reddit.Api.Models.Json.Listings;
+using Reddit.Api.Models.Json.Messages;
+using System.Text.Json;
 
 namespace Deaddit.Core.Reddit.Mapping
 {
@@ -108,7 +111,9 @@ namespace Deaddit.Core.Reddit.Mapping
                 Pwls = source.Pwls,
                 AllowLiveComments = source.AllowLiveComments,
                 ContentCategories = source.ContentCategories ?? [],
-                IsGallery = source.IsGallery
+                IsGallery = source.IsGallery,
+                GalleryData = source.GalleryData,
+                MediaMetaData = source.MediaMetadata
             };
         }
 
@@ -227,9 +232,67 @@ namespace Deaddit.Core.Reddit.Mapping
 
         #endregion More Mapping
 
+        #region Message Mapping
+
+        public static ApiMessage Map(Message source)
+        {
+            if (source == null)
+            {
+                return null!;
+            }
+
+            return new ApiMessage
+            {
+                Id = source.Id,
+                Name = source.Name,
+                Author = source.Author,
+                AuthorFullname = source.AuthorFullname,
+                Body = source.Body ?? string.Empty,
+                BodyHtml = source.BodyHtml ?? string.Empty,
+                Context = source.Context,
+                CreatedUtc = source.CreatedUtc,
+                Dest = source.Dest,
+                Distinguished = source.Distinguished,
+                FirstMessage = source.FirstMessage,
+                FirstMessageName = source.FirstMessageName,
+                New = source.IsNew,
+                Likes = source.Likes,
+                ParentId = source.ParentId,
+                Subject = source.Subject,
+                Subreddit = source.Subreddit,
+                Type = source.Type,
+                WasComment = source.WasComment
+            };
+        }
+
+        public static ApiMessage Map(Thing<Message> source)
+        {
+            if (source?.Data == null)
+            {
+                return null!;
+            }
+
+            return Map(source.Data);
+        }
+
+        #endregion Message Mapping
+
         #region Collection Mappings
 
         public static List<ApiThing> MapComments(Listing<Thing<Comment>>? listing)
+        {
+            if (listing?.Data?.Children == null)
+            {
+                return [];
+            }
+
+            return listing.Data.Children
+                .Where(c => c?.Data != null)
+                .Select(c => (ApiThing)Map(c.Data!))
+                .ToList();
+        }
+
+        public static List<ApiThing> MapMessages(Listing<Thing<Message>>? listing)
         {
             if (listing?.Data?.Children == null)
             {
@@ -266,6 +329,60 @@ namespace Deaddit.Core.Reddit.Mapping
                 .Where(c => c?.Data != null)
                 .Select(c => Map(c.Data!))
                 .ToList();
+        }
+
+        public static List<ApiThing> MapThings(Listing<Thing<object>>? listing)
+        {
+            if (listing?.Data?.Children == null)
+            {
+                return [];
+            }
+
+            List<ApiThing> result = [];
+
+            foreach (Thing<object> child in listing.Data.Children)
+            {
+                if (child?.Data == null)
+                {
+                    continue;
+                }
+
+                // The Data is a JsonElement that needs to be deserialized based on Kind
+                if (child.Data is JsonElement jsonElement)
+                {
+                    switch (child.Kind)
+                    {
+                        case ThingKind.Link:
+                            Link? link = jsonElement.Deserialize<Link>();
+                            if (link != null)
+                            {
+                                result.Add(Map(link));
+                            }
+                            break;
+
+                        case ThingKind.Comment:
+                            Comment? comment = jsonElement.Deserialize<Comment>();
+                            if (comment != null)
+                            {
+                                result.Add(Map(comment));
+                            }
+                            break;
+
+                        case ThingKind.Message:
+                            Message? message = jsonElement.Deserialize<Message>();
+                            if (message != null)
+                            {
+                                result.Add(Map(message));
+                            }
+                            break;
+
+                        default:
+                            throw new NotSupportedException($"Thing kind '{child.Kind}' is not supported in MapThings");
+                    }
+                }
+            }
+
+            return result;
         }
 
         #endregion Collection Mappings

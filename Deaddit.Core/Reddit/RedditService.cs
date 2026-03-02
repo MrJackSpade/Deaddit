@@ -340,19 +340,6 @@ namespace Deaddit.Core.Reddit
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
-                // Parse the endpoint to determine the subreddit and sort type
-                string endpoint = endpointDefinition.Url.TrimStart('/');
-                string? subreddit = null;
-
-                if (endpoint.StartsWith("r/"))
-                {
-                    string[] parts = endpoint.Split('/');
-                    if (parts.Length >= 2)
-                    {
-                        subreddit = parts[1];
-                    }
-                }
-
                 ListingParameters parameters = new()
                 {
                     After = after,
@@ -360,44 +347,49 @@ namespace Deaddit.Core.Reddit
                     Geo = region != Region.GLOBAL ? region.ToString() : null
                 };
 
-                Listing<Thing<Link>>? result = null;
-                string sortName = sort.ToString().ToLower();
+                string endpoint = endpointDefinition.Url.TrimStart('/');
 
-                // Route to appropriate method based on sort
-                result = sortName switch
+                // Replace %USER% placeholder with actual username
+                if (endpoint.Contains("%USER%"))
                 {
-                    "hot" => await _client.GetHotAsync(subreddit, parameters),
-                    "new" => await _client.GetNewAsync(subreddit, parameters),
-                    "top" => await _client.GetTopAsync(subreddit, parameters),
-                    "controversial" => await _client.GetControversialAsync(subreddit, parameters),
-                    "rising" => await _client.GetRisingAsync(subreddit, parameters),
-                    "best" => await _client.GetBestAsync(parameters),
-                    _ => await _client.GetHotAsync(subreddit, parameters)
-                };
+                    endpoint = endpoint.Replace("%USER%", _client.AuthenticatedUser ?? throw new InvalidOperationException("Must be logged in to view this content"));
+                }
+
+                // Build the full URL dynamically based on endpoint and sort
+                string fullEndpoint;
+
+                if (sort != null)
+                {
+                    string sortName = sort.ToString().ToLower();
+
+                    if (string.IsNullOrEmpty(endpoint))
+                    {
+                        // Front page
+                        fullEndpoint = $"/{sortName}";
+                    }
+                    else
+                    {
+                        // Subreddit or user endpoint - append sort
+                        fullEndpoint = $"/{endpoint}/{sortName}";
+                    }
+                }
+                else
+                {
+                    // No sort - use endpoint as-is
+                    fullEndpoint = string.IsNullOrEmpty(endpoint) ? "/" : $"/{endpoint}";
+                }
+
+                Listing<Thing<object>>? result = await _client.GetListingAsync<object>(fullEndpoint, parameters);
 
                 stopwatch.Stop();
                 Debug.WriteLine($"[DEBUG] Time spent in GetPosts method: {stopwatch.ElapsedMilliseconds}ms");
 
-                if (result?.Data?.Children == null)
-                {
-                    return toReturn;
-                }
+                toReturn = RedditModelMapper.MapThings(result);
 
-                foreach (Thing<Link> child in result.Data.Children)
+                // Trim to page size if needed
+                if (toReturn.Count > pageSize)
                 {
-                    if (child?.Data != null)
-                    {
-                        ApiPost post = RedditModelMapper.Map(child.Data);
-                        if (post != null)
-                        {
-                            toReturn.Add(post);
-                        }
-                    }
-
-                    if (toReturn.Count >= pageSize)
-                    {
-                        break;
-                    }
+                    toReturn = toReturn.Take(pageSize).ToList();
                 }
             }
             catch (Exception ex)

@@ -4,6 +4,23 @@ namespace Deaddit.Core.Utils
 {
     public static class UrlHelper
     {
+        private static readonly HashSet<string> _hiddenHosts = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "i.redd.it",
+            "v.redd.it",
+            "www.reddit.com"
+        };
+
+        public static bool IsHiddenHost(string? host)
+        {
+            if (string.IsNullOrEmpty(host))
+            {
+                return false;
+            }
+
+            return _hiddenHosts.Contains(host);
+        }
+
         public static string GetExtension(string fileName)
         {
             if (string.IsNullOrEmpty(fileName))

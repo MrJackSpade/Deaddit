@@ -1,6 +1,7 @@
 ﻿using Deaddit.Core.Interfaces;
 using Deaddit.Core.Models;
 using Deaddit.Core.Reddit.Models.Api;
+using Reddit.Api.Models.Json.Listings;
 using Deaddit.Core.Utils;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
@@ -49,9 +50,9 @@ namespace Deaddit.Handlers.Post
 
             List<string> galleryItems = apiPost.GalleryData.Items.Select(g => g.MediaId).ToList();
 
-            Dictionary<string, MediaMetaData>? mediaMeta = apiPost.MediaMetaData;
+            Dictionary<string, MediaMetadata>? mediaMeta = apiPost.MediaMetaData;
 
-            List<MediaMetaData> sortedMedia = [.. mediaMeta.Values.OrderBy(v => galleryItems.IndexOf(v.Id))];
+            List<MediaMetadata> sortedMedia = [.. mediaMeta.Values.OrderBy(v => galleryItems.IndexOf(v.Id))];
 
             foreach (string? imageUrl in sortedMedia.Select(m => m.Source?.Url ?? m.Source?.Gif))
             {

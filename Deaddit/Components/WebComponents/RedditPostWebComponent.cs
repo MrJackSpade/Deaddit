@@ -186,7 +186,7 @@ namespace Deaddit.Components.WebComponents
 
         private async void CommentsButton_OnClick(object? sender, EventArgs e)
         {
-            if (_post.IsSelf && _selectionGroup is null)
+            if (_post.IsSelf)
             {
                 Opacity = _applicationStyling.VisitedOpacity.ToString("0.00");
                 _visitTracker.Visit(_post);

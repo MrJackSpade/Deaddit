@@ -1,6 +1,7 @@
 ﻿using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Extensions;
 using Deaddit.Core.Reddit.Models.Api;
+using Deaddit.Core.Utils;
 using Maui.WebComponents.Components;
 using Reddit.Api.Models.Enums;
 
@@ -62,7 +63,7 @@ namespace Deaddit.Components.WebComponents.Partials.Post
                 Color = applicationStyling.SubTextColor.ToHex(),
             };
 
-            if (!post.IsSelf && Uri.TryCreate(post.Url, UriKind.Absolute, out Uri result) && !string.IsNullOrWhiteSpace(result.Host))
+            if (!post.IsSelf && Uri.TryCreate(post.Url, UriKind.Absolute, out Uri result) && !UrlHelper.IsHiddenHost(result.Host))
             {
                 metaData.InnerText += $" ({result.Host})";
             }

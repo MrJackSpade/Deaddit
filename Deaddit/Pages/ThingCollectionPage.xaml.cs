@@ -467,11 +467,14 @@ namespace Deaddit.Pages
                             loadedTitles.Add(post.GetTitleOrEmpty());
                             loadedUrls.Add(post.GetUrlOrEmpty());
 
-                            string thumb = post.TryGetThumbnail();
-
-                            if (!string.IsNullOrEmpty(thumb))
+                            if (_blockConfiguration.DuplicateThumbHandling != PostState.None)
                             {
-                                loadedETags.Add(await _eTagCache.Get(thumb));
+                                string thumb = post.TryGetThumbnail();
+
+                                if (!string.IsNullOrEmpty(thumb))
+                                {
+                                    loadedETags.Add(await _eTagCache.Get(thumb));
+                                }
                             }
 
                             view = redditPostComponent;

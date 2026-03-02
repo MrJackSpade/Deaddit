@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 
 namespace Deaddit.Utils
@@ -19,25 +19,26 @@ namespace Deaddit.Utils
                 return string.Empty;
             }
 
-            if (!_cache.TryGetValue(url, out string? etag))
+            if (_cache.TryGetValue(url, out string? etag))
             {
-                try
-                {
-                    HttpClient httpClient = new() { Timeout = TimeSpan.FromSeconds(5) };
+                return etag;
+            }
+            try
+            {
+                HttpClient httpClient = new() { Timeout = TimeSpan.FromSeconds(5) };
 
-                    HttpRequestMessage request = new(HttpMethod.Head, url);
+                HttpRequestMessage request = new(HttpMethod.Head, url);
 
-                    HttpResponseMessage response = await httpClient.SendAsync(request);
+                HttpResponseMessage response = await httpClient.SendAsync(request);
 
-                    etag = response.Headers.ETag?.Tag ?? string.Empty;
+                etag = response.Headers.ETag?.Tag ?? string.Empty;
 
-                    _cache.TryAdd(url, etag);
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine("Error getting ETag: " + ex.Message);
-                    etag = string.Empty;
-                }
+                _cache.TryAdd(url, etag);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Error getting ETag: " + ex.Message);
+                etag = string.Empty;
             }
 
             return etag;
