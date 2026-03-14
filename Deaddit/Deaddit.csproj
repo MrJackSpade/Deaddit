@@ -29,6 +29,14 @@
 	  <AndroidPackageFormat>apk</AndroidPackageFormat>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+	  <AndroidKeyStore>true</AndroidKeyStore>
+	  <AndroidSigningKeyStore>..\debug.keystore</AndroidSigningKeyStore>
+	  <AndroidSigningKeyAlias>androiddebugkey</AndroidSigningKeyAlias>
+	  <AndroidSigningKeyPass>android</AndroidSigningKeyPass>
+	  <AndroidSigningStorePass>android</AndroidSigningStorePass>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<!-- App Icon -->
 		<MauiIcon Include="Resources\AppIcon\appicon_small.png" BaseSize="64,64" />

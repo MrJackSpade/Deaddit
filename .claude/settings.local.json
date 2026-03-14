@@ -9,7 +9,9 @@
       "Bash(cd /c/git/Deaddit/Reddit.Api && dotnet test Reddit.Api.Tests --filter \"FullyQualifiedName~UnauthenticatedTests\" --logger \"console;verbosity=normal\" 2>&1)",
       "Bash(ls:*)",
       "Bash(/c/git/Deaddit/restore_file.sh:*)",
-      "Bash(/c/bin/adb.exe logcat:*)"
+      "Bash(/c/bin/adb.exe logcat:*)",
+      "mcp__claude_ai_github-mcp__get_issue",
+      "Bash(git status:*)"
     ]
   }
 }
