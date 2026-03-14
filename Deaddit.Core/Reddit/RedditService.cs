@@ -241,7 +241,7 @@ namespace Deaddit.Core.Reddit
         {
             try
             {
-                List<string> usernameList = usernames.ToList();
+                List<string> usernameList = usernames.Where(u => !string.IsNullOrWhiteSpace(u)).ToList();
                 if (usernameList.Count == 0)
                 {
                     return [];
