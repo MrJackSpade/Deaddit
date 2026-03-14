@@ -24,7 +24,7 @@ namespace Deaddit.Interfaces
 
         MoreCommentsWebComponent CreateMoreCommentsWebComponent(IMore more);
 
-        RedditPostWebComponent CreatePostWebComponent(ApiPost post, PostState postHandling, SelectionGroup? selectionGroup = null);
+        RedditPostWebComponent CreatePostWebComponent(ApiPost post, PostState postHandling, SelectionGroup? selectionGroup = null, bool showVisitedState = true);
 
         SubscriptionComponent CreateSubRedditComponent(ThingDefinition subscriptionThing, SelectionGroup? group = null);
 

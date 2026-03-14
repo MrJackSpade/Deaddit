@@ -137,7 +137,7 @@ namespace Deaddit.Pages
                         continue;
                     }
 
-                    RedditPostWebComponent redditPostComponent = _appNavigator.CreatePostWebComponent(post, PostState.None, _selectionGroup);
+                    RedditPostWebComponent redditPostComponent = _appNavigator.CreatePostWebComponent(post, PostState.None, _selectionGroup, showVisitedState: false);
                     redditPostComponent.SetHistorySource();
 
                     redditPostComponent.HideClicked += this.RedditPostComponent_HideClicked;

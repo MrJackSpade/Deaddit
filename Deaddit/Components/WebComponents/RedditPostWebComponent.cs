@@ -59,7 +59,7 @@ namespace Deaddit.Components.WebComponents
 
         private bool _isFromHistoryPage = false;
 
-        public RedditPostWebComponent(ApiPost post, PostState postHandling, IDisplayMessages displayMessages, ISelectBoxDisplay selectBoxDisplay, IAggregatePostHandler apiPostHandler, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration, IConfigurationService configurationService, IAppNavigator appNavigator, IVisitTracker visitTracker, IHistoryTracker historyTracker, INavigation navigation, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup? selectionGroup)
+        public RedditPostWebComponent(ApiPost post, PostState postHandling, IDisplayMessages displayMessages, ISelectBoxDisplay selectBoxDisplay, IAggregatePostHandler apiPostHandler, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration, IConfigurationService configurationService, IAppNavigator appNavigator, IVisitTracker visitTracker, IHistoryTracker historyTracker, INavigation navigation, IRedditClient redditClient, ApplicationStyling applicationStyling, SelectionGroup? selectionGroup, bool showVisitedState = true)
         {
             _multiselector = new MultiSelector(selectBoxDisplay);
             _post = post;
@@ -144,7 +144,7 @@ namespace Deaddit.Components.WebComponents
             Children.Add(topContainer);
             Children.Add(_actionButtons);
 
-            if (selectionGroup != null)
+            if (showVisitedState && selectionGroup != null)
             {
                 if (visitTracker.HasVisited(_post) || postHandling == PostState.Visited)
                 {
