@@ -12,6 +12,8 @@ namespace Deaddit
 
         private readonly FileDownload _postItems;
 
+        private CancellationTokenSource? _downloadCts;
+
         public EmbeddedVideo(FileDownload fileDownload, ApplicationStyling applicationTheme)
         {
             _applicationStyling = applicationTheme;
@@ -35,6 +37,8 @@ namespace Deaddit
         {
             base.OnDisappearing();
 
+            _downloadCts?.Cancel();
+
             try
             {
                 mediaView.Stop();
@@ -54,7 +58,24 @@ namespace Deaddit
 
         private async void OnSaveClicked(object? sender, EventArgs e)
         {
-            await FileStorage.Save(_postItems);
+            _downloadCts?.Cancel();
+            _downloadCts = new CancellationTokenSource();
+
+            downloadOverlay.IsVisible = true;
+            downloadIndicator.IsRunning = true;
+
+            try
+            {
+                await FileStorage.Save(_postItems, _downloadCts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            finally
+            {
+                downloadIndicator.IsRunning = false;
+                downloadOverlay.IsVisible = false;
+            }
         }
     }
 }

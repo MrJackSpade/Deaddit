@@ -255,6 +255,8 @@ namespace Deaddit
 
         private readonly FileDownload[] _postItems;
 
+        private CancellationTokenSource? _downloadCts;
+
         public EmbeddedImage(ApplicationStyling applicationTheme, FileDownload[] items)
         {
             this.InitializeComponent();
@@ -285,13 +287,30 @@ namespace Deaddit
 
         private void OnBackClicked(object? sender, EventArgs e)
         {
-            // Logic to go back, for example:
+            _downloadCts?.Cancel();
             Navigation.PopAsync();
         }
 
         private async void OnSaveClicked(object? sender, EventArgs e)
         {
-            await FileStorage.Save(_postItems);
+            _downloadCts?.Cancel();
+            _downloadCts = new CancellationTokenSource();
+
+            downloadOverlay.IsVisible = true;
+            downloadIndicator.IsRunning = true;
+
+            try
+            {
+                await FileStorage.Save(_postItems, _downloadCts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            finally
+            {
+                downloadIndicator.IsRunning = false;
+                downloadOverlay.IsVisible = false;
+            }
         }
     }
 }
