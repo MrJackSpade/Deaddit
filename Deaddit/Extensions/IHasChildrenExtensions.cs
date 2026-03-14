@@ -95,14 +95,12 @@ namespace Deaddit.Extensions
                 return false;
             }
 
-            if (thing.IsRemoved())
+            if (thing is ApiComment comment)
             {
-                return false;
-            }
-
-            if (thing.IsDeleted() && thing is ApiComment comment && !comment.HasChildren())
-            {
-                return false;
+                if ((thing.IsRemoved() || thing.IsDeleted()) && !comment.HasChildren())
+                {
+                    return false;
+                }
             }
 
             return true;

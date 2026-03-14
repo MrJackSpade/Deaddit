@@ -36,7 +36,8 @@ namespace Deaddit.Core.Reddit.Extensions
 
         public static bool IsRemoved(this ApiThing redditCommentMeta)
         {
-            return redditCommentMeta.Author == "[removed]";
+            return redditCommentMeta.Author == "[removed]" ||
+                   redditCommentMeta.Body == "[ Removed by Reddit ]";
         }
     }
 }
