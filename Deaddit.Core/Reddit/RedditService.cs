@@ -11,6 +11,7 @@ using Reddit.Api.Models.Json.LinksComments;
 using Reddit.Api.Models.Json.Listings;
 using Reddit.Api.Models.Json.Multis;
 using Reddit.Api.Models.Json.Subreddits;
+using Reddit.Api.Models.Json.Search;
 using Reddit.Api.Models.Json.Users;
 using System.Diagnostics;
 using NewClient = Reddit.Api.Client;
@@ -385,6 +386,29 @@ namespace Deaddit.Core.Reddit
                 Debug.WriteLine($"[DEBUG] Time spent in GetPosts method: {stopwatch.ElapsedMilliseconds}ms");
 
                 toReturn = RedditModelMapper.MapThings(result);
+
+                // Fallback to search API for empty user profiles
+                if (toReturn.Count == 0 && after == null && endpoint.StartsWith("user/") && !fullEndpoint.EndsWith("/comments"))
+                {
+                    string username = endpoint.Split('/')[1];
+
+                    Debug.WriteLine($"[DEBUG] User profile empty for {username}, falling back to search API");
+
+                    SearchParameters searchParams = new()
+                    {
+                        Query = $"author:{username}",
+                        Sort = SearchSort.New,
+                        Time = "all",
+                        Limit = Math.Min(100, pageSize)
+                    };
+
+                    Listing<Thing<Link>>? searchResult = await _client.SearchAsync(searchParams);
+
+                    if (searchResult != null)
+                    {
+                        toReturn = RedditModelMapper.MapPostsTyped(searchResult).Cast<ApiThing>().ToList();
+                    }
+                }
 
                 // Trim to page size if needed
                 if (toReturn.Count > pageSize)
