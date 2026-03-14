@@ -94,10 +94,9 @@ namespace Deaddit.Utils
             return new MoreCommentsWebComponent(more, ApplicationStyling);
         }
 
-        public RedditPostWebComponent CreatePostWebComponent(ApiPost post, PostState postHandling, SelectionGroup? selectionGroup = null)
+        public RedditPostWebComponent CreatePostWebComponent(ApiPost post, PostState postHandling, SelectionGroup? selectionGroup = null, bool showVisitedState = true)
         {
-            RedditPostWebComponent postComponent = new(post, postHandling, DisplayMessages, SelectBoxDisplay, AggregatePostHandler, ApplicationHacks, BlockConfiguration, ConfigurationService, this, VisitTracker, HistoryTracker, Navigation, RedditClient, ApplicationStyling, selectionGroup);
-            return postComponent;
+            return new RedditPostWebComponent(post, postHandling, DisplayMessages, SelectBoxDisplay, AggregatePostHandler, ApplicationHacks, BlockConfiguration, ConfigurationService, this, VisitTracker, HistoryTracker, Navigation, RedditClient, ApplicationStyling, selectionGroup, showVisitedState);
         }
 
         public SubscriptionComponent CreateSubRedditComponent(ThingDefinition subscriptionThing, SelectionGroup? group = null)
