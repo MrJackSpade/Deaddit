@@ -11,6 +11,7 @@ using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Reddit.Models.ThingDefinitions;
 using Deaddit.Core.Utils;
+using Deaddit.Core.Utils.IO;
 using Deaddit.Core.Utils.Validation;
 using Deaddit.Interfaces;
 using Deaddit.Pages;
@@ -64,11 +65,11 @@ namespace Deaddit.Utils
         {
             if (selectionGroup is null)
             {
-                return new RedditCommentWebComponent(comment, post, false, ConfigurationService, DisplayMessages, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, ApplicationHacks, selectionGroup ?? new SelectionGroup(), BlockConfiguration);
+                return new RedditCommentWebComponent(comment, post, false, ConfigurationService, DisplayMessages, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, ApplicationHacks, selectionGroup ?? new SelectionGroup(), BlockConfiguration, UrlHandler);
             }
             else
             {
-                return new RedditCommentWebComponent(comment, post, true, ConfigurationService, DisplayMessages, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, ApplicationHacks, selectionGroup ?? new SelectionGroup(), BlockConfiguration);
+                return new RedditCommentWebComponent(comment, post, true, ConfigurationService, DisplayMessages, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, ApplicationHacks, selectionGroup ?? new SelectionGroup(), BlockConfiguration, UrlHandler);
             }
         }
 
@@ -133,7 +134,8 @@ namespace Deaddit.Utils
 
         public async Task<EmbeddedImage> OpenImages(FileDownload[] resource)
         {
-            EmbeddedImage browser = new(ApplicationStyling, resource);
+            IStreamConverter? converter = ApplicationHacks.ConvertGifsToMp4 ? new GifToMp4Converter() : null;
+            EmbeddedImage browser = new(ApplicationStyling, DisplayMessages, converter, resource);
             await Navigation.PushAsync(browser);
             return browser;
         }
@@ -241,7 +243,8 @@ namespace Deaddit.Utils
 
         public async Task<EmbeddedVideo> OpenVideo(FileDownload url)
         {
-            EmbeddedVideo browser = new(url, ApplicationStyling);
+            IStreamConverter? converter = ApplicationHacks.ConvertGifsToMp4 ? new GifToMp4Converter() : null;
+            EmbeddedVideo browser = new(url, ApplicationStyling, DisplayMessages, converter);
             await Navigation.PushAsync(browser);
             return browser;
         }

@@ -5,6 +5,12 @@ namespace Deaddit.Core.Configurations.Models
 {
     public class ApplicationHacks
     {
+        [EditorDisplay(Name = "Auto Load Comment Images", Order = 0)]
+        public bool AutoLoadCommentImages { get; set; } = true;
+
+        [EditorDisplay(Name = "Convert GIFs to MP4 on Save/Share", Order = 1)]
+        public bool ConvertGifsToMp4 { get; set; } = true;
+
         [EditorDisplay(Name = "Comment Emoji Handling", Order = 3)]
         public OptionalStrip CommentEmojiHandling { get; set; } = OptionalStrip.None;
 

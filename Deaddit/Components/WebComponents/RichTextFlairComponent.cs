@@ -39,7 +39,7 @@ namespace Deaddit.Components.WebComponents
                 {
                     SpanComponent textSpan = new()
                     {
-                        InnerText = HttpUtility.HtmlEncode(item.Text)
+                        InnerText = item.Text
                     };
                     Children.Add(textSpan);
                 }

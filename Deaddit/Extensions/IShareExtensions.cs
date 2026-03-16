@@ -1,4 +1,5 @@
-﻿using Deaddit.Core.Models;
+﻿using Deaddit.Core.Interfaces;
+using Deaddit.Core.Models;
 using Deaddit.Core.Utils.IO;
 
 namespace Deaddit.Extensions
@@ -22,20 +23,27 @@ namespace Deaddit.Extensions
             return fname;
         }
 
-        public static async Task ShareFiles(this IShare share, string title, FileDownload item)
+        public static async Task ShareFiles(this IShare share, string title, FileDownload item, IStreamConverter? converter = null)
         {
-            await share.ShareFiles(title, [item]);
+            await share.ShareFiles(title, [item], converter);
         }
 
-        public static async Task ShareFiles(this IShare share, string title, IEnumerable<FileDownload> items)
+        public static async Task ShareFiles(this IShare share, string title, IEnumerable<FileDownload> items, IStreamConverter? converter = null)
         {
             List<ShareFile> files = [];
-            HttpClient client = new();
 
             foreach (FileDownload item in items)
             {
-                string file = Path.Combine(FileSystem.CacheDirectory, item.FileName);
+                string fileName = item.FileName;
                 Stream stream = await FileStreamService.GetStream(item.DownloadUrl);
+
+                if (converter != null && converter.CanConvert(fileName))
+                {
+                    fileName = converter.ConvertFileName(fileName);
+                    stream = await converter.ConvertAsync(stream);
+                }
+
+                string file = Path.Combine(FileSystem.CacheDirectory, fileName);
 
                 if (stream is MemoryStream ms)
                 {
@@ -43,7 +51,6 @@ namespace Deaddit.Extensions
                 }
                 else
                 {
-                    //Off the main thread for android
                     await Task.Run(async () =>
                     {
                         using MemoryStream memoryStream = new();

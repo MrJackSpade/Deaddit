@@ -38,6 +38,7 @@ namespace Deaddit
             builder.Services.AddTransient<IUrlHandler, SubredditUrlHandler>();
             builder.Services.AddTransient<IUrlHandler, UserUrlHandler>();
             builder.Services.AddTransient<IUrlHandler, RedGifsHandler>();
+            builder.Services.AddTransient<IUrlHandler, GiphyHandler>();
             builder.Services.AddTransient<IUrlHandler, GenericImageHandler>();
             builder.Services.AddTransient<IUrlHandler, GenericVideoHandler>();
             builder.Services.AddTransient<IUrlHandler, GenericUrlHandler>();

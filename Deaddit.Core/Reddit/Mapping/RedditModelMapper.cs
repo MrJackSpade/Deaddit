@@ -1,9 +1,9 @@
 using Deaddit.Core.Reddit.Models.Api;
 using Reddit.Api.Models.Enums;
 using Reddit.Api.Models.Json.Common;
+using System.Text.Json;
 using Reddit.Api.Models.Json.Listings;
 using Reddit.Api.Models.Json.Messages;
-using System.Text.Json;
 
 namespace Deaddit.Core.Reddit.Mapping
 {

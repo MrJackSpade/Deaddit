@@ -14,6 +14,8 @@ namespace Deaddit.Handlers.Url
             return this.IsVideo(url);
         }
 
+        public bool CanInline(string url) => false;
+
         public bool CanLaunch(string url, IAggregatePostHandler aggregatePostHandler)
         {
             return this.IsVideo(url);
@@ -24,6 +26,8 @@ namespace Deaddit.Handlers.Url
             string fileName = UrlHelper.GetFileName(url);
             return Task.FromResult(new FileDownload(fileName, url));
         }
+
+        public string? GetInlineUrl(string url) => null;
 
         public async Task Launch(string url, IAggregatePostHandler caller)
         {

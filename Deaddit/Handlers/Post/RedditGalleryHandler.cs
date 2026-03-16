@@ -1,18 +1,22 @@
-﻿using Deaddit.Core.Interfaces;
+﻿using Deaddit.Core.Configurations.Models;
+using Deaddit.Core.Interfaces;
 using Deaddit.Core.Models;
 using Deaddit.Core.Reddit.Models.Api;
-using Reddit.Api.Models.Json.Listings;
 using Deaddit.Core.Utils;
+using Deaddit.Core.Utils.IO;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.Utils;
+using Reddit.Api.Models.Json.Listings;
 using DefaultShare = Microsoft.Maui.ApplicationModel.DataTransfer;
 
 namespace Deaddit.Handlers.Post
 {
-    internal class RedditGalleryHandler(IAppNavigator appNavigator) : IApiPostHandler
+    internal class RedditGalleryHandler(IAppNavigator appNavigator, ApplicationHacks applicationHacks) : IApiPostHandler
     {
         private readonly IAppNavigator _appNavigator = appNavigator;
+
+        private readonly ApplicationHacks _applicationHacks = applicationHacks;
 
         public bool CanDownload(ApiPost apiPost, IAggregatePostHandler caller)
         {
@@ -31,7 +35,8 @@ namespace Deaddit.Handlers.Post
 
         public async Task Download(ApiPost apiPost, IAggregatePostHandler caller)
         {
-            await FileStorage.Save(this.GetSortedGalleryItems(apiPost));
+            IStreamConverter? converter = _applicationHacks.ConvertGifsToMp4 ? new GifToMp4Converter() : null;
+            await FileStorage.Save(this.GetSortedGalleryItems(apiPost), converter);
         }
 
         public async Task Launch(ApiPost apiPost, IAggregatePostHandler caller)
@@ -41,7 +46,8 @@ namespace Deaddit.Handlers.Post
 
         public async Task Share(ApiPost apiPost, IAggregatePostHandler caller)
         {
-            await DefaultShare.Share.Default.ShareFiles(apiPost.Title, this.GetSortedGalleryItems(apiPost));
+            IStreamConverter? converter = _applicationHacks.ConvertGifsToMp4 ? new GifToMp4Converter() : null;
+            await DefaultShare.Share.Default.ShareFiles(apiPost.Title, this.GetSortedGalleryItems(apiPost), converter);
         }
 
         private List<FileDownload> GetSortedGalleryItems(ApiPost apiPost)

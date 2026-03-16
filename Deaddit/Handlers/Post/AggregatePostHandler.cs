@@ -1,11 +1,13 @@
-﻿using Deaddit.Core.Interfaces;
+﻿using Deaddit.Core.Configurations.Models;
+using Deaddit.Core.Interfaces;
 using Deaddit.Core.Models;
 using Deaddit.Core.Reddit.Models.Api;
+using Deaddit.Core.Utils.IO;
 using Deaddit.Utils;
 
 namespace Deaddit.Handlers.Post
 {
-    internal class AggregatePostHandler(IEnumerable<IApiPostHandler> handlers, IAggregateUrlHandler urlHandler) : IAggregatePostHandler
+    internal class AggregatePostHandler(IEnumerable<IApiPostHandler> handlers, IAggregateUrlHandler urlHandler, ApplicationHacks applicationHacks) : IAggregatePostHandler
     {
         private readonly List<IApiPostHandler> _handlers = handlers.ToList();
 
@@ -45,7 +47,8 @@ namespace Deaddit.Handlers.Post
             if (UrlHandler.CanDownload(apiPost.Url, this))
             {
                 FileDownload download = await UrlHandler.Download(apiPost.Url, this);
-                await FileStorage.Save([download]);
+                IStreamConverter? converter = applicationHacks.ConvertGifsToMp4 ? new GifToMp4Converter() : null;
+                await FileStorage.Save([download], converter);
                 return;
             }
 
