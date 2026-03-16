@@ -89,7 +89,8 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
         {
             if (!_comment.ScoreHidden == true)
             {
-                return $"{_comment.Score} points {_comment.CreatedUtc.Elapsed()}";
+                string arrow = _comment.Score > 0 ? "▲" : _comment.Score < 0 ? "▼" : "";
+                return $"{_comment.Score}{arrow} {_comment.CreatedUtc.Elapsed()}";
             }
             else
             {

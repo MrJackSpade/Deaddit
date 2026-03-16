@@ -58,7 +58,7 @@ namespace Deaddit.Components.WebComponents.Partials.Post
 
             SpanComponent metaData = new()
             {
-                InnerText = $"{post.NumComments} comments {post.SubRedditName}",
+                InnerText = $"{post.NumComments} 🗨 {post.SubRedditName}",
                 FontSize = $"{applicationStyling.SubTextFontSize}px",
                 Color = applicationStyling.SubTextColor.ToHex(),
             };
