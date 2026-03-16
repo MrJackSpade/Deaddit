@@ -7,15 +7,16 @@ namespace Deaddit.Core.Interfaces
         /// <summary>
         /// Returns true if the url content can be downloaded as a file
         /// </summary>
-        /// <param name="url"></param>
-        /// <returns></returns>
         bool CanDownload(string url, IAggregatePostHandler? aggregatePostHandler);
+
+        /// <summary>
+        /// Returns true if the url can be rendered as an inline image
+        /// </summary>
+        bool CanInline(string url);
 
         /// <summary>
         /// Returns true if the url can be handled
         /// </summary>
-        /// <param name="url"></param>
-        /// <returns></returns>
         bool CanLaunch(string url, IAggregatePostHandler? aggregatePostHandler);
 
         /// <summary>
@@ -24,10 +25,13 @@ namespace Deaddit.Core.Interfaces
         Task<FileDownload> Download(string url, IAggregatePostHandler aggregatePostHandler);
 
         /// <summary>
+        /// Returns the direct image URL for inline rendering
+        /// </summary>
+        string? GetInlineUrl(string url);
+
+        /// <summary>
         /// Attempts to handle a URL
         /// </summary>
-        /// <param name="url"></param>
-        /// <returns>True if handled</returns>
         Task Launch(string url, IAggregatePostHandler aggregatePostHandler);
     }
 }

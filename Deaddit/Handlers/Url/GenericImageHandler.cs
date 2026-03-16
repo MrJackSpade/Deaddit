@@ -14,6 +14,11 @@ namespace Deaddit.Handlers.Url
             return this.IsImage(url);
         }
 
+        public bool CanInline(string url)
+        {
+            return this.IsImage(url);
+        }
+
         public bool CanLaunch(string url, IAggregatePostHandler aggregatePostHandler)
         {
             return this.IsImage(url);
@@ -23,6 +28,11 @@ namespace Deaddit.Handlers.Url
         {
             string fileName = UrlHelper.GetFileName(url);
             return Task.FromResult(new FileDownload(fileName, url));
+        }
+
+        public string? GetInlineUrl(string url)
+        {
+            return url;
         }
 
         public async Task Launch(string url, IAggregatePostHandler caller)

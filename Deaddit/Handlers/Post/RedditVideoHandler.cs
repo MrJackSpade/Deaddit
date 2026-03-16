@@ -30,7 +30,7 @@ namespace Deaddit.Handlers.Post
 
         public async Task Download(ApiPost apiPost, IAggregatePostHandler caller)
         {
-            Ensure.NotNull(apiPost.Media?.RedditVideo?.FallbackUrl);
+            Ensure.NotNull(apiPost.Media?.RedditVideo?.DashUrl);
 
             await FileStorage.Save(this.GetDownload(apiPost));
         }
@@ -45,7 +45,7 @@ namespace Deaddit.Handlers.Post
         public async Task Share(ApiPost apiPost, IAggregatePostHandler caller)
         {
             Ensure.NotNull(apiPost.Title);
-            Ensure.NotNull(apiPost.Media?.RedditVideo?.FallbackUrl);
+            Ensure.NotNull(apiPost.Media?.RedditVideo?.DashUrl);
 
             await DefaultShare.Share.Default.ShareFiles(apiPost.Title, this.GetDownload(apiPost));
         }
@@ -54,13 +54,10 @@ namespace Deaddit.Handlers.Post
         {
             Ensure.NotNull(apiPost.Media?.RedditVideo?.DashUrl);
 
-            string launchUrl = apiPost.Media.RedditVideo.DashUrl;
-
-            string download = apiPost.Media.RedditVideo?.HlsUrl ?? launchUrl;
-
+            string dashUrl = apiPost.Media.RedditVideo.DashUrl;
             string name = $"{apiPost.Id}.mp4";
 
-            return new FileDownload(name, launchUrl, download);
+            return new FileDownload(name, dashUrl, dashUrl);
         }
     }
 }

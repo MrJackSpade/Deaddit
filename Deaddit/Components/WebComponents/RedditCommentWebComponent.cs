@@ -51,7 +51,9 @@ namespace Deaddit.Components.WebComponents
 
         private readonly TopBarComponent _topBar;
 
-        public RedditCommentWebComponent(ApiComment comment, ApiPost? post, bool selectEnabled, IConfigurationService configurationService, IDisplayMessages displayMessages, ISelectBoxDisplay selectBoxDisplay, INavigation navigation, AppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, SelectionGroup selectionGroup, BlockConfiguration blockConfiguration)
+        private readonly IAggregateUrlHandler _urlHandler;
+
+        public RedditCommentWebComponent(ApiComment comment, ApiPost? post, bool selectEnabled, IConfigurationService configurationService, IDisplayMessages displayMessages, ISelectBoxDisplay selectBoxDisplay, INavigation navigation, AppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, SelectionGroup selectionGroup, BlockConfiguration blockConfiguration, IAggregateUrlHandler urlHandler)
         {
             _multiselector = new MultiSelector(selectBoxDisplay);
             _comment = comment;
@@ -65,6 +67,7 @@ namespace Deaddit.Components.WebComponents
             _navigation = navigation;
             _displayMessages = displayMessages;
             _configurationService = configurationService;
+            _urlHandler = urlHandler;
 
             _commentContainer = new DivComponent()
             {
@@ -280,15 +283,16 @@ namespace Deaddit.Components.WebComponents
                 {
                     string href = HttpUtility.HtmlDecode(link.GetAttributeValue("href", string.Empty));
 
-                    string mimeType = UrlHelper.GetMimeTypeFromUri(new Uri(href));
-
-                    if (mimeType.StartsWith("image/"))
+                    if (_urlHandler.CanInline(href))
                     {
-                        modified = true;
-                        // Create a new <img> element
-                        HtmlAgilityPack.HtmlNode img = HtmlAgilityPack.HtmlNode.CreateNode($"<a href=\"{href}\"><img src=\"{href}\" /></a>");
-                        // Replace the <a> element with the <img> element
-                        link.ParentNode.ReplaceChild(img, link);
+                        string? inlineUrl = _urlHandler.GetInlineUrl(href);
+
+                        if (inlineUrl != null)
+                        {
+                            modified = true;
+                            HtmlAgilityPack.HtmlNode img = HtmlAgilityPack.HtmlNode.CreateNode($"<a href=\"{href}\"><img src=\"{inlineUrl}\" /></a>");
+                            link.ParentNode.ReplaceChild(img, link);
+                        }
                     }
                 }
             }

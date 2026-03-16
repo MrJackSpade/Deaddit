@@ -12,6 +12,11 @@ namespace Deaddit.Handlers.Url
             return _handlers.Any(h => h.CanDownload(url, aggregatePostHandler));
         }
 
+        public bool CanInline(string url)
+        {
+            return _handlers.Any(h => h.CanInline(url));
+        }
+
         public bool CanLaunch(string url, IAggregatePostHandler? aggregatePostHandler)
         {
             return _handlers.Any(h => h.CanLaunch(url, aggregatePostHandler));
@@ -28,6 +33,19 @@ namespace Deaddit.Handlers.Url
             }
 
             throw new NotSupportedException();
+        }
+
+        public string? GetInlineUrl(string url)
+        {
+            foreach (IUrlHandler handler in _handlers)
+            {
+                if (handler.CanInline(url))
+                {
+                    return handler.GetInlineUrl(url);
+                }
+            }
+
+            return null;
         }
 
         public async Task Launch(string? url, IAggregatePostHandler aggregatePostHandler)

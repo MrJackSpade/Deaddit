@@ -38,6 +38,8 @@ namespace Deaddit.Pages
 
         private readonly IAggregateUrlHandler _urlHandler;
 
+        private bool _autoLoadImages;
+
         private readonly DivComponent commentContainer;
 
         private readonly ButtonComponent loadImageButton;
@@ -108,14 +110,18 @@ namespace Deaddit.Pages
             shareButton = this.ActionButton("Share");
             saveButton = this.ActionButton("Save");
             moreButton = this.ActionButton("...");
-            loadImageButton = this.ActionButton("🖼");
+            _autoLoadImages = applicationHacks.AutoLoadCommentImages;
+            loadImageButton = this.ActionButton(_autoLoadImages ? "" : "🖼");
             replyButton = this.ActionButton("Reply");
 
             shareButton.OnClick += this.OnShareClicked;
             saveButton.OnClick += this.OnSaveClicked;
             moreButton.OnClick += this.OnMoreClicked;
             replyButton.OnClick += this.OnReplyClicked;
-            loadImageButton.OnClick += this.OnLoadImageClicked;
+            if (!_autoLoadImages)
+            {
+                loadImageButton.OnClick += this.OnLoadImageClicked;
+            }
 
             saveButton.InnerText = Post.Saved == true ? "Unsave" : "Save";
 
@@ -156,6 +162,14 @@ namespace Deaddit.Pages
             await webElement.RemoveChild(mcomponent);
 
             await DataService.LoadAsync(mcomponent, async () => await this.LoadMoreAsync(Post, e), _applicationStyling.HighlightColor.ToHex());
+
+            if (_autoLoadImages)
+            {
+                foreach (RedditCommentWebComponent commentComponent in commentContainer.Children.OfType<RedditCommentWebComponent>())
+                {
+                    commentComponent.LoadImages(true);
+                }
+            }
         }
 
         public virtual void OnBackClicked(object? sender, EventArgs e)
@@ -170,6 +184,8 @@ namespace Deaddit.Pages
 
         public virtual void OnImagesClicked(object? sender, EventArgs e)
         {
+            _autoLoadImages = true;
+
             foreach (RedditCommentWebComponent commentComponent in commentContainer.Children.OfType<RedditCommentWebComponent>())
             {
                 commentComponent.LoadImages(true);
@@ -209,6 +225,14 @@ namespace Deaddit.Pages
         public async Task TryLoad()
         {
             await DataService.LoadAsync(commentContainer, this.LoadDataAsync, _applicationStyling.HighlightColor.ToHex());
+
+            if (_autoLoadImages)
+            {
+                foreach (RedditCommentWebComponent commentComponent in commentContainer.Children.OfType<RedditCommentWebComponent>())
+                {
+                    commentComponent.LoadImages(true);
+                }
+            }
         }
 
         private ButtonComponent ActionButton(string text)
@@ -266,6 +290,8 @@ namespace Deaddit.Pages
 
         private void OnLoadImageClicked(object? sender, EventArgs e)
         {
+            _autoLoadImages = true;
+
             foreach (RedditCommentWebComponent commentComponent in commentContainer.Children.OfType<RedditCommentWebComponent>())
             {
                 commentComponent.LoadImages(true);

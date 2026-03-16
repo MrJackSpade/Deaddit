@@ -16,6 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Loxifi.FFmpeg" Version="1.0.8" />
+    <PackageReference Include="Loxifi.FFmpeg.Runtime.android-arm64.GPL" Version="1.0.8" />
+    <PackageReference Include="Loxifi.FFmpeg.Runtime.win-x64.GPL" Version="1.0.8" />
     <PackageReference Include="MimeKit" Version="4.13.0" />
     <PackageReference Include="SkiaSharp" Version="3.119.0" />
   </ItemGroup>

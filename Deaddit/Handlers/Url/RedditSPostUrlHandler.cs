@@ -18,6 +18,8 @@ namespace Deaddit.Handlers.Url
             return false;
         }
 
+        public bool CanInline(string url) => false;
+
         public bool CanLaunch(string url, IAggregatePostHandler aggregatePostHandler)
         {
             if (aggregatePostHandler is null)
@@ -32,6 +34,8 @@ namespace Deaddit.Handlers.Url
         {
             throw new NotSupportedException();
         }
+
+        public string? GetInlineUrl(string url) => null;
 
         public async Task Launch(string url, IAggregatePostHandler caller)
         {

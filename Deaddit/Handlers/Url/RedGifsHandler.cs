@@ -14,6 +14,8 @@ namespace Deaddit.Handlers.Url
             return false; // RedGifs requires URL resolution, not directly downloadable
         }
 
+        public bool CanInline(string url) => false;
+
         public bool CanLaunch(string url, IAggregatePostHandler? aggregatePostHandler)
         {
             return this.IsRedGifs(url);
@@ -23,6 +25,8 @@ namespace Deaddit.Handlers.Url
         {
             throw new NotSupportedException();
         }
+
+        public string? GetInlineUrl(string url) => null;
 
         public async Task Launch(string url, IAggregatePostHandler aggregatePostHandler)
         {

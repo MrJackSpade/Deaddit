@@ -1,4 +1,5 @@
 using Deaddit.Core.Configurations.Models;
+using Deaddit.Core.Interfaces;
 using Deaddit.Core.Models;
 using Deaddit.Extensions;
 using Deaddit.Utils;
@@ -253,14 +254,20 @@ namespace Deaddit
 
         private readonly ApplicationStyling _applicationStyling;
 
+        private readonly IStreamConverter? _converter;
+
+        private readonly IDisplayMessages _displayMessages;
+
         private readonly FileDownload[] _postItems;
 
         private CancellationTokenSource? _downloadCts;
 
-        public EmbeddedImage(ApplicationStyling applicationTheme, FileDownload[] items)
+        public EmbeddedImage(ApplicationStyling applicationTheme, IDisplayMessages displayMessages, IStreamConverter? converter, FileDownload[] items)
         {
             this.InitializeComponent();
             _applicationStyling = applicationTheme;
+            _displayMessages = displayMessages;
+            _converter = converter;
             _postItems = items;
 
             navigationBar.BackgroundColor = _applicationStyling.PrimaryColor.ToMauiColor();
@@ -282,7 +289,28 @@ namespace Deaddit
 
         public async void OnShareClicked(object? sender, EventArgs e)
         {
-            await Share.Default.ShareFiles("", _postItems);
+            _downloadCts?.Cancel();
+            _downloadCts = new CancellationTokenSource();
+
+            downloadOverlay.IsVisible = true;
+            downloadIndicator.IsRunning = true;
+
+            try
+            {
+                await Share.Default.ShareFiles("", _postItems, _converter);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                await _displayMessages.DisplayException(ex);
+            }
+            finally
+            {
+                downloadIndicator.IsRunning = false;
+                downloadOverlay.IsVisible = false;
+            }
         }
 
         private void OnBackClicked(object? sender, EventArgs e)
@@ -301,7 +329,7 @@ namespace Deaddit
 
             try
             {
-                await FileStorage.Save(_postItems, _downloadCts.Token);
+                await FileStorage.Save(_postItems, _converter, _downloadCts.Token);
             }
             catch (OperationCanceledException)
             {
