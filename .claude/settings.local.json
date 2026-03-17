@@ -14,7 +14,15 @@
       "Bash(git status:*)",
       "Bash(/mnt/c/Windows/System32/cmd.exe /c \"cd /d Z:\\\\git\\\\Deaddit && dotnet package search CommunityToolkit.Maui --take 3 && dotnet package search HtmlAgilityPack --take 1 && dotnet package search Microsoft.Maui.Controls --take 1 && dotnet package search Microsoft.Extensions.Logging.Debug --take 1\" 2>&1)",
       "Bash(/mnt/c/Windows/System32/cmd.exe /c \"dotnet package search CommunityToolkit.Maui.MediaElement --take 1\" 2>&1)",
-      "Bash(/mnt/c/Windows/System32/cmd.exe /c \"cd /d Z:\\\\git\\\\Deaddit && dotnet build Deaddit -f net10.0-android -c Release 2>&1 | findstr /i error\" 2>&1)"
+      "Bash(/mnt/c/Windows/System32/cmd.exe /c \"cd /d Z:\\\\git\\\\Deaddit && dotnet build Deaddit -f net10.0-android -c Release 2>&1 | findstr /i error\" 2>&1)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(/mnt/c/Windows/System32/cmd.exe /c \"cd /d Z:\\\\git\\\\Deaddit && BuildAndPublish.bat\" 2>&1)",
+      "WebFetch(domain:www.google.com)",
+      "Bash(gh issue:*)",
+      "Bash(gh search:*)",
+      "Bash(gh api:*)",
+      "Bash(gh release:*)"
     ]
   }
 }
