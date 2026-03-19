@@ -33,20 +33,23 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
 
             Children.Add(_voteIndicator);
             Children.Add(authorSpan);
+            Children.Add(_commentMeta);
 
             string flairColor = comment.AuthorFlairBackgroundColor.ToHex() ?? applicationStyling.SubTextColor.ToHex();
             if (applicationHacks.ShouldResolveFlairImages() && comment.AuthorFlairRichText.Count > 0)
             {
+                DivComponent flairContainer = new();
                 RichTextFlairComponent userFlair = new(comment.AuthorFlairRichText, flairColor, applicationStyling);
-                Children.Add(userFlair);
+                flairContainer.Children.Add(userFlair);
+                Children.Add(flairContainer);
             }
             else if (!string.IsNullOrWhiteSpace(comment.AuthorFlairText))
             {
+                DivComponent flairContainer = new();
                 FlairComponent userFlair = new(comment.AuthorFlairText, flairColor, applicationStyling);
-                Children.Add(userFlair);
+                flairContainer.Children.Add(userFlair);
+                Children.Add(flairContainer);
             }
-
-            Children.Add(_commentMeta);
 
             this.SetIndicatorState(_comment.Likes);
         }
