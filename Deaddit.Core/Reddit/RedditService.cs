@@ -9,6 +9,7 @@ using Reddit.Api.Models.Enums;
 using Reddit.Api.Models.Json.Common;
 using Reddit.Api.Models.Json.LinksComments;
 using Reddit.Api.Models.Json.Listings;
+using Reddit.Api.Models.Json.Media;
 using Reddit.Api.Models.Json.Multis;
 using Reddit.Api.Models.Json.Subreddits;
 using Reddit.Api.Models.Json.Search;
@@ -76,7 +77,7 @@ namespace Deaddit.Core.Reddit
             }
         }
 
-        public async Task<ApiComment?> Comment(ApiThing replyTo, string comment)
+        public async Task<ApiComment?> Comment(ApiThing replyTo, string markdown)
         {
             try
             {
@@ -84,7 +85,8 @@ namespace Deaddit.Core.Reddit
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
-                Thing<Comment>? result = await _client.CommentAsync(replyTo.Name, comment);
+                RichTextDocument richtext = MarkdownRichTextConverter.Convert(markdown);
+                Thing<Comment>? result = await _client.CommentAsync(replyTo.Name, richtext);
 
                 stopwatch.Stop();
                 Debug.WriteLine($"[DEBUG] Time spent in Comment method: {stopwatch.ElapsedMilliseconds}ms");
@@ -100,6 +102,29 @@ namespace Deaddit.Core.Reddit
 
                 return null;
             }
+        }
+
+        public async Task<string> UploadMedia(Stream fileStream, string filename, string mimetype)
+        {
+            await this.EnsureAuthenticated();
+
+            MediaAssetResponse? lease = await _client.GetMediaAssetUploadLeaseAsync(filename, mimetype);
+
+            if (lease == null)
+            {
+                throw new InvalidOperationException("Failed to get media upload lease");
+            }
+
+            string mediaKey = lease.Args.Fields.First(f => f.Name == "key").Value;
+
+            bool uploaded = await _client.UploadMediaToS3Async(lease, fileStream, filename, mimetype);
+
+            if (!uploaded)
+            {
+                throw new InvalidOperationException("Failed to upload media to S3");
+            }
+
+            return mediaKey;
         }
 
         public async Task<List<ApiThing>> Comments(ApiPost post, ApiComment? focusComment)
@@ -805,7 +830,8 @@ namespace Deaddit.Core.Reddit
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
-                Thing<Comment>? result = await _client.EditAsync(thing.Name, thing.Body);
+                RichTextDocument richtext = MarkdownRichTextConverter.Convert(thing.Body);
+                Thing<Comment>? result = await _client.EditAsync(thing.Name, richtext);
 
                 stopwatch.Stop();
                 Debug.WriteLine($"[DEBUG] Time spent in Update method: {stopwatch.ElapsedMilliseconds}ms");

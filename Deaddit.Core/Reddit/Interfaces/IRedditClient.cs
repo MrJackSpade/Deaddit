@@ -19,7 +19,9 @@ namespace Deaddit.Core.Reddit.Interfaces
 
         Task<Subreddit?> About(SubRedditDefinition subreddit);
 
-        Task<ApiComment> Comment(ApiThing replyTo, string comment);
+        Task<ApiComment> Comment(ApiThing replyTo, string markdown);
+
+        Task<string> UploadMedia(Stream fileStream, string filename, string mimetype);
 
         Task<List<ApiThing>> Comments(ApiPost thing, ApiComment? focus);
 
