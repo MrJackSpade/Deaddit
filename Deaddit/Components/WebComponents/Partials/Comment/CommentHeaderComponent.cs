@@ -12,7 +12,9 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
 
         private readonly ApiComment _comment;
 
-        private readonly SpanComponent _commentMeta;
+        private readonly SpanComponent _elapsedTime;
+
+        private readonly SpanComponent _score;
 
         private readonly SpanComponent _scoreArrow;
 
@@ -26,14 +28,22 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
 
             AuthorNameComponent authorSpan = new(comment.Author, applicationStyling, _comment.Distinguished, _comment.Author == parentPost?.Author);
 
-            _scoreArrow = new()
+            _score = new()
             {
-                FontSize = $"{_applicationStyling.SubTextFontSize * 0.5}px",
-                LineHeight = "1",
-                MarginRight = "3px"
+                Color = _applicationStyling.SubTextColor.ToHex(),
+                FontSize = $"{_applicationStyling.SubTextFontSize}px",
             };
 
-            _commentMeta = new()
+            _scoreArrow = new()
+            {
+                Color = _applicationStyling.SubTextColor.ToHex(),
+                FontSize = $"{_applicationStyling.SubTextFontSize * 0.5}px",
+                LineHeight = "1",
+                VerticalAlign = "middle",
+                MarginLeft = "1px"
+            };
+
+            _elapsedTime = new()
             {
                 Color = _applicationStyling.SubTextColor.ToHex(),
                 FontSize = $"{_applicationStyling.SubTextFontSize}px",
@@ -41,8 +51,9 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
 
             Children.Add(_voteIndicator);
             Children.Add(authorSpan);
+            Children.Add(_score);
             Children.Add(_scoreArrow);
-            Children.Add(_commentMeta);
+            Children.Add(_elapsedTime);
 
             string? flairBackgroundColor = comment.AuthorFlairBackgroundColor.ToHex();
             string flairTextColor = comment.AuthorFlairTextColor.ToFlairTextHex(applicationStyling);
@@ -95,18 +106,20 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
 
         public void UpdateMeta()
         {
+            _elapsedTime.InnerText = $" {_comment.CreatedUtc.Elapsed()}";
+
             if (!_comment.ScoreHidden == true)
             {
                 string arrow = _comment.Score > 0 ? "▲" : _comment.Score < 0 ? "▼" : "";
+                _score.InnerText = $"{_comment.Score}";
                 _scoreArrow.InnerText = arrow;
                 _scoreArrow.Display = string.IsNullOrEmpty(arrow) ? "none" : "inline-block";
-                _commentMeta.InnerText = $"{_comment.Score} {_comment.CreatedUtc.Elapsed()}";
+                _score.Display = "inline";
             }
             else
             {
-                _scoreArrow.InnerText = string.Empty;
+                _score.Display = "none";
                 _scoreArrow.Display = "none";
-                _commentMeta.InnerText = _comment.CreatedUtc.Elapsed();
             }
         }
     }

@@ -190,6 +190,12 @@ namespace Maui.WebComponents.Components
             set => this.Style("margin-top", value);
         }
 
+        public string? VerticalAlign
+        {
+            get => this.Style("vertical-align");
+            set => this.Style("vertical-align", value);
+        }
+
         public string? MaxHeight
         {
             get => this.Style("max-height");
