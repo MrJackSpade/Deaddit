@@ -43,6 +43,13 @@
                     TextColor="{Binding TextColor}" />
 
                 <Button
+                    x:Name="imageButton"
+                    Text="&#x1F4F7;"
+                    Clicked="OnImageClicked"
+                    BackgroundColor="Transparent"
+                    TextColor="{Binding TextColor}" />
+
+                <Button
                     Text="Submit"
                     Clicked="OnSubmitClicked"
                     BackgroundColor="Transparent"

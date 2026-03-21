@@ -44,7 +44,7 @@ namespace Deaddit.Pages
 
             this.InitializeComponent();
 
-            if (_aiConfiguration.Prompts.Count > 0)
+            if (_claudeService.IsConfigured && _aiConfiguration.Prompts.Count > 0)
             {
                 Button aiButton = new()
                 {
@@ -151,6 +151,47 @@ namespace Deaddit.Pages
 
         public void OnPreviewClicked(object? sender, EventArgs e)
         {
+        }
+
+        public async void OnImageClicked(object? sender, EventArgs e)
+        {
+            try
+            {
+                FileResult? photo = await MediaPicker.Default.PickPhotoAsync();
+
+                if (photo == null)
+                {
+                    return;
+                }
+
+                imageButton.IsEnabled = false;
+                imageButton.Text = "...";
+
+                try
+                {
+                    string mimetype = photo.ContentType ?? "image/png";
+
+                    using Stream stream = await photo.OpenReadAsync();
+
+                    string mediaKey = await _redditClient.UploadMedia(stream, photo.FileName, mimetype);
+
+                    // Insert image placeholder at cursor position
+                    int cursorPos = textEditor.CursorPosition;
+                    string placeholder = $"![image]({mediaKey})";
+                    string text = textEditor.Text ?? "";
+                    textEditor.Text = text.Insert(cursorPos, placeholder);
+                    textEditor.CursorPosition = cursorPos + placeholder.Length;
+                }
+                finally
+                {
+                    imageButton.IsEnabled = true;
+                    imageButton.Text = "\U0001F4F7";
+                }
+            }
+            catch (Exception ex)
+            {
+                _displayExceptions.DisplayException(ex);
+            }
         }
 
         public async void OnSubmitClicked(object? sender, EventArgs e)

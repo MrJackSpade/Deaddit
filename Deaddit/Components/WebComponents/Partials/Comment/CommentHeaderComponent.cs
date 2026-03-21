@@ -14,6 +14,8 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
 
         private readonly SpanComponent _commentMeta;
 
+        private readonly SpanComponent _scoreArrow;
+
         private readonly SpanComponent _voteIndicator;
 
         public CommentHeaderComponent(ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, ApiComment comment, ApiPost parentPost)
@@ -24,15 +26,22 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
 
             AuthorNameComponent authorSpan = new(comment.Author, applicationStyling, _comment.Distinguished, _comment.Author == parentPost?.Author);
 
+            _scoreArrow = new()
+            {
+                FontSize = $"{_applicationStyling.SubTextFontSize * 0.5}px",
+                LineHeight = "1",
+                MarginRight = "3px"
+            };
+
             _commentMeta = new()
             {
                 Color = _applicationStyling.SubTextColor.ToHex(),
                 FontSize = $"{_applicationStyling.SubTextFontSize}px",
-                InnerText = this.GetMetaData()
             };
 
             Children.Add(_voteIndicator);
             Children.Add(authorSpan);
+            Children.Add(_scoreArrow);
             Children.Add(_commentMeta);
 
             string? flairBackgroundColor = comment.AuthorFlairBackgroundColor.ToHex();
@@ -64,9 +73,6 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
                     _voteIndicator.InnerText = "▲";
                     _voteIndicator.Color = _applicationStyling.UpvoteColor.ToHex();
                     _voteIndicator.Display = "inline-block";
-                    _voteIndicator.FontSize = $"{_applicationStyling.SubTextFontSize * 0.5}px";
-                    _voteIndicator.LineHeight = "1";
-                    _voteIndicator.MarginRight = "3px";
                     break;
 
                 case VoteState.Downvote:
@@ -74,9 +80,6 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
                     _voteIndicator.InnerText = "▼";
                     _voteIndicator.Color = _applicationStyling.DownvoteColor.ToHex();
                     _voteIndicator.Display = "inline-block";
-                    _voteIndicator.FontSize = $"{_applicationStyling.SubTextFontSize * 0.5}px";
-                    _voteIndicator.LineHeight = "1";
-                    _voteIndicator.MarginRight = "3px";
                     break;
 
                 default:
@@ -92,19 +95,18 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
 
         public void UpdateMeta()
         {
-            _commentMeta.InnerText = this.GetMetaData();
-        }
-
-        private string GetMetaData()
-        {
             if (!_comment.ScoreHidden == true)
             {
                 string arrow = _comment.Score > 0 ? "▲" : _comment.Score < 0 ? "▼" : "";
-                return $"{_comment.Score}{arrow} {_comment.CreatedUtc.Elapsed()}";
+                _scoreArrow.InnerText = arrow;
+                _scoreArrow.Display = string.IsNullOrEmpty(arrow) ? "none" : "inline-block";
+                _commentMeta.InnerText = $"{_comment.Score} {_comment.CreatedUtc.Elapsed()}";
             }
             else
             {
-                return _comment.CreatedUtc.Elapsed();
+                _scoreArrow.InnerText = string.Empty;
+                _scoreArrow.Display = "none";
+                _commentMeta.InnerText = _comment.CreatedUtc.Elapsed();
             }
         }
     }

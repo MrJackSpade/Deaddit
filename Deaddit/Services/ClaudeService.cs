@@ -12,8 +12,6 @@ namespace Deaddit.Services
 {
     public class ClaudeService : IClaudeService
     {
-        private readonly string _apiKey;
-
         private readonly HttpClient _httpClient;
 
         private readonly JsonSerializerOptions _jsonOptions;
@@ -24,10 +22,15 @@ namespace Deaddit.Services
 
         public ClaudeService(AIConfiguration aiConfiguration)
         {
-            _apiKey = string.IsNullOrWhiteSpace(aiConfiguration.ApiKey) ? throw new ArgumentNullException(nameof(aiConfiguration.ApiKey)) : aiConfiguration.ApiKey;
+            IsConfigured = !string.IsNullOrWhiteSpace(aiConfiguration.ApiKey);
+
             _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.Add("x-api-key", _apiKey);
-            _httpClient.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
+
+            if (IsConfigured)
+            {
+                _httpClient.DefaultRequestHeaders.Add("x-api-key", aiConfiguration.ApiKey);
+                _httpClient.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
+            }
 
             _jsonOptions = new JsonSerializerOptions
             {
@@ -36,6 +39,8 @@ namespace Deaddit.Services
                 Converters = { new MessageConverter() }
             };
         }
+
+        public bool IsConfigured { get; }
 
         public async Task<int> CountTokens(string prompt, string input, string? prefill = null)
         {
