@@ -62,7 +62,7 @@ namespace Deaddit.Core.Reddit.Models.Api
 
         public string? LinkFlairText { get; init; }
 
-        public JsonColor LinkFlairTextColor { get; init; }
+        public FlairTextColor LinkFlairTextColor { get; init; }
 
         public string? LinkFlairType { get; init; }
 

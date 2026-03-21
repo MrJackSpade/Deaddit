@@ -8,16 +8,27 @@ namespace Deaddit.Components.WebComponents
 {
     public class RichTextFlairComponent : SpanComponent
     {
-        public RichTextFlairComponent(IEnumerable<FlairRichtext> richtext, string highlightColor, ApplicationStyling applicationStyling)
+        public RichTextFlairComponent(IEnumerable<FlairRichtext> richtext, string textColor, ApplicationStyling applicationStyling, string? flairBackgroundColor = null)
         {
             FontSize = $"{applicationStyling.SubTextFontSize}px";
-            Color = highlightColor;
-            BackgroundColor = applicationStyling.PrimaryColor.ToHex();
+
+            string bgColor = flairBackgroundColor ?? applicationStyling.PrimaryColor.ToHex();
+
+            if (applicationStyling.SwapFlairColors && flairBackgroundColor != null)
+            {
+                Color = bgColor;
+                BackgroundColor = applicationStyling.PrimaryColor.ToHex();
+            }
+            else
+            {
+                Color = textColor;
+                BackgroundColor = bgColor;
+            }
             Display = "inline-flex";
             AlignItems = "center";
             Padding = "4px";
             BorderRadius = "4px";
-            BorderColor = highlightColor;
+            BorderColor = Color;
             Margin = "2px";
             this.Style("gap", "2px");
 

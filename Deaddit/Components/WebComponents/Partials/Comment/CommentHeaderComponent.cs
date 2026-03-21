@@ -35,18 +35,19 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
             Children.Add(authorSpan);
             Children.Add(_commentMeta);
 
-            string flairColor = comment.AuthorFlairBackgroundColor.ToHex() ?? applicationStyling.SubTextColor.ToHex();
+            string? flairBackgroundColor = comment.AuthorFlairBackgroundColor.ToHex();
+            string flairTextColor = comment.AuthorFlairTextColor.ToFlairTextHex(applicationStyling);
             if (applicationHacks.ShouldResolveFlairImages() && comment.AuthorFlairRichText.Count > 0)
             {
                 DivComponent flairContainer = new();
-                RichTextFlairComponent userFlair = new(comment.AuthorFlairRichText, flairColor, applicationStyling);
+                RichTextFlairComponent userFlair = new(comment.AuthorFlairRichText, flairTextColor, applicationStyling, flairBackgroundColor);
                 flairContainer.Children.Add(userFlair);
                 Children.Add(flairContainer);
             }
             else if (!string.IsNullOrWhiteSpace(comment.AuthorFlairText))
             {
                 DivComponent flairContainer = new();
-                FlairComponent userFlair = new(comment.AuthorFlairText, flairColor, applicationStyling);
+                FlairComponent userFlair = new(comment.AuthorFlairText, flairTextColor, applicationStyling, flairBackgroundColor);
                 flairContainer.Children.Add(userFlair);
                 Children.Add(flairContainer);
             }
@@ -63,6 +64,9 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
                     _voteIndicator.InnerText = "▲";
                     _voteIndicator.Color = _applicationStyling.UpvoteColor.ToHex();
                     _voteIndicator.Display = "inline-block";
+                    _voteIndicator.FontSize = $"{_applicationStyling.SubTextFontSize * 0.5}px";
+                    _voteIndicator.LineHeight = "1";
+                    _voteIndicator.MarginRight = "3px";
                     break;
 
                 case VoteState.Downvote:
@@ -70,6 +74,9 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
                     _voteIndicator.InnerText = "▼";
                     _voteIndicator.Color = _applicationStyling.DownvoteColor.ToHex();
                     _voteIndicator.Display = "inline-block";
+                    _voteIndicator.FontSize = $"{_applicationStyling.SubTextFontSize * 0.5}px";
+                    _voteIndicator.LineHeight = "1";
+                    _voteIndicator.MarginRight = "3px";
                     break;
 
                 default:

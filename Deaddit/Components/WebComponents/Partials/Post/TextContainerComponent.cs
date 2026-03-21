@@ -13,7 +13,7 @@ namespace Deaddit.Components.WebComponents.Partials.Post
         {
             Display = "flex";
             FlexDirection = "column";
-            Padding = "5px";
+            Padding = "0px 5px 5px 5px";
             FlexGrow = "1";
             OverflowX = "hidden";
 
@@ -21,7 +21,9 @@ namespace Deaddit.Components.WebComponents.Partials.Post
             {
                 InnerText = post.Title,
                 FontSize = $"{applicationStyling.TitleFontSize}px",
-                OverflowWrap = "break-word"
+                OverflowWrap = "break-word",
+                Margin = "0",
+                Padding = "0"
             };
 
             switch (post.Distinguished)
@@ -70,10 +72,11 @@ namespace Deaddit.Components.WebComponents.Partials.Post
 
             Children.Add(title);
 
-            string flairColor = post.LinkFlairBackgroundColor.ToHex() ?? applicationStyling.TextColor.ToHex();
+            string? flairBackgroundColor = post.LinkFlairBackgroundColor.ToHex();
+            string flairTextColor = post.LinkFlairTextColor.ToFlairTextHex(applicationStyling);
             if (applicationHacks.ShouldResolveFlairImages() && post.LinkFlairRichText.Count > 0)
             {
-                RichTextFlairComponent linkFlair = new(post.LinkFlairRichText, flairColor, applicationStyling)
+                RichTextFlairComponent linkFlair = new(post.LinkFlairRichText, flairTextColor, applicationStyling, flairBackgroundColor)
                 {
                     AlignSelf = "flex-start"
                 };
@@ -84,7 +87,7 @@ namespace Deaddit.Components.WebComponents.Partials.Post
                 string? cleanedLinkFlair = applicationHacks.CleanFlair(post.LinkFlairText);
                 if (!string.IsNullOrWhiteSpace(cleanedLinkFlair))
                 {
-                    FlairComponent linkFlair = new(cleanedLinkFlair, flairColor, applicationStyling)
+                    FlairComponent linkFlair = new(cleanedLinkFlair, flairTextColor, applicationStyling, flairBackgroundColor)
                     {
                         AlignSelf = "flex-start"
                     };
