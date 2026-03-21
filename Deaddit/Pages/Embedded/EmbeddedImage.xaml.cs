@@ -76,6 +76,12 @@ namespace Deaddit
                     let startScale = 1;
                     let isPinching = false;
                     let isDragging = false;
+                    let velocityX = 0;
+                    let velocityY = 0;
+                    let lastMoveTime = 0;
+                    let lastMoveX = 0;
+                    let lastMoveY = 0;
+                    let animationId = null;
 
                     function isZoomed() {
                         return scale > 1.05;
@@ -142,11 +148,17 @@ namespace Deaddit
                             startPosX = posX;
                             startPosY = posY;
                         } else if (e.touches.length === 1 && isZoomed()) {
+                            if (animationId) { cancelAnimationFrame(animationId); animationId = null; }
                             isDragging = true;
                             startX = e.touches[0].clientX;
                             startY = e.touches[0].clientY;
                             startPosX = posX;
                             startPosY = posY;
+                            lastMoveTime = Date.now();
+                            lastMoveX = startX;
+                            lastMoveY = startY;
+                            velocityX = 0;
+                            velocityY = 0;
                             e.preventDefault();
                         }
                     }, { passive: false });
@@ -168,8 +180,19 @@ namespace Deaddit
                             updateTransform();
                         } else if (isDragging && e.touches.length === 1) {
                             e.preventDefault();
-                            const dx = e.touches[0].clientX - startX;
-                            const dy = e.touches[0].clientY - startY;
+                            const now = Date.now();
+                            const currentX = e.touches[0].clientX;
+                            const currentY = e.touches[0].clientY;
+                            const dt = now - lastMoveTime;
+                            if (dt > 0) {
+                                velocityX = (currentX - lastMoveX) / dt * 16;
+                                velocityY = (currentY - lastMoveY) / dt * 16;
+                            }
+                            lastMoveTime = now;
+                            lastMoveX = currentX;
+                            lastMoveY = currentY;
+                            const dx = currentX - startX;
+                            const dy = currentY - startY;
                             posX = startPosX + dx;
                             posY = startPosY + dy;
                             clampPosition();
@@ -177,11 +200,30 @@ namespace Deaddit
                         }
                     }, { passive: false });
 
+                    function startMomentum() {
+                        const friction = 0.95;
+                        function animate() {
+                            velocityX *= friction;
+                            velocityY *= friction;
+                            if (Math.abs(velocityX) < 0.5 && Math.abs(velocityY) < 0.5) {
+                                animationId = null;
+                                return;
+                            }
+                            posX += velocityX;
+                            posY += velocityY;
+                            clampPosition();
+                            updateTransform();
+                            animationId = requestAnimationFrame(animate);
+                        }
+                        animationId = requestAnimationFrame(animate);
+                    }
+
                     container.addEventListener('touchend', (e) => {
                         if (e.touches.length < 2) {
                             isPinching = false;
                         }
                         if (e.touches.length === 0) {
+                            const wasDragging = isDragging;
                             isDragging = false;
                             // Reset to scale 1 if barely zoomed
                             if (scale < 1.05) {
@@ -189,6 +231,8 @@ namespace Deaddit
                                 posX = 0;
                                 posY = 0;
                                 updateTransform();
+                            } else if (wasDragging && (Math.abs(velocityX) > 1 || Math.abs(velocityY) > 1)) {
+                                startMomentum();
                             }
                         }
                     });
@@ -333,6 +377,10 @@ namespace Deaddit
             }
             catch (OperationCanceledException)
             {
+            }
+            catch (Exception ex)
+            {
+                await _displayMessages.DisplayException(ex);
             }
             finally
             {

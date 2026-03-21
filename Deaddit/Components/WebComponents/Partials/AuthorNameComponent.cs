@@ -11,6 +11,8 @@ namespace Deaddit.Components.WebComponents.Partials
             InnerText = author;
             Color = applicationStyling.SubTextColor.ToHex();
             MarginRight = "5px";
+            Padding = "2px";
+            BorderRadius = "3px";
 
             switch (distinguishedKind)
             {

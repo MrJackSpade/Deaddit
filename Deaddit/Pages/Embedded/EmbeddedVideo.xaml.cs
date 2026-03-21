@@ -99,6 +99,10 @@ namespace Deaddit
             catch (OperationCanceledException)
             {
             }
+            catch (Exception ex)
+            {
+                await _displayMessages.DisplayException(ex);
+            }
             finally
             {
                 downloadIndicator.IsRunning = false;

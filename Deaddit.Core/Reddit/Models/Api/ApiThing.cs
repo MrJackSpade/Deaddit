@@ -26,7 +26,7 @@ namespace Deaddit.Core.Reddit.Models.Api
 
         public string? AuthorFlairText { get; init; }
 
-        public JsonColor AuthorFlairTextColor { get; init; }
+        public FlairTextColor AuthorFlairTextColor { get; init; }
 
         public string? AuthorFlairType { get; init; }
 

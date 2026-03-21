@@ -26,6 +26,15 @@ namespace Deaddit.Core.Configurations.Models
         [EditorDisplay(Name = "Downvote Color", Order = 10)]
         public DynamicColor DownvoteColor { get; set; } = DynamicColor.Parse("#7193ff");
 
+        [EditorDisplay(Name = "Flair Dark Text Color", Order = 8)]
+        public DynamicColor FlairDarkTextColor { get; set; } = DynamicColor.Parse("#000000");
+
+        [EditorDisplay(Name = "Flair Light Text Color", Order = 8)]
+        public DynamicColor FlairLightTextColor { get; set; } = DynamicColor.Parse("#FFFFFF");
+
+        [EditorDisplay(Name = "Swap Flair Text and Background Colors", Order = 8)]
+        public bool SwapFlairColors { get; set; } = false;
+
         [EditorDisplay(Name = "Highlight Color", Order = 5)]
         public DynamicColor HighlightColor { get; set; } = DynamicColor.Parse("#313E4F");
 

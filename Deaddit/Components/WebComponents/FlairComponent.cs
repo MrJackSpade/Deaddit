@@ -6,17 +6,29 @@ namespace Deaddit.Components.WebComponents
 {
     public class FlairComponent : SpanComponent
     {
-        public FlairComponent(string text, string highlightColor, ApplicationStyling applicationStyling)
+        public FlairComponent(string text, string textColor, ApplicationStyling applicationStyling, string? flairBackgroundColor = null)
         {
             InnerText = HttpUtility.HtmlEncode(text);
             FontSize = $"{applicationStyling.SubTextFontSize}px";
-            Color = highlightColor;
-            BackgroundColor = applicationStyling.PrimaryColor.ToHex();
             Display = "inline";
             Padding = "4px";
             BorderRadius = "4px";
-            BorderColor = highlightColor;
             Margin = "2px";
+
+            string bgColor = flairBackgroundColor ?? applicationStyling.PrimaryColor.ToHex();
+
+            if (applicationStyling.SwapFlairColors && flairBackgroundColor != null)
+            {
+                Color = bgColor;
+                BackgroundColor = applicationStyling.PrimaryColor.ToHex();
+                BorderColor = bgColor;
+            }
+            else
+            {
+                Color = textColor;
+                BackgroundColor = bgColor;
+                BorderColor = textColor;
+            }
         }
     }
 }
