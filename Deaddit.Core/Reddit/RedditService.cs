@@ -676,6 +676,27 @@ namespace Deaddit.Core.Reddit
             return null;
         }
 
+        public async Task<bool> DeleteMulti(Multi multi)
+        {
+            try
+            {
+                await this.EnsureAuthenticated();
+
+                string multipath = multi.Path.TrimStart('/');
+
+                return await _client.DeleteMultiAsync(multipath);
+            }
+            catch (Exception ex)
+            {
+                if (!await this.DisplayException(ex))
+                {
+                    throw;
+                }
+            }
+
+            return false;
+        }
+
         public async Task<List<Multi>> Multis()
         {
             List<Multi> toReturn = [];
