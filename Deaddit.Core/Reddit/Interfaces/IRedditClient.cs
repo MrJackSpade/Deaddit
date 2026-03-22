@@ -49,6 +49,8 @@ namespace Deaddit.Core.Reddit.Interfaces
 
         Task<Multi?> CreateMulti(string name);
 
+        Task<bool> DeleteMulti(Multi multi);
+
         Task<List<Multi>> Multis();
 
         Task<bool> RemoveSubredditFromMulti(Multi multi, string subreddit);

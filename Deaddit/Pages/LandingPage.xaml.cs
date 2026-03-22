@@ -133,10 +133,14 @@ namespace Deaddit.Pages
 
             if (multi != null)
             {
+                _multis.Add(multi);
+
                 SubscriptionWebComponent component = _appNavigator.CreateSubscriptionWebComponent(
                     ThingDefinitionHelper.ForMulti(multi.Name),
                     _selectionGroup);
 
+                Multi captured = multi;
+                component.OnRemove += async (s, e) => await this.OnMultiRemove(captured, e);
                 await webElement.AddChild(component);
             }
         }
@@ -187,11 +191,35 @@ namespace Deaddit.Pages
 
                     foreach (Multi multi in _multis)
                     {
-                        await webElement.AddChild(_appNavigator.CreateSubscriptionWebComponent(
-                                                    ThingDefinitionHelper.ForMulti(multi.Name),
-                                                    _selectionGroup));
+                        SubscriptionWebComponent component = _appNavigator.CreateSubscriptionWebComponent(
+                            ThingDefinitionHelper.ForMulti(multi.Name),
+                            _selectionGroup);
+
+                        Multi captured = multi;
+                        component.OnRemove += async (s, e) => await this.OnMultiRemove(captured, e);
+                        await webElement.AddChild(component);
                     }
                 }, _applicationStyling.HighlightColor.ToHex());
+            }
+        }
+
+        private async Task OnMultiRemove(Multi multi, SubRedditSubscriptionRemoveEventArgs e)
+        {
+            bool confirmed = await this.DisplayAlert(
+                "Delete Multi",
+                $"Delete \"{multi.DisplayName}\"? This will permanently remove it from your Reddit account and cannot be undone.",
+                "Delete",
+                "Cancel");
+
+            if (!confirmed)
+            {
+                return;
+            }
+
+            if (await _redditClient.DeleteMulti(multi))
+            {
+                await webElement.RemoveChild((SubscriptionWebComponent)e.Component);
+                _multis.Remove(multi);
             }
         }
 
