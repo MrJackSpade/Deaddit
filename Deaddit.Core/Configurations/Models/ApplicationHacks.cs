@@ -35,6 +35,9 @@ namespace Deaddit.Core.Configurations.Models
         [EditorDisplay(Name = "Title Emoji Handling", Order = 2)]
         public OptionalStrip TitleEmojiHandling { get; set; } = OptionalStrip.None;
 
+        [EditorDisplay(Name = "Hide Self Karma", Order = 7)]
+        public bool HideSelfKarma { get; set; } = false;
+
         [EditorDisplay(Name = "Title Newlines", Order = 4)]
         public OptionalStrip TitleNewlines { get; set; } = OptionalStrip.None;
     }

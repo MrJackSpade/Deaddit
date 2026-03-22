@@ -194,7 +194,8 @@ namespace Deaddit.Core.Reddit.Mapping
                 ApprovedAtUtc = source.ApprovedAtUtc,
                 ApprovedBy = source.ApprovedBy,
                 BannedAtUtc = source.BannedAtUtc,
-                BannedBy = source.BannedBy
+                BannedBy = source.BannedBy,
+                New = source.New
             };
         }
 
@@ -255,7 +256,7 @@ namespace Deaddit.Core.Reddit.Mapping
                 Distinguished = source.Distinguished,
                 FirstMessage = source.FirstMessage,
                 FirstMessageName = source.FirstMessageName,
-                New = source.IsNew,
+                New = source.New,
                 Likes = source.Likes,
                 ParentId = source.ParentId,
                 Subject = source.Subject,

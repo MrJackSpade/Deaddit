@@ -12,6 +12,8 @@ namespace Deaddit.Components.WebComponents.Partials.Post
 
         private readonly SpanComponent _downvoteButton;
 
+        private readonly bool _hideSelfKarma;
+
         private readonly ApiPost _post;
 
         private readonly IRedditClient _redditClient;
@@ -20,11 +22,12 @@ namespace Deaddit.Components.WebComponents.Partials.Post
 
         private readonly SpanComponent _upvoteButton;
 
-        public VoteContainerComponent(ApplicationStyling applicationStyling, ApiPost post, IRedditClient redditClient)
+        public VoteContainerComponent(ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, ApiPost post, IRedditClient redditClient)
         {
             _applicationStyling = applicationStyling;
             _post = post;
             _redditClient = redditClient;
+            _hideSelfKarma = applicationHacks.HideSelfKarma && string.Equals(post.Author, redditClient.LoggedInUser, StringComparison.OrdinalIgnoreCase);
 
             Display = "flex";
             FlexGrow = "0";
@@ -42,9 +45,10 @@ namespace Deaddit.Components.WebComponents.Partials.Post
             _score = new SpanComponent
             {
                 TextAlign = "center",
-                InnerText = _post.Score.ToString(),
+                InnerText = _hideSelfKarma ? "" : _post.Score.ToString(),
                 FontSize = $"{applicationStyling.TitleFontSize}px",
                 Color = applicationStyling.TextColor.ToHex(),
+                Display = _hideSelfKarma ? "none" : "block",
             };
 
             _downvoteButton = new SpanComponent
@@ -71,7 +75,10 @@ namespace Deaddit.Components.WebComponents.Partials.Post
 
         public void UpdateScore()
         {
-            _score.InnerText = _post.Score.ToString();
+            if (!_hideSelfKarma)
+            {
+                _score.InnerText = _post.Score.ToString();
+            }
         }
 
         public void UpdateVoteState()
@@ -121,7 +128,11 @@ namespace Deaddit.Components.WebComponents.Partials.Post
                     break;
             }
 
-            _score.InnerText = _post.Score?.ToString() ?? string.Empty;
+            if (!_hideSelfKarma)
+            {
+                _score.InnerText = _post.Score?.ToString() ?? string.Empty;
+            }
+
             _redditClient.SetVoteState(_post, _post.Likes);
         }
 
@@ -152,7 +163,11 @@ namespace Deaddit.Components.WebComponents.Partials.Post
                     break;
             }
 
-            _score.InnerText = _post.Score.ToString();
+            if (!_hideSelfKarma)
+            {
+                _score.InnerText = _post.Score.ToString();
+            }
+
             _redditClient.SetVoteState(_post, _post.Likes);
         }
     }

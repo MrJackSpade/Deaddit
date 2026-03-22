@@ -45,6 +45,16 @@
                 HorizontalOptions="End"
                 Background="Transparent"
                 Clicked="OnAddClicked" />
+
+            <!-- Profile Button -->
+            <Button Text="&#x1F464;"
+                Grid.Column="3"
+                x:Name="profileButton"
+                VerticalOptions="Center"
+                TextColor="{Binding TextColor}"
+                HorizontalOptions="End"
+                Background="Transparent"
+                Clicked="OnProfileClicked" />
         </Grid>
         <!-- Main Content -->
         <components:RedditWebElement Grid.Row="1" x:Name="webElement">

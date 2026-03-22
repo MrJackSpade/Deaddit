@@ -108,7 +108,7 @@ namespace Deaddit.Core.Reddit.Models.Api
         /// <summary>
         /// If inbox message, otherwise null
         /// </summary>
-        public bool? Unread { get; set; }
+        public bool? New { get; set; }
 
         public UnrepliableReason UnrepliableReason { get; init; }
 

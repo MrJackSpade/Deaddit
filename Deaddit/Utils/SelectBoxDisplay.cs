@@ -10,7 +10,10 @@ namespace Deaddit.Utils
         {
             string[] trimmedOptions = options.Where(o => !string.IsNullOrWhiteSpace(o)).ToArray()!;
 
-            return await _navigation.NavigationStack[^1].DisplayActionSheet(title, null, null, trimmedOptions);
+            Page page = _navigation.NavigationStack.LastOrDefault(p => p != null)
+                     ?? Shell.Current.CurrentPage;
+
+            return await page.DisplayActionSheet(title, null, null, trimmedOptions);
         }
     }
 }

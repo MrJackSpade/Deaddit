@@ -79,7 +79,7 @@ namespace Deaddit.Components.WebComponents
 
             _replies = new RepliesContainerComponent(_applicationStyling);
 
-            _commentHeader = new CommentHeaderComponent(applicationStyling, applicationHacks, comment, post);
+            _commentHeader = new CommentHeaderComponent(applicationStyling, applicationHacks, comment, post, redditClient);
 
             SpanComponent authorSpan = new()
             {
@@ -251,10 +251,10 @@ namespace Deaddit.Components.WebComponents
             _bottomBar.Display = "flex";
             _replies.BorderLeft = $"1px solid {_applicationStyling.HighlightColor.ToHex()}";
 
-            if (_comment.Unread == true)
+            if (_comment.New == true)
             {
                 await _redditClient.MarkRead(_comment, true);
-                _comment.Unread = false;
+                _comment.New = false;
             }
         }
 

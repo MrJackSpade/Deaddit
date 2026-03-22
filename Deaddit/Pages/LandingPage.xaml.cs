@@ -10,6 +10,7 @@ using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Reddit.Models.ThingDefinitions;
 using Reddit.Api.Models.Json.Multis;
 using Deaddit.Core.Utils;
+using Deaddit.Core.Utils.MultiSelect;
 using Deaddit.EventArguments;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
@@ -31,11 +32,15 @@ namespace Deaddit.Pages
 
         private readonly IDisplayMessages _displayMessages;
 
+        private readonly MultiSelector _multiselector;
+
         private readonly IRedditClient _redditClient;
 
         private readonly SelectionGroup _selectionGroup = new();
 
-        public LandingPage(IAppNavigator appNavigator, IDisplayMessages displayMessages, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IRedditClient redditClient, RedditCredentials RedditCredentials, IConfigurationService configurationService, BlockConfiguration blockConfiguration)
+        private List<Multi> _multis = [];
+
+        public LandingPage(IAppNavigator appNavigator, IDisplayMessages displayMessages, ISelectBoxDisplay selectBoxDisplay, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IRedditClient redditClient, RedditCredentials RedditCredentials, IConfigurationService configurationService, BlockConfiguration blockConfiguration)
         {
             _applicationStyling = applicationTheme;
             //https://www.reddit.com/r/redditdev/comments/8pbx43/get_multireddit_listing/
@@ -44,6 +49,7 @@ namespace Deaddit.Pages
             _appNavigator = appNavigator;
             _redditClient = redditClient;
             _displayMessages = displayMessages;
+            _multiselector = new MultiSelector(selectBoxDisplay);
 
             _configuration = configurationService.Read<LandingPageConfiguration>();
 
@@ -61,6 +67,28 @@ namespace Deaddit.Pages
         }
 
         public async void OnAddClicked(object? sender, EventArgs e)
+        {
+            try
+            {
+                if (_redditClient.IsLoggedIn)
+                {
+                    await _multiselector.Select(
+                        "Add:",
+                        new("Subreddit", this.AddSubreddit),
+                        new("Multi", this.AddMulti));
+                }
+                else
+                {
+                    await this.AddSubreddit();
+                }
+            }
+            catch (Exception ex)
+            {
+                _displayMessages.DisplayException(ex);
+            }
+        }
+
+        private async Task AddSubreddit()
         {
             string result = await this.DisplayPromptAsync("", "Enter a SubReddit");
 
@@ -92,6 +120,27 @@ namespace Deaddit.Pages
             await webElement.AddChild(subRedditComponent);
         }
 
+        private async Task AddMulti()
+        {
+            string name = await this.DisplayPromptAsync("", "Enter a name for the new multi");
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return;
+            }
+
+            Multi? multi = await _redditClient.CreateMulti(name);
+
+            if (multi != null)
+            {
+                SubscriptionWebComponent component = _appNavigator.CreateSubscriptionWebComponent(
+                    ThingDefinitionHelper.ForMulti(multi.Name),
+                    _selectionGroup);
+
+                await webElement.AddChild(component);
+            }
+        }
+
         public async void OnMenuClicked(object? sender, EventArgs e)
         {
             await _appNavigator.OpenObjectEditor();
@@ -100,6 +149,14 @@ namespace Deaddit.Pages
         public async void OnMessageClicked(object sender, EventArgs e)
         {
             await _appNavigator.OpenMessages();
+        }
+
+        public async void OnProfileClicked(object? sender, EventArgs e)
+        {
+            if (_redditClient.LoggedInUser != null)
+            {
+                await _appNavigator.OpenUser(_redditClient.LoggedInUser);
+            }
         }
 
         private async Task InitializeContent()
@@ -126,13 +183,10 @@ namespace Deaddit.Pages
             {
                 await DataService.LoadAsync(webElement, async () =>
                 {
-                    foreach (Multi multi in await _redditClient.Multis())
-                    {
-                        if (!multi.Subreddits.NotNullAny())
-                        {
-                            continue;
-                        }
+                    _multis = await _redditClient.Multis();
 
+                    foreach (Multi multi in _multis)
+                    {
                         await webElement.AddChild(_appNavigator.CreateSubscriptionWebComponent(
                                                     ThingDefinitionHelper.ForMulti(multi.Name),
                                                     _selectionGroup));
