@@ -625,6 +625,57 @@ namespace Deaddit.Core.Reddit
             return toReturn;
         }
 
+        public async Task<bool> AddSubredditToMulti(Multi multi, string subreddit)
+        {
+            try
+            {
+                await this.EnsureAuthenticated();
+
+                string multipath = multi.Path.TrimStart('/');
+
+                return await _client.AddSubredditToMultiAsync(multipath, subreddit);
+            }
+            catch (Exception ex)
+            {
+                if (!await this.DisplayException(ex))
+                {
+                    throw;
+                }
+            }
+
+            return false;
+        }
+
+        public async Task<Multi?> CreateMulti(string name)
+        {
+            try
+            {
+                await this.EnsureAuthenticated();
+
+                string username = _client.AuthenticatedUser ?? throw new InvalidOperationException("Must be logged in to create a multi");
+                string multipath = $"user/{username}/m/{name}";
+
+                MultiCreateRequest request = new()
+                {
+                    DisplayName = name,
+                    Visibility = "private"
+                };
+
+                MultiResponse? result = await _client.CreateOrUpdateMultiAsync(multipath, request);
+
+                return result?.Data;
+            }
+            catch (Exception ex)
+            {
+                if (!await this.DisplayException(ex))
+                {
+                    throw;
+                }
+            }
+
+            return null;
+        }
+
         public async Task<List<Multi>> Multis()
         {
             List<Multi> toReturn = [];
@@ -649,6 +700,27 @@ namespace Deaddit.Core.Reddit
             }
 
             return toReturn;
+        }
+
+        public async Task<bool> RemoveSubredditFromMulti(Multi multi, string subreddit)
+        {
+            try
+            {
+                await this.EnsureAuthenticated();
+
+                string multipath = multi.Path.TrimStart('/');
+
+                return await _client.RemoveSubredditFromMultiAsync(multipath, subreddit);
+            }
+            catch (Exception ex)
+            {
+                if (!await this.DisplayException(ex))
+                {
+                    throw;
+                }
+            }
+
+            return false;
         }
 
         public async Task SetVoteState(ApiThing thing, VoteState state)

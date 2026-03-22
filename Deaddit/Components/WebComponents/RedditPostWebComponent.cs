@@ -125,7 +125,7 @@ namespace Deaddit.Components.WebComponents
                 _textContainer.ShowTimeUser(true);
             }
 
-            VoteContainerComponent voteContainer = new(applicationStyling, post, _redditClient);
+            VoteContainerComponent voteContainer = new(applicationStyling, applicationHacks, post, _redditClient);
 
             _textContainer.OnClick += this.TextContainer_OnClick;
             thumbnail.OnClick += this.Thumbnail_OnClick;

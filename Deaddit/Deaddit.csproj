@@ -29,6 +29,11 @@
 	  <AndroidPackageFormat>apk</AndroidPackageFormat>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(Configuration)'=='Release'">
+	  <DebugSymbols>true</DebugSymbols>
+	  <DebugType>portable</DebugType>
+	</PropertyGroup>
+
 	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
 	  <AndroidKeyStore>true</AndroidKeyStore>
 	  <AndroidSigningKeyStore>..\debug.keystore</AndroidSigningKeyStore>

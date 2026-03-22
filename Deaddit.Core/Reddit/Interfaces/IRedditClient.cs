@@ -45,7 +45,13 @@ namespace Deaddit.Core.Reddit.Interfaces
 
         Task<List<ApiThing>> MoreComments(ApiPost thing, IMore comment);
 
+        Task<bool> AddSubredditToMulti(Multi multi, string subreddit);
+
+        Task<Multi?> CreateMulti(string name);
+
         Task<List<Multi>> Multis();
+
+        Task<bool> RemoveSubredditFromMulti(Multi multi, string subreddit);
 
         Task SetVoteState(ApiThing thing, VoteState state);
 

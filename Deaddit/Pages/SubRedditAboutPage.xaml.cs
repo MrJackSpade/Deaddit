@@ -2,11 +2,13 @@ using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models.ThingDefinitions;
+using Deaddit.Core.Utils.MultiSelect;
 using Deaddit.Interfaces;
 using Deaddit.Pages.Models;
 using Deaddit.Utils;
 using Maui.WebComponents.Components;
 using Maui.WebComponents.Extensions;
+using Reddit.Api.Models.Json.Multis;
 using Reddit.Api.Models.Json.Subreddits;
 
 namespace Deaddit.Pages
@@ -21,6 +23,8 @@ namespace Deaddit.Pages
 
         private readonly DivComponent _bodyDiv;
 
+        private readonly MultiSelector _multiselector;
+
         private readonly IRedditClient _redditClient;
 
         private readonly SubRedditAboutPageModel _subRedditAboutPageModel;
@@ -31,7 +35,7 @@ namespace Deaddit.Pages
 
         private Subreddit? _apiSubReddit;
 
-        public SubRedditAboutPage(SubRedditDefinition subredditName, IAggregatePostHandler aggregatePostHandler, IAppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationTheme)
+        public SubRedditAboutPage(SubRedditDefinition subredditName, IAggregatePostHandler aggregatePostHandler, IAppNavigator appNavigator, IRedditClient redditClient, ISelectBoxDisplay selectBoxDisplay, ApplicationStyling applicationTheme)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
@@ -40,6 +44,7 @@ namespace Deaddit.Pages
             _redditClient = redditClient;
             _aggregatePostHandler = aggregatePostHandler;
             _subredditName = subredditName;
+            _multiselector = new MultiSelector(selectBoxDisplay);
             BindingContext = _subRedditAboutPageModel = new SubRedditAboutPageModel(applicationTheme);
 
             this.InitializeComponent();
@@ -70,6 +75,48 @@ namespace Deaddit.Pages
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
         public async void OnSubscribeClicked(object? sender, object e)
         {
+            if (_redditClient.IsLoggedIn)
+            {
+                List<Multi> multis = await _redditClient.Multis();
+
+                if (multis.Count > 0)
+                {
+                    string homeLabel = _apiSubReddit.UserIsSubscriber ? "✓ Home" : "Home";
+
+                    List<MultiSelectOption> options =
+                    [
+                        new(homeLabel, async () =>
+                        {
+                            await _redditClient.ToggleSubScription(_apiSubReddit, !_apiSubReddit.UserIsSubscriber);
+                            _apiSubReddit.UserIsSubscriber = !_apiSubReddit.UserIsSubscriber;
+                            this.SetSubscribeButtonState(_apiSubReddit.UserIsSubscriber);
+                        })
+                    ];
+
+                    foreach (Multi multi in multis)
+                    {
+                        Multi captured = multi;
+                        bool isInMulti = captured.Subreddits.Any(s => string.Equals(s.Name, _subredditName.Name, StringComparison.OrdinalIgnoreCase));
+                        string label = isInMulti ? $"✓ {captured.DisplayName}" : captured.DisplayName;
+
+                        options.Add(new(label, async () =>
+                        {
+                            if (isInMulti)
+                            {
+                                await _redditClient.RemoveSubredditFromMulti(captured, _subredditName.Name);
+                            }
+                            else
+                            {
+                                await _redditClient.AddSubredditToMulti(captured, _subredditName.Name);
+                            }
+                        }));
+                    }
+
+                    await _multiselector.Select("Manage subscription:", [.. options]);
+                    return;
+                }
+            }
+
             await _redditClient.ToggleSubScription(_apiSubReddit, !_apiSubReddit.UserIsSubscriber);
             _apiSubReddit.UserIsSubscriber = !_apiSubReddit.UserIsSubscriber;
             this.SetSubscribeButtonState(_apiSubReddit.UserIsSubscriber);

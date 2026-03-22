@@ -219,7 +219,7 @@ namespace Deaddit.Utils
 
         public async Task<SubRedditAboutPage> OpenSubRedditAbout(string subredditName)
         {
-            SubRedditAboutPage page = new(ThingDefinitionHelper.ForSubReddit(subredditName), AggregatePostHandler, this, RedditClient, ApplicationStyling);
+            SubRedditAboutPage page = new(ThingDefinitionHelper.ForSubReddit(subredditName), AggregatePostHandler, this, RedditClient, SelectBoxDisplay, ApplicationStyling);
             await Navigation.PushAsync(page);
             await page.TryLoad();
             return page;

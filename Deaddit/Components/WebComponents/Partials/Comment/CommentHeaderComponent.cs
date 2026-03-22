@@ -1,5 +1,6 @@
 ﻿using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Extensions;
+using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models.Api;
 using Maui.WebComponents.Components;
 using Reddit.Api.Models.Enums;
@@ -14,16 +15,19 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
 
         private readonly SpanComponent _elapsedTime;
 
+        private readonly bool _hideSelfKarma;
+
         private readonly SpanComponent _score;
 
         private readonly SpanComponent _scoreArrow;
 
         private readonly SpanComponent _voteIndicator;
 
-        public CommentHeaderComponent(ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, ApiComment comment, ApiPost parentPost)
+        public CommentHeaderComponent(ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, ApiComment comment, ApiPost parentPost, IRedditClient redditClient)
         {
             _applicationStyling = applicationStyling;
             _comment = comment;
+            _hideSelfKarma = applicationHacks.HideSelfKarma && string.Equals(comment.Author, redditClient.LoggedInUser, StringComparison.OrdinalIgnoreCase);
             _voteIndicator = new SpanComponent();
 
             AuthorNameComponent authorSpan = new(comment.Author, applicationStyling, _comment.Distinguished, _comment.Author == parentPost?.Author);
@@ -108,7 +112,7 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
         {
             _elapsedTime.InnerText = $" {_comment.CreatedUtc.Elapsed()}";
 
-            if (!_comment.ScoreHidden == true)
+            if (!_comment.ScoreHidden == true && !_hideSelfKarma)
             {
                 string arrow = _comment.Score > 0 ? "▲" : _comment.Score < 0 ? "▼" : "";
                 _score.InnerText = $"{_comment.Score}";
