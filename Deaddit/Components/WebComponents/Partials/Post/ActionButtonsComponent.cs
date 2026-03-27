@@ -25,13 +25,12 @@ namespace Deaddit.Components.WebComponents.Partials.Post
             ButtonComponent shareButton = this.CreateActionButton("Share");
             _saveButton = this.CreateActionButton(post.Saved == true ? "Unsave" : "Save");
             ButtonComponent hideButton = this.CreateActionButton("Hide");
-            ButtonComponent moreButton = this.CreateActionButton("...");
+            ButtonComponent moreButton = this.CreateActionButton("");
             ButtonComponent commentsButton = this.CreateActionButton("🗨");
 
             shareButton.OnClick += (s, e) => ShareClicked?.Invoke(this, EventArgs.Empty);
             _saveButton.OnClick += (s, e) => SaveClicked?.Invoke(this, EventArgs.Empty);
             hideButton.OnClick += (s, e) => HideClicked?.Invoke(this, EventArgs.Empty);
-            moreButton.OnClick += (s, e) => MoreClicked?.Invoke(this, EventArgs.Empty);
             commentsButton.OnClick += (s, e) => CommentsClicked?.Invoke(this, EventArgs.Empty);
 
             Children.Add(shareButton);

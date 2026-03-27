@@ -1,6 +1,7 @@
 ﻿using Deaddit.Core.Interfaces;
 using Deaddit.Core.Models;
 using Deaddit.Core.Reddit.Interfaces;
+using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils.Validation;
 using Deaddit.Interfaces;
@@ -52,7 +53,7 @@ namespace Deaddit.Handlers.Url
 
             ApiComment? focusComment = commentId != null ? new ApiComment { Id = commentId } : null;
 
-            await _appNavigator.OpenPost(post, focusComment);
+            await _appNavigator.OpenPost(post, focusComment != null ? new CommentFocus(focusComment) : null);
         }
     }
 }

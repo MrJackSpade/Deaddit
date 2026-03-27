@@ -4,6 +4,7 @@ using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models.Api;
 using Maui.WebComponents.Components;
 using Reddit.Api.Models.Enums;
+using System.Web;
 
 namespace Deaddit.Components.WebComponents.Partials.Comment
 {
@@ -23,7 +24,7 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
 
         private readonly SpanComponent _voteIndicator;
 
-        public CommentHeaderComponent(ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, ApiComment comment, ApiPost parentPost, IRedditClient redditClient)
+        public CommentHeaderComponent(ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, ApiComment comment, ApiPost parentPost, IRedditClient redditClient, UserTagCollection userTags)
         {
             _applicationStyling = applicationStyling;
             _comment = comment;
@@ -59,21 +60,44 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
             Children.Add(_scoreArrow);
             Children.Add(_elapsedTime);
 
-            string? flairBackgroundColor = comment.AuthorFlairBackgroundColor.ToHex();
-            string flairTextColor = comment.AuthorFlairTextColor.ToFlairTextHex(applicationStyling);
-            if (applicationHacks.ShouldResolveFlairImages() && comment.AuthorFlairRichText.Count > 0)
+            string? userTag = userTags.GetTag(comment.Author);
+
+            if (userTag != null)
             {
                 DivComponent flairContainer = new();
-                RichTextFlairComponent userFlair = new(comment.AuthorFlairRichText, flairTextColor, applicationStyling, flairBackgroundColor);
-                flairContainer.Children.Add(userFlair);
+                SpanComponent tagFlair = new()
+                {
+                    InnerText = HttpUtility.HtmlEncode(userTag),
+                    FontSize = $"{applicationStyling.SubTextFontSize}px",
+                    Display = "inline",
+                    Padding = "4px",
+                    BorderRadius = "4px",
+                    Margin = "2px",
+                    Color = "#ff4444",
+                    BackgroundColor = applicationStyling.PrimaryColor.ToHex(),
+                    BorderColor = "#ff4444"
+                };
+                flairContainer.Children.Add(tagFlair);
                 Children.Add(flairContainer);
             }
-            else if (!string.IsNullOrWhiteSpace(comment.AuthorFlairText))
+            else
             {
-                DivComponent flairContainer = new();
-                FlairComponent userFlair = new(comment.AuthorFlairText, flairTextColor, applicationStyling, flairBackgroundColor);
-                flairContainer.Children.Add(userFlair);
-                Children.Add(flairContainer);
+                string? flairBackgroundColor = comment.AuthorFlairBackgroundColor.ToHex();
+                string flairTextColor = comment.AuthorFlairTextColor.ToFlairTextHex(applicationStyling);
+                if (applicationHacks.ShouldResolveFlairImages() && comment.AuthorFlairRichText.Count > 0)
+                {
+                    DivComponent flairContainer = new();
+                    RichTextFlairComponent userFlair = new(comment.AuthorFlairRichText, flairTextColor, applicationStyling, flairBackgroundColor);
+                    flairContainer.Children.Add(userFlair);
+                    Children.Add(flairContainer);
+                }
+                else if (!string.IsNullOrWhiteSpace(comment.AuthorFlairText))
+                {
+                    DivComponent flairContainer = new();
+                    FlairComponent userFlair = new(comment.AuthorFlairText, flairTextColor, applicationStyling, flairBackgroundColor);
+                    flairContainer.Children.Add(userFlair);
+                    Children.Add(flairContainer);
+                }
             }
 
             this.SetIndicatorState(_comment.Likes);

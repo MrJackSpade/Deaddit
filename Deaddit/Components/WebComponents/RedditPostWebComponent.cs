@@ -93,7 +93,6 @@ namespace Deaddit.Components.WebComponents
             _actionButtons = new ActionButtonsComponent(applicationStyling, _post);
             _actionButtons.SaveClicked += this.SaveButton_OnClick;
             _actionButtons.ShareClicked += this.ShareButton_OnClick;
-            _actionButtons.MoreClicked += this.OnMoreClicked;
             _actionButtons.HideClicked += this.HideButton_OnClick;
             _actionButtons.CommentsClicked += this.CommentsButton_OnClick;
 
@@ -364,6 +363,15 @@ namespace Deaddit.Components.WebComponents
             });
         }
 
+        private async Task OnShareCommentsClicked()
+        {
+            await Share.Default.RequestAsync(new ShareTextRequest
+            {
+                Text = $"https://www.reddit.com{_post.Permalink}",
+                Title = _post.Title
+            });
+        }
+
         private async void SaveButton_OnClick(object? sender, EventArgs e)
         {
             if (_post.Saved == true)
@@ -387,11 +395,15 @@ namespace Deaddit.Components.WebComponents
                 await _multiselector.Select(
                     "Share:",
                     new("File", this.OnShareFileClicked),
-                    new("Link", this.OnShareLinkClicked));
+                    new("Link", this.OnShareLinkClicked),
+                    new("Comments", this.OnShareCommentsClicked));
             }
             else
             {
-                await this.OnShareLinkClicked();
+                await _multiselector.Select(
+                    "Share:",
+                    new("Link", this.OnShareLinkClicked),
+                    new("Comments", this.OnShareCommentsClicked));
             }
         }
 

@@ -113,7 +113,7 @@ namespace Deaddit.Pages
 
             ApiThing? toRender = _replyTo;
             SelectionGroup unused = new();
-            do
+            while (toRender != null)
             {
                 if (toRender is ApiComment rc)
                 {
@@ -134,7 +134,7 @@ namespace Deaddit.Pages
                 }
 
                 toRender = toRender.Parent;
-            } while (toRender != null);
+            }
 
             if (toEdit != null)
             {

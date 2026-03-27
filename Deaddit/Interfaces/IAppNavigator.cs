@@ -48,7 +48,7 @@ namespace Deaddit.Interfaces
 
         Task OpenObjectEditor();
 
-        Task<PostPage> OpenPost(ApiPost post, ApiComment focus = null, bool fromHistoryPage = false);
+        Task<PostPage> OpenPost(ApiPost post, CommentFocus? focus = null, bool fromHistoryPage = false);
 
         Task<ReplyPage> OpenReplyPage(ApiThing replyTo);
 
@@ -58,7 +58,7 @@ namespace Deaddit.Interfaces
 
         Task<ThingCollectionPage> OpenThing(ThingDefinition subRedditName);
 
-        Task<ThingCollectionPage> OpenUser(string username, UserProfileSort userProfileSort = UserProfileSort.New);
+        Task<ThingCollectionPage> OpenUser(string username, UserProfileSort userProfileSort = UserProfileSort.Overview);
 
         Task<EmbeddedVideo> OpenVideo(FileDownload url);
     }

@@ -43,7 +43,7 @@ namespace Deaddit.Core.Reddit.Interfaces
         /// <summary>
         /// Gets comments for a post.
         /// </summary>
-        Task<List<ApiThing>> Comments(ApiPost post, ApiComment? focusComment);
+        Task<List<ApiThing>> Comments(ApiPost post, CommentFocus? focus = null);
 
         /// <summary>
         /// Creates a new post.

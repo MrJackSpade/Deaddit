@@ -5,7 +5,7 @@ namespace Deaddit.Core.Reddit.Models.ThingDefinitions
 {
     public class UserDefinition(string name) : ThingDefinition(name, 'u')
     {
-        public override Enum DefaultSort => UserProfileSort.New;
+        public override Enum DefaultSort => UserProfileSort.Overview;
 
         public override ApiEndpointDefinition EndpointDefinition => new($"/user/{Name}");
 

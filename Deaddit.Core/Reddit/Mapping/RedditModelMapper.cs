@@ -92,6 +92,7 @@ namespace Deaddit.Core.Reddit.Mapping
                 ThumbnailWidth = source.ThumbnailWidth,
                 PostHint = source.PostHint,
                 CrossPostParent = source.CrosspostParent,
+                CrossPostParentList = source.CrosspostParentList?.Select(Map).ToList() ?? [],
                 NumCrossPosts = source.NumCrossposts,
                 Gilded = source.Gilded,
                 TotalAwardsReceived = source.TotalAwardsReceived,
