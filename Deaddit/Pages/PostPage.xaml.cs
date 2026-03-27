@@ -15,6 +15,7 @@ using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.Utils;
 using Maui.WebComponents.Components;
+using Reddit.Api.Models.Json.Subreddits;
 using Maui.WebComponents.Extensions;
 using System.Diagnostics;
 
@@ -26,7 +27,7 @@ namespace Deaddit.Pages
 
         private readonly ApplicationStyling _applicationStyling;
 
-        private readonly ApiComment? _commentFocus;
+        private readonly CommentFocus? _commentFocus;
 
         private readonly IConfigurationService _configurationService;
 
@@ -54,7 +55,7 @@ namespace Deaddit.Pages
 
         private readonly ButtonComponent shareButton;
 
-        public PostPage(ApiPost post, ApiComment? focus, ISelectBoxDisplay selectBoxDisplay, IDisplayMessages displayExceptions, IAggregateUrlHandler urlHandler, IAggregatePostHandler aggregatePostHandler, IAppNavigator appNavigator, IConfigurationService configurationService, IRedditClient redditClient, ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration)
+        public PostPage(ApiPost post, CommentFocus? focus, ISelectBoxDisplay selectBoxDisplay, IDisplayMessages displayExceptions, IAggregateUrlHandler urlHandler, IAggregatePostHandler aggregatePostHandler, IAppNavigator appNavigator, IConfigurationService configurationService, IRedditClient redditClient, ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, BlockConfiguration blockConfiguration)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
@@ -109,14 +110,13 @@ namespace Deaddit.Pages
 
             shareButton = this.ActionButton("Share");
             saveButton = this.ActionButton("Save");
-            moreButton = this.ActionButton("...");
+            moreButton = this.ActionButton("");
             _autoLoadImages = applicationHacks.AutoLoadCommentImages;
             loadImageButton = this.ActionButton(_autoLoadImages ? "" : "🖼");
             replyButton = this.ActionButton("Reply");
 
             shareButton.OnClick += this.OnShareClicked;
             saveButton.OnClick += this.OnSaveClicked;
-            moreButton.OnClick += this.OnMoreClicked;
             replyButton.OnClick += this.OnReplyClicked;
             if (!_autoLoadImages)
             {
@@ -219,7 +219,8 @@ namespace Deaddit.Pages
             await _multiselector.Select(
                 "Share:",
                 new($"File", this.OnShareFileClicked),
-                new($"Link", this.OnShareLinkClicked));
+                new($"Link", this.OnShareLinkClicked),
+                new($"Comments", this.OnShareCommentsClicked));
         }
 
         public async Task TryLoad()
@@ -314,15 +315,83 @@ namespace Deaddit.Pages
             "Select:",
             new($"Block...", this.OnMoreBlockClicked),
             new($"View...", this.OnMoreViewClicked),
-            new($"Share...", this.OnMoreShareClicked));
+            new($"Share...", this.OnMoreShareClicked),
+            new($"Report...", this.OnReportClicked));
         }
 
         private async Task OnMoreShareClicked()
         {
             await _multiselector.Select(
                 "Share:",
-                new(null, null),
-                new($"Comments", async () => await this.NewBlockRule(BlockRuleHelper.FromAuthor(Post))));
+                new($"Link", this.OnShareLinkClicked),
+                new($"Comments", async () => await Share.Default.RequestAsync(new ShareTextRequest
+                {
+                    Text = $"https://www.reddit.com{Post.Permalink}",
+                    Title = Post.Title
+                })));
+        }
+
+        private async Task OnReportClicked()
+        {
+            await _multiselector.Select(
+                "Report:",
+                new("Breaks Reddit Rules", this.OnReportRedditRulesClicked),
+                new("Breaks Subreddit Rules", this.OnReportSubredditRulesClicked));
+        }
+
+        private async Task OnReportRedditRulesClicked()
+        {
+            try
+            {
+                SubredditRulesResponse? rules = await _redditClient.GetSubredditRules(Post.SubRedditName);
+
+                if (rules?.SiteRules == null || rules.SiteRules.Count == 0)
+                {
+                    await this.DisplayAlert("Report", "No Reddit rules available", "OK");
+                    return;
+                }
+
+                MultiSelectOption[] items = rules.SiteRules.Select(rule =>
+                    new MultiSelectOption(rule, async () =>
+                    {
+                        await _redditClient.Report(Post, siteReason: rule);
+                        await this.DisplayAlert("Report", "Post reported successfully", "OK");
+                    })).ToArray();
+
+                await _multiselector.Select("Select Rule:", items);
+            }
+            catch (Exception ex)
+            {
+                await _displayExceptions.DisplayException(ex);
+            }
+        }
+
+        private async Task OnReportSubredditRulesClicked()
+        {
+            try
+            {
+                SubredditRulesResponse? rules = await _redditClient.GetSubredditRules(Post.SubRedditName);
+
+                if (rules?.Rules == null || rules.Rules.Count == 0)
+                {
+                    await this.DisplayAlert("Report", $"r/{Post.SubRedditName} has no specific rules", "OK");
+                    return;
+                }
+
+                MultiSelectOption[] items = rules.Rules.Select(rule =>
+                    new MultiSelectOption(rule.ShortName, async () =>
+                    {
+                        string ruleReason = rule.ViolationReason ?? rule.ShortName;
+                        await _redditClient.Report(Post, ruleReason: ruleReason);
+                        await this.DisplayAlert("Report", "Post reported successfully", "OK");
+                    })).ToArray();
+
+                await _multiselector.Select("Select Rule:", items);
+            }
+            catch (Exception ex)
+            {
+                await _displayExceptions.DisplayException(ex);
+            }
         }
 
         private async Task OnMoreViewClicked()
@@ -338,6 +407,15 @@ namespace Deaddit.Pages
             await Share.Default.RequestAsync(new ShareTextRequest
             {
                 Uri = Post.Url,
+                Title = Post.Title
+            });
+        }
+
+        private async Task OnShareCommentsClicked()
+        {
+            await Share.Default.RequestAsync(new ShareTextRequest
+            {
+                Text = $"https://www.reddit.com{Post.Permalink}",
                 Title = Post.Title
             });
         }

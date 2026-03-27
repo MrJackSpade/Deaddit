@@ -1,5 +1,6 @@
 ﻿using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
+
 using Deaddit.Core.Reddit.Models.Requests;
 using Deaddit.Core.Reddit.Models.ThingDefinitions;
 using Reddit.Api.Models.Enums;
@@ -23,7 +24,7 @@ namespace Deaddit.Core.Reddit.Interfaces
 
         Task<string> UploadMedia(Stream fileStream, string filename, string mimetype);
 
-        Task<List<ApiThing>> Comments(ApiPost thing, ApiComment? focus);
+        Task<List<ApiThing>> Comments(ApiPost thing, CommentFocus? focus = null);
 
         Task Delete(ApiThing thing);
 

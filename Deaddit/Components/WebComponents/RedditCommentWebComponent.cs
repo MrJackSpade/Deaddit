@@ -4,6 +4,7 @@ using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Extensions;
 using Deaddit.Core.Reddit.Interfaces;
+using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.Blocking;
@@ -53,7 +54,9 @@ namespace Deaddit.Components.WebComponents
 
         private readonly IAggregateUrlHandler _urlHandler;
 
-        public RedditCommentWebComponent(ApiComment comment, ApiPost? post, bool selectEnabled, IConfigurationService configurationService, IDisplayMessages displayMessages, ISelectBoxDisplay selectBoxDisplay, INavigation navigation, AppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, SelectionGroup selectionGroup, BlockConfiguration blockConfiguration, IAggregateUrlHandler urlHandler)
+        private readonly UserTagCollection _userTags;
+
+        public RedditCommentWebComponent(ApiComment comment, ApiPost? post, bool selectEnabled, IConfigurationService configurationService, IDisplayMessages displayMessages, ISelectBoxDisplay selectBoxDisplay, INavigation navigation, AppNavigator appNavigator, IRedditClient redditClient, ApplicationStyling applicationStyling, ApplicationHacks applicationHacks, SelectionGroup selectionGroup, BlockConfiguration blockConfiguration, IAggregateUrlHandler urlHandler, UserTagCollection userTags)
         {
             _multiselector = new MultiSelector(selectBoxDisplay);
             _comment = comment;
@@ -68,6 +71,7 @@ namespace Deaddit.Components.WebComponents
             _displayMessages = displayMessages;
             _configurationService = configurationService;
             _urlHandler = urlHandler;
+            _userTags = userTags;
 
             _commentContainer = new DivComponent()
             {
@@ -79,7 +83,7 @@ namespace Deaddit.Components.WebComponents
 
             _replies = new RepliesContainerComponent(_applicationStyling);
 
-            _commentHeader = new CommentHeaderComponent(applicationStyling, applicationHacks, comment, post, redditClient);
+            _commentHeader = new CommentHeaderComponent(applicationStyling, applicationHacks, comment, post, redditClient, userTags);
 
             SpanComponent authorSpan = new()
             {
@@ -164,6 +168,7 @@ namespace Deaddit.Components.WebComponents
                         "Select:",
                         new($"Block /u/{_comment.Author}", async () => await this.NewBlockRule(BlockRuleHelper.FromAuthor(_comment))),
                         new($"View /u/{_comment.Author}", async () => await AppNavigator.OpenUser(_comment.Author)),
+                        new($"Tag /u/{_comment.Author}", this.OnTagClicked),
                         new(_comment.Saved == true ? "Unsave" : "Save", async () =>
                         {
                             bool saveState = _comment.Saved == false;
@@ -171,7 +176,8 @@ namespace Deaddit.Components.WebComponents
                             _comment.Saved = saveState;
                         }),
                         new("Copy Raw", async () => await Clipboard.SetTextAsync(_comment.Body)),
-                        new("Copy Permalink", async () => await Clipboard.SetTextAsync(_comment.Permalink)),
+                        new("Copy Permalink", async () => await Clipboard.SetTextAsync($"https://www.reddit.com{_comment.Permalink}")),
+                        new("View Context", async () => await AppNavigator.OpenPost(Post, new CommentFocus(_comment))),
                         new("Report...", this.OnReportClicked)
                     );
                 }
@@ -324,7 +330,7 @@ namespace Deaddit.Components.WebComponents
 
         private async Task ContinueThread(ApiComment comment)
         {
-            await AppNavigator.OpenPost(Post, comment);
+            await AppNavigator.OpenPost(Post, new CommentFocus(comment, 0));
         }
 
         private void EditPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)
@@ -377,7 +383,7 @@ namespace Deaddit.Components.WebComponents
         {
             await Share.Default.RequestAsync(new ShareTextRequest
             {
-                Uri = _comment.Permalink,
+                Uri = $"https://www.reddit.com{_comment.Permalink}",
                 Title = _comment.Body
             });
         }
@@ -398,6 +404,28 @@ namespace Deaddit.Components.WebComponents
             RedditCommentWebComponent redditCommentComponent = AppNavigator.CreateCommentWebComponent(e.NewComment, Post, SelectionGroup);
             redditCommentComponent.OnDelete += (s, e) => _replies.Children.Remove(redditCommentComponent);
             _replies.Children.Insert(0, redditCommentComponent);
+        }
+
+        private async Task OnTagClicked()
+        {
+            string? existingTag = _userTags.GetTag(_comment.Author);
+            string prompt = existingTag != null ? $"Edit tag for /u/{_comment.Author}" : $"Tag /u/{_comment.Author}";
+
+            string result = await _navigation.NavigationStack[^1].DisplayPromptAsync(prompt, "", initialValue: existingTag ?? "");
+
+            if (result == null)
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(result))
+            {
+                _userTags.RemoveTag(_comment.Author);
+            }
+            else
+            {
+                _userTags.SetTag(_comment.Author, result);
+            }
         }
 
         private async Task OnReportClicked()

@@ -60,6 +60,7 @@ namespace Deaddit
             builder.Services.AddConfiguration<AIConfiguration>();
             builder.Services.AddConfiguration<BlockConfiguration>();
             builder.Services.AddConfiguration<ApplicationHacks>();
+            builder.Services.AddSingleton(s => new UserTagCollection(Path.Combine(FileSystem.AppDataDirectory, "user_tags.tsv")));
             builder.Services.AddSingleton<ETagCache>();
             builder.Services.AddSingleton<IDisplayMessages, MauiExceptionDisplay>();
             builder.Services.AddTransient((s) => Shell.Current.Navigation);

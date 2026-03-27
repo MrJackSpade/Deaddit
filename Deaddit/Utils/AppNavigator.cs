@@ -59,17 +59,19 @@ namespace Deaddit.Utils
 
         private IAggregateUrlHandler UrlHandler => _serviceProvider.GetService<IAggregateUrlHandler>()!;
 
+        private UserTagCollection UserTags => _serviceProvider.GetService<UserTagCollection>()!;
+
         private IVisitTracker VisitTracker => _serviceProvider.GetService<IVisitTracker>()!;
 
         public RedditCommentWebComponent CreateCommentWebComponent(ApiComment comment, ApiPost? post = null, SelectionGroup? selectionGroup = null)
         {
             if (selectionGroup is null)
             {
-                return new RedditCommentWebComponent(comment, post, false, ConfigurationService, DisplayMessages, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, ApplicationHacks, selectionGroup ?? new SelectionGroup(), BlockConfiguration, UrlHandler);
+                return new RedditCommentWebComponent(comment, post, false, ConfigurationService, DisplayMessages, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, ApplicationHacks, selectionGroup ?? new SelectionGroup(), BlockConfiguration, UrlHandler, UserTags);
             }
             else
             {
-                return new RedditCommentWebComponent(comment, post, true, ConfigurationService, DisplayMessages, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, ApplicationHacks, selectionGroup ?? new SelectionGroup(), BlockConfiguration, UrlHandler);
+                return new RedditCommentWebComponent(comment, post, true, ConfigurationService, DisplayMessages, SelectBoxDisplay, Navigation, this, RedditClient, ApplicationStyling, ApplicationHacks, selectionGroup ?? new SelectionGroup(), BlockConfiguration, UrlHandler, UserTags);
             }
         }
 
@@ -192,7 +194,7 @@ namespace Deaddit.Utils
             await this.OpenObjectEditor(null);
         }
 
-        public async Task<PostPage> OpenPost(ApiPost post, ApiComment focus, bool fromHistoryPage = false)
+        public async Task<PostPage> OpenPost(ApiPost post, CommentFocus? focus = null, bool fromHistoryPage = false)
         {
             HistoryTracker.AddToHistory(post, fromHistoryPage);
 
@@ -233,7 +235,7 @@ namespace Deaddit.Utils
             return page;
         }
 
-        public async Task<ThingCollectionPage> OpenUser(string username, UserProfileSort userProfileSort = UserProfileSort.New)
+        public async Task<ThingCollectionPage> OpenUser(string username, UserProfileSort userProfileSort = UserProfileSort.Overview)
         {
             ThingCollectionPage page = new(ThingDefinitionHelper.ForUser(username), userProfileSort, ETagCache, ApplicationHacks, DisplayMessages, AggregatePostHandler, UrlHandler, this, RedditClient, ApplicationStyling, BlockConfiguration);
             await Navigation.PushAsync(page);

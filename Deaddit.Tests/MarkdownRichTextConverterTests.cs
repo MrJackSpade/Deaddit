@@ -414,6 +414,120 @@ namespace Deaddit.Tests
 
         #endregion
 
+        #region Blockquotes
+
+        [TestMethod]
+        public void Convert_SimpleBlockquote_ReturnsBlockquoteElement()
+        {
+            RichTextDocument doc = MarkdownRichTextConverter.Convert("> quoted text");
+
+            Assert.AreEqual(1, doc.Document.Count);
+            Assert.AreEqual(RichTextElementType.Blockquote, doc.Document[0].ElementType);
+            Assert.AreEqual(1, doc.Document[0].Children.Count);
+            Assert.AreEqual(RichTextElementType.Paragraph, doc.Document[0].Children[0].ElementType);
+            Assert.AreEqual("quoted text", doc.Document[0].Children[0].Children[0].Text);
+        }
+
+        [TestMethod]
+        public void Convert_BlockquoteNoSpace_ReturnsBlockquoteElement()
+        {
+            RichTextDocument doc = MarkdownRichTextConverter.Convert(">quoted text");
+
+            Assert.AreEqual(1, doc.Document.Count);
+            Assert.AreEqual(RichTextElementType.Blockquote, doc.Document[0].ElementType);
+            Assert.AreEqual("quoted text", doc.Document[0].Children[0].Children[0].Text);
+        }
+
+        [TestMethod]
+        public void Convert_MultiLineBlockquote_SingleBlockquoteElement()
+        {
+            RichTextDocument doc = MarkdownRichTextConverter.Convert("> line one\n> line two\n> line three");
+
+            Assert.AreEqual(1, doc.Document.Count);
+            Assert.AreEqual(RichTextElementType.Blockquote, doc.Document[0].ElementType);
+            Assert.AreEqual(1, doc.Document[0].Children.Count);
+            Assert.AreEqual(RichTextElementType.Paragraph, doc.Document[0].Children[0].ElementType);
+            Assert.AreEqual("line one\nline two\nline three", doc.Document[0].Children[0].Children[0].Text);
+        }
+
+        [TestMethod]
+        public void Convert_BlockquoteBetweenParagraphs_CorrectOrder()
+        {
+            RichTextDocument doc = MarkdownRichTextConverter.Convert("before\n\n> quoted\n\nafter");
+
+            Assert.AreEqual(3, doc.Document.Count);
+            Assert.AreEqual(RichTextElementType.Paragraph, doc.Document[0].ElementType);
+            Assert.AreEqual("before", doc.Document[0].Children[0].Text);
+            Assert.AreEqual(RichTextElementType.Blockquote, doc.Document[1].ElementType);
+            Assert.AreEqual("quoted", doc.Document[1].Children[0].Children[0].Text);
+            Assert.AreEqual(RichTextElementType.Paragraph, doc.Document[2].ElementType);
+            Assert.AreEqual("after", doc.Document[2].Children[0].Text);
+        }
+
+        [TestMethod]
+        public void Convert_BlockquoteWithFormatting_FormattingPreserved()
+        {
+            RichTextDocument doc = MarkdownRichTextConverter.Convert("> **bold** text");
+
+            Assert.AreEqual(1, doc.Document.Count);
+            Assert.AreEqual(RichTextElementType.Blockquote, doc.Document[0].ElementType);
+
+            RichTextElement innerParagraph = doc.Document[0].Children[0];
+            string fullText = string.Join("", innerParagraph.Children
+                .Where(c => c.ElementType == RichTextElementType.Text)
+                .Select(c => c.Text));
+            Assert.AreEqual("bold text", fullText);
+        }
+
+        [TestMethod]
+        public void Convert_SpoilerNotTreatedAsBlockquote_ReturnsSpoilerFormat()
+        {
+            RichTextDocument doc = MarkdownRichTextConverter.Convert(">!spoiler text!<");
+
+            Assert.AreEqual(1, doc.Document.Count);
+            Assert.AreEqual(RichTextElementType.Paragraph, doc.Document[0].ElementType);
+            RichTextElement text = doc.Document[0].Children[0];
+            Assert.AreEqual("spoiler text", text.Text);
+            Assert.AreEqual(16, text.Format[0][0], "Format code should be 16 (spoiler)");
+        }
+
+        [TestMethod]
+        public void Convert_NestedBlockquote_ReturnsNestedBlockquoteElements()
+        {
+            RichTextDocument doc = MarkdownRichTextConverter.Convert(">> nested quote");
+
+            Assert.AreEqual(1, doc.Document.Count);
+            Assert.AreEqual(RichTextElementType.Blockquote, doc.Document[0].ElementType);
+            Assert.AreEqual(1, doc.Document[0].Children.Count);
+            Assert.AreEqual(RichTextElementType.Blockquote, doc.Document[0].Children[0].ElementType);
+            Assert.AreEqual("nested quote", doc.Document[0].Children[0].Children[0].Children[0].Text);
+        }
+
+        [TestMethod]
+        public void Convert_NestedBlockquoteWithSpace_ReturnsNestedBlockquoteElements()
+        {
+            RichTextDocument doc = MarkdownRichTextConverter.Convert("> > nested quote");
+
+            Assert.AreEqual(1, doc.Document.Count);
+            Assert.AreEqual(RichTextElementType.Blockquote, doc.Document[0].ElementType);
+            Assert.AreEqual(1, doc.Document[0].Children.Count);
+            Assert.AreEqual(RichTextElementType.Blockquote, doc.Document[0].Children[0].ElementType);
+        }
+
+        [TestMethod]
+        public void Convert_TwoSeparateBlockquotes_ReturnsTwoBlockquoteElements()
+        {
+            RichTextDocument doc = MarkdownRichTextConverter.Convert("> first quote\n\n> second quote");
+
+            Assert.AreEqual(2, doc.Document.Count);
+            Assert.AreEqual(RichTextElementType.Blockquote, doc.Document[0].ElementType);
+            Assert.AreEqual("first quote", doc.Document[0].Children[0].Children[0].Text);
+            Assert.AreEqual(RichTextElementType.Blockquote, doc.Document[1].ElementType);
+            Assert.AreEqual("second quote", doc.Document[1].Children[0].Children[0].Text);
+        }
+
+        #endregion
+
         #region Edge Cases
 
         [TestMethod]

@@ -127,7 +127,7 @@ namespace Deaddit.Core.Reddit
             return mediaKey;
         }
 
-        public async Task<List<ApiThing>> Comments(ApiPost post, ApiComment? focusComment)
+        public async Task<List<ApiThing>> Comments(ApiPost post, CommentFocus? focus = null)
         {
             List<ApiThing> toReturn = [];
 
@@ -139,12 +139,13 @@ namespace Deaddit.Core.Reddit
 
                 (Thing<Link> _, Listing<Thing<Comment>> comments) = await _client.GetCommentsAsync(
                     post.Id!,
-                    focusComment?.Id,
+                    focus?.Comment?.Id,
                     sort: null,
                     limit: null,
-                    depth: null);
+                    depth: null,
+                    context: focus?.Context);
 
-                ApiThing responseParent = (ApiThing?)focusComment ?? post;
+                ApiThing responseParent = (ApiThing?)focus?.Comment ?? post;
 
                 if (comments?.Data?.Children != null)
                 {

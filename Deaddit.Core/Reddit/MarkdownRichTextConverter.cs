@@ -140,10 +140,52 @@ namespace Deaddit.Core.Reddit
         }
 
         /// <summary>
+        /// Checks if the paragraph is a blockquote (lines starting with >) and handles accordingly.
+        /// </summary>
+        private static void AddParagraphElements(List<RichTextElement> document, string rawParagraph)
+        {
+            string trimmed = rawParagraph.TrimStart();
+
+            if (trimmed.StartsWith('>') && !trimmed.StartsWith(">!"))
+            {
+                // Strip > prefix from each line to get inner content
+                string[] lines = rawParagraph.Split('\n');
+                string inner = string.Join("\n", lines.Select(l =>
+                {
+                    string lt = l.TrimStart();
+                    if (lt.StartsWith("> "))
+                    {
+                        return lt[2..];
+                    }
+
+                    if (lt.StartsWith('>'))
+                    {
+                        return lt[1..];
+                    }
+
+                    return l;
+                }));
+
+                List<RichTextElement> blockquoteChildren = [];
+                AddParagraphElements(blockquoteChildren, inner);
+
+                document.Add(new RichTextElement
+                {
+                    ElementType = RichTextElementType.Blockquote,
+                    Children = blockquoteChildren
+                });
+            }
+            else
+            {
+                AddParagraphContent(document, rawParagraph);
+            }
+        }
+
+        /// <summary>
         /// Splits a paragraph around ![image](key) placeholders, adding
         /// text paragraphs and image elements directly to the document.
         /// </summary>
-        private static void AddParagraphElements(List<RichTextElement> document, string paragraph)
+        private static void AddParagraphContent(List<RichTextElement> document, string paragraph)
         {
             int lastIndex = 0;
             int i = 0;
