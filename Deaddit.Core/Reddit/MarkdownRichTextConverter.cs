@@ -275,11 +275,9 @@ namespace Deaddit.Core.Reddit
             // Reddit richtext format codes:
             // 1 = bold
             // 2 = italic
-            // 4 = strikethrough
-            // 8 = superscript
-            // 16 = spoiler (not standard markdown)
-            // 32 = inline code
-            // 64 = link (not used in format, links are separate elements)
+            // 8 = strikethrough
+            // 32 = superscript
+            // 64 = inline code
 
             List<(int format, int start, int length)> formats = [];
             string plainText = ExtractFormats(text, formats, elements);
@@ -330,7 +328,7 @@ namespace Deaddit.Core.Reddit
                         int start = resultLen;
                         code.CopyTo(0, result, resultLen, code.Length);
                         resultLen += code.Length;
-                        formats.Add((32, start, code.Length));
+                        formats.Add((64, start, code.Length));
                         i = end + 1;
                         continue;
                     }
@@ -408,7 +406,7 @@ namespace Deaddit.Core.Reddit
                         int start = resultLen;
                         inner.CopyTo(0, result, resultLen, inner.Length);
                         resultLen += inner.Length;
-                        formats.Add((4, start, inner.Length));
+                        formats.Add((8, start, inner.Length));
                         i = end + 2;
                         continue;
                     }
@@ -427,7 +425,7 @@ namespace Deaddit.Core.Reddit
                             int start = resultLen;
                             inner.CopyTo(0, result, resultLen, inner.Length);
                             resultLen += inner.Length;
-                            formats.Add((8, start, inner.Length));
+                            formats.Add((32, start, inner.Length));
                             i = end + 1;
                             continue;
                         }
@@ -445,25 +443,8 @@ namespace Deaddit.Core.Reddit
                         int start = resultLen;
                         inner.CopyTo(0, result, resultLen, inner.Length);
                         resultLen += inner.Length;
-                        formats.Add((8, start, inner.Length));
+                        formats.Add((32, start, inner.Length));
                         i = end;
-                        continue;
-                    }
-                }
-
-                // Spoiler: >!text!<
-                if (i + 1 < markdown.Length && markdown[i] == '>' && markdown[i + 1] == '!')
-                {
-                    int end = markdown.IndexOf("!<", i + 2);
-
-                    if (end != -1)
-                    {
-                        string inner = markdown[(i + 2)..end];
-                        int start = resultLen;
-                        inner.CopyTo(0, result, resultLen, inner.Length);
-                        resultLen += inner.Length;
-                        formats.Add((16, start, inner.Length));
-                        i = end + 2;
                         continue;
                     }
                 }

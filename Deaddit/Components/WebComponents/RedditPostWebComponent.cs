@@ -93,6 +93,7 @@ namespace Deaddit.Components.WebComponents
             _actionButtons = new ActionButtonsComponent(applicationStyling, _post);
             _actionButtons.SaveClicked += this.SaveButton_OnClick;
             _actionButtons.ShareClicked += this.ShareButton_OnClick;
+            _actionButtons.MoreClicked += this.OnMoreClicked;
             _actionButtons.HideClicked += this.HideButton_OnClick;
             _actionButtons.CommentsClicked += this.CommentsButton_OnClick;
 
@@ -242,18 +243,9 @@ namespace Deaddit.Components.WebComponents
             await _multiselector.Select(
             "Select:",
             new($"View...", this.OnMoreViewClicked),
-            new($"Share...", this.OnMoreShareClicked),
             new($"Block...", this.OnMoreBlockClicked),
             new($"Whitelist...", this.OnMoreWhitelistClicked),
             new($"Report...", this.OnReportClicked));
-        }
-
-        private async Task OnMoreShareClicked()
-        {
-            await _multiselector.Select(
-                "Share:",
-                new(null, null),
-                new($"Comments", async () => { }));
         }
 
         private async Task OnMoreViewClicked()
