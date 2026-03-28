@@ -184,6 +184,17 @@ namespace Deaddit.Utils
                 ConfigurationService.Write(editorConfiguration.BlockConfiguration);
                 ConfigurationService.Write(editorConfiguration.Styling);
                 ConfigurationService.Write(editorConfiguration.AIConfiguration);
+
+#if ANDROID
+                if (editorConfiguration.ApplicationHacks.KeepAlive)
+                {
+                    Platforms.Android.MainActivity.StartKeepAliveService();
+                }
+                else
+                {
+                    Platforms.Android.MainActivity.StopKeepAliveService();
+                }
+#endif
             };
 
             onSave?.Invoke();

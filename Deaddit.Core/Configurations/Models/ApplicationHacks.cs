@@ -40,5 +40,8 @@ namespace Deaddit.Core.Configurations.Models
 
         [EditorDisplay(Name = "Title Newlines", Order = 4)]
         public OptionalStrip TitleNewlines { get; set; } = OptionalStrip.None;
+
+        [EditorDisplay(Name = "Keep Alive (Background Service)", Order = 8)]
+        public bool KeepAlive { get; set; } = false;
     }
 }
