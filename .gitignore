@@ -24,3 +24,4 @@ Pat.dat
 Release/
 credentials.yaml
 *.user
+.claude/
