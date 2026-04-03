@@ -110,13 +110,14 @@ namespace Deaddit.Pages
 
             shareButton = this.ActionButton("Share");
             saveButton = this.ActionButton("Save");
-            moreButton = this.ActionButton("");
+            moreButton = this.ActionButton("...");
             _autoLoadImages = applicationHacks.AutoLoadCommentImages;
             loadImageButton = this.ActionButton(_autoLoadImages ? "" : "🖼");
             replyButton = this.ActionButton("Reply");
 
             shareButton.OnClick += this.OnShareClicked;
             saveButton.OnClick += this.OnSaveClicked;
+            moreButton.OnClick += this.OnMoreClicked;
             replyButton.OnClick += this.OnReplyClicked;
             if (!_autoLoadImages)
             {
@@ -282,7 +283,7 @@ namespace Deaddit.Pages
             this.AddChildren(response, true);
         }
 
-        private async Task NewBlockRule(BlockRule blockRule)
+        private async Task NewBlockRule(BlockRule blockRule, bool whitelist = false)
         {
             WebObjectEditorPage objectEditorPage = await AppNavigator.OpenObjectEditor(blockRule);
 
@@ -313,10 +314,21 @@ namespace Deaddit.Pages
         {
             await _multiselector.Select(
             "Select:",
-            new($"Block...", this.OnMoreBlockClicked),
             new($"View...", this.OnMoreViewClicked),
+            new($"Block...", this.OnMoreBlockClicked),
+            new($"Whitelist...", this.OnMoreWhitelistClicked),
             new($"Share...", this.OnMoreShareClicked),
             new($"Report...", this.OnReportClicked));
+        }
+
+        private async Task OnMoreWhitelistClicked()
+        {
+            await _multiselector.Select(
+            "Whitelist:",
+            new($"/u/{Post.Author}", async () => await this.NewBlockRule(BlockRuleHelper.FromAuthor(Post), true)),
+            new($"/r/{Post.SubRedditName}", async () => await this.NewBlockRule(BlockRuleHelper.FromSubReddit(Post), true)),
+            new(Post.Domain, async () => await this.NewBlockRule(BlockRuleHelper.FromDomain(Post), true)),
+            new(Post.LinkFlairText, async () => await this.NewBlockRule(BlockRuleHelper.FromFlair(Post), true)));
         }
 
         private async Task OnMoreShareClicked()
