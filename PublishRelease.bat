@@ -9,21 +9,21 @@ set REPO_OWNER=MrJackSpade
 set REPO_NAME=Deaddit
 
 ::----------------------------------------------
-:: Read and trim version from Version.dat
+:: Read and trim version from BuildVersion.dat
 ::----------------------------------------------
-if not exist Version.dat (
-    echo Error: Version.dat file not found.
+if not exist BuildVersion.dat (
+    echo Error: BuildVersion.dat file not found.
     goto :eof
 )
 
 :: Use PowerShell to read and trim the version string
-for /f "delims=" %%A in ('powershell -NoProfile -Command "Get-Content -Path 'Version.dat' | ForEach-Object { $_.Trim() }"') do (
+for /f "delims=" %%A in ('powershell -NoProfile -Command "Get-Content -Path 'BuildVersion.dat' | ForEach-Object { $_.Trim() }"') do (
     set "TAG_NAME=%%A"
 )
 
 :: Check if TAG_NAME is empty after trimming
 if "%TAG_NAME%"=="" (
-    echo Error: TAG_NAME is empty after trimming. Please check Version.dat.
+    echo Error: TAG_NAME is empty after trimming. Please check BuildVersion.dat.
     goto :eof
 )
 

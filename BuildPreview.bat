@@ -1,11 +1,6 @@
 @ECHO OFF
 SETLOCAL ENABLEDELAYEDEXPANSION
 
-REM Check if Version.Dat exists, if not, create it with 0.0.0
-IF NOT EXIST Version.Dat (
-    ECHO 0.0.0 > Version.Dat
-)
-
 REM Read the current version from Version.Dat
 SET /P Version=<Version.Dat
 
@@ -25,29 +20,31 @@ REM Ensure all components are set
 IF "%Minor%"=="" SET Minor=0
 IF "%Build%"=="" SET Build=0
 
-REM Increment the build number
+REM Preview uses next build number without persisting
 SET /A Build=%Build%+1
-
-REM Construct the new version string
 SET NewVersion=%Major%.%Minor%.%Build%
 
-REM Write the new version to Version.Dat
-ECHO %NewVersion% > Version.Dat
+REM Read and increment preview counter
+SET Preview=0
+IF EXIST Preview.dat (
+    SET /P Preview=<Preview.dat
+)
+SET /A Preview=%Preview%+1
+ECHO %Preview% > Preview.dat
 
-REM Reset preview counter
-IF EXIST Preview.dat DEL Preview.dat
+SET FullVersion=%NewVersion%-preview-%Preview%
 
 REM Write build version for BuildAndPublish to read
-ECHO %NewVersion% > BuildVersion.dat
+ECHO %FullVersion% > BuildVersion.dat
 
-REM Display the new version
-ECHO New Version: %NewVersion%
+REM Display the version
+ECHO Preview Version: %FullVersion%
 
 REM Proceed with the build
 dotnet build Deaddit -f net10.0-android -c Release --artifacts-path Release
 
 REM Cleanup
 ECHO Cleaning up...
-move Release\bin\Deaddit\release_net10.0-android\com.companyname.deaddit-Signed.apk Release\Deaddit-%NewVersion%.apk
+move Release\bin\Deaddit\release_net10.0-android\com.companyname.deaddit-Signed.apk Release\Deaddit-%FullVersion%.apk
 rmdir /s /Q Release\bin
 rmdir /s /Q Release\obj

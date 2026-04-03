@@ -1,13 +1,27 @@
 @echo off
-call BuildRelease.bat
+SETLOCAL ENABLEDELAYEDEXPANSION
 
-REM Tag the release with the version before publishing
-REM (PublishRelease creates the tag on GitHub via API, so push first)
-SET /P Version=<Version.dat
+IF /I "%1"=="preview" (
+    call BuildPreview.bat
+) ELSE (
+    call BuildRelease.bat
+)
+
+REM Read the version that was built
+SET /P Version=<BuildVersion.dat
+
+REM Tag and push
 git tag %Version%
 git push origin %Version%
 
-call PublishRelease.bat
+IF /I "%1"=="preview" (
+    call PublishPreview.bat
+) ELSE (
+    call PublishRelease.bat
+    powershell -ExecutionPolicy Bypass -File PostRelease.ps1
+)
 
-powershell -ExecutionPolicy Bypass -File PostRelease.ps1
+REM Cleanup temp file
+del BuildVersion.dat
+
 pause
