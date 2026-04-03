@@ -167,7 +167,13 @@ namespace Deaddit.Core.Reddit
                 }));
 
                 List<RichTextElement> blockquoteChildren = [];
-                AddParagraphElements(blockquoteChildren, inner);
+
+                // Inner content may contain multiple paragraphs separated by \n\n
+                string[] innerParagraphs = inner.Split("\n\n");
+                foreach (string innerParagraph in innerParagraphs)
+                {
+                    AddParagraphElements(blockquoteChildren, innerParagraph);
+                }
 
                 document.Add(new RichTextElement
                 {
@@ -317,6 +323,23 @@ namespace Deaddit.Core.Reddit
 
             while (i < markdown.Length)
             {
+                // Spoiler: >!text!<
+                if (markdown[i] == '>' && i + 1 < markdown.Length && markdown[i + 1] == '!')
+                {
+                    int end = markdown.IndexOf("!<", i + 2);
+
+                    if (end != -1)
+                    {
+                        string inner = markdown[(i + 2)..end];
+                        int start = resultLen;
+                        inner.CopyTo(0, result, resultLen, inner.Length);
+                        resultLen += inner.Length;
+                        formats.Add((16, start, inner.Length));
+                        i = end + 2;
+                        continue;
+                    }
+                }
+
                 // Inline code: `code`
                 if (markdown[i] == '`')
                 {

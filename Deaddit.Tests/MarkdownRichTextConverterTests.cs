@@ -157,7 +157,7 @@ namespace Deaddit.Tests
             RichTextElement text = doc.Document[0].Children[0];
             Assert.AreEqual("struck", text.Text);
             Assert.IsNotNull(text.Format);
-            Assert.AreEqual(4, text.Format[0][0], "Format code should be 4 (strikethrough)");
+            Assert.AreEqual(8, text.Format[0][0], "Format code should be 8 (strikethrough)");
         }
 
         #endregion
@@ -172,7 +172,7 @@ namespace Deaddit.Tests
             RichTextElement text = doc.Document[0].Children[0];
             Assert.AreEqual("code", text.Text);
             Assert.IsNotNull(text.Format);
-            Assert.AreEqual(32, text.Format[0][0], "Format code should be 32 (inline code)");
+            Assert.AreEqual(64, text.Format[0][0], "Format code should be 64 (inline code)");
         }
 
         #endregion
@@ -187,18 +187,18 @@ namespace Deaddit.Tests
             RichTextElement text = doc.Document[0].Children[0];
             Assert.AreEqual("super", text.Text);
             Assert.IsNotNull(text.Format);
-            Assert.AreEqual(8, text.Format[0][0], "Format code should be 8 (superscript)");
+            Assert.AreEqual(32, text.Format[0][0], "Format code should be 32 (superscript)");
         }
 
         [TestMethod]
-        public void Convert_SuperscriptWord_ReturnsFormatCode8()
+        public void Convert_SuperscriptWord_ReturnsFormatCode32()
         {
             RichTextDocument doc = MarkdownRichTextConverter.Convert("text ^word more");
 
             RichTextElement text = doc.Document[0].Children[0];
             Assert.AreEqual("text word more", text.Text);
             Assert.IsNotNull(text.Format);
-            Assert.AreEqual(8, text.Format[0][0]);
+            Assert.AreEqual(32, text.Format[0][0]);
             Assert.AreEqual(5, text.Format[0][1], "Start index should be 5");
             Assert.AreEqual(4, text.Format[0][2], "Length should be 4");
         }
@@ -512,6 +512,26 @@ namespace Deaddit.Tests
             Assert.AreEqual(RichTextElementType.Blockquote, doc.Document[0].ElementType);
             Assert.AreEqual(1, doc.Document[0].Children.Count);
             Assert.AreEqual(RichTextElementType.Blockquote, doc.Document[0].Children[0].ElementType);
+        }
+
+        [TestMethod]
+        public void Convert_BlockquoteWithEmptyLine_MultipleParagraphsInBlockquote()
+        {
+            RichTextDocument doc = MarkdownRichTextConverter.Convert("Test\n\n> Line 1\n>\n> Line 2\n\nTest");
+
+            Assert.AreEqual(3, doc.Document.Count);
+            Assert.AreEqual(RichTextElementType.Paragraph, doc.Document[0].ElementType);
+            Assert.AreEqual("Test", doc.Document[0].Children[0].Text);
+
+            Assert.AreEqual(RichTextElementType.Blockquote, doc.Document[1].ElementType);
+            Assert.AreEqual(2, doc.Document[1].Children.Count, "Blockquote should contain two paragraphs");
+            Assert.AreEqual(RichTextElementType.Paragraph, doc.Document[1].Children[0].ElementType);
+            Assert.AreEqual("Line 1", doc.Document[1].Children[0].Children[0].Text);
+            Assert.AreEqual(RichTextElementType.Paragraph, doc.Document[1].Children[1].ElementType);
+            Assert.AreEqual("Line 2", doc.Document[1].Children[1].Children[0].Text);
+
+            Assert.AreEqual(RichTextElementType.Paragraph, doc.Document[2].ElementType);
+            Assert.AreEqual("Test", doc.Document[2].Children[0].Text);
         }
 
         [TestMethod]

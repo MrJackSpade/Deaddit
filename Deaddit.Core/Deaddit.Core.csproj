@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
     <PackageReference Include="Loxifi.FFmpeg" Version="1.0.9" />
     <PackageReference Include="Loxifi.FFmpeg.Runtime.android-arm64.GPL" Version="1.0.9" />
     <PackageReference Include="Loxifi.FFmpeg.Runtime.win-x64.GPL" Version="1.0.9" />

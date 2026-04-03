@@ -86,10 +86,13 @@ namespace Deaddit.Components.WebComponents.Partials.Comment
                 string flairTextColor = comment.AuthorFlairTextColor.ToFlairTextHex(applicationStyling);
                 if (applicationHacks.ShouldResolveFlairImages() && comment.AuthorFlairRichText.Count > 0)
                 {
-                    DivComponent flairContainer = new();
                     RichTextFlairComponent userFlair = new(comment.AuthorFlairRichText, flairTextColor, applicationStyling, flairBackgroundColor);
-                    flairContainer.Children.Add(userFlair);
-                    Children.Add(flairContainer);
+                    if (userFlair.Children.Count > 0)
+                    {
+                        DivComponent flairContainer = new();
+                        flairContainer.Children.Add(userFlair);
+                        Children.Add(flairContainer);
+                    }
                 }
                 else if (!string.IsNullOrWhiteSpace(comment.AuthorFlairText))
                 {

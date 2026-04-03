@@ -4,6 +4,7 @@ using Deaddit.Configurations;
 using Deaddit.Configurations.Ai;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
+using Deaddit.Core.Reddit;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils;
@@ -138,7 +139,9 @@ namespace Deaddit.Pages
 
             if (toEdit != null)
             {
-                textEditor.Text = toEdit.Body;
+                textEditor.Text = !string.IsNullOrEmpty(toEdit.BodyHtml)
+                    ? HtmlMarkdownConverter.Convert(toEdit.BodyHtml)
+                    : toEdit.Body;
             }
         }
 

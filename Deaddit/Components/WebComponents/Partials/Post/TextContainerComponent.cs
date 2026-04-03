@@ -80,7 +80,10 @@ namespace Deaddit.Components.WebComponents.Partials.Post
                 {
                     AlignSelf = "flex-start"
                 };
-                Children.Add(linkFlair);
+                if (linkFlair.Children.Count > 0)
+                {
+                    Children.Add(linkFlair);
+                }
             }
             else
             {
