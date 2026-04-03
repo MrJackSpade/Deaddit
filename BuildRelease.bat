@@ -1,7 +1,7 @@
 @ECHO OFF
 SETLOCAL ENABLEDELAYEDEXPANSION
 
-REM Check if Version.Dat exists, if not, create it with 0.0.0.0
+REM Check if Version.Dat exists, if not, create it with 0.0.0
 IF NOT EXIST Version.Dat (
     ECHO 0.0.0 > Version.Dat
 )
@@ -33,6 +33,12 @@ SET NewVersion=%Major%.%Minor%.%Build%
 
 REM Write the new version to Version.Dat
 ECHO %NewVersion% > Version.Dat
+
+REM Reset preview counter
+IF EXIST Preview.dat DEL Preview.dat
+
+REM Write build version for BuildAndPublish to read
+ECHO %NewVersion% > BuildVersion.dat
 
 REM Display the new version
 ECHO New Version: %NewVersion%

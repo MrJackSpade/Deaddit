@@ -25,3 +25,5 @@ Release/
 credentials.yaml
 *.user
 .claude/
+Preview.dat
+BuildVersion.dat
