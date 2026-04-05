@@ -25,6 +25,12 @@
 		<HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
 	</PropertyGroup>
 
+	<PropertyGroup>
+	  <DeadditVersion Condition="'$(DeadditVersion)' == ''">dev</DeadditVersion>
+	  <InformationalVersion>$(DeadditVersion)</InformationalVersion>
+	  <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+	</PropertyGroup>
+
 	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-android|AnyCPU'">
 	  <AndroidPackageFormat>apk</AndroidPackageFormat>
 	</PropertyGroup>
@@ -197,7 +203,7 @@
 	  </MauiXaml>
 	</ItemGroup>
 
-	<ItemGroup>
+<ItemGroup>
 	  <ProjectReference Include="..\Deaddit.Core\Deaddit.Core.csproj" />
 	  <ProjectReference Include="..\Maui.WebComponents\Maui.WebComponents.csproj" />
 	</ItemGroup>

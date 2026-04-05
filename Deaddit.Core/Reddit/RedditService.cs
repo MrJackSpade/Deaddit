@@ -29,11 +29,16 @@ namespace Deaddit.Core.Reddit
 
         private readonly HttpClient _httpClient;
 
+        public RedditService(HttpClient httpClient)
+        {
+            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _client = new NewClient.RedditClient(new NewClient.RedditCredentials(), httpClient);
+        }
+
         public RedditService(IRedditCredentials credentials, HttpClient httpClient)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
 
-            // Create the new client internally using provided credentials
             NewClient.RedditCredentials clientCredentials = new()
             {
                 Username = credentials.UserName,
@@ -50,6 +55,11 @@ namespace Deaddit.Core.Reddit
         public bool IsLoggedIn => _client.IsAuthenticated;
 
         public string? LoggedInUser => _client.AuthenticatedUser;
+
+        public void SetTokenRefreshFunction(Func<Task<string?>> tokenRefreshFunc)
+        {
+            _client.SetTokenRefreshFunction(tokenRefreshFunc);
+        }
 
         public async Task<Subreddit?> About(SubRedditDefinition subreddit)
         {

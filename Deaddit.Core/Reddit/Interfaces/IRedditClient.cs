@@ -18,6 +18,8 @@ namespace Deaddit.Core.Reddit.Interfaces
 
         public string? LoggedInUser { get; }
 
+        void SetTokenRefreshFunction(Func<Task<string?>> tokenRefreshFunc);
+
         Task<Subreddit?> About(SubRedditDefinition subreddit);
 
         Task<ApiComment> Comment(ApiThing replyTo, string markdown);

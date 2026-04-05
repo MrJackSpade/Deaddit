@@ -40,7 +40,7 @@ namespace Deaddit.Pages
 
         private List<Multi> _multis = [];
 
-        public LandingPage(IAppNavigator appNavigator, IDisplayMessages displayMessages, ISelectBoxDisplay selectBoxDisplay, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IRedditClient redditClient, RedditCredentials RedditCredentials, IConfigurationService configurationService, BlockConfiguration blockConfiguration)
+        public LandingPage(IAppNavigator appNavigator, IDisplayMessages displayMessages, ISelectBoxDisplay selectBoxDisplay, ApplicationStyling applicationTheme, ApplicationHacks applicationHacks, IRedditClient redditClient, IConfigurationService configurationService, BlockConfiguration blockConfiguration)
         {
             _applicationStyling = applicationTheme;
             //https://www.reddit.com/r/redditdev/comments/8pbx43/get_multireddit_listing/
@@ -159,12 +159,82 @@ namespace Deaddit.Pages
         {
             if (_redditClient.LoggedInUser != null)
             {
-                await _appNavigator.OpenUser(_redditClient.LoggedInUser);
+                await _multiselector.Select(
+                    "Profile:",
+                    new($"/u/{_redditClient.LoggedInUser}", async () => await _appNavigator.OpenUser(_redditClient.LoggedInUser)),
+                    new("Log Out", this.Logout));
+            }
+            else
+            {
+                await this.WebViewLogin();
+            }
+        }
+
+        private async Task Logout()
+        {
+            Preferences.Remove("reddit_bearer_token");
+
+#if ANDROID
+            Android.Webkit.CookieManager.Instance?.RemoveAllCookies(null);
+            Android.Webkit.CookieManager.Instance?.Flush();
+#endif
+
+            await this.DisplayAlert("Logged Out", "Restart the app to complete logout.", "OK");
+        }
+
+        private async Task<string?> RefreshToken()
+        {
+            // First try the cached token
+            string? savedToken = Preferences.Get("reddit_bearer_token", null);
+
+            if (savedToken != null)
+            {
+                // Clear it so we don't retry the same expired token
+                Preferences.Remove("reddit_bearer_token");
+                return savedToken;
+            }
+
+            // No cached token (or it was already tried), open browser login
+            try
+            {
+                string? token = await _appNavigator.OpenRedditLogin();
+
+                if (token != null)
+                {
+                    Preferences.Set("reddit_bearer_token", token);
+                }
+
+                return token;
+            }
+            catch (Exception ex)
+            {
+                _displayMessages.DisplayException(ex);
+                return null;
+            }
+        }
+
+        private async Task WebViewLogin()
+        {
+            try
+            {
+                string? token = await _appNavigator.OpenRedditLogin();
+
+                if (token != null)
+                {
+                    Preferences.Set("reddit_bearer_token", token);
+                    await this.LoadMultis();
+                }
+            }
+            catch (Exception ex)
+            {
+                _displayMessages.DisplayException(ex);
             }
         }
 
         private async Task InitializeContent()
         {
+            _redditClient.SetTokenRefreshFunction(this.RefreshToken);
+
             await webElement.AddChild(_appNavigator.CreateSubscriptionWebComponent(ThingDefinitionHelper.ForSubReddit("All"), null));
             await webElement.AddChild(_appNavigator.CreateSubscriptionWebComponent(new HomeDefinition(), null));
             await webElement.AddChild(_appNavigator.CreateSubscriptionWebComponent(new SavedDefinition(), null));
@@ -183,7 +253,7 @@ namespace Deaddit.Pages
 
         private async Task LoadMultis()
         {
-            if (_redditClient.CanLogIn)
+            if (_redditClient.IsLoggedIn)
             {
                 await DataService.LoadAsync(webElement, async () =>
                 {

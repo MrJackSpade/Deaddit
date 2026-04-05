@@ -361,6 +361,19 @@ namespace Deaddit.Pages
 
                 parentLayout.Children.Add(labelLayout);
 
+                if (prop.GetCustomAttribute<EditorDisplayAttribute>() is EditorDisplayAttribute rda && rda.ReadOnly)
+                {
+                    Label readOnlyLabel = new()
+                    {
+                        Text = prop.GetValue(obj)?.ToString() ?? string.Empty,
+                        TextColor = _applicationStyling.TextColor.ToMauiColor(),
+                        Margin = new Thickness(5),
+                        Opacity = 0.7
+                    };
+                    parentLayout.Children.Add(readOnlyLabel);
+                    continue;
+                }
+
                 View? editor = this.CreateEditorForType(prop, obj);
 
                 if (editor != null)

@@ -53,7 +53,6 @@ namespace Deaddit.Utils
 
         private IRedditClient RedditClient => _serviceProvider.GetService<IRedditClient>()!;
 
-        private RedditCredentials RedditCredentials => _serviceProvider.GetService<RedditCredentials>()!;
 
         private ISelectBoxDisplay SelectBoxDisplay => _serviceProvider.GetService<ISelectBoxDisplay>()!;
 
@@ -119,6 +118,13 @@ namespace Deaddit.Utils
             return browser;
         }
 
+        public async Task<string?> OpenRedditLogin()
+        {
+            RedditLoginPage loginPage = new();
+            await Navigation.PushAsync(loginPage);
+            return await loginPage.TokenTask;
+        }
+
         public async Task<ReplyPage> OpenEditPage(ApiThing toEdit)
         {
             ReplyPage replyPage = new(null, toEdit, AIConfiguration, ClaudeService, DisplayMessages, this, RedditClient, ApplicationStyling);
@@ -169,7 +175,6 @@ namespace Deaddit.Utils
             EditorConfiguration editorConfiguration = new()
             {
                 BlockConfiguration = BlockConfiguration,
-                Credentials = RedditCredentials,
                 Styling = ApplicationStyling,
                 ApplicationHacks = ApplicationHacks,
                 AIConfiguration = AIConfiguration
@@ -180,7 +185,6 @@ namespace Deaddit.Utils
             editorPage.OnSave += (s, e) =>
             {
                 ConfigurationService.Write(editorConfiguration.ApplicationHacks);
-                ConfigurationService.Write(editorConfiguration.Credentials);
                 ConfigurationService.Write(editorConfiguration.BlockConfiguration);
                 ConfigurationService.Write(editorConfiguration.Styling);
                 ConfigurationService.Write(editorConfiguration.AIConfiguration);

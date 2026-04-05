@@ -32,6 +32,8 @@ namespace Deaddit.Interfaces
 
         Task<EmbeddedBrowser> OpenBrowser(string url);
 
+        Task<string?> OpenRedditLogin();
+
         Task<ReplyPage> OpenEditPage(ApiThing toEdit);
 
         Task<HistoryPage> OpenHistory();

@@ -176,6 +176,22 @@ namespace Deaddit.Tests
             Assert.AreEqual("> > nested quote", HtmlMarkdownConverter.Convert(html));
         }
 
+        [TestMethod]
+        public void Convert_BlockquoteFromRedditHtml_NoExtraNewlinesOrEmptyQuoteLine()
+        {
+            // Actual Reddit body_html structure: whitespace text nodes between block elements
+            // must not produce extra blank lines or empty "> " lines
+            string html =
+                "<div class=\"md\">" +
+                "<p>before</p>\n\n" +
+                "<blockquote>\n" +
+                "<p>quoted</p>\n" +
+                "</blockquote>\n\n" +
+                "<p>after</p>\n" +
+                "</div>";
+            Assert.AreEqual("before\n\n> quoted\n\nafter", HtmlMarkdownConverter.Convert(html));
+        }
+
         #endregion
 
         #region Tables

@@ -1,10 +1,15 @@
 ﻿using Deaddit.Core.Attributes;
 using Deaddit.Core.Configurations.Models;
+using System.Text.Json.Serialization;
 
 namespace Deaddit.Configurations
 {
     public class EditorConfiguration
     {
+        [EditorDisplay(Name = "Version", ReadOnly = true, Order = -100)]
+        [JsonIgnore]
+        public string Version { get; set; } = VersionInfo.Version;
+
         [EditorDisplay(Name = "AI Configuration")]
         public AIConfiguration AIConfiguration { get; set; } = new AIConfiguration();
 
@@ -13,9 +18,6 @@ namespace Deaddit.Configurations
 
         [EditorDisplay(Name = "Block Configuration")]
         public BlockConfiguration BlockConfiguration { get; set; } = new BlockConfiguration();
-
-        [EditorDisplay(Name = "Credentials")]
-        public RedditCredentials Credentials { get; set; } = new RedditCredentials();
 
         [EditorDisplay(Name = "Styling")]
         public ApplicationStyling Styling { get; set; } = new ApplicationStyling();
