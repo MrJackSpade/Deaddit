@@ -44,7 +44,7 @@ REM Display the new version
 ECHO New Version: %NewVersion%
 
 REM Proceed with the build
-dotnet build Deaddit -f net10.0-android -c Release --artifacts-path Release
+dotnet build Deaddit -f net10.0-android -c Release --artifacts-path Release -p:DeadditVersion=%NewVersion%
 
 REM Cleanup
 ECHO Cleaning up...

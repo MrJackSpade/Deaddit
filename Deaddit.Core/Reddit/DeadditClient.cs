@@ -13,6 +13,14 @@ namespace Deaddit.Core.Reddit
 
         public DeadditClient(
             IDisplayMessages displayMessages,
+            HttpClient httpClient)
+            : base(httpClient)
+        {
+            _displayMessages = displayMessages;
+        }
+
+        public DeadditClient(
+            IDisplayMessages displayMessages,
             IRedditCredentials credentials,
             HttpClient httpClient)
             : base(credentials, httpClient)

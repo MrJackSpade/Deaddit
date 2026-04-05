@@ -48,6 +48,14 @@ namespace Deaddit.Core.Reddit
             {
                 case HtmlNodeType.Text:
                     string text = HttpUtility.HtmlDecode(node.InnerText);
+
+                    // Skip whitespace-only text nodes between block elements
+                    // (insignificant HTML formatting whitespace from Reddit's body_html)
+                    if (string.IsNullOrWhiteSpace(text) && IsBlockContainer(node.ParentNode))
+                    {
+                        break;
+                    }
+
                     sb.Append(text);
                     break;
 
@@ -359,6 +367,20 @@ namespace Deaddit.Core.Reddit
             StringBuilder sb = new();
             ProcessChildren(node, sb);
             return sb.ToString();
+        }
+
+        private static bool IsBlockContainer(HtmlNode? node)
+        {
+            if (node == null)
+            {
+                return false;
+            }
+
+            return node.Name.ToLowerInvariant() switch
+            {
+                "div" or "blockquote" or "ul" or "ol" or "li" or "table" or "thead" or "tbody" or "tr" => true,
+                _ => false
+            };
         }
     }
 }

@@ -25,11 +25,10 @@ namespace Deaddit
 
             builder.Services.AddSingleton<IRedditClient>(s =>
             {
-                RedditCredentials redditCredentials = s.GetRequiredService<RedditCredentials>();
                 HttpClient httpClient = s.GetRequiredService<HttpClient>();
                 IDisplayMessages displayExceptions = s.GetRequiredService<IDisplayMessages>();
 
-                return new DeadditClient(displayExceptions, redditCredentials, httpClient);
+                return new DeadditClient(displayExceptions, httpClient);
             });
 
             // Register individual handlers as transient
@@ -56,7 +55,6 @@ namespace Deaddit
             builder.Services.AddTransient<IAggregatePostHandler, AggregatePostHandler>();
 
             builder.Services.AddConfiguration<ApplicationStyling>();
-            builder.Services.AddConfiguration<RedditCredentials>();
             builder.Services.AddConfiguration<AIConfiguration>();
             builder.Services.AddConfiguration<BlockConfiguration>();
             builder.Services.AddConfiguration<ApplicationHacks>();

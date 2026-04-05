@@ -184,6 +184,12 @@ namespace Deaddit.Tests
             await AssertNoDrift("Above\n\n---\n\nBelow");
         }
 
+        [TestMethod]
+        public async Task RoundTrip_BlockquoteFollowedByBareUrl_NoDrift()
+        {
+            await AssertNoDrift("> This is a quote\n\nhttps://www.example.com");
+        }
+
         // Nested blockquotes (> > text) are not supported by Reddit's richtext format.
         // Single-level blockquotes are tested by RoundTrip_Blockquote_NoDrift.
 

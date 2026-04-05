@@ -221,7 +221,9 @@ namespace Deaddit.Pages
                 bool masked = false;
                 bool multiline = false;
 
-                if (prop.GetCustomAttribute<EditorDisplayAttribute>() is EditorDisplayAttribute da)
+                EditorDisplayAttribute? da = prop.GetCustomAttribute<EditorDisplayAttribute>();
+
+                if (da != null)
                 {
                     if (!string.IsNullOrWhiteSpace(da.Name))
                     {
@@ -235,6 +237,13 @@ namespace Deaddit.Pages
 
                     masked = da.Masked;
                     multiline = da.Multiline;
+                }
+
+                if (da?.ReadOnly == true)
+                {
+                    ReadOnlyFieldComponent readOnlyField = new(labelText, descriptionText, prop, obj, _applicationStyling);
+                    _formContainer.Children.Add(readOnlyField);
+                    continue;
                 }
 
                 FormFieldComponent? field = this.CreateFieldForType(prop, obj, labelText, descriptionText, masked, multiline);
