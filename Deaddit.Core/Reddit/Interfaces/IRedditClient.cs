@@ -3,6 +3,7 @@ using Deaddit.Core.Reddit.Models.Api;
 
 using Deaddit.Core.Reddit.Models.Requests;
 using Deaddit.Core.Reddit.Models.ThingDefinitions;
+using Reddit.Api.Models;
 using Reddit.Api.Models.Enums;
 using Reddit.Api.Models.Json.Multis;
 using Reddit.Api.Models.Json.Subreddits;
@@ -20,6 +21,31 @@ namespace Deaddit.Core.Reddit.Interfaces
 
         void SetTokenRefreshFunction(Func<Task<string?>> tokenRefreshFunc);
 
+        /// <summary>
+        /// Stores a previously validated bearer token on the client.
+        /// </summary>
+        void SetBearerToken(BearerToken token);
+
+        /// <summary>
+        /// Verifies a bearer token by issuing a /api/v1/me request with it directly.
+        /// Returns true if the token is accepted by Reddit. Does not mutate client state.
+        /// </summary>
+        Task<bool> ValidateBearerToken(BearerToken token);
+
+        /// <summary>
+        /// Resolves the username that owns a raw access token by calling /api/v1/me with
+        /// it directly. Returns the username on success, or null if the token is rejected.
+        /// </summary>
+        Task<string?> GetTokenOwner(string accessToken);
+
+        /// <summary>
+        /// Drives the underlying client to apply any cached bearer token via the
+        /// configured token refresh function. Required after browser-based login
+        /// because the token is staged in Preferences but not yet on the client
+        /// until an authenticated request runs.
+        /// </summary>
+        Task<bool> EnsureLoggedInAsync();
+
         Task<Subreddit?> About(SubRedditDefinition subreddit);
 
         Task<ApiComment> Comment(ApiThing replyTo, string markdown);
@@ -31,6 +57,8 @@ namespace Deaddit.Core.Reddit.Interfaces
         Task Delete(ApiThing thing);
 
         Task<Dictionary<string, UserPartialData>> GetPartialUserData(IEnumerable<string> usernames);
+
+        Task<ApiComment?> GetComment(string id);
 
         Task<ApiPost?> GetPost(string id);
 

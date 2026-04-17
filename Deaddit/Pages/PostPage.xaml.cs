@@ -162,7 +162,15 @@ namespace Deaddit.Pages
 
             await webElement.RemoveChild(mcomponent);
 
-            await DataService.LoadAsync(mcomponent, async () => await this.LoadMoreAsync(Post, e), _applicationStyling.HighlightColor.ToHex());
+            try
+            {
+                await DataService.LoadAsync(mcomponent, async () => await this.LoadMoreAsync(Post, e), _applicationStyling.HighlightColor.ToHex());
+            }
+            catch (Exception ex)
+            {
+                await _displayExceptions.DisplayException(ex);
+                return;
+            }
 
             if (_autoLoadImages)
             {
@@ -226,7 +234,15 @@ namespace Deaddit.Pages
 
         public async Task TryLoad()
         {
-            await DataService.LoadAsync(commentContainer, this.LoadDataAsync, _applicationStyling.HighlightColor.ToHex());
+            try
+            {
+                await DataService.LoadAsync(commentContainer, this.LoadDataAsync, _applicationStyling.HighlightColor.ToHex());
+            }
+            catch (Exception ex)
+            {
+                await _displayExceptions.DisplayException(ex);
+                return;
+            }
 
             if (_autoLoadImages)
             {

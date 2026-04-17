@@ -164,7 +164,7 @@ namespace Deaddit.Pages
 
         public async void OnSettingsClicked(object? sender, EventArgs e)
         {
-            await _appNavigator.OpenObjectEditor();
+            await _appNavigator.OpenSettingsPage();
         }
 
         public async void ScrollDown(object? sender, EventArgs e)
@@ -349,6 +349,18 @@ namespace Deaddit.Pages
         }
 
         private async Task TryLoad()
+        {
+            try
+            {
+                await this.LoadInternalAsync();
+            }
+            catch (Exception ex)
+            {
+                await _displayExceptions.DisplayException(ex);
+            }
+        }
+
+        private async Task LoadInternalAsync()
         {
             // Wrap the loading process in a DataService call
             await DataService.LoadAsync(webElement, async () =>

@@ -5,6 +5,7 @@ using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Reddit.Models.Requests;
 using Deaddit.Core.Reddit.Models.ThingDefinitions;
+using Reddit.Api.Models;
 using Reddit.Api.Models.Enums;
 using Reddit.Api.Models.Json.Common;
 using Reddit.Api.Models.Json.LinksComments;
@@ -61,57 +62,69 @@ namespace Deaddit.Core.Reddit
             _client.SetTokenRefreshFunction(tokenRefreshFunc);
         }
 
-        public async Task<Subreddit?> About(SubRedditDefinition subreddit)
+        public void SetBearerToken(BearerToken token)
         {
+            _client.SetBearerToken(token);
+        }
+
+        public Task<bool> ValidateBearerToken(BearerToken token)
+        {
+            return _client.ValidateBearerToken(token);
+        }
+
+        public Task<string?> GetTokenOwner(string accessToken)
+        {
+            return _client.GetTokenOwner(accessToken);
+        }
+
+        public async Task<bool> EnsureLoggedInAsync()
+        {
+            if (_client.IsAuthenticated)
+            {
+                return true;
+            }
+
             try
             {
-                await this.TryAuthenticate();
-
-                Stopwatch stopwatch = Stopwatch.StartNew();
-
-                Thing<Subreddit>? result = await _client.GetSubredditAboutAsync(subreddit.Name);
-
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in About method: {stopwatch.ElapsedMilliseconds}ms");
-
-                return result?.Data;
+                // GetMeAsync calls EnsureAuthenticatedAsync internally, which invokes
+                // the token refresh function and applies the cached bearer token.
+                await _client.GetMeAsync();
             }
-            catch (Exception ex)
+            catch
             {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
-
-                return null;
+                // Auth probe: a failure here is the "not logged in" answer, not an error.
             }
+
+            return _client.IsAuthenticated;
+        }
+
+        public async Task<Subreddit?> About(SubRedditDefinition subreddit)
+        {
+            await this.TryAuthenticate();
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            Thing<Subreddit>? result = await _client.GetSubredditAboutAsync(subreddit.Name);
+
+            stopwatch.Stop();
+            Debug.WriteLine($"[DEBUG] Time spent in About method: {stopwatch.ElapsedMilliseconds}ms");
+
+            return result?.Data;
         }
 
         public async Task<ApiComment?> Comment(ApiThing replyTo, string markdown)
         {
-            try
-            {
-                await this.EnsureAuthenticated();
+            await this.EnsureAuthenticated();
 
-                Stopwatch stopwatch = Stopwatch.StartNew();
+            Stopwatch stopwatch = Stopwatch.StartNew();
 
-                RichTextDocument richtext = MarkdownRichTextConverter.Convert(markdown);
-                Thing<Comment>? result = await _client.CommentAsync(replyTo.Name, richtext);
+            RichTextDocument richtext = MarkdownRichTextConverter.Convert(markdown);
+            Thing<Comment>? result = await _client.CommentAsync(replyTo.Name, richtext);
 
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in Comment method: {stopwatch.ElapsedMilliseconds}ms");
+            stopwatch.Stop();
+            Debug.WriteLine($"[DEBUG] Time spent in Comment method: {stopwatch.ElapsedMilliseconds}ms");
 
-                return RedditModelMapper.Map(result);
-            }
-            catch (Exception ex)
-            {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
-
-                return null;
-            }
+            return RedditModelMapper.Map(result);
         }
 
         public async Task<string> UploadMedia(Stream fileStream, string filename, string mimetype)
@@ -141,323 +154,254 @@ namespace Deaddit.Core.Reddit
         {
             List<ApiThing> toReturn = [];
 
-            try
+            await this.TryAuthenticate();
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            (Thing<Link> _, Listing<Thing<Comment>> comments) = await _client.GetCommentsAsync(
+                post.Id!,
+                focus?.Comment?.Id,
+                sort: null,
+                limit: null,
+                depth: null,
+                context: focus?.Context);
+
+            ApiThing responseParent = (ApiThing?)focus?.Comment ?? post;
+
+            if (comments?.Data?.Children != null)
             {
-                await this.TryAuthenticate();
-
-                Stopwatch stopwatch = Stopwatch.StartNew();
-
-                (Thing<Link> _, Listing<Thing<Comment>> comments) = await _client.GetCommentsAsync(
-                    post.Id!,
-                    focus?.Comment?.Id,
-                    sort: null,
-                    limit: null,
-                    depth: null,
-                    context: focus?.Context);
-
-                ApiThing responseParent = (ApiThing?)focus?.Comment ?? post;
-
-                if (comments?.Data?.Children != null)
+                foreach (Thing<Comment> child in comments.Data.Children)
                 {
-                    foreach (Thing<Comment> child in comments.Data.Children)
+                    if (child?.Data == null)
                     {
-                        if (child?.Data == null)
-                        {
-                            continue;
-                        }
+                        continue;
+                    }
 
-                        // Check if this is a "more" item
-                        if (child.Kind == ThingKind.More)
+                    if (child.Kind == ThingKind.More)
+                    {
+                        ApiMore more = RedditModelMapper.MapMore(child.Data);
+                        more.Parent = responseParent;
+                        toReturn.Add(more);
+                    }
+                    else
+                    {
+                        ApiComment apiComment = RedditModelMapper.Map(child.Data);
+                        if (apiComment != null && apiComment.Id != post.Id)
                         {
-                            ApiMore more = RedditModelMapper.MapMore(child.Data);
-                            more.Parent = responseParent;
-                            toReturn.Add(more);
-                        }
-                        else
-                        {
-                            ApiComment apiComment = RedditModelMapper.Map(child.Data);
-                            if (apiComment != null && apiComment.Id != post.Id)
-                            {
-                                apiComment.Parent = responseParent;
-                                this.MapCommentReplies(apiComment, child.Data, apiComment);
-                                toReturn.Add(apiComment);
-                            }
+                            apiComment.Parent = responseParent;
+                            this.MapCommentReplies(apiComment, child.Data, apiComment);
+                            toReturn.Add(apiComment);
                         }
                     }
                 }
+            }
 
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in Comments method: {stopwatch.ElapsedMilliseconds}ms");
-            }
-            catch (Exception ex)
-            {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
-            }
+            stopwatch.Stop();
+            Debug.WriteLine($"[DEBUG] Time spent in Comments method: {stopwatch.ElapsedMilliseconds}ms");
 
             return toReturn;
         }
 
         public async Task<ApiPost?> CreatePost(string subreddit, string title, string content, SubmitKind kind)
         {
-            try
+            await this.EnsureAuthenticated();
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            SubmitRequest request = new()
             {
-                await this.EnsureAuthenticated();
+                Subreddit = subreddit,
+                Title = title,
+                Kind = kind
+            };
 
-                Stopwatch stopwatch = Stopwatch.StartNew();
-
-                SubmitRequest request = new()
-                {
-                    Subreddit = subreddit,
-                    Title = title,
-                    Kind = kind
-                };
-
-                if (kind is SubmitKind.Self)
-                {
-                    request.Text = content;
-                }
-                else if (kind == SubmitKind.Link)
-                {
-                    request.Url = content;
-                }
-
-                SubmitResponseData? result = await _client.SubmitAsync(request);
-
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in CreatePost method: {stopwatch.ElapsedMilliseconds}ms");
-
-                if (result?.Name != null)
-                {
-                    return await this.GetPost(result.Name);
-                }
-
-                return null;
-            }
-            catch (Exception ex)
+            if (kind is SubmitKind.Self)
             {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
-
-                return null;
+                request.Text = content;
             }
+            else if (kind == SubmitKind.Link)
+            {
+                request.Url = content;
+            }
+
+            SubmitResponseData? result = await _client.SubmitAsync(request);
+
+            stopwatch.Stop();
+            Debug.WriteLine($"[DEBUG] Time spent in CreatePost method: {stopwatch.ElapsedMilliseconds}ms");
+
+            if (result?.Name != null)
+            {
+                return await this.GetPost(result.Name);
+            }
+
+            return null;
         }
 
         public async Task Delete(ApiThing thing)
         {
-            try
-            {
-                await this.EnsureAuthenticated();
+            await this.EnsureAuthenticated();
 
-                Stopwatch stopwatch = Stopwatch.StartNew();
+            Stopwatch stopwatch = Stopwatch.StartNew();
 
-                await _client.DeleteThingAsync(thing.Name);
+            await _client.DeleteThingAsync(thing.Name);
 
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in Delete method: {stopwatch.ElapsedMilliseconds}ms");
-            }
-            catch (Exception ex)
-            {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
-            }
-        }
-
-        public virtual Task<bool> DisplayException(Exception ex)
-        {
-            return Task.FromResult(false);
+            stopwatch.Stop();
+            Debug.WriteLine($"[DEBUG] Time spent in Delete method: {stopwatch.ElapsedMilliseconds}ms");
         }
 
         public async Task<Dictionary<string, UserPartialData>> GetPartialUserData(IEnumerable<string> usernames)
         {
-            try
+            List<string> usernameList = usernames.Where(u => !string.IsNullOrWhiteSpace(u)).ToList();
+            if (usernameList.Count == 0)
             {
-                List<string> usernameList = usernames.Where(u => !string.IsNullOrWhiteSpace(u)).ToList();
-                if (usernameList.Count == 0)
-                {
-                    return [];
-                }
-
-                await this.EnsureAuthenticated();
-
-                Stopwatch stopwatch = Stopwatch.StartNew();
-
-                global::Reddit.Api.Models.Json.Users.UserDataByIdsResponse? result = await _client.GetUserDataByIdsAsync(usernameList);
-
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in GetPartialUserData method: {stopwatch.ElapsedMilliseconds}ms");
-
-                if (result == null || result.Count == 0)
-                {
-                    return [];
-                }
-
-                return new Dictionary<string, UserPartialData>(result);
-            }
-            catch (Exception ex)
-            {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
-
                 return [];
             }
+
+            await this.EnsureAuthenticated();
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            global::Reddit.Api.Models.Json.Users.UserDataByIdsResponse? result = await _client.GetUserDataByIdsAsync(usernameList);
+
+            stopwatch.Stop();
+            Debug.WriteLine($"[DEBUG] Time spent in GetPartialUserData method: {stopwatch.ElapsedMilliseconds}ms");
+
+            if (result == null || result.Count == 0)
+            {
+                return [];
+            }
+
+            return new Dictionary<string, UserPartialData>(result);
+        }
+
+        public async Task<ApiComment?> GetComment(string id)
+        {
+            await this.EnsureAuthenticated();
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            string fullname = id.StartsWith("t1_") ? id : $"t1_{id}";
+
+            Listing<Thing<Comment>>? result = await _client.GetCommentInfoAsync([fullname]);
+
+            stopwatch.Stop();
+            Debug.WriteLine($"[DEBUG] Time spent in GetComment method: {stopwatch.ElapsedMilliseconds}ms");
+
+            if (result?.Data?.Children?.Count > 0)
+            {
+                return RedditModelMapper.Map(result.Data.Children[0]);
+            }
+
+            return null;
         }
 
         public async Task<ApiPost?> GetPost(string id)
         {
-            try
+            await this.EnsureAuthenticated();
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            string fullname = id.StartsWith("t3_") ? id : $"t3_{id}";
+
+            Listing<Thing<Link>>? result = await _client.GetInfoAsync([fullname]);
+
+            stopwatch.Stop();
+            Debug.WriteLine($"[DEBUG] Time spent in GetPost method: {stopwatch.ElapsedMilliseconds}ms");
+
+            if (result?.Data?.Children?.Count > 0)
             {
-                await this.EnsureAuthenticated();
-
-                Stopwatch stopwatch = Stopwatch.StartNew();
-
-                string fullname = id.StartsWith("t3_") ? id : $"t3_{id}";
-
-                Listing<Thing<Link>>? result = await _client.GetInfoAsync([fullname]);
-
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in GetPost method: {stopwatch.ElapsedMilliseconds}ms");
-
-                if (result?.Data?.Children?.Count > 0)
-                {
-                    return RedditModelMapper.Map(result.Data.Children[0]);
-                }
-
-                return null;
+                return RedditModelMapper.Map(result.Data.Children[0]);
             }
-            catch (Exception ex)
-            {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
 
-                return null;
-            }
+            return null;
         }
 
         public async Task<List<ApiPost>> GetPosts(IEnumerable<string> ids)
         {
-            try
-            {
-                await this.EnsureAuthenticated();
+            await this.EnsureAuthenticated();
 
-                IEnumerable<string> fullnames = ids.Select(id => id.StartsWith("t3_") ? id : $"t3_{id}");
+            IEnumerable<string> fullnames = ids.Select(id => id.StartsWith("t3_") ? id : $"t3_{id}");
 
-                Listing<Thing<Link>>? result = await _client.GetByIdAsync(fullnames);
+            Listing<Thing<Link>>? result = await _client.GetByIdAsync(fullnames);
 
-                return RedditModelMapper.MapPostsTyped(result);
-            }
-            catch (Exception ex)
-            {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
-
-                return [];
-            }
+            return RedditModelMapper.MapPostsTyped(result);
         }
 
         public async Task<List<ApiThing>> GetPosts<T>(ApiEndpointDefinition endpointDefinition, T sort, int pageSize, string? after = null, Region region = Region.GLOBAL) where T : Enum
         {
-            List<ApiThing> toReturn = [];
+            await this.TryAuthenticate();
 
-            try
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            ListingParameters parameters = new()
             {
-                await this.TryAuthenticate();
+                After = after,
+                Limit = Math.Min(100, pageSize),
+                Geo = region != Region.GLOBAL ? region.ToString() : null
+            };
 
-                Stopwatch stopwatch = Stopwatch.StartNew();
+            string endpoint = endpointDefinition.Url.TrimStart('/');
 
-                ListingParameters parameters = new()
+            // Replace %USER% placeholder with actual username
+            if (endpoint.Contains("%USER%"))
+            {
+                endpoint = endpoint.Replace("%USER%", _client.AuthenticatedUser ?? throw new InvalidOperationException("Must be logged in to view this content"));
+            }
+
+            // Build the full URL dynamically based on endpoint and sort
+            string fullEndpoint;
+
+            if (sort != null)
+            {
+                string sortName = sort.ToString().ToLower();
+
+                if (string.IsNullOrEmpty(endpoint))
                 {
-                    After = after,
-                    Limit = Math.Min(100, pageSize),
-                    Geo = region != Region.GLOBAL ? region.ToString() : null
-                };
-
-                string endpoint = endpointDefinition.Url.TrimStart('/');
-
-                // Replace %USER% placeholder with actual username
-                if (endpoint.Contains("%USER%"))
-                {
-                    endpoint = endpoint.Replace("%USER%", _client.AuthenticatedUser ?? throw new InvalidOperationException("Must be logged in to view this content"));
-                }
-
-                // Build the full URL dynamically based on endpoint and sort
-                string fullEndpoint;
-
-                if (sort != null)
-                {
-                    string sortName = sort.ToString().ToLower();
-
-                    if (string.IsNullOrEmpty(endpoint))
-                    {
-                        // Front page
-                        fullEndpoint = $"/{sortName}";
-                    }
-                    else
-                    {
-                        // Subreddit or user endpoint - append sort
-                        fullEndpoint = $"/{endpoint}/{sortName}";
-                    }
+                    fullEndpoint = $"/{sortName}";
                 }
                 else
                 {
-                    // No sort - use endpoint as-is
-                    fullEndpoint = string.IsNullOrEmpty(endpoint) ? "/" : $"/{endpoint}";
-                }
-
-                Listing<Thing<object>>? result = await _client.GetListingAsync<object>(fullEndpoint, parameters);
-
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in GetPosts method: {stopwatch.ElapsedMilliseconds}ms");
-
-                toReturn = RedditModelMapper.MapThings(result);
-
-                // Fallback to search API for empty user profiles
-                if (toReturn.Count == 0 && after == null && endpoint.StartsWith("user/") && !fullEndpoint.EndsWith("/comments"))
-                {
-                    string username = endpoint.Split('/')[1];
-
-                    Debug.WriteLine($"[DEBUG] User profile empty for {username}, falling back to search API");
-
-                    SearchParameters searchParams = new()
-                    {
-                        Query = $"author:{username}",
-                        Sort = SearchSort.New,
-                        Time = "all",
-                        Limit = Math.Min(100, pageSize)
-                    };
-
-                    Listing<Thing<Link>>? searchResult = await _client.SearchAsync(searchParams);
-
-                    if (searchResult != null)
-                    {
-                        toReturn = RedditModelMapper.MapPostsTyped(searchResult).Cast<ApiThing>().ToList();
-                    }
-                }
-
-                // Trim to page size if needed
-                if (toReturn.Count > pageSize)
-                {
-                    toReturn = toReturn.Take(pageSize).ToList();
+                    fullEndpoint = $"/{endpoint}/{sortName}";
                 }
             }
-            catch (Exception ex)
+            else
             {
-                if (!await this.DisplayException(ex))
+                fullEndpoint = string.IsNullOrEmpty(endpoint) ? "/" : $"/{endpoint}";
+            }
+
+            Listing<Thing<object>>? result = await _client.GetListingAsync<object>(fullEndpoint, parameters);
+
+            stopwatch.Stop();
+            Debug.WriteLine($"[DEBUG] Time spent in GetPosts method: {stopwatch.ElapsedMilliseconds}ms");
+
+            List<ApiThing> toReturn = RedditModelMapper.MapThings(result);
+
+            // Fallback to search API for empty user profiles
+            if (toReturn.Count == 0 && after == null && endpoint.StartsWith("user/") && !fullEndpoint.EndsWith("/comments"))
+            {
+                string username = endpoint.Split('/')[1];
+
+                Debug.WriteLine($"[DEBUG] User profile empty for {username}, falling back to search API");
+
+                SearchParameters searchParams = new()
                 {
-                    throw;
+                    Query = $"author:{username}",
+                    Sort = SearchSort.New,
+                    Time = "all",
+                    Limit = Math.Min(100, pageSize)
+                };
+
+                Listing<Thing<Link>>? searchResult = await _client.SearchAsync(searchParams);
+
+                if (searchResult != null)
+                {
+                    toReturn = RedditModelMapper.MapPostsTyped(searchResult).Cast<ApiThing>().ToList();
                 }
+            }
+
+            if (toReturn.Count > pageSize)
+            {
+                toReturn = toReturn.Take(pageSize).ToList();
             }
 
             return toReturn;
@@ -471,534 +415,335 @@ namespace Deaddit.Core.Reddit
 
         public async Task<User?> GetUserData(string username)
         {
-            try
-            {
-                await this.TryAuthenticate();
+            await this.TryAuthenticate();
 
-                Thing<User>? result = await _client.GetUserAboutAsync(username);
-                return result?.Data;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
+            Thing<User>? result = await _client.GetUserAboutAsync(username);
+            return result?.Data;
         }
 
         public async Task MarkRead(ApiThing message, bool state)
         {
-            try
-            {
-                await this.EnsureAuthenticated();
+            await this.EnsureAuthenticated();
 
-                if (state)
-                {
-                    await _client.ReadMessageAsync(message.Name);
-                }
-                else
-                {
-                    await _client.UnreadMessageAsync(message.Name);
-                }
-            }
-            catch (Exception ex)
+            if (state)
             {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
+                await _client.ReadMessageAsync(message.Name);
+            }
+            else
+            {
+                await _client.UnreadMessageAsync(message.Name);
             }
         }
 
         public async Task Message(User user, string subject, string body)
         {
-            try
-            {
-                await this.EnsureAuthenticated();
+            await this.EnsureAuthenticated();
 
-                Stopwatch stopwatch = Stopwatch.StartNew();
+            Stopwatch stopwatch = Stopwatch.StartNew();
 
-                await _client.ComposeMessageAsync(user.Name!, subject, body);
+            await _client.ComposeMessageAsync(user.Name!, subject, body);
 
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in Message method: {stopwatch.ElapsedMilliseconds}ms");
-            }
-            catch (Exception ex)
-            {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
-            }
+            stopwatch.Stop();
+            Debug.WriteLine($"[DEBUG] Time spent in Message method: {stopwatch.ElapsedMilliseconds}ms");
         }
 
         public async Task<List<ApiThing>> MoreComments(ApiPost post, IMore moreItem)
         {
             List<ApiThing> toReturn = [];
 
-            try
+            await this.EnsureAuthenticated();
+
+            if (moreItem.ChildNames == null || moreItem.ChildNames.Count == 0)
             {
-                await this.EnsureAuthenticated();
-
-                if (moreItem.ChildNames == null || moreItem.ChildNames.Count == 0)
-                {
-                    return toReturn;
-                }
-
-                Stopwatch stopwatch = Stopwatch.StartNew();
-
-                List<Thing<Comment>>? result = await _client.GetMoreChildrenAsync(
-                    post.Name,
-                    moreItem.ChildNames,
-                    sort: null,
-                    depth: 999);
-
-                if (result != null)
-                {
-                    // Build tree structure
-                    Dictionary<string, ApiComment> tree = [];
-
-                    foreach (Thing<Comment> thing in result)
-                    {
-                        if (thing?.Data != null && thing.Kind != ThingKind.More)
-                        {
-                            ApiComment comment = RedditModelMapper.Map(thing.Data);
-                            if (comment != null)
-                            {
-                                tree[comment.Name] = comment;
-                            }
-                        }
-                    }
-
-                    // Link parents
-                    List<ApiThing> allThings = [];
-                    foreach (Thing<Comment> thing in result)
-                    {
-                        if (thing?.Data == null)
-                        {
-                            continue;
-                        }
-
-                        if (thing.Kind == ThingKind.More)
-                        {
-                            ApiMore more = RedditModelMapper.MapMore(thing.Data);
-                            allThings.Add(more);
-                        }
-                        else if (tree.TryGetValue(thing.Data.Name, out ApiComment? comment))
-                        {
-                            allThings.Add(comment);
-                        }
-                    }
-
-                    // Nest children under parents
-                    foreach (ApiThing? apiThing in allThings.ToList())
-                    {
-                        if (apiThing is ApiComment apiComment)
-                        {
-                            if (apiComment.ParentId != null && tree.TryGetValue(apiComment.ParentId, out ApiComment? parent))
-                            {
-                                parent.AddReply(apiComment);
-                                allThings.Remove(apiThing);
-                            }
-                        }
-
-                        if (apiThing is ApiMore apiMore)
-                        {
-                            if (apiMore.ParentId != null && tree.TryGetValue(apiMore.ParentId, out ApiComment? parent))
-                            {
-                                parent.AddReply(apiMore);
-                                allThings.Remove(apiThing);
-                            }
-                        }
-                    }
-
-                    // Set parent for remaining top-level items
-                    foreach (ApiThing apiThing in allThings)
-                    {
-                        if (moreItem.Parent != null)
-                        {
-                            SetParent(moreItem.Parent, apiThing);
-                        }
-
-                        toReturn.Add(apiThing);
-                    }
-                }
-
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in MoreComments method: {stopwatch.ElapsedMilliseconds}ms");
+                return toReturn;
             }
-            catch (Exception ex)
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            List<Thing<Comment>>? result = await _client.GetMoreChildrenAsync(
+                post.Name,
+                moreItem.ChildNames,
+                sort: null,
+                depth: 999);
+
+            if (result == null)
             {
-                if (!await this.DisplayException(ex))
+                return toReturn;
+            }
+
+            // Build tree structure
+            Dictionary<string, ApiComment> tree = [];
+
+            foreach (Thing<Comment> thing in result)
+            {
+                if (thing?.Data != null && thing.Kind != ThingKind.More)
                 {
-                    throw;
+                    ApiComment comment = RedditModelMapper.Map(thing.Data);
+                    if (comment != null)
+                    {
+                        tree[comment.Name] = comment;
+                    }
                 }
             }
+
+            // Link parents
+            List<ApiThing> allThings = [];
+            foreach (Thing<Comment> thing in result)
+            {
+                if (thing?.Data == null)
+                {
+                    continue;
+                }
+
+                if (thing.Kind == ThingKind.More)
+                {
+                    ApiMore more = RedditModelMapper.MapMore(thing.Data);
+                    allThings.Add(more);
+                }
+                else if (tree.TryGetValue(thing.Data.Name, out ApiComment? comment))
+                {
+                    allThings.Add(comment);
+                }
+            }
+
+            // Nest children under parents
+            foreach (ApiThing? apiThing in allThings.ToList())
+            {
+                if (apiThing is ApiComment apiComment)
+                {
+                    if (apiComment.ParentId != null && tree.TryGetValue(apiComment.ParentId, out ApiComment? parent))
+                    {
+                        parent.AddReply(apiComment);
+                        allThings.Remove(apiThing);
+                    }
+                }
+
+                if (apiThing is ApiMore apiMore)
+                {
+                    if (apiMore.ParentId != null && tree.TryGetValue(apiMore.ParentId, out ApiComment? parent))
+                    {
+                        parent.AddReply(apiMore);
+                        allThings.Remove(apiThing);
+                    }
+                }
+            }
+
+            // Set parent for remaining top-level items
+            foreach (ApiThing apiThing in allThings)
+            {
+                if (moreItem.Parent != null)
+                {
+                    SetParent(moreItem.Parent, apiThing);
+                }
+
+                toReturn.Add(apiThing);
+            }
+
+            stopwatch.Stop();
+            Debug.WriteLine($"[DEBUG] Time spent in MoreComments method: {stopwatch.ElapsedMilliseconds}ms");
 
             return toReturn;
         }
 
         public async Task<bool> AddSubredditToMulti(Multi multi, string subreddit)
         {
-            try
-            {
-                await this.EnsureAuthenticated();
+            await this.EnsureAuthenticated();
 
-                string multipath = multi.Path.TrimStart('/');
+            string multipath = multi.Path.TrimStart('/');
 
-                return await _client.AddSubredditToMultiAsync(multipath, subreddit);
-            }
-            catch (Exception ex)
-            {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
-            }
-
-            return false;
+            return await _client.AddSubredditToMultiAsync(multipath, subreddit);
         }
 
         public async Task<Multi?> CreateMulti(string name)
         {
-            try
+            await this.EnsureAuthenticated();
+
+            string username = _client.AuthenticatedUser ?? throw new InvalidOperationException("Must be logged in to create a multi");
+            string multipath = $"user/{username}/m/{name}";
+
+            MultiCreateRequest request = new()
             {
-                await this.EnsureAuthenticated();
+                DisplayName = name,
+                Visibility = "private"
+            };
 
-                string username = _client.AuthenticatedUser ?? throw new InvalidOperationException("Must be logged in to create a multi");
-                string multipath = $"user/{username}/m/{name}";
+            MultiResponse? result = await _client.CreateOrUpdateMultiAsync(multipath, request);
 
-                MultiCreateRequest request = new()
-                {
-                    DisplayName = name,
-                    Visibility = "private"
-                };
-
-                MultiResponse? result = await _client.CreateOrUpdateMultiAsync(multipath, request);
-
-                return result?.Data;
-            }
-            catch (Exception ex)
-            {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
-            }
-
-            return null;
+            return result?.Data;
         }
 
         public async Task<bool> DeleteMulti(Multi multi)
         {
-            try
-            {
-                await this.EnsureAuthenticated();
+            await this.EnsureAuthenticated();
 
-                string multipath = multi.Path.TrimStart('/');
+            string multipath = multi.Path.TrimStart('/');
 
-                return await _client.DeleteMultiAsync(multipath);
-            }
-            catch (Exception ex)
-            {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
-            }
-
-            return false;
+            return await _client.DeleteMultiAsync(multipath);
         }
 
         public async Task<List<Multi>> Multis()
         {
-            List<Multi> toReturn = [];
+            await this.EnsureAuthenticated();
 
-            try
+            List<MultiResponse>? result = await _client.GetMyMultisAsync();
+
+            if (result == null)
             {
-                await this.EnsureAuthenticated();
-
-                List<MultiResponse>? result = await _client.GetMyMultisAsync();
-
-                if (result != null)
-                {
-                    toReturn = result.Where(r => r.Data != null).Select(r => r.Data!).ToList();
-                }
-            }
-            catch (Exception ex)
-            {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
+                return [];
             }
 
-            return toReturn;
+            return result.Where(r => r.Data != null).Select(r => r.Data!).ToList();
         }
 
         public async Task<bool> RemoveSubredditFromMulti(Multi multi, string subreddit)
         {
-            try
-            {
-                await this.EnsureAuthenticated();
+            await this.EnsureAuthenticated();
 
-                string multipath = multi.Path.TrimStart('/');
+            string multipath = multi.Path.TrimStart('/');
 
-                return await _client.RemoveSubredditFromMultiAsync(multipath, subreddit);
-            }
-            catch (Exception ex)
-            {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
-            }
-
-            return false;
+            return await _client.RemoveSubredditFromMultiAsync(multipath, subreddit);
         }
 
         public async Task SetVoteState(ApiThing thing, VoteState state)
         {
-            try
-            {
-                await this.EnsureAuthenticated();
+            await this.EnsureAuthenticated();
 
-                Stopwatch stopwatch = Stopwatch.StartNew();
+            Stopwatch stopwatch = Stopwatch.StartNew();
 
-                await _client.VoteAsync(thing.Name, (int)state);
+            await _client.VoteAsync(thing.Name, (int)state);
 
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in SetVoteState method: {stopwatch.ElapsedMilliseconds}ms");
-            }
-            catch (Exception ex)
-            {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
-            }
+            stopwatch.Stop();
+            Debug.WriteLine($"[DEBUG] Time spent in SetVoteState method: {stopwatch.ElapsedMilliseconds}ms");
         }
 
         public async Task ToggleDistinguish(ApiThing thing, bool distinguish, bool sticky)
         {
-            try
-            {
-                await this.EnsureAuthenticated();
+            await this.EnsureAuthenticated();
 
-                Stopwatch stopwatch = Stopwatch.StartNew();
+            Stopwatch stopwatch = Stopwatch.StartNew();
 
-                DistinguishHow how = distinguish ? DistinguishHow.Yes : DistinguishHow.No;
-                await _client.DistinguishAsync(thing.Name, how, sticky);
+            DistinguishHow how = distinguish ? DistinguishHow.Yes : DistinguishHow.No;
+            await _client.DistinguishAsync(thing.Name, how, sticky);
 
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in ToggleDistinguish method: {stopwatch.ElapsedMilliseconds}ms");
-            }
-            catch (Exception ex)
-            {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
-            }
+            stopwatch.Stop();
+            Debug.WriteLine($"[DEBUG] Time spent in ToggleDistinguish method: {stopwatch.ElapsedMilliseconds}ms");
         }
 
         public async Task ToggleInboxReplies(ApiThing thing, bool enabled)
         {
-            try
-            {
-                await this.EnsureAuthenticated();
+            await this.EnsureAuthenticated();
 
-                await _client.SetSendRepliesAsync(thing.Name, enabled);
-            }
-            catch (Exception ex)
-            {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
-            }
+            await _client.SetSendRepliesAsync(thing.Name, enabled);
         }
 
         public async Task ToggleLock(ApiThing thing, bool locked)
         {
-            try
+            await this.EnsureAuthenticated();
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            if (locked)
             {
-                await this.EnsureAuthenticated();
-
-                Stopwatch stopwatch = Stopwatch.StartNew();
-
-                if (locked)
-                {
-                    await _client.LockAsync(thing.Name);
-                }
-                else
-                {
-                    await _client.UnlockAsync(thing.Name);
-                }
-
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in ToggleLock method: {stopwatch.ElapsedMilliseconds}ms");
+                await _client.LockAsync(thing.Name);
             }
-            catch (Exception ex)
+            else
             {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
+                await _client.UnlockAsync(thing.Name);
             }
+
+            stopwatch.Stop();
+            Debug.WriteLine($"[DEBUG] Time spent in ToggleLock method: {stopwatch.ElapsedMilliseconds}ms");
         }
 
         public async Task ToggleSave(ApiThing thing, bool saved)
         {
-            try
+            await this.EnsureAuthenticated();
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            if (saved)
             {
-                await this.EnsureAuthenticated();
-
-                Stopwatch stopwatch = Stopwatch.StartNew();
-
-                if (saved)
-                {
-                    await _client.SaveAsync(thing.Name);
-                }
-                else
-                {
-                    await _client.UnsaveAsync(thing.Name);
-                }
-
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in ToggleSave method: {stopwatch.ElapsedMilliseconds}ms");
+                await _client.SaveAsync(thing.Name);
             }
-            catch (Exception ex)
+            else
             {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
+                await _client.UnsaveAsync(thing.Name);
             }
+
+            stopwatch.Stop();
+            Debug.WriteLine($"[DEBUG] Time spent in ToggleSave method: {stopwatch.ElapsedMilliseconds}ms");
         }
 
         public async Task ToggleSubScription(Subreddit subreddit, bool subscribed)
         {
-            try
-            {
-                await this.EnsureAuthenticated();
+            await this.EnsureAuthenticated();
 
-                Stopwatch stopwatch = Stopwatch.StartNew();
+            Stopwatch stopwatch = Stopwatch.StartNew();
 
-                await _client.SubscribeAsync(subreddit.Name!, subscribed);
+            await _client.SubscribeAsync(subreddit.Name!, subscribed);
 
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in ToggleSubscription method: {stopwatch.ElapsedMilliseconds}ms");
-            }
-            catch (Exception ex)
-            {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
-            }
+            stopwatch.Stop();
+            Debug.WriteLine($"[DEBUG] Time spent in ToggleSubscription method: {stopwatch.ElapsedMilliseconds}ms");
         }
 
         public async Task ToggleVisibility(ApiThing thing, bool visible)
         {
-            try
+            await this.EnsureAuthenticated();
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            if (visible)
             {
-                await this.EnsureAuthenticated();
-
-                Stopwatch stopwatch = Stopwatch.StartNew();
-
-                if (visible)
-                {
-                    await _client.UnhideAsync(thing.Name);
-                }
-                else
-                {
-                    await _client.HideAsync(thing.Name);
-                }
-
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in ToggleVisibility method: {stopwatch.ElapsedMilliseconds}ms");
+                await _client.UnhideAsync(thing.Name);
             }
-            catch (Exception ex)
+            else
             {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
+                await _client.HideAsync(thing.Name);
             }
+
+            stopwatch.Stop();
+            Debug.WriteLine($"[DEBUG] Time spent in ToggleVisibility method: {stopwatch.ElapsedMilliseconds}ms");
         }
 
         public async Task<ApiComment?> Update(ApiThing thing)
         {
-            try
-            {
-                await this.EnsureAuthenticated();
+            await this.EnsureAuthenticated();
 
-                Stopwatch stopwatch = Stopwatch.StartNew();
+            Stopwatch stopwatch = Stopwatch.StartNew();
 
-                RichTextDocument richtext = MarkdownRichTextConverter.Convert(thing.Body);
-                Thing<Comment>? result = await _client.EditAsync(thing.Name, richtext);
+            RichTextDocument richtext = MarkdownRichTextConverter.Convert(thing.Body);
+            Thing<Comment>? result = await _client.EditAsync(thing.Name, richtext);
 
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in Update method: {stopwatch.ElapsedMilliseconds}ms");
+            stopwatch.Stop();
+            Debug.WriteLine($"[DEBUG] Time spent in Update method: {stopwatch.ElapsedMilliseconds}ms");
 
-                return RedditModelMapper.Map(result);
-            }
-            catch (Exception ex)
-            {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
-
-                return null;
-            }
+            return RedditModelMapper.Map(result);
         }
 
         public async Task Report(ApiThing thing, string? reason = null, string? siteReason = null, string? ruleReason = null)
         {
-            try
-            {
-                await this.EnsureAuthenticated();
+            await this.EnsureAuthenticated();
 
-                Stopwatch stopwatch = Stopwatch.StartNew();
+            Stopwatch stopwatch = Stopwatch.StartNew();
 
-                await _client.ReportAsync(thing.Name, reason, siteReason, ruleReason);
+            await _client.ReportAsync(thing.Name, reason, siteReason, ruleReason);
 
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in Report method: {stopwatch.ElapsedMilliseconds}ms");
-            }
-            catch (Exception ex)
-            {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
-            }
+            stopwatch.Stop();
+            Debug.WriteLine($"[DEBUG] Time spent in Report method: {stopwatch.ElapsedMilliseconds}ms");
         }
 
         public async Task<SubredditRulesResponse?> GetSubredditRules(string subreddit)
         {
-            try
-            {
-                await this.TryAuthenticate();
+            await this.TryAuthenticate();
 
-                Stopwatch stopwatch = Stopwatch.StartNew();
+            Stopwatch stopwatch = Stopwatch.StartNew();
 
-                SubredditRulesResponse? result = await _client.GetSubredditRulesAsync(subreddit);
+            SubredditRulesResponse? result = await _client.GetSubredditRulesAsync(subreddit);
 
-                stopwatch.Stop();
-                Debug.WriteLine($"[DEBUG] Time spent in GetSubredditRules method: {stopwatch.ElapsedMilliseconds}ms");
+            stopwatch.Stop();
+            Debug.WriteLine($"[DEBUG] Time spent in GetSubredditRules method: {stopwatch.ElapsedMilliseconds}ms");
 
-                return result;
-            }
-            catch (Exception ex)
-            {
-                if (!await this.DisplayException(ex))
-                {
-                    throw;
-                }
-
-                return null;
-            }
+            return result;
         }
 
         #region Private Methods
@@ -1041,54 +786,50 @@ namespace Deaddit.Core.Reddit
                 return;
             }
 
-            // Replies can be empty string or a listing
-            if (sourceComment.Replies is System.Text.Json.JsonElement je)
+            // Reddit serializes replies as either an empty string or a Listing object.
+            if (sourceComment.Replies is not System.Text.Json.JsonElement je)
             {
-                if (je.ValueKind == System.Text.Json.JsonValueKind.String)
+                return;
+            }
+
+            if (je.ValueKind == System.Text.Json.JsonValueKind.String)
+            {
+                return;
+            }
+
+            Listing<Thing<Comment>>? listing = System.Text.Json.JsonSerializer.Deserialize<Listing<Thing<Comment>>>(je.GetRawText());
+            if (listing?.Data?.Children == null)
+            {
+                return;
+            }
+
+            apiComment.Replies = new ApiThingCollection
+            {
+                Children = []
+            };
+
+            foreach (Thing<Comment> child in listing.Data.Children)
+            {
+                if (child?.Data == null)
                 {
-                    return;
+                    continue;
                 }
 
-                // Try to parse as listing
-                try
+                if (child.Kind == ThingKind.More)
                 {
-                    Listing<Thing<Comment>>? listing = System.Text.Json.JsonSerializer.Deserialize<Listing<Thing<Comment>>>(je.GetRawText());
-                    if (listing?.Data?.Children != null)
+                    ApiMore more = RedditModelMapper.MapMore(child.Data);
+                    more.Parent = apiComment;
+                    apiComment.Replies.Children.Add(more);
+                }
+                else
+                {
+                    ApiComment reply = RedditModelMapper.Map(child.Data);
+                    if (reply != null)
                     {
-                        apiComment.Replies = new ApiThingCollection
-                        {
-                            Children = []
-                        };
-
-                        foreach (Thing<Comment> child in listing.Data.Children)
-                        {
-                            if (child?.Data == null)
-                            {
-                                continue;
-                            }
-
-                            if (child.Kind == ThingKind.More)
-                            {
-                                ApiMore more = RedditModelMapper.MapMore(child.Data);
-                                more.Parent = apiComment;
-                                apiComment.Replies.Children.Add(more);
-                            }
-                            else
-                            {
-                                ApiComment reply = RedditModelMapper.Map(child.Data);
-                                if (reply != null)
-                                {
-                                    reply.Parent = apiComment;
-                                    this.MapCommentReplies(reply, child.Data, reply);
-                                    apiComment.Replies.Children.Add(reply);
-                                }
-                            }
-                        }
+                        reply.Parent = apiComment;
+                        this.MapCommentReplies(reply, child.Data, reply);
+                        apiComment.Replies.Children.Add(reply);
                     }
-                }
-                catch
-                {
-                    // Ignore parsing errors
                 }
             }
         }

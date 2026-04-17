@@ -139,22 +139,29 @@ namespace Deaddit.Components.WebComponents
         {
             MoreCommentsWebComponent? mcomponent = sender as MoreCommentsWebComponent;
 
-            if (e.ChildNames.NotNullAny())
+            try
             {
-                await DataService.LoadAsync(async () => await this.LoadMoreCommentsAsync(e));
-
-                _replies.Children.Remove(mcomponent);
-            }
-            else
-            {
-                if (e.Parent is ApiComment parentComment)
+                if (e.ChildNames.NotNullAny())
                 {
-                    await this.ContinueThread(parentComment);
+                    await DataService.LoadAsync(async () => await this.LoadMoreCommentsAsync(e));
+
+                    _replies.Children.Remove(mcomponent);
                 }
                 else
                 {
-                    throw new ArgumentException("For some reason the more comment parent wasn't a proper comment");
+                    if (e.Parent is ApiComment parentComment)
+                    {
+                        await this.ContinueThread(parentComment);
+                    }
+                    else
+                    {
+                        throw new ArgumentException("For some reason the more comment parent wasn't a proper comment");
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                await _displayMessages.DisplayException(ex);
             }
         }
 
@@ -177,7 +184,14 @@ namespace Deaddit.Components.WebComponents
                         }),
                         new("Copy Raw", async () => await Clipboard.SetTextAsync(_comment.Body)),
                         new("Copy Permalink", async () => await Clipboard.SetTextAsync($"https://www.reddit.com{_comment.Permalink}")),
-                        new("View Context", async () => await AppNavigator.OpenPost(Post, new CommentFocus(_comment))),
+                        new("View Context", async () =>
+                        {
+                            ApiPost? post = await this.ResolvePost();
+                            if (post is not null)
+                            {
+                                await AppNavigator.OpenPost(post, new CommentFocus(_comment));
+                            }
+                        }),
                         new("Report...", this.OnReportClicked)
                     );
                 }
@@ -330,7 +344,58 @@ namespace Deaddit.Components.WebComponents
 
         private async Task ContinueThread(ApiComment comment)
         {
-            await AppNavigator.OpenPost(Post, new CommentFocus(comment, 0));
+            ApiPost? post = await this.ResolvePost();
+            if (post is not null)
+            {
+                await AppNavigator.OpenPost(post, new CommentFocus(comment, 0));
+            }
+        }
+
+        private async Task<ApiPost?> ResolvePost()
+        {
+            if (Post is not null)
+            {
+                return Post;
+            }
+
+            string? currentFullname = _comment.Name;
+            int safety = 64;
+
+            while (!string.IsNullOrEmpty(currentFullname) && safety-- > 0)
+            {
+                if (currentFullname.StartsWith("t3_"))
+                {
+                    ApiPost? post = await _redditClient.GetPost(currentFullname);
+                    if (post is null)
+                    {
+                        await _displayMessages.DisplayMessage("The parent post could not be fetched.");
+                    }
+                    return post;
+                }
+
+                if (currentFullname.StartsWith("t1_"))
+                {
+                    ApiComment? fetched = await _redditClient.GetComment(currentFullname);
+                    if (fetched is null)
+                    {
+                        await _displayMessages.DisplayMessage("Unable to walk comment tree to the parent post.");
+                        return null;
+                    }
+
+                    if (!string.IsNullOrEmpty(fetched.LinkId))
+                    {
+                        return await _redditClient.GetPost(fetched.LinkId);
+                    }
+
+                    currentFullname = fetched.ParentId;
+                    continue;
+                }
+
+                break;
+            }
+
+            await _displayMessages.DisplayMessage("Unable to locate the parent post for this comment.");
+            return null;
         }
 
         private void EditPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)

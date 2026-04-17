@@ -1,0 +1,5 @@
+# Force serial (non-concurrent) SGen major collection.
+# The concurrent marksweep collector was triggering intermittent heap
+# corruption asserts ("How can an object and a reference inside it not be
+# in the same block?") on the SGen worker thread during comment rendering.
+MONO_GC_PARAMS=major=marksweep

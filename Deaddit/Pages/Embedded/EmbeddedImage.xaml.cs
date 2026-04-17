@@ -2,6 +2,7 @@ using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Models;
 using Deaddit.Extensions;
+using Deaddit.Interfaces;
 using Deaddit.Utils;
 using System.Text;
 
@@ -296,6 +297,8 @@ namespace Deaddit
             </html>
             """;
 
+        private readonly IAppNavigator _appNavigator;
+
         private readonly ApplicationStyling _applicationStyling;
 
         private readonly IStreamConverter? _converter;
@@ -304,12 +307,16 @@ namespace Deaddit
 
         private readonly FileDownload[] _postItems;
 
+        private readonly SavePathConfiguration _savePaths;
+
         private CancellationTokenSource? _downloadCts;
 
-        public EmbeddedImage(ApplicationStyling applicationTheme, IDisplayMessages displayMessages, IStreamConverter? converter, FileDownload[] items)
+        public EmbeddedImage(ApplicationStyling applicationTheme, IAppNavigator appNavigator, SavePathConfiguration savePaths, IDisplayMessages displayMessages, IStreamConverter? converter, FileDownload[] items)
         {
             this.InitializeComponent();
             _applicationStyling = applicationTheme;
+            _appNavigator = appNavigator;
+            _savePaths = savePaths;
             _displayMessages = displayMessages;
             _converter = converter;
             _postItems = items;
@@ -333,6 +340,13 @@ namespace Deaddit
 
         public async void OnShareClicked(object? sender, EventArgs e)
         {
+            List<FileDownload>? selected = await this.PromptForSelection();
+
+            if (selected is null || selected.Count == 0)
+            {
+                return;
+            }
+
             _downloadCts?.Cancel();
             _downloadCts = new CancellationTokenSource();
 
@@ -341,7 +355,7 @@ namespace Deaddit
 
             try
             {
-                await Share.Default.ShareFiles("", _postItems, _converter);
+                await Share.Default.ShareFiles("", selected, _converter);
             }
             catch (OperationCanceledException)
             {
@@ -365,6 +379,13 @@ namespace Deaddit
 
         private async void OnSaveClicked(object? sender, EventArgs e)
         {
+            List<FileDownload>? selected = await this.PromptForSelection();
+
+            if (selected is null || selected.Count == 0)
+            {
+                return;
+            }
+
             _downloadCts?.Cancel();
             _downloadCts = new CancellationTokenSource();
 
@@ -373,7 +394,7 @@ namespace Deaddit
 
             try
             {
-                await FileStorage.Save(_postItems, _converter, _downloadCts.Token);
+                await FileStorage.Save(selected, _converter, _savePaths, _downloadCts.Token);
             }
             catch (OperationCanceledException)
             {
@@ -387,6 +408,16 @@ namespace Deaddit
                 downloadIndicator.IsRunning = false;
                 downloadOverlay.IsVisible = false;
             }
+        }
+
+        private async Task<List<FileDownload>?> PromptForSelection()
+        {
+            if (_postItems.Length <= 1)
+            {
+                return [.. _postItems];
+            }
+
+            return await _appNavigator.SelectImages([.. _postItems]);
         }
     }
 }

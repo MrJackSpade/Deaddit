@@ -53,6 +53,8 @@ namespace Deaddit.Utils
 
         private IRedditClient RedditClient => _serviceProvider.GetService<IRedditClient>()!;
 
+        private SavePathConfiguration SavePaths => _serviceProvider.GetService<SavePathConfiguration>()!;
+
 
         private ISelectBoxDisplay SelectBoxDisplay => _serviceProvider.GetService<ISelectBoxDisplay>()!;
 
@@ -143,9 +145,16 @@ namespace Deaddit.Utils
         public async Task<EmbeddedImage> OpenImages(FileDownload[] resource)
         {
             IStreamConverter? converter = ApplicationHacks.ConvertGifsToMp4 ? new GifToMp4Converter() : null;
-            EmbeddedImage browser = new(ApplicationStyling, DisplayMessages, converter, resource);
+            EmbeddedImage browser = new(ApplicationStyling, this, SavePaths, DisplayMessages, converter, resource);
             await Navigation.PushAsync(browser);
             return browser;
+        }
+
+        public async Task<List<FileDownload>?> SelectImages(List<FileDownload> items)
+        {
+            ImageSelectPage page = new(items, ApplicationStyling);
+            await Navigation.PushAsync(page);
+            return await page.SelectionTask;
         }
 
         public async Task<MessagePage> OpenMessagePage(User user, ApiMessage? replyTo = null)
@@ -209,6 +218,12 @@ namespace Deaddit.Utils
             await this.OpenObjectEditor(null);
         }
 
+        public async Task OpenSettingsPage()
+        {
+            SettingsPage page = new(this, ConfigurationService, HistoryTracker, UserTags, DisplayMessages, SavePaths, ApplicationStyling);
+            await Navigation.PushAsync(page);
+        }
+
         public async Task<PostPage> OpenPost(ApiPost post, CommentFocus? focus = null, bool fromHistoryPage = false)
         {
             HistoryTracker.AddToHistory(post, fromHistoryPage);
@@ -236,7 +251,7 @@ namespace Deaddit.Utils
 
         public async Task<SubRedditAboutPage> OpenSubRedditAbout(string subredditName)
         {
-            SubRedditAboutPage page = new(ThingDefinitionHelper.ForSubReddit(subredditName), AggregatePostHandler, this, RedditClient, SelectBoxDisplay, ApplicationStyling);
+            SubRedditAboutPage page = new(ThingDefinitionHelper.ForSubReddit(subredditName), AggregatePostHandler, this, RedditClient, DisplayMessages, SelectBoxDisplay, ApplicationStyling);
             await Navigation.PushAsync(page);
             await page.TryLoad();
             return page;
@@ -261,7 +276,7 @@ namespace Deaddit.Utils
         public async Task<EmbeddedVideo> OpenVideo(FileDownload url)
         {
             IStreamConverter? converter = ApplicationHacks.ConvertGifsToMp4 ? new GifToMp4Converter() : null;
-            EmbeddedVideo browser = new(url, ApplicationStyling, DisplayMessages, converter);
+            EmbeddedVideo browser = new(url, ApplicationStyling, SavePaths, DisplayMessages, converter);
             await Navigation.PushAsync(browser);
             return browser;
         }

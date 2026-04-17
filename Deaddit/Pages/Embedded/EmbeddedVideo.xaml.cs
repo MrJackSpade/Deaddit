@@ -17,11 +17,14 @@ namespace Deaddit
 
         private readonly FileDownload _postItems;
 
+        private readonly SavePathConfiguration _savePaths;
+
         private CancellationTokenSource? _downloadCts;
 
-        public EmbeddedVideo(FileDownload fileDownload, ApplicationStyling applicationTheme, IDisplayMessages displayMessages, IStreamConverter? converter)
+        public EmbeddedVideo(FileDownload fileDownload, ApplicationStyling applicationTheme, SavePathConfiguration savePaths, IDisplayMessages displayMessages, IStreamConverter? converter)
         {
             _applicationStyling = applicationTheme;
+            _savePaths = savePaths;
             _displayMessages = displayMessages;
             _converter = converter;
             _postItems = fileDownload;
@@ -61,9 +64,18 @@ namespace Deaddit
             }
         }
 
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+
+            DeviceDisplay.Current.KeepScreenOn = true;
+        }
+
         protected override void OnDisappearing()
         {
             base.OnDisappearing();
+
+            DeviceDisplay.Current.KeepScreenOn = false;
 
             _downloadCts?.Cancel();
 
@@ -94,7 +106,7 @@ namespace Deaddit
 
             try
             {
-                await FileStorage.Save(_postItems, _converter, _downloadCts.Token);
+                await FileStorage.Save(_postItems, _converter, _savePaths, _downloadCts.Token);
             }
             catch (OperationCanceledException)
             {

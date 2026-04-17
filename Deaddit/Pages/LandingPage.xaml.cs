@@ -8,6 +8,7 @@ using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Reddit.Models.ThingDefinitions;
+using Reddit.Api.Models;
 using Reddit.Api.Models.Json.Multis;
 using Deaddit.Core.Utils;
 using Deaddit.Core.Utils.MultiSelect;
@@ -17,11 +18,14 @@ using Deaddit.Interfaces;
 using Deaddit.Pages.Models;
 using Deaddit.Utils;
 using Maui.WebComponents.Extensions;
+using System.Text.Json;
 
 namespace Deaddit.Pages
 {
     public partial class LandingPage : ContentPage
     {
+        private const string BearerTokenPreferenceKey = "reddit_bearer_token";
+
         private readonly ApplicationStyling _applicationStyling;
 
         private readonly IAppNavigator _appNavigator;
@@ -63,7 +67,19 @@ namespace Deaddit.Pages
 
             navigationBar.BackgroundColor = applicationTheme.PrimaryColor.ToMauiColor();
 
-            DataService.LoadAsync(this.InitializeContent);
+            _ = this.SafeInitializeContent();
+        }
+
+        private async Task SafeInitializeContent()
+        {
+            try
+            {
+                await DataService.LoadAsync(this.InitializeContent);
+            }
+            catch (Exception ex)
+            {
+                await _displayMessages.DisplayException(ex);
+            }
         }
 
         public async void OnAddClicked(object? sender, EventArgs e)
@@ -147,7 +163,7 @@ namespace Deaddit.Pages
 
         public async void OnMenuClicked(object? sender, EventArgs e)
         {
-            await _appNavigator.OpenObjectEditor();
+            await _appNavigator.OpenSettingsPage();
         }
 
         public async void OnMessageClicked(object sender, EventArgs e)
@@ -172,7 +188,7 @@ namespace Deaddit.Pages
 
         private async Task Logout()
         {
-            Preferences.Remove("reddit_bearer_token");
+            Preferences.Remove(BearerTokenPreferenceKey);
 
 #if ANDROID
             Android.Webkit.CookieManager.Instance?.RemoveAllCookies(null);
@@ -184,27 +200,29 @@ namespace Deaddit.Pages
 
         private async Task<string?> RefreshToken()
         {
-            // First try the cached token
-            string? savedToken = Preferences.Get("reddit_bearer_token", null);
-
-            if (savedToken != null)
-            {
-                // Clear it so we don't retry the same expired token
-                Preferences.Remove("reddit_bearer_token");
-                return savedToken;
-            }
-
-            // No cached token (or it was already tried), open browser login
+            // 401/403 retry path: open the browser login, resolve owner, persist the validated
+            // token, and return the raw access token to the inner client so it can re-send
+            // the failed request with fresh credentials.
             try
             {
-                string? token = await _appNavigator.OpenRedditLogin();
+                string? accessToken = await _appNavigator.OpenRedditLogin();
 
-                if (token != null)
+                if (accessToken == null)
                 {
-                    Preferences.Set("reddit_bearer_token", token);
+                    return null;
                 }
 
-                return token;
+                string? owner = await _redditClient.GetTokenOwner(accessToken);
+
+                if (owner == null)
+                {
+                    return null;
+                }
+
+                BearerToken token = new(accessToken, owner);
+                Preferences.Set(BearerTokenPreferenceKey, JsonSerializer.Serialize(token));
+
+                return accessToken;
             }
             catch (Exception ex)
             {
@@ -217,13 +235,25 @@ namespace Deaddit.Pages
         {
             try
             {
-                string? token = await _appNavigator.OpenRedditLogin();
+                string? accessToken = await _appNavigator.OpenRedditLogin();
 
-                if (token != null)
+                if (accessToken == null)
                 {
-                    Preferences.Set("reddit_bearer_token", token);
-                    await this.LoadMultis();
+                    return;
                 }
+
+                string? owner = await _redditClient.GetTokenOwner(accessToken);
+
+                if (owner == null)
+                {
+                    return;
+                }
+
+                BearerToken token = new(accessToken, owner);
+                Preferences.Set(BearerTokenPreferenceKey, JsonSerializer.Serialize(token));
+                _redditClient.SetBearerToken(token);
+
+                await this.LoadMultis();
             }
             catch (Exception ex)
             {
@@ -234,6 +264,8 @@ namespace Deaddit.Pages
         private async Task InitializeContent()
         {
             _redditClient.SetTokenRefreshFunction(this.RefreshToken);
+
+            await this.RestoreSession();
 
             await webElement.AddChild(_appNavigator.CreateSubscriptionWebComponent(ThingDefinitionHelper.ForSubReddit("All"), null));
             await webElement.AddChild(_appNavigator.CreateSubscriptionWebComponent(new HomeDefinition(), null));
@@ -251,9 +283,50 @@ namespace Deaddit.Pages
             await this.LoadMultis();
         }
 
+        private async Task RestoreSession()
+        {
+            string? json = Preferences.Get(BearerTokenPreferenceKey, null);
+
+            if (string.IsNullOrEmpty(json))
+            {
+                return;
+            }
+
+            BearerToken? stored;
+            try
+            {
+                stored = JsonSerializer.Deserialize<BearerToken>(json);
+            }
+            catch
+            {
+                Preferences.Remove(BearerTokenPreferenceKey);
+                return;
+            }
+
+            if (stored == null)
+            {
+                Preferences.Remove(BearerTokenPreferenceKey);
+                return;
+            }
+
+            if (await _redditClient.ValidateBearerToken(stored))
+            {
+                _redditClient.SetBearerToken(stored);
+            }
+            else
+            {
+                Preferences.Remove(BearerTokenPreferenceKey);
+            }
+        }
+
         private async Task LoadMultis()
         {
-            if (_redditClient.IsLoggedIn)
+            if (!_redditClient.IsLoggedIn)
+            {
+                return;
+            }
+
+            try
             {
                 await DataService.LoadAsync(webElement, async () =>
                 {
@@ -270,6 +343,10 @@ namespace Deaddit.Pages
                         await webElement.AddChild(component);
                     }
                 }, _applicationStyling.HighlightColor.ToHex());
+            }
+            catch (Exception ex)
+            {
+                await _displayMessages.DisplayException(ex);
             }
         }
 
