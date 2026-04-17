@@ -11,6 +11,26 @@ namespace Deaddit.Core.Utils
             "www.reddit.com"
         };
 
+        private static readonly HashSet<string> _imageExtensions = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ".jpg", ".jpeg", ".png", ".webp", ".bmp", ".heic", ".heif", ".gif"
+        };
+
+        private static readonly HashSet<string> _videoExtensions = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ".mp4", ".webm", ".mov", ".mkv", ".m4v", ".avi", ".gifv"
+        };
+
+        public static bool IsImageFile(string fileName)
+        {
+            return _imageExtensions.Contains(GetExtension(fileName));
+        }
+
+        public static bool IsVideoFile(string fileName)
+        {
+            return _videoExtensions.Contains(GetExtension(fileName));
+        }
+
         public static bool IsHiddenHost(string? host)
         {
             if (string.IsNullOrEmpty(host))

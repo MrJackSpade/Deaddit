@@ -1,4 +1,5 @@
-﻿using Deaddit.Core.Interfaces;
+﻿using Deaddit.Core.Configurations.Models;
+using Deaddit.Core.Interfaces;
 using Deaddit.Core.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Utils.Validation;
@@ -9,9 +10,11 @@ using DefaultShare = Microsoft.Maui.ApplicationModel.DataTransfer;
 
 namespace Deaddit.Handlers.Post
 {
-    internal class RedditVideoHandler(IAppNavigator appNavigator) : IApiPostHandler
+    internal class RedditVideoHandler(IAppNavigator appNavigator, SavePathConfiguration savePaths) : IApiPostHandler
     {
         private readonly IAppNavigator _appNavigator = appNavigator;
+
+        private readonly SavePathConfiguration _savePaths = savePaths;
 
         public bool CanDownload(ApiPost apiPost, IAggregatePostHandler caller)
         {
@@ -32,7 +35,7 @@ namespace Deaddit.Handlers.Post
         {
             Ensure.NotNull(apiPost.Media?.RedditVideo?.DashUrl);
 
-            await FileStorage.Save(this.GetDownload(apiPost));
+            await FileStorage.Save(this.GetDownload(apiPost), savePaths: _savePaths);
         }
 
         public async Task Launch(ApiPost apiPost, IAggregatePostHandler caller)

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Deaddit.Pages.SettingsPage"
+             BackgroundColor="{Binding TertiaryColor}">
+    <Grid RowDefinitions="auto, *">
+        <!-- Navigation Bar -->
+        <Grid Padding="0"
+              ColumnDefinitions="auto, *, auto"
+              Row="0"
+              x:Name="navigationBar">
+            <Button Text="&#x2190;"
+                    x:Name="backButton"
+                    Grid.Column="0"
+                    VerticalOptions="Center"
+                    HorizontalOptions="Start"
+                    Background="Transparent"
+                    Clicked="OnBackClicked" />
+            <Label x:Name="titleLabel"
+                   Text="Settings"
+                   HorizontalTextAlignment="Center"
+                   VerticalTextAlignment="Center"
+                   Grid.Column="1" />
+        </Grid>
+        <!-- Content -->
+        <ScrollView Grid.Row="1" Padding="16">
+            <VerticalStackLayout Spacing="12">
+                <Label x:Name="versionLabel"
+                       HorizontalTextAlignment="Center"
+                       FontSize="14" />
+                <Button x:Name="editConfigButton"
+                        Text="Edit Configuration"
+                        Clicked="OnEditConfigurationClicked" />
+
+                <Label Text="Default Image Folder"
+                       x:Name="imageFolderHeading"
+                       FontSize="14" />
+                <Label x:Name="imageFolderLabel"
+                       FontSize="12"
+                       LineBreakMode="MiddleTruncation" />
+                <HorizontalStackLayout Spacing="8">
+                    <Button x:Name="pickImageFolderButton"
+                            Text="Browse..."
+                            Clicked="OnPickImageFolderClicked" />
+                    <Button x:Name="clearImageFolderButton"
+                            Text="Clear"
+                            Clicked="OnClearImageFolderClicked" />
+                </HorizontalStackLayout>
+
+                <Label Text="Default Video Folder"
+                       x:Name="videoFolderHeading"
+                       FontSize="14" />
+                <Label x:Name="videoFolderLabel"
+                       FontSize="12"
+                       LineBreakMode="MiddleTruncation" />
+                <HorizontalStackLayout Spacing="8">
+                    <Button x:Name="pickVideoFolderButton"
+                            Text="Browse..."
+                            Clicked="OnPickVideoFolderClicked" />
+                    <Button x:Name="clearVideoFolderButton"
+                            Text="Clear"
+                            Clicked="OnClearVideoFolderClicked" />
+                </HorizontalStackLayout>
+
+                <Button x:Name="exportButton"
+                        Text="Export Settings"
+                        Clicked="OnExportClicked" />
+                <Button x:Name="importButton"
+                        Text="Import Settings"
+                        Clicked="OnImportClicked" />
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

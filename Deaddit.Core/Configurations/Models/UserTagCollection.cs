@@ -29,6 +29,23 @@ namespace Deaddit.Core.Configurations.Models
             this.Flush();
         }
 
+        public IReadOnlyDictionary<string, string> GetAllTags()
+        {
+            return _tags;
+        }
+
+        public void ImportTags(Dictionary<string, string> tags)
+        {
+            _tags.Clear();
+
+            foreach (KeyValuePair<string, string> kvp in tags)
+            {
+                _tags[kvp.Key] = kvp.Value;
+            }
+
+            this.Flush();
+        }
+
         private void Load()
         {
             if (!File.Exists(_filePath))

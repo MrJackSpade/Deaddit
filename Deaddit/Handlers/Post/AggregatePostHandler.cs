@@ -7,7 +7,7 @@ using Deaddit.Utils;
 
 namespace Deaddit.Handlers.Post
 {
-    internal class AggregatePostHandler(IEnumerable<IApiPostHandler> handlers, IAggregateUrlHandler urlHandler, ApplicationHacks applicationHacks) : IAggregatePostHandler
+    internal class AggregatePostHandler(IEnumerable<IApiPostHandler> handlers, IAggregateUrlHandler urlHandler, ApplicationHacks applicationHacks, SavePathConfiguration savePaths) : IAggregatePostHandler
     {
         private readonly List<IApiPostHandler> _handlers = handlers.ToList();
 
@@ -48,7 +48,7 @@ namespace Deaddit.Handlers.Post
             {
                 FileDownload download = await UrlHandler.Download(apiPost.Url, this);
                 IStreamConverter? converter = applicationHacks.ConvertGifsToMp4 ? new GifToMp4Converter() : null;
-                await FileStorage.Save([download], converter);
+                await FileStorage.Save([download], converter, savePaths);
                 return;
             }
 

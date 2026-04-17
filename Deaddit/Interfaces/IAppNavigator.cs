@@ -40,6 +40,8 @@ namespace Deaddit.Interfaces
 
         Task<EmbeddedImage> OpenImages(FileDownload[] urls);
 
+        Task<List<FileDownload>?> SelectImages(List<FileDownload> items);
+
         Task<MessagePage> OpenMessagePage(User user, ApiMessage? replyTo = null);
 
         Task<ThingCollectionPage> OpenMessages(InboxSort sort = InboxSort.Unread);
@@ -49,6 +51,8 @@ namespace Deaddit.Interfaces
         Task OpenObjectEditor(Action onSave);
 
         Task OpenObjectEditor();
+
+        Task OpenSettingsPage();
 
         Task<PostPage> OpenPost(ApiPost post, CommentFocus? focus = null, bool fromHistoryPage = false);
 

@@ -50,6 +50,15 @@ namespace Deaddit.Utils
             }
         }
 
+        public void ImportHistory(List<string> history)
+        {
+            lock (_lock)
+            {
+                _history = history ?? [];
+                this.Save();
+            }
+        }
+
         private void EnsureLoaded()
         {
             if (_history != null)

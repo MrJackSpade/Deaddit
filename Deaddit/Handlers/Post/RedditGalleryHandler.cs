@@ -12,11 +12,13 @@ using DefaultShare = Microsoft.Maui.ApplicationModel.DataTransfer;
 
 namespace Deaddit.Handlers.Post
 {
-    internal class RedditGalleryHandler(IAppNavigator appNavigator, ApplicationHacks applicationHacks) : IApiPostHandler
+    internal class RedditGalleryHandler(IAppNavigator appNavigator, ApplicationHacks applicationHacks, SavePathConfiguration savePaths) : IApiPostHandler
     {
         private readonly IAppNavigator _appNavigator = appNavigator;
 
         private readonly ApplicationHacks _applicationHacks = applicationHacks;
+
+        private readonly SavePathConfiguration _savePaths = savePaths;
 
         public bool CanDownload(ApiPost apiPost, IAggregatePostHandler caller)
         {
@@ -36,7 +38,7 @@ namespace Deaddit.Handlers.Post
         public async Task Download(ApiPost apiPost, IAggregatePostHandler caller)
         {
             IStreamConverter? converter = _applicationHacks.ConvertGifsToMp4 ? new GifToMp4Converter() : null;
-            await FileStorage.Save(this.GetSortedGalleryItems(apiPost), converter);
+            await FileStorage.Save(this.GetSortedGalleryItems(apiPost), converter, _savePaths);
         }
 
         public async Task Launch(ApiPost apiPost, IAggregatePostHandler caller)

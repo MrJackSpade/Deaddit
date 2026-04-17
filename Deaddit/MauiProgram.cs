@@ -26,9 +26,8 @@ namespace Deaddit
             builder.Services.AddSingleton<IRedditClient>(s =>
             {
                 HttpClient httpClient = s.GetRequiredService<HttpClient>();
-                IDisplayMessages displayExceptions = s.GetRequiredService<IDisplayMessages>();
 
-                return new DeadditClient(displayExceptions, httpClient);
+                return new RedditService(httpClient);
             });
 
             // Register individual handlers as transient
@@ -58,6 +57,7 @@ namespace Deaddit
             builder.Services.AddConfiguration<AIConfiguration>();
             builder.Services.AddConfiguration<BlockConfiguration>();
             builder.Services.AddConfiguration<ApplicationHacks>();
+            builder.Services.AddConfiguration<SavePathConfiguration>();
             builder.Services.AddSingleton(s => new UserTagCollection(Path.Combine(FileSystem.AppDataDirectory, "user_tags.tsv")));
             builder.Services.AddSingleton<ETagCache>();
             builder.Services.AddSingleton<IDisplayMessages, MauiExceptionDisplay>();

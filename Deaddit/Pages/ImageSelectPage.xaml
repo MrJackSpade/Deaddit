@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:components="clr-namespace:Deaddit.Components"
+             x:Class="Deaddit.Pages.ImageSelectPage">
+    <Grid RowDefinitions="auto, *">
+        <Grid Padding="0"
+              ColumnDefinitions="auto, *, auto"
+              Row="0"
+              x:Name="navigationBar">
+            <Button Text="&#x2190;"
+                    x:Name="backButton"
+                    Grid.Column="0"
+                    VerticalOptions="Center"
+                    HorizontalOptions="Start"
+                    Background="Transparent"
+                    Clicked="OnBackClicked" />
+            <Label x:Name="titleLabel"
+                   Text="Select Images"
+                   HorizontalTextAlignment="Center"
+                   VerticalTextAlignment="Center"
+                   Grid.Column="1" />
+            <Button Text="OK"
+                    x:Name="confirmButton"
+                    Grid.Column="2"
+                    VerticalOptions="Center"
+                    HorizontalOptions="End"
+                    Background="Transparent"
+                    Clicked="OnConfirmClicked" />
+        </Grid>
+        <components:RedditWebElement Grid.Row="1" x:Name="webElement" />
+    </Grid>
+</ContentPage>

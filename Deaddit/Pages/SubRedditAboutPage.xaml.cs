@@ -23,6 +23,8 @@ namespace Deaddit.Pages
 
         private readonly DivComponent _bodyDiv;
 
+        private readonly IDisplayMessages _displayMessages;
+
         private readonly MultiSelector _multiselector;
 
         private readonly IRedditClient _redditClient;
@@ -35,13 +37,14 @@ namespace Deaddit.Pages
 
         private Subreddit? _apiSubReddit;
 
-        public SubRedditAboutPage(SubRedditDefinition subredditName, IAggregatePostHandler aggregatePostHandler, IAppNavigator appNavigator, IRedditClient redditClient, ISelectBoxDisplay selectBoxDisplay, ApplicationStyling applicationTheme)
+        public SubRedditAboutPage(SubRedditDefinition subredditName, IAggregatePostHandler aggregatePostHandler, IAppNavigator appNavigator, IRedditClient redditClient, IDisplayMessages displayMessages, ISelectBoxDisplay selectBoxDisplay, ApplicationStyling applicationTheme)
         {
             NavigationPage.SetHasNavigationBar(this, false);
 
             _appNavigator = appNavigator;
             _applicationStyling = applicationTheme;
             _redditClient = redditClient;
+            _displayMessages = displayMessages;
             _aggregatePostHandler = aggregatePostHandler;
             _subredditName = subredditName;
             _multiselector = new MultiSelector(selectBoxDisplay);
@@ -124,7 +127,14 @@ namespace Deaddit.Pages
 
         public async Task TryLoad()
         {
-            await DataService.LoadAsync(_wrapperDiv, this.LoadAbout, _applicationStyling.HighlightColor.ToHex());
+            try
+            {
+                await DataService.LoadAsync(_wrapperDiv, this.LoadAbout, _applicationStyling.HighlightColor.ToHex());
+            }
+            catch (Exception ex)
+            {
+                await _displayMessages.DisplayException(ex);
+            }
         }
 
         private async Task LoadAbout()

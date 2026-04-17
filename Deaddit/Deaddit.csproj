@@ -121,8 +121,8 @@
 		<PackageReference Include="CommunityToolkit.Maui" Version="14.0.1" />
 		<PackageReference Include="CommunityToolkit.Maui.MediaElement" Version="8.0.1" />
 		<PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
-		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.50" />
-		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.50" />
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.51" />
+		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="10.0.51" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.5" />
 		<PackageReference Include="MimeKit" Version="4.15.1" />
 		<PackageReference Include="SkiaSharp" Version="3.119.2" />
@@ -210,8 +210,9 @@
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0-android'">
 	  <PackageReference Include="Xamarin.AndroidX.LocalBroadcastManager">
-	    <Version>1.1.0.21</Version>
+	    <Version>1.1.0.24</Version>
 	  </PackageReference>
+	  <AndroidEnvironment Include="Platforms\Android\environment.txt" />
 	</ItemGroup>
 
 </Project>
