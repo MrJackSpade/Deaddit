@@ -177,6 +177,23 @@ namespace Deaddit.Tests
         }
 
         [TestMethod]
+        public void Convert_NestedBlockquoteThenSiblingParagraph_BumpsSeparatorAndShallowSibling()
+        {
+            // Reddit's markdown parser drops deeper-quoted content when the next paragraph
+            // sits two or more quote levels shallower across an empty-quote separator —
+            // the separator becomes a blank line after one strip and splits the shallow
+            // paragraph out of the inner blockquote. Bumping the separator and the
+            // immediately-following shallow paragraph up to (deepDepth - 1) keeps the
+            // inner blockquote intact through Reddit's round-trip.
+            string html =
+                "<div class=\"md\"><blockquote>" +
+                "<blockquote><blockquote><p>deep</p></blockquote></blockquote>" +
+                "<p>shallow</p>" +
+                "</blockquote></div>";
+            Assert.AreEqual("> > > deep\n> > \n> > shallow", HtmlMarkdownConverter.Convert(html));
+        }
+
+        [TestMethod]
         public void Convert_BlockquoteFromRedditHtml_NoExtraNewlinesOrEmptyQuoteLine()
         {
             // Actual Reddit body_html structure: whitespace text nodes between block elements

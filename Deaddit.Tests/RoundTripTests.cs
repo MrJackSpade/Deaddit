@@ -190,8 +190,18 @@ namespace Deaddit.Tests
             await AssertNoDrift("> This is a quote\n\nhttps://www.example.com");
         }
 
-        // Nested blockquotes (> > text) are not supported by Reddit's richtext format.
-        // Single-level blockquotes are tested by RoundTrip_Blockquote_NoDrift.
+        [TestMethod]
+        public async Task RoundTrip_NestedBlockquote_NoDrift()
+        {
+            await AssertNoDrift(
+                "> > > HR is there to protect the company, not the employees. \n" +
+                "> > \n" +
+                "> > HR is protecting the company by protecting workers\n" +
+                "> \n" +
+                "> How is adhering to labor laws not protecting the company?\n" +
+                "\n" +
+                "Trailing paragraph after the quote.");
+        }
 
         [TestMethod]
         public async Task RoundTrip_ComplexDocument_NoDrift()
@@ -206,16 +216,18 @@ namespace Deaddit.Tests
 
         /// <summary>
         /// Posts a comment with the given markdown, fetches it back,
-        /// converts body_html → markdown → richtext, edits with that richtext,
+        /// converts body_html → markdown, edits with that markdown,
         /// fetches again, and asserts the body_html hasn't drifted.
+        ///
+        /// Endpoint selection mirrors RedditService: nested blockquotes go
+        /// through the markdown endpoint (Reddit's richtext path mangles them),
+        /// everything else stays on richtext.
         /// </summary>
         private async Task AssertNoDrift(string originalMarkdown)
         {
             EnsureReady();
 
-            // Step 1: Post original comment using richtext
-            RichTextDocument originalRichtext = MarkdownRichTextConverter.Convert(originalMarkdown);
-            Thing<Comment>? posted = await _client!.CommentAsync(_testPostFullname!, originalRichtext);
+            Thing<Comment>? posted = await PostByRouting(_testPostFullname!, originalMarkdown);
             Assert.IsNotNull(posted?.Data, "Failed to post comment");
             Assert.IsFalse(string.IsNullOrEmpty(posted.Data.Name), "Comment fullname not returned");
             Assert.IsFalse(string.IsNullOrEmpty(posted.Data.BodyHtml), "body_html not returned in post response");
@@ -226,18 +238,14 @@ namespace Deaddit.Tests
             {
                 string firstBodyHtml = posted.Data.BodyHtml!;
 
-                // Step 2: HTML → Markdown → Richtext (simulating an edit round-trip)
                 string convertedMarkdown = HtmlMarkdownConverter.Convert(firstBodyHtml);
-                RichTextDocument convertedRichtext = MarkdownRichTextConverter.Convert(convertedMarkdown);
 
-                // Step 3: Edit the comment with the converted richtext
-                Thing<Comment>? edited = await _client.EditAsync(commentFullname, convertedRichtext);
+                Thing<Comment>? edited = await EditByRouting(commentFullname, convertedMarkdown);
                 Assert.IsNotNull(edited?.Data, "Failed to edit comment");
                 Assert.IsFalse(string.IsNullOrEmpty(edited.Data.BodyHtml), "body_html not returned in edit response");
 
                 string secondBodyHtml = edited.Data.BodyHtml!;
 
-                // Step 4: Assert no drift
                 Assert.AreEqual(firstBodyHtml, secondBodyHtml,
                     $"body_html drifted after round-trip.\n" +
                     $"Original markdown: {originalMarkdown}\n" +
@@ -247,10 +255,24 @@ namespace Deaddit.Tests
             }
             finally
             {
-                await _client.DeleteThingAsync(commentFullname);
+                await _client!.DeleteThingAsync(commentFullname);
                 // Reddit rate-limits comment posting separately from API calls
                 await Task.Delay(10_000);
             }
+        }
+
+        private static Task<Thing<Comment>?> PostByRouting(string parentFullname, string markdown)
+        {
+            return MarkdownAnalyzer.HasNestedBlockquote(markdown)
+                ? _client!.CommentAsync(parentFullname, markdown)
+                : _client!.CommentAsync(parentFullname, MarkdownRichTextConverter.Convert(markdown));
+        }
+
+        private static Task<Thing<Comment>?> EditByRouting(string fullname, string markdown)
+        {
+            return MarkdownAnalyzer.HasNestedBlockquote(markdown)
+                ? _client!.EditAsync(fullname, markdown)
+                : _client!.EditAsync(fullname, MarkdownRichTextConverter.Convert(markdown));
         }
     }
 }

@@ -115,7 +115,7 @@ namespace Deaddit.Utils
 
         public async Task<EmbeddedBrowser> OpenBrowser(string resource)
         {
-            EmbeddedBrowser browser = new(resource, ApplicationStyling);
+            EmbeddedBrowser browser = new(resource, ApplicationStyling, DisplayMessages);
             await Navigation.PushAsync(browser);
             return browser;
         }

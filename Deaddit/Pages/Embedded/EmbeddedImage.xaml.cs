@@ -5,6 +5,7 @@ using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.Utils;
 using System.Text;
+using System.Text.Encodings.Web;
 
 namespace Deaddit
 {
@@ -46,10 +47,65 @@ namespace Deaddit
                         transform-origin: 0 0;
                         will-change: transform;
                     }
+                    .img-container {
+                        position: relative;
+                        width: 100vw;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+                    .img-container:not(.loaded) {
+                        min-height: 240px;
+                    }
                     img {
                         display: block;
                         max-width: 100vw;
                         height: auto;
+                    }
+                    .img-container:not(.loaded) img {
+                        opacity: 0;
+                    }
+                    .loading-overlay, .error-overlay {
+                        position: absolute;
+                        top: 0; left: 0; right: 0; bottom: 0;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        flex-direction: column;
+                        gap: 12px;
+                        color: white;
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                        font-size: 14px;
+                        pointer-events: none;
+                    }
+                    .img-container.loaded .loading-overlay,
+                    .img-container.loaded .error-overlay,
+                    .img-container.errored .loading-overlay,
+                    .img-container:not(.errored) .error-overlay {
+                        display: none;
+                    }
+                    .error-overlay {
+                        pointer-events: auto;
+                    }
+                    .error-overlay button {
+                        padding: 10px 18px;
+                        background: rgba(255,255,255,0.92);
+                        color: #000;
+                        border: 0;
+                        border-radius: 6px;
+                        font-size: 15px;
+                        cursor: pointer;
+                    }
+                    .spinner {
+                        width: 40px;
+                        height: 40px;
+                        border: 4px solid rgba(255,255,255,0.25);
+                        border-top-color: rgba(255,255,255,0.9);
+                        border-radius: 50%;
+                        animation: spin 0.8s linear infinite;
+                    }
+                    @keyframes spin {
+                        to { transform: rotate(360deg); }
                     }
                 </style>
             </head>
@@ -60,6 +116,49 @@ namespace Deaddit
                     </div>
                 </div>
                 <script>
+                    const MAX_RETRIES = 3;
+                    const BACKOFF_BASE_MS = 500;
+
+                    document.querySelectorAll('.img-container').forEach((imgContainer) => {
+                        const img = imgContainer.querySelector('img');
+                        const retryButton = imgContainer.querySelector('.error-overlay button');
+                        const originalSrc = img.getAttribute('data-src') || img.src;
+                        let retries = 0;
+                        let retryTimer = null;
+
+                        function load() {
+                            imgContainer.classList.remove('errored', 'loaded');
+                            const sep = originalSrc.includes('?') ? '&' : '?';
+                            img.src = retries === 0 ? originalSrc : originalSrc + sep + '_retry=' + retries;
+                        }
+
+                        img.addEventListener('load', () => {
+                            imgContainer.classList.add('loaded');
+                            retries = 0;
+                            if (retryTimer) { clearTimeout(retryTimer); retryTimer = null; }
+                        });
+
+                        img.addEventListener('error', () => {
+                            if (retries < MAX_RETRIES) {
+                                retries++;
+                                const delay = BACKOFF_BASE_MS * Math.pow(2, retries - 1);
+                                retryTimer = setTimeout(load, delay);
+                            } else {
+                                imgContainer.classList.add('errored');
+                            }
+                        });
+
+                        retryButton.addEventListener('click', () => {
+                            retries = 0;
+                            load();
+                        });
+
+                        // Kick off the first load (src was set via data-src so we control timing)
+                        if (img.getAttribute('data-src')) {
+                            load();
+                        }
+                    });
+
                     const container = document.getElementById('container');
                     const wrapper = document.getElementById('wrapper');
 
@@ -329,7 +428,12 @@ namespace Deaddit
 
             foreach (FileDownload s in items)
             {
-                images.Append($"<img src='{s.LaunchUrl}' alt='Image' />");
+                string escapedUrl = HtmlEncoder.Default.Encode(s.LaunchUrl);
+                images.Append("<div class='img-container'>");
+                images.Append($"<img data-src='{escapedUrl}' alt='Image' />");
+                images.Append("<div class='loading-overlay'><div class='spinner'></div></div>");
+                images.Append("<div class='error-overlay'><div>Image failed to load</div><button type='button'>Retry</button></div>");
+                images.Append("</div>");
             }
 
             string Html = TEMPLATE.Replace("%IMAGES%", images.ToString())
@@ -350,12 +454,9 @@ namespace Deaddit
             _downloadCts?.Cancel();
             _downloadCts = new CancellationTokenSource();
 
-            downloadOverlay.IsVisible = true;
-            downloadIndicator.IsRunning = true;
-
             try
             {
-                await Share.Default.ShareFiles("", selected, _converter);
+                await BusyOverlay.RunAsync(this, () => Share.Default.ShareFiles("", selected, _converter));
             }
             catch (OperationCanceledException)
             {
@@ -363,11 +464,6 @@ namespace Deaddit
             catch (Exception ex)
             {
                 await _displayMessages.DisplayException(ex);
-            }
-            finally
-            {
-                downloadIndicator.IsRunning = false;
-                downloadOverlay.IsVisible = false;
             }
         }
 
@@ -389,12 +485,9 @@ namespace Deaddit
             _downloadCts?.Cancel();
             _downloadCts = new CancellationTokenSource();
 
-            downloadOverlay.IsVisible = true;
-            downloadIndicator.IsRunning = true;
-
             try
             {
-                await FileStorage.Save(selected, _converter, _savePaths, _downloadCts.Token);
+                await BusyOverlay.RunAsync(this, () => FileStorage.Save(selected, _converter, _savePaths, _downloadCts.Token));
             }
             catch (OperationCanceledException)
             {
@@ -402,11 +495,6 @@ namespace Deaddit
             catch (Exception ex)
             {
                 await _displayMessages.DisplayException(ex);
-            }
-            finally
-            {
-                downloadIndicator.IsRunning = false;
-                downloadOverlay.IsVisible = false;
             }
         }
 

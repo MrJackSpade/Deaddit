@@ -12,6 +12,7 @@ using Deaddit.EventArguments;
 using Deaddit.Extensions;
 using Deaddit.Interfaces;
 using Deaddit.Pages.Models;
+using Deaddit.Utils;
 
 namespace Deaddit.Pages
 {
@@ -45,7 +46,11 @@ namespace Deaddit.Pages
 
             this.InitializeComponent();
 
-            if (_claudeService.IsConfigured && _aiConfiguration.Prompts.Count > 0)
+            // Prompts whose configured model has since been removed deserialize to None; skip them so
+            // they never appear for selection and can't fire a request with a missing model.
+            List<AiPrompt> availablePrompts = [.. _aiConfiguration.Prompts.Where(p => p.Model != ClaudeModel.None)];
+
+            if (_claudeService.IsConfigured && availablePrompts.Count > 0)
             {
                 Button aiButton = new()
                 {
@@ -58,11 +63,11 @@ namespace Deaddit.Pages
 
                 aiButton.Clicked += async (s, e) =>
                 {
-                    string prompt = await this.DisplayActionSheet("Select AI Prompt", "Cancel", null, [.. _aiConfiguration.Prompts.Select(p => p.DisplayName)]);
+                    string prompt = await this.DisplayActionSheet("Select AI Prompt", "Cancel", null, [.. availablePrompts.Select(p => p.DisplayName)]);
 
                     string additionalContext = string.Empty;
 
-                    AiPrompt? selectedPrompt = _aiConfiguration.Prompts.FirstOrDefault(p => p.DisplayName == prompt);
+                    AiPrompt? selectedPrompt = availablePrompts.FirstOrDefault(p => p.DisplayName == prompt);
 
                     if (selectedPrompt != null)
                     {
@@ -167,29 +172,18 @@ namespace Deaddit.Pages
                     return;
                 }
 
-                imageButton.IsEnabled = false;
-                imageButton.Text = "...";
-
-                try
+                string mediaKey = await BusyOverlay.RunAsync(this, async () =>
                 {
                     string mimetype = photo.ContentType ?? "image/png";
-
                     using Stream stream = await photo.OpenReadAsync();
+                    return await _redditClient.UploadMedia(stream, photo.FileName, mimetype);
+                });
 
-                    string mediaKey = await _redditClient.UploadMedia(stream, photo.FileName, mimetype);
-
-                    // Insert image placeholder at cursor position
-                    int cursorPos = textEditor.CursorPosition;
-                    string placeholder = $"![image]({mediaKey})";
-                    string text = textEditor.Text ?? "";
-                    textEditor.Text = text.Insert(cursorPos, placeholder);
-                    textEditor.CursorPosition = cursorPos + placeholder.Length;
-                }
-                finally
-                {
-                    imageButton.IsEnabled = true;
-                    imageButton.Text = "\U0001F4F7";
-                }
+                int cursorPos = textEditor.CursorPosition;
+                string placeholder = $"![image]({mediaKey})";
+                string text = textEditor.Text ?? "";
+                textEditor.Text = text.Insert(cursorPos, placeholder);
+                textEditor.CursorPosition = cursorPos + placeholder.Length;
             }
             catch (Exception ex)
             {
@@ -199,24 +193,29 @@ namespace Deaddit.Pages
 
         public async void OnSubmitClicked(object? sender, EventArgs e)
         {
-            ApiComment meta;
-
-            if (_toEdit is ApiComment comment)
+            try
             {
-                comment.Body = textEditor.Text;
-                meta = await _redditClient.Update(comment);
+                ApiComment meta = await BusyOverlay.RunAsync(this, async () =>
+                {
+                    if (_toEdit is ApiComment comment)
+                    {
+                        comment.Body = textEditor.Text;
+                        return await _redditClient.Update(comment);
+                    }
+
+                    return await _redditClient.Comment(_replyTo, textEditor.Text);
+                });
+
+                if (meta != null)
+                {
+                    OnSubmitted?.Invoke(this, new ReplySubmittedEventArgs(_replyTo, meta));
+
+                    await Navigation.PopAsync();
+                }
             }
-            else
+            catch (Exception ex)
             {
-                string commentBody = textEditor.Text;
-                meta = await _redditClient.Comment(_replyTo, commentBody);
-            }
-
-            if (meta != null)
-            {
-                OnSubmitted?.Invoke(this, new ReplySubmittedEventArgs(_replyTo, meta));
-
-                await Navigation.PopAsync();
+                await _displayExceptions.DisplayException(ex);
             }
         }
 

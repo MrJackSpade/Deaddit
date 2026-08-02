@@ -215,7 +215,7 @@ namespace Deaddit.Components.WebComponents
 
                             if (confirm)
                             {
-                                await _redditClient.Delete(_comment);
+                                await BusyOverlay.RunAsync(_navigation.NavigationStack[^1], () => _redditClient.Delete(_comment));
                                 OnDelete?.Invoke(this, new OnDeleteClickedEventArgs(_comment, this));
                             }
                         }),

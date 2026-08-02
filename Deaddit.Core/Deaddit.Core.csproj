@@ -17,11 +17,12 @@
 
   <ItemGroup>
     <PackageReference Include="HtmlAgilityPack" Version="1.12.4" />
-    <PackageReference Include="Loxifi.FFmpeg" Version="1.0.9" />
-    <PackageReference Include="Loxifi.FFmpeg.Runtime.android-arm64.GPL" Version="1.0.9" />
-    <PackageReference Include="Loxifi.FFmpeg.Runtime.win-x64.GPL" Version="1.0.9" />
+    <PackageReference Include="Loxifi.FFmpeg" Version="1.0.12" />
+    <PackageReference Include="Loxifi.FFmpeg.Runtime.android-arm64.GPL" Version="1.0.12" />
+    <PackageReference Include="Loxifi.FFmpeg.Runtime.win-x64.GPL" Version="1.0.12" />
     <PackageReference Include="MimeKit" Version="4.15.1" />
     <PackageReference Include="SkiaSharp" Version="3.119.2" />
+    <PackageReference Include="SmartReader" Version="0.11.0" />
   </ItemGroup>
 
   <ItemGroup>

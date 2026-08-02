@@ -1,4 +1,5 @@
 using HtmlAgilityPack;
+using System.Linq;
 using System.Text;
 using System.Web;
 
@@ -40,6 +41,39 @@ namespace Deaddit.Core.Reddit
             {
                 ProcessNode(child, sb);
             }
+        }
+
+        private static int QuoteDepth(string line)
+        {
+            int depth = 0;
+            int i = 0;
+            while (i + 1 < line.Length && line[i] == '>' && line[i + 1] == ' ')
+            {
+                depth++;
+                i += 2;
+            }
+
+            // Also count a trailing ">" with no space (e.g. the empty-quote line ">")
+            if (i < line.Length && line[i] == '>' && (i + 1 == line.Length))
+            {
+                depth++;
+            }
+
+            return depth;
+        }
+
+        private static bool IsEmptyQuoteLine(string line)
+        {
+            // True for "> ", "> > ", "> > >", etc. — lines that are only `>` markers and whitespace.
+            for (int i = 0; i < line.Length; i++)
+            {
+                if (line[i] != '>' && line[i] != ' ')
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static void ProcessNode(HtmlNode node, StringBuilder sb)
@@ -178,9 +212,42 @@ namespace Deaddit.Core.Reddit
                         inner.Length--;
                     }
 
+                    List<string> prefixed = new();
                     foreach (string line in inner.ToString().Split('\n'))
                     {
-                        sb.Append("> ");
+                        prefixed.Add("> " + line);
+                    }
+
+                    // Reddit's parser drops deeper-nested content when quote depth drops by
+                    // more than one level across a paragraph break. The empty-quote separator
+                    // (e.g. "> " after stripping one level) becomes a blank line that splits
+                    // the next paragraph out of the nested blockquote entirely. Bump the
+                    // separator AND the next content line up to depth (deepDepth - 1) so the
+                    // parser stays inside the inner blockquote when re-parsing.
+                    for (int i = 0; i + 2 < prefixed.Count; i++)
+                    {
+                        int deepDepth = QuoteDepth(prefixed[i]);
+                        int sepDepth = QuoteDepth(prefixed[i + 1]);
+                        int nextDepth = QuoteDepth(prefixed[i + 2]);
+
+                        if (!IsEmptyQuoteLine(prefixed[i + 1]))
+                        {
+                            continue;
+                        }
+
+                        if (deepDepth - nextDepth < 2)
+                        {
+                            continue;
+                        }
+
+                        int bumpedDepth = deepDepth - 1;
+                        string bumpPrefix = string.Concat(Enumerable.Repeat("> ", bumpedDepth - sepDepth));
+                        prefixed[i + 1] = bumpPrefix + prefixed[i + 1];
+                        prefixed[i + 2] = bumpPrefix + prefixed[i + 2];
+                    }
+
+                    foreach (string line in prefixed)
+                    {
                         sb.Append(line);
                         sb.Append('\n');
                     }

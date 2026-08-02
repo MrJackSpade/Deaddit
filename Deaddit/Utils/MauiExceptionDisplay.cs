@@ -1,5 +1,6 @@
 ﻿using Deaddit.Core.Interfaces;
 using Deaddit.Core.Reddit.Exceptions;
+using Reddit.Api.Exceptions;
 using System.Diagnostics;
 
 namespace Deaddit.Utils
@@ -64,6 +65,16 @@ namespace Deaddit.Utils
                     await currentPage.DisplayAlert(
                         "Alert",
                         de.Message,
+                        "OK"
+                    );
+                }
+                else if (ex is RedditException)
+                {
+                    // Reddit-side errors (locked threads, rate limits, not logged in, etc.)
+                    // carry a user-meaningful message; show it without the stack trace.
+                    await currentPage.DisplayAlert(
+                        "Reddit",
+                        ex.Message,
                         "OK"
                     );
                 }

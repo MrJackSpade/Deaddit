@@ -5,6 +5,7 @@ using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Reddit.Models.Requests;
 using Deaddit.Core.Reddit.Models.ThingDefinitions;
+using Reddit.Api.Exceptions;
 using Reddit.Api.Models;
 using Reddit.Api.Models.Enums;
 using Reddit.Api.Models.Json.Common;
@@ -118,13 +119,27 @@ namespace Deaddit.Core.Reddit
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            RichTextDocument richtext = MarkdownRichTextConverter.Convert(markdown);
-            Thing<Comment>? result = await _client.CommentAsync(replyTo.Name, richtext);
+            EnsureNotNestedQuotesWithImage(markdown);
+
+            Thing<Comment>? result = MarkdownAnalyzer.HasNestedBlockquote(markdown)
+                ? await _client.CommentAsync(replyTo.Name, markdown)
+                : await _client.CommentAsync(replyTo.Name, MarkdownRichTextConverter.Convert(markdown));
 
             stopwatch.Stop();
             Debug.WriteLine($"[DEBUG] Time spent in Comment method: {stopwatch.ElapsedMilliseconds}ms");
 
             return RedditModelMapper.Map(result);
+        }
+
+        private static void EnsureNotNestedQuotesWithImage(string? markdown)
+        {
+            if (MarkdownAnalyzer.HasNestedBlockquote(markdown) && MarkdownAnalyzer.ContainsImagePlaceholder(markdown))
+            {
+                throw new InvalidOperationException(
+                    "Reddit's API can't handle nested blockquotes and image attachments in the same " +
+                    "comment: the richtext endpoint mishandles nested quotes, and the markdown " +
+                    "endpoint can't attach images. Post the quotes and the image as separate comments.");
+            }
         }
 
         public async Task<string> UploadMedia(Stream fileStream, string filename, string mimetype)
@@ -345,7 +360,7 @@ namespace Deaddit.Core.Reddit
             // Replace %USER% placeholder with actual username
             if (endpoint.Contains("%USER%"))
             {
-                endpoint = endpoint.Replace("%USER%", _client.AuthenticatedUser ?? throw new InvalidOperationException("Must be logged in to view this content"));
+                endpoint = endpoint.Replace("%USER%", _client.AuthenticatedUser ?? throw new RedditAuthenticationException("You must be logged in to view this content."));
             }
 
             // Build the full URL dynamically based on endpoint and sort
@@ -558,7 +573,7 @@ namespace Deaddit.Core.Reddit
         {
             await this.EnsureAuthenticated();
 
-            string username = _client.AuthenticatedUser ?? throw new InvalidOperationException("Must be logged in to create a multi");
+            string username = _client.AuthenticatedUser ?? throw new RedditAuthenticationException("You must be logged in to create a multireddit.");
             string multipath = $"user/{username}/m/{name}";
 
             MultiCreateRequest request = new()
@@ -711,8 +726,11 @@ namespace Deaddit.Core.Reddit
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            RichTextDocument richtext = MarkdownRichTextConverter.Convert(thing.Body);
-            Thing<Comment>? result = await _client.EditAsync(thing.Name, richtext);
+            EnsureNotNestedQuotesWithImage(thing.Body);
+
+            Thing<Comment>? result = MarkdownAnalyzer.HasNestedBlockquote(thing.Body)
+                ? await _client.EditAsync(thing.Name, thing.Body)
+                : await _client.EditAsync(thing.Name, MarkdownRichTextConverter.Convert(thing.Body));
 
             stopwatch.Stop();
             Debug.WriteLine($"[DEBUG] Time spent in Update method: {stopwatch.ElapsedMilliseconds}ms");
@@ -769,12 +787,12 @@ namespace Deaddit.Core.Reddit
                 {
                     if (!await _client.AuthenticateAsync())
                     {
-                        throw new InvalidOperationException("Failed to authenticate");
+                        throw new RedditAuthenticationException("Failed to authenticate with Reddit. Please sign in again.");
                     }
                 }
                 else
                 {
-                    throw new InvalidOperationException("Cannot authenticate - no valid credentials");
+                    throw new RedditAuthenticationException("You must be logged in to perform this action.");
                 }
             }
         }
