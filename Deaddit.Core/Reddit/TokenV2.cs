@@ -38,14 +38,15 @@ namespace Deaddit.Core.Reddit
                 throw new FormatException("token_v2 has no string 'sub' claim.");
             }
 
-            if (!claims.RootElement.TryGetProperty("exp", out JsonElement exp) || !exp.TryGetInt64(out long expSeconds))
+            // Reddit writes exp with a fractional part (e.g. 1760548000.123), so read it as a double.
+            if (!claims.RootElement.TryGetProperty("exp", out JsonElement exp) || exp.ValueKind != JsonValueKind.Number)
             {
-                throw new FormatException("token_v2 has no numeric 'exp' claim.");
+                throw new FormatException($"token_v2 has no numeric 'exp' claim (found {(exp.ValueKind == JsonValueKind.Undefined ? "none" : exp.ValueKind.ToString())}).");
             }
 
             return new TokenV2(
                 sub.GetString() != "loid",
-                DateTimeOffset.FromUnixTimeSeconds(expSeconds).UtcDateTime);
+                DateTime.UnixEpoch.AddSeconds(exp.GetDouble()));
         }
     }
 }

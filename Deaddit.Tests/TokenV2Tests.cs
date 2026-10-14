@@ -27,6 +27,22 @@ namespace Deaddit.Tests
         }
 
         [TestMethod]
+        public void Parse_FractionalExp_ReadsExpiration()
+        {
+            // Reddit's token_v2 carries exp with a fractional part.
+            TokenV2 token = TokenV2.Parse(Jwt("{\"sub\":\"t2_abc123\",\"exp\":2000000000.123456}"));
+
+            Assert.AreEqual(DateTime.UnixEpoch.AddSeconds(2000000000.123456), token.Expiration);
+            Assert.IsFalse(token.IsExpired);
+        }
+
+        [TestMethod]
+        public void Parse_StringExp_Throws()
+        {
+            Assert.ThrowsException<FormatException>(() => TokenV2.Parse(Jwt("{\"sub\":\"t2_abc123\",\"exp\":\"soon\"}")));
+        }
+
+        [TestMethod]
         public void Parse_AnonymousToken_IsNotLoggedIn()
         {
             long exp = DateTimeOffset.UtcNow.AddHours(24).ToUnixTimeSeconds();

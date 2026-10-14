@@ -38,14 +38,6 @@ namespace Deaddit.Core.Reddit.Interfaces
         /// </summary>
         Task<string?> GetTokenOwner(string accessToken);
 
-        /// <summary>
-        /// Drives the underlying client to apply any cached bearer token via the
-        /// configured token refresh function. Required after browser-based login
-        /// because the token is staged in Preferences but not yet on the client
-        /// until an authenticated request runs.
-        /// </summary>
-        Task<bool> EnsureLoggedInAsync();
-
         Task<Subreddit?> About(SubRedditDefinition subreddit);
 
         Task<ApiComment> Comment(ApiThing replyTo, string markdown);

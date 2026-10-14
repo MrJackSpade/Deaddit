@@ -303,11 +303,26 @@ namespace Deaddit.Pages
                 return;
             }
 
-            // Sessions saved before cookies were captured can't load comments, and expired ones
-            // aren't accepted anywhere; drop both so the next request logs in again.
-            if (stored == null || stored.SessionCookies == null || stored.IsExpired)
+            if (stored == null)
             {
                 Preferences.Remove(BearerTokenPreferenceKey);
+                return;
+            }
+
+            // Sessions saved before cookies were captured can't load comments, and expired ones
+            // aren't accepted anywhere. Renew them now, before the landing page loads, so it loads
+            // logged in; the browser still holds the Reddit login, so the login page completes itself.
+            if (stored.SessionCookies == null || stored.IsExpired)
+            {
+                Preferences.Remove(BearerTokenPreferenceKey);
+
+                BearerToken? renewed = await this.LoginViaBrowser();
+
+                if (renewed != null)
+                {
+                    _redditClient.SetBearerToken(renewed);
+                }
+
                 return;
             }
 

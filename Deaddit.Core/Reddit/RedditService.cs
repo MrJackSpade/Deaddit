@@ -78,27 +78,6 @@ namespace Deaddit.Core.Reddit
             return _client.GetTokenOwner(accessToken);
         }
 
-        public async Task<bool> EnsureLoggedInAsync()
-        {
-            if (_client.IsAuthenticated)
-            {
-                return true;
-            }
-
-            try
-            {
-                // GetMeAsync calls EnsureAuthenticatedAsync internally, which invokes
-                // the token refresh function and applies the cached bearer token.
-                await _client.GetMeAsync();
-            }
-            catch
-            {
-                // Auth probe: a failure here is the "not logged in" answer, not an error.
-            }
-
-            return _client.IsAuthenticated;
-        }
-
         public async Task<Subreddit?> About(SubRedditDefinition subreddit)
         {
             await this.TryAuthenticate();
@@ -779,22 +758,11 @@ namespace Deaddit.Core.Reddit
             }
         }
 
-        private async Task EnsureAuthenticated()
+        // Both delegate to the client, which owns the full login rule: live session, credentials,
+        // or the browser login via the token refresh function.
+        private Task EnsureAuthenticated()
         {
-            if (!_client.IsAuthenticated)
-            {
-                if (_client.CanAuthenticate)
-                {
-                    if (!await _client.AuthenticateAsync())
-                    {
-                        throw new RedditAuthenticationException("Failed to authenticate with Reddit. Please sign in again.");
-                    }
-                }
-                else
-                {
-                    throw new RedditAuthenticationException("You must be logged in to perform this action.");
-                }
-            }
+            return _client.EnsureAuthenticatedAsync();
         }
 
         private void MapCommentReplies(ApiComment apiComment, Comment sourceComment, ApiThing parent)
@@ -852,12 +820,9 @@ namespace Deaddit.Core.Reddit
             }
         }
 
-        private async Task TryAuthenticate()
+        private Task TryAuthenticate()
         {
-            if (_client.CanAuthenticate && !_client.IsAuthenticated)
-            {
-                await _client.AuthenticateAsync();
-            }
+            return _client.TryAuthenticateAsync();
         }
 
         #endregion Private Methods
