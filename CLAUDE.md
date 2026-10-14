@@ -14,16 +14,19 @@ Do this whenever you make code changes that touch the `Deaddit/` MAUI project �
 
 ## Deployment
 
-To build and publish for testing, run the full BuildAndPublish script from WSL:
+Publishing runs entirely in GitHub Actions (`.github/workflows/publish.yml`). It builds the signed APK, computes the version from existing tags, creates the GitHub release (which creates the tag), and — for `release` only — posts to r/DeadditApp. Trigger it and follow it with:
 
 ```bash
-/mnt/c/Windows/System32/cmd.exe /c "cd /d Z:\git\Deaddit && BuildAndPublish.bat"
+gh workflow run publish.yml --ref main -f channel=preview
+gh workflow run publish.yml --ref main -f channel=release
+gh run watch
 ```
 
-This builds the APK, creates a GitHub release, and makes it available to pull to the user's phone. Publishing IS the testing step — the user is the only one using the app.
+The workflow builds what is on GitHub, so commit and push to `main` first. Publishing IS the testing step — the user is the only one using the app.
+
+Signing and Reddit credentials live only in repository secrets (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`, `ANDROID_KEYSTORE_PASSWORD`, `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, `REDDIT_USERNAME`, `REDDIT_PASSWORD`). Never commit a keystore or credential file.
 
 ## Workflow
 
-- Build and publish first so the user can test on their phone.
-- Never commit code for an issue until the user has tested the fix and confirmed it works.
-- If the app ever gets other users, the publish-before-commit flow will need to change.
+- Everything goes to `main`, always. No feature branches.
+- Commit and push to `main`, then publish a preview so the user can test on their phone.

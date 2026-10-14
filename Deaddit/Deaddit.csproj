@@ -40,12 +40,9 @@
 	  <DebugType>portable</DebugType>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+	<!-- Signing keystore and credentials are supplied by the Publish workflow from repository secrets -->
+	<PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android' And '$(AndroidSigningKeyStore)' != ''">
 	  <AndroidKeyStore>true</AndroidKeyStore>
-	  <AndroidSigningKeyStore>..\debug.keystore</AndroidSigningKeyStore>
-	  <AndroidSigningKeyAlias>androiddebugkey</AndroidSigningKeyAlias>
-	  <AndroidSigningKeyPass>android</AndroidSigningKeyPass>
-	  <AndroidSigningStorePass>android</AndroidSigningStorePass>
 	</PropertyGroup>
 
 	<ItemGroup>
