@@ -1,4 +1,5 @@
-﻿using Deaddit.Core.Configurations.Models;
+﻿using CommunityToolkit.Maui.Core;
+using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Models;
 using Deaddit.Extensions;
@@ -9,6 +10,8 @@ namespace Deaddit
 {
     public partial class EmbeddedVideo : ContentPage
     {
+        private static readonly HttpClient ProbeClient = new();
+
         private readonly ApplicationStyling _applicationStyling;
 
         private readonly IStreamConverter? _converter;
@@ -35,7 +38,34 @@ namespace Deaddit
             saveButton.TextColor = applicationTheme.TextColor.ToMauiColor();
             shareButton.TextColor = applicationTheme.TextColor.ToMauiColor();
 
+            mediaView.MediaFailed += this.MediaView_MediaFailed;
             mediaView.Source = new Uri(fileDownload.LaunchUrl);
+        }
+
+        private async void MediaView_MediaFailed(object? sender, MediaFailedEventArgs e)
+        {
+            // Without this a video the player can't load is just a black screen. Ask the server
+            // why: Reddit answers 403 for videos it has pulled while the post stays up (reddit.com
+            // shows "This video is no longer available" for those), which the player only reports
+            // as a generic source error.
+            string message;
+
+            try
+            {
+                using HttpRequestMessage probe = new(HttpMethod.Get, _postItems.LaunchUrl);
+                using HttpResponseMessage response = await ProbeClient.SendAsync(probe, HttpCompletionOption.ResponseHeadersRead);
+
+                message = response.StatusCode == System.Net.HttpStatusCode.Forbidden
+                    ? "This video is no longer available. Reddit has removed the video file (the post itself is still up)."
+                    : $"The video failed to play: {e.ErrorMessage}\n\nServer response: {(int)response.StatusCode} {response.StatusCode}";
+            }
+            catch (HttpRequestException ex)
+            {
+                // This handler is async void: an escaping exception would crash the app. Report both failures instead.
+                message = $"The video failed to play: {e.ErrorMessage}\n\nThe server could not be reached either: {ex.Message}";
+            }
+
+            await MainThread.InvokeOnMainThreadAsync(() => _displayMessages.DisplayMessage(message));
         }
 
         public async void OnShareClicked(object? sender, EventArgs e)
