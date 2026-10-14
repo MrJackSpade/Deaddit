@@ -58,7 +58,7 @@ namespace Deaddit.Core.Reddit
 
         public string? LoggedInUser => _client.AuthenticatedUser;
 
-        public void SetTokenRefreshFunction(Func<Task<string?>> tokenRefreshFunc)
+        public void SetTokenRefreshFunction(Func<Task<BearerToken?>> tokenRefreshFunc)
         {
             _client.SetTokenRefreshFunction(tokenRefreshFunc);
         }

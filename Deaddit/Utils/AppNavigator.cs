@@ -120,11 +120,11 @@ namespace Deaddit.Utils
             return browser;
         }
 
-        public async Task<string?> OpenRedditLogin()
+        public async Task<WebLogin?> OpenRedditLogin()
         {
             RedditLoginPage loginPage = new();
             await Navigation.PushAsync(loginPage);
-            return await loginPage.TokenTask;
+            return await loginPage.LoginTask;
         }
 
         public async Task<ReplyPage> OpenEditPage(ApiThing toEdit)

@@ -68,7 +68,9 @@ namespace Deaddit
             builder.Services.AddSingleton<IHistoryTracker, PreferencesHistoryTracker>();
             builder.Services.AddTransient<IConfigurationService, PreferencesConfigurationService>();
             builder.Services.AddTransient<IClaudeService, ClaudeService>();
-            builder.Services.AddSingleton(s => new HttpClient());
+            // Reddit requests carry the browser session's cookie header explicitly; a handler-managed
+            // cookie jar would merge stale cookies from earlier responses into it.
+            builder.Services.AddSingleton(s => new HttpClient(new HttpClientHandler { UseCookies = false }));
             builder.Services.AddSingleton<LandingPage>();
 
             builder

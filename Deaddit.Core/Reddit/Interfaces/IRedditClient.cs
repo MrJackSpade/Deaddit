@@ -19,7 +19,7 @@ namespace Deaddit.Core.Reddit.Interfaces
 
         public string? LoggedInUser { get; }
 
-        void SetTokenRefreshFunction(Func<Task<string?>> tokenRefreshFunc);
+        void SetTokenRefreshFunction(Func<Task<BearerToken?>> tokenRefreshFunc);
 
         /// <summary>
         /// Stores a previously validated bearer token on the client.

@@ -1,14 +1,16 @@
+using Deaddit.Core.Reddit;
+
 namespace Deaddit.Pages
 {
     public partial class RedditLoginPage : ContentPage
     {
-        private readonly TaskCompletionSource<string?> _tokenSource = new();
+        private readonly TaskCompletionSource<WebLogin?> _loginSource = new();
 
         private bool _resolved;
 
         private bool _checking;
 
-        public Task<string?> TokenTask => _tokenSource.Task;
+        public Task<WebLogin?> LoginTask => _loginSource.Task;
 
         public RedditLoginPage()
         {
@@ -24,12 +26,12 @@ namespace Deaddit.Pages
                     return false;
                 }
 
-                _ = this.CheckForToken();
+                _ = this.CheckForLogin();
                 return !_resolved;
             });
         }
 
-        private async Task CheckForToken()
+        private async Task CheckForLogin()
         {
             if (_checking || _resolved)
             {
@@ -38,24 +40,67 @@ namespace Deaddit.Pages
 
             _checking = true;
 
-            string? token = await this.TryGetTokenCookie();
+            WebLogin? login;
 
-            if (token != null)
+            try
+            {
+                login = await this.TryGetLogin();
+            }
+            catch (Exception ex)
+            {
+                // Surface the failure to whoever awaits the login instead of polling forever.
+                _resolved = true;
+                _loginSource.TrySetException(ex);
+                await this.CloseAsync();
+                return;
+            }
+
+            if (login != null)
             {
                 _resolved = true;
-                _tokenSource.TrySetResult(token);
-
-                if (Navigation.NavigationStack.Count > 1)
-                {
-                    await Navigation.PopAsync();
-                }
+                _loginSource.TrySetResult(login);
+                await this.CloseAsync();
             }
 
             _checking = false;
         }
 
-        private async Task<string?> TryGetTokenCookie()
+        private async Task CloseAsync()
         {
+            if (Navigation.NavigationStack.Count > 1)
+            {
+                await Navigation.PopAsync();
+            }
+        }
+
+        /// <summary>
+        /// Returns the login once the browser holds a logged-in, unexpired token_v2, together with
+        /// the complete reddit.com cookie header of that browser session. A token left over from an
+        /// earlier session may be expired; Reddit replaces it as the page loads, so keep polling.
+        /// </summary>
+        private async Task<WebLogin?> TryGetLogin()
+        {
+            Dictionary<string, string> cookies = await this.GetRedditCookies();
+
+            if (!cookies.TryGetValue("token_v2", out string? accessToken))
+            {
+                return null;
+            }
+
+            TokenV2 token = TokenV2.Parse(accessToken);
+
+            if (!token.IsLoggedIn || token.IsExpired)
+            {
+                return null;
+            }
+
+            string cookieHeader = string.Join("; ", cookies.Select(c => $"{c.Key}={c.Value}"));
+            return new WebLogin(accessToken, token.Expiration, cookieHeader);
+        }
+
+        private async Task<Dictionary<string, string>> GetRedditCookies()
+        {
+            Dictionary<string, string> result = [];
 #if ANDROID
             string? cookies = Android.Webkit.CookieManager.Instance?.GetCookie("https://www.reddit.com");
 
@@ -63,16 +108,11 @@ namespace Deaddit.Pages
             {
                 foreach (string cookie in cookies.Split(';'))
                 {
-                    string trimmed = cookie.Trim();
+                    string[] pair = cookie.Trim().Split('=', 2);
 
-                    if (trimmed.StartsWith("token_v2="))
+                    if (pair.Length == 2)
                     {
-                        string token = trimmed["token_v2=".Length..];
-
-                        if (this.IsLoggedInToken(token))
-                        {
-                            return token;
-                        }
+                        result[pair[0]] = pair[1];
                     }
                 }
             }
@@ -81,50 +121,14 @@ namespace Deaddit.Pages
 
             if (platformView?.CoreWebView2 != null)
             {
-                List<Microsoft.Web.WebView2.Core.CoreWebView2Cookie> cookies =
-                    (await platformView.CoreWebView2.CookieManager.GetCookiesAsync("https://www.reddit.com")).ToList();
-
-                Microsoft.Web.WebView2.Core.CoreWebView2Cookie? tokenCookie =
-                    cookies.FirstOrDefault(c => c.Name == "token_v2");
-
-                if (tokenCookie != null && this.IsLoggedInToken(tokenCookie.Value))
+                foreach (Microsoft.Web.WebView2.Core.CoreWebView2Cookie cookie in await platformView.CoreWebView2.CookieManager.GetCookiesAsync("https://www.reddit.com"))
                 {
-                    return tokenCookie.Value;
+                    result[cookie.Name] = cookie.Value;
                 }
             }
 #endif
             await Task.CompletedTask;
-            return null;
-        }
-
-        private bool IsLoggedInToken(string jwt)
-        {
-            try
-            {
-                string[] parts = jwt.Split('.');
-
-                if (parts.Length != 3)
-                {
-                    return false;
-                }
-
-                string payload = parts[1].Replace('-', '+').Replace('_', '/');
-
-                switch (payload.Length % 4)
-                {
-                    case 2: payload += "=="; break;
-                    case 3: payload += "="; break;
-                }
-
-                byte[] bytes = Convert.FromBase64String(payload);
-                string json = System.Text.Encoding.UTF8.GetString(bytes);
-
-                return !json.Contains("\"sub\":\"loid\"");
-            }
-            catch
-            {
-                return false;
-            }
+            return result;
         }
     }
 }

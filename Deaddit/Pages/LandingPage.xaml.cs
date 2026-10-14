@@ -198,31 +198,40 @@ namespace Deaddit.Pages
             await this.DisplayAlert("Logged Out", "Restart the app to complete logout.", "OK");
         }
 
-        private async Task<string?> RefreshToken()
+        /// <summary>
+        /// Opens the browser login, resolves the token's owner and persists the resulting session
+        /// (token, expiration and the browser's reddit.com cookies). Returns null if the login
+        /// produced no usable token.
+        /// </summary>
+        private async Task<BearerToken?> LoginViaBrowser()
         {
-            // 401/403 retry path: open the browser login, resolve owner, persist the validated
-            // token, and return the raw access token to the inner client so it can re-send
-            // the failed request with fresh credentials.
+            WebLogin? login = await _appNavigator.OpenRedditLogin();
+
+            if (login == null)
+            {
+                return null;
+            }
+
+            string? owner = await _redditClient.GetTokenOwner(login.AccessToken);
+
+            if (owner == null)
+            {
+                return null;
+            }
+
+            BearerToken session = new(login.AccessToken, owner, login.Expiration, login.Cookies);
+            Preferences.Set(BearerTokenPreferenceKey, JsonSerializer.Serialize(session));
+
+            return session;
+        }
+
+        private async Task<BearerToken?> RefreshToken()
+        {
+            // Session needed, expired or rejected: log in again and hand the inner client the
+            // new session so it can (re-)send the request with it.
             try
             {
-                string? accessToken = await _appNavigator.OpenRedditLogin();
-
-                if (accessToken == null)
-                {
-                    return null;
-                }
-
-                string? owner = await _redditClient.GetTokenOwner(accessToken);
-
-                if (owner == null)
-                {
-                    return null;
-                }
-
-                BearerToken token = new(accessToken, owner);
-                Preferences.Set(BearerTokenPreferenceKey, JsonSerializer.Serialize(token));
-
-                return accessToken;
+                return await this.LoginViaBrowser();
             }
             catch (Exception ex)
             {
@@ -235,23 +244,14 @@ namespace Deaddit.Pages
         {
             try
             {
-                string? accessToken = await _appNavigator.OpenRedditLogin();
+                BearerToken? session = await this.LoginViaBrowser();
 
-                if (accessToken == null)
+                if (session == null)
                 {
                     return;
                 }
 
-                string? owner = await _redditClient.GetTokenOwner(accessToken);
-
-                if (owner == null)
-                {
-                    return;
-                }
-
-                BearerToken token = new(accessToken, owner);
-                Preferences.Set(BearerTokenPreferenceKey, JsonSerializer.Serialize(token));
-                _redditClient.SetBearerToken(token);
+                _redditClient.SetBearerToken(session);
 
                 await this.LoadMultis();
             }
@@ -303,7 +303,9 @@ namespace Deaddit.Pages
                 return;
             }
 
-            if (stored == null)
+            // Sessions saved before cookies were captured can't load comments, and expired ones
+            // aren't accepted anywhere; drop both so the next request logs in again.
+            if (stored == null || stored.SessionCookies == null || stored.IsExpired)
             {
                 Preferences.Remove(BearerTokenPreferenceKey);
                 return;

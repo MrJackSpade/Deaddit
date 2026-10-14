@@ -2,6 +2,7 @@
 using Deaddit.Components.WebComponents;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Models;
+using Deaddit.Core.Reddit;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
@@ -32,7 +33,7 @@ namespace Deaddit.Interfaces
 
         Task<EmbeddedBrowser> OpenBrowser(string url);
 
-        Task<string?> OpenRedditLogin();
+        Task<WebLogin?> OpenRedditLogin();
 
         Task<ReplyPage> OpenEditPage(ApiThing toEdit);
 
