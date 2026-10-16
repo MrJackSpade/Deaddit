@@ -175,13 +175,7 @@ namespace Deaddit.Pages
 
         private async void WebElement_ClickUrl(object? sender, string e)
         {
-            if (!_aggregatePostHandler.UrlHandler.CanLaunch(e, _aggregatePostHandler))
-            {
-                await this.DisplayAlert("Alert", $"Can not handle url {e}", "OK");
-                return;
-            }
-
-            await _aggregatePostHandler.UrlHandler.Launch(e, _aggregatePostHandler);
+            await UrlClickLauncher.Launch(this, e, _aggregatePostHandler.UrlHandler, _aggregatePostHandler, _displayMessages);
         }
     }
 }
