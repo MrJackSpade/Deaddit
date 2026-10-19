@@ -65,9 +65,10 @@ namespace Deaddit.Components.WebComponents.Partials.Post
                 Color = applicationStyling.SubTextColor.ToHex(),
             };
 
-            if (!post.IsSelf && Uri.TryCreate(post.Url, UriKind.Absolute, out Uri result) && !UrlHelper.IsHiddenHost(result.Host))
+            string? displayHost = post.IsSelf ? null : UrlHelper.GetDisplayHost(post.Url);
+            if (displayHost != null)
             {
-                metaData.InnerText += $" ({result.Host})";
+                metaData.InnerText += $" ({displayHost})";
             }
 
             Children.Add(title);

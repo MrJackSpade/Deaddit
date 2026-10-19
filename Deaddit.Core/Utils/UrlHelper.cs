@@ -31,14 +31,22 @@ namespace Deaddit.Core.Utils
             return _videoExtensions.Contains(GetExtension(fileName));
         }
 
-        public static bool IsHiddenHost(string? host)
+        /// <summary>
+        /// The host to show beside a link post, or null when there is none worth showing:
+        /// not a web URL (relative reddit paths parse as host-less file URIs on Unix),
+        /// or a host reddit itself serves.
+        /// </summary>
+        public static string? GetDisplayHost(string? url)
         {
-            if (string.IsNullOrEmpty(host))
+            if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uri)
+                || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
+                || string.IsNullOrEmpty(uri.Host)
+                || _hiddenHosts.Contains(uri.Host))
             {
-                return false;
+                return null;
             }
 
-            return _hiddenHosts.Contains(host);
+            return uri.Host;
         }
 
         public static string GetExtension(string fileName)
