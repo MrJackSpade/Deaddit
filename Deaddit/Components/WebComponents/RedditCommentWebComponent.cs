@@ -143,7 +143,7 @@ namespace Deaddit.Components.WebComponents
             {
                 if (e.ChildNames.NotNullAny())
                 {
-                    await DataService.LoadAsync(async () => await this.LoadMoreCommentsAsync(e));
+                    await DataService.LoadAsync(async () => await this.LoadMoreAsync(_redditClient, e));
 
                     _replies.Children.Remove(mcomponent);
                 }
@@ -403,13 +403,6 @@ namespace Deaddit.Components.WebComponents
             _comment.Body = e.NewComment.Body;
             _comment.BodyHtml = e.NewComment.BodyHtml;
             _commentBody.InnerHTML = e.NewComment.BodyHtml;
-        }
-
-        private async Task LoadMoreCommentsAsync(IMore comment)
-        {
-            List<ApiThing> response = await _redditClient.MoreComments(Post, comment);
-
-            this.AddChildren(response, true);
         }
 
         private async Task NewBlockRule(BlockRule blockRule)

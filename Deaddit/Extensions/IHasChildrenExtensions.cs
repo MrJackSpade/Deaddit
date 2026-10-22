@@ -83,6 +83,19 @@ namespace Deaddit.Extensions
             }
         }
 
+        /// <summary>
+        /// Expands a "more" placeholder. Collapsed groups already hold their comments and render
+        /// them directly; only Reddit's own "more" stubs need the comments fetched.
+        /// </summary>
+        public static async Task LoadMoreAsync(this IHasChildren target, IRedditClient redditClient, IMore more)
+        {
+            List<ApiThing> children = more is CollapsedMore collapsed
+                ? [.. collapsed.Comments]
+                : await redditClient.MoreComments(target.Post, more);
+
+            target.AddChildren(children, true);
+        }
+
         private static bool ShouldRender(IHasChildren target, ApiThing thing)
         {
             if (!target.BlockConfiguration.IsAllowed(thing))

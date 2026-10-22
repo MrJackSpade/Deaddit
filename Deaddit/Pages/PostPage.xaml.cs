@@ -164,7 +164,7 @@ namespace Deaddit.Pages
 
             try
             {
-                await DataService.LoadAsync(mcomponent, async () => await this.LoadMoreAsync(Post, e), _applicationStyling.HighlightColor.ToHex());
+                await DataService.LoadAsync(mcomponent, async () => await this.LoadMoreAsync(_redditClient, e), _applicationStyling.HighlightColor.ToHex());
             }
             catch (Exception ex)
             {
@@ -290,13 +290,6 @@ namespace Deaddit.Pages
             sw.Stop();
 
             Debug.WriteLine("LoadDataAsync: " + sw.ElapsedMilliseconds + "ms");
-        }
-
-        private async Task LoadMoreAsync(ApiPost post, IMore more)
-        {
-            List<ApiThing> response = await _redditClient.MoreComments(post, more);
-
-            this.AddChildren(response, true);
         }
 
         private async Task NewBlockRule(BlockRule blockRule, bool whitelist = false)
