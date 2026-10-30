@@ -26,6 +26,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Resources\Profanity\en.json" LogicalName="Deaddit.Core.Resources.Profanity.en.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Utils\Models\" />
   </ItemGroup>
 

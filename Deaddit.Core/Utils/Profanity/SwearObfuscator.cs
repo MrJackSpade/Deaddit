@@ -1,12 +1,13 @@
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Deaddit.Core.Utils
+namespace Deaddit.Core.Utils.Profanity
 {
     /// <summary>
     /// Deterministically rewrites swear words in outgoing markdown so they render identically but no
     /// longer match plain-text filters: every Latin letter that has a visually identical counterpart in
     /// another script (Cyrillic/Greek) is swapped for it, and a zero width space is placed mid-word.
+    /// What counts as a swear is decided by <see cref="ProfanityMatcher"/>.
     /// Code, URLs, link destinations and r/ u/ references are left untouched so they keep working.
     /// </summary>
     public static partial class SwearObfuscator
@@ -48,22 +49,6 @@ namespace Deaddit.Core.Utils
             ['Z'] = '\u0396', // Ζ (Greek)
         };
 
-        // Matched anywhere inside a word ("fucking", "bullshit", "motherfucker").
-        private static readonly string[] _stems =
-        [
-            "fuck", "shit", "cunt", "bitch", "whore", "slut", "twat", "bastard", "asshole", "arsehole",
-            "dickhead", "cocksucker", "bollock", "douche", "jackass", "dumbass", "smartass", "fatass",
-            "damn", "piss",
-        ];
-
-        // Matched only as whole words, because as substrings they hit innocent words ("class", "scrap", "swank").
-        private static readonly HashSet<string> _words =
-        [
-            "ass", "asses", "arse", "arses", "dick", "dicks", "cock", "cocks", "prick", "pricks",
-            "crap", "crappy", "tits", "titty", "titties", "pussy", "pussies", "bugger", "buggered",
-            "wank", "wanks", "wanker", "wankers", "wanking", "wanked", "bellend", "tosser", "tossers",
-        ];
-
         public static string Obfuscate(string text)
         {
             StringBuilder result = new(text.Length);
@@ -71,50 +56,52 @@ namespace Deaddit.Core.Utils
 
             foreach (Match protectedSpan in ProtectedSpanRegex().Matches(text))
             {
-                result.Append(ObfuscateWords(text[position..protectedSpan.Index]));
+                result.Append(ObfuscateSwears(text[position..protectedSpan.Index]));
                 result.Append(protectedSpan.Value);
                 position = protectedSpan.Index + protectedSpan.Length;
             }
 
-            result.Append(ObfuscateWords(text[position..]));
+            result.Append(ObfuscateSwears(text[position..]));
 
             return result.ToString();
         }
 
-        public static bool IsSwear(string word)
+        private static string ObfuscateSpan(string span)
         {
-            string lower = word.ToLowerInvariant();
+            StringBuilder result = new(span.Length + 1);
 
-            return _words.Contains(lower) || _stems.Any(lower.Contains);
-        }
-
-        private static string ObfuscateWord(string word)
-        {
-            StringBuilder result = new(word.Length + 1);
-
-            for (int i = 0; i < word.Length; i++)
+            for (int i = 0; i < span.Length; i++)
             {
-                if (i == word.Length / 2)
+                if (i == span.Length / 2)
                 {
                     result.Append(ZERO_WIDTH_SPACE);
                 }
 
-                result.Append(_homoglyphs.TryGetValue(word[i], out char swapped) ? swapped : word[i]);
+                result.Append(_homoglyphs.TryGetValue(span[i], out char swapped) ? swapped : span[i]);
             }
 
             return result.ToString();
         }
 
-        private static string ObfuscateWords(string text)
+        private static string ObfuscateSwears(string text)
         {
-            return WordRegex().Replace(text, m => IsSwear(m.Value) ? ObfuscateWord(m.Value) : m.Value);
+            StringBuilder result = new(text.Length);
+            int position = 0;
+
+            foreach ((int start, int end) in ProfanityMatcher.Default.FindMatches(text))
+            {
+                result.Append(text, position, start - position);
+                result.Append(ObfuscateSpan(text[start..end]));
+                position = end;
+            }
+
+            result.Append(text, position, text.Length - position);
+
+            return result.ToString();
         }
 
         // Fenced code, inline code, markdown link destinations, bare URLs, r/ and u/ references.
         [GeneratedRegex(@"```[\s\S]*?```|`[^`\n]*`|\]\([^)]*\)|(?:https?://|www\.)\S+|(?<![\w/])/?[ru]/\w+", RegexOptions.IgnoreCase)]
         private static partial Regex ProtectedSpanRegex();
-
-        [GeneratedRegex(@"\p{L}+")]
-        private static partial Regex WordRegex();
     }
 }

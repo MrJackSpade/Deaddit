@@ -6,7 +6,7 @@ using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Reddit.Models.Requests;
 using Deaddit.Core.Reddit.Models.ThingDefinitions;
-using Deaddit.Core.Utils;
+using Deaddit.Core.Utils.Profanity;
 using Reddit.Api.Exceptions;
 using Reddit.Api.Models;
 using Reddit.Api.Models.Enums;

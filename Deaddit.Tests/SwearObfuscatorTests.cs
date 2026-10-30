@@ -1,4 +1,4 @@
-using Deaddit.Core.Utils;
+using Deaddit.Core.Utils.Profanity;
 
 namespace Deaddit.Tests
 {
@@ -34,6 +34,91 @@ namespace Deaddit.Tests
             const string input = "The class passed the scrap assessment, swank.";
 
             Assert.AreEqual(input, SwearObfuscator.Obfuscate(input));
+        }
+
+        [TestMethod]
+        [DataRow("fuck")]
+        [DataRow("Fucking")]
+        [DataRow("motherfucker")]
+        [DataRow("un-fucking-believable")]
+        [DataRow("shit")]
+        [DataRow("bullshitting")]
+        [DataRow("dipshit")]
+        [DataRow("shitty")]
+        [DataRow("cunt")]
+        [DataRow("bitches")]
+        [DataRow("son-of-a-bitch")]
+        [DataRow("bastards")]
+        [DataRow("asshole")]
+        [DataRow("ass")]
+        [DataRow("half-assed")]
+        [DataRow("dumbass")]
+        [DataRow("damn")]
+        [DataRow("goddamnit")]
+        [DataRow("dammit")]
+        [DataRow("hell")]
+        [DataRow("crap")]
+        [DataRow("cock")]
+        [DataRow("cocksucker")]
+        [DataRow("dick")]
+        [DataRow("dickhead")]
+        [DataRow("pussy")]
+        [DataRow("tits")]
+        [DataRow("twat")]
+        [DataRow("wanker")]
+        [DataRow("bollocks")]
+        [DataRow("piss")]
+        [DataRow("pissed")]
+        [DataRow("prick")]
+        [DataRow("douchebag")]
+        [DataRow("bloody")]
+        [DataRow("piece of shit")]
+        public void CatchesSwear(string swear)
+        {
+            Assert.AreEqual(1, ProfanityMatcher.Default.FindMatches(swear).Count, swear);
+        }
+
+        [TestMethod]
+        [DataRow("class")]
+        [DataRow("pass")]
+        [DataRow("assessment")]
+        [DataRow("analysis")]
+        [DataRow("canal")]
+        [DataRow("therapist")]
+        [DataRow("scrap")]
+        [DataRow("Scunthorpe")]
+        [DataRow("hello")]
+        [DataRow("shell")]
+        [DataRow("heller")]
+        [DataRow("cocktail")]
+        [DataRow("peacock")]
+        [DataRow("cocked")]
+        [DataRow("Dickens")]
+        [DataRow("document")]
+        [DataRow("accumulate")]
+        [DataRow("cumin")]
+        [DataRow("Essex")]
+        [DataRow("Christ")]
+        [DataRow("Christy")]
+        [DataRow("Yamashita")]
+        [DataRow("Kinoshita")]
+        [DataRow("Shakuntala")]
+        [DataRow("shiitake")]
+        [DataRow("pricked")]
+        [DataRow("snatched")]
+        [DataRow("world domination")]
+        [DataRow("fingered")]
+        [DataRow("thorny")]
+        [DataRow("swank")]
+        public void IgnoresInnocentWord(string word)
+        {
+            Assert.AreEqual(0, ProfanityMatcher.Default.FindMatches(word).Count, word);
+        }
+
+        [TestMethod]
+        public void ExcludesSlurs()
+        {
+            Assert.AreEqual(0, ProfanityMatcher.Default.FindMatches("retard spastic raghead").Count);
         }
 
         [TestMethod]
