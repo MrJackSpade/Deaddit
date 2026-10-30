@@ -43,5 +43,8 @@ namespace Deaddit.Core.Configurations.Models
 
         [EditorDisplay(Name = "Keep Alive (Background Service)", Order = 8)]
         public bool KeepAlive { get; set; } = false;
+
+        [EditorDisplay(Name = "Swear Obfuscation", Order = 9)]
+        public bool SwearObfuscation { get; set; } = false;
     }
 }

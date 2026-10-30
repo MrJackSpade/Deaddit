@@ -27,7 +27,7 @@ namespace Deaddit
             {
                 HttpClient httpClient = s.GetRequiredService<HttpClient>();
 
-                return new RedditService(httpClient);
+                return new RedditService(httpClient, s.GetRequiredService<ApplicationHacks>());
             });
 
             // Register individual handlers as transient

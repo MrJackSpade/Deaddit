@@ -1,3 +1,4 @@
+using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Reddit.Extensions;
 using Deaddit.Core.Reddit.Interfaces;
 using Deaddit.Core.Reddit.Mapping;
@@ -5,6 +6,7 @@ using Deaddit.Core.Reddit.Models;
 using Deaddit.Core.Reddit.Models.Api;
 using Deaddit.Core.Reddit.Models.Requests;
 using Deaddit.Core.Reddit.Models.ThingDefinitions;
+using Deaddit.Core.Utils;
 using Reddit.Api.Exceptions;
 using Reddit.Api.Models;
 using Reddit.Api.Models.Enums;
@@ -29,17 +31,21 @@ namespace Deaddit.Core.Reddit
     {
         private readonly NewClient.IRedditClient _client;
 
+        private readonly ApplicationHacks _applicationHacks;
+
         private readonly HttpClient _httpClient;
 
-        public RedditService(HttpClient httpClient)
+        public RedditService(HttpClient httpClient, ApplicationHacks applicationHacks)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _applicationHacks = applicationHacks ?? throw new ArgumentNullException(nameof(applicationHacks));
             _client = new NewClient.RedditClient(new NewClient.RedditCredentials(), httpClient);
         }
 
-        public RedditService(IRedditCredentials credentials, HttpClient httpClient)
+        public RedditService(IRedditCredentials credentials, HttpClient httpClient, ApplicationHacks applicationHacks)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _applicationHacks = applicationHacks ?? throw new ArgumentNullException(nameof(applicationHacks));
 
             NewClient.RedditCredentials clientCredentials = new()
             {
@@ -98,6 +104,8 @@ namespace Deaddit.Core.Reddit
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
+            markdown = this.PrepareOutgoingText(markdown);
+
             EnsureNotNestedQuotesWithImage(markdown);
 
             Thing<Comment>? result = MarkdownAnalyzer.HasNestedBlockquote(markdown)
@@ -108,6 +116,14 @@ namespace Deaddit.Core.Reddit
             Debug.WriteLine($"[DEBUG] Time spent in Comment method: {stopwatch.ElapsedMilliseconds}ms");
 
             return RedditModelMapper.Map(result);
+        }
+
+        /// <summary>
+        /// Applies user-configured rewrites to any text the user is about to submit.
+        /// </summary>
+        private string PrepareOutgoingText(string text)
+        {
+            return _applicationHacks.SwearObfuscation ? SwearObfuscator.Obfuscate(text) : text;
         }
 
         private static void EnsureNotNestedQuotesWithImage(string? markdown)
@@ -205,13 +221,13 @@ namespace Deaddit.Core.Reddit
             SubmitRequest request = new()
             {
                 Subreddit = subreddit,
-                Title = title,
+                Title = this.PrepareOutgoingText(title),
                 Kind = kind
             };
 
             if (kind is SubmitKind.Self)
             {
-                request.Text = content;
+                request.Text = this.PrepareOutgoingText(content);
             }
             else if (kind == SubmitKind.Link)
             {
@@ -435,7 +451,7 @@ namespace Deaddit.Core.Reddit
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            await _client.ComposeMessageAsync(user.Name!, subject, body);
+            await _client.ComposeMessageAsync(user.Name!, this.PrepareOutgoingText(subject), this.PrepareOutgoingText(body));
 
             stopwatch.Stop();
             Debug.WriteLine($"[DEBUG] Time spent in Message method: {stopwatch.ElapsedMilliseconds}ms");
@@ -705,11 +721,13 @@ namespace Deaddit.Core.Reddit
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            EnsureNotNestedQuotesWithImage(thing.Body);
+            string body = this.PrepareOutgoingText(thing.Body);
 
-            Thing<Comment>? result = MarkdownAnalyzer.HasNestedBlockquote(thing.Body)
-                ? await _client.EditAsync(thing.Name, thing.Body)
-                : await _client.EditAsync(thing.Name, MarkdownRichTextConverter.Convert(thing.Body));
+            EnsureNotNestedQuotesWithImage(body);
+
+            Thing<Comment>? result = MarkdownAnalyzer.HasNestedBlockquote(body)
+                ? await _client.EditAsync(thing.Name, body)
+                : await _client.EditAsync(thing.Name, MarkdownRichTextConverter.Convert(body));
 
             stopwatch.Stop();
             Debug.WriteLine($"[DEBUG] Time spent in Update method: {stopwatch.ElapsedMilliseconds}ms");
