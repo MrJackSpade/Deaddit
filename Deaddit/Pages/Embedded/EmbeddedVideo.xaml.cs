@@ -1,7 +1,10 @@
 ﻿using CommunityToolkit.Maui.Core;
+using CommunityToolkit.Maui.Views;
 using Deaddit.Core.Configurations.Models;
 using Deaddit.Core.Interfaces;
 using Deaddit.Core.Models;
+using Deaddit.Core.Utils;
+using Deaddit.Core.Utils.IO;
 using Deaddit.Extensions;
 using Deaddit.Utils;
 using System.Diagnostics;
@@ -39,7 +42,54 @@ namespace Deaddit
             shareButton.TextColor = applicationTheme.TextColor.ToMauiColor();
 
             mediaView.MediaFailed += this.MediaView_MediaFailed;
-            mediaView.Source = new Uri(fileDownload.LaunchUrl);
+
+            if (IsDashPlaylist(fileDownload.LaunchUrl))
+            {
+                this.LoadTopQuality();
+            }
+            else
+            {
+                mediaView.Source = new Uri(fileDownload.LaunchUrl);
+            }
+        }
+
+        private static bool IsDashPlaylist(string url)
+        {
+            return string.Equals(UrlHelper.GetExtension(url), ".mpd", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Handed a DASH playlist, the player streams adaptively: it starts every play, and every
+        /// loop, at the lowest quality and only steps up part way through. Play the top quality
+        /// from the start instead, muxed with its audio the same way Save does.
+        /// </summary>
+        private async void LoadTopQuality()
+        {
+            downloadOverlay.IsVisible = true;
+            downloadIndicator.IsRunning = true;
+
+            try
+            {
+                string file = Path.Combine(FileSystem.CacheDirectory, _postItems.FileName);
+
+                using (Stream source = await FileStreamService.GetStream(_postItems.LaunchUrl))
+                using (FileStream target = File.Create(file))
+                {
+                    await source.CopyToAsync(target);
+                }
+
+                mediaView.Source = MediaSource.FromFile(file);
+            }
+            catch (Exception ex)
+            {
+                // async void: an escaping exception would crash the app, so report it instead
+                await _displayMessages.DisplayException(ex);
+            }
+            finally
+            {
+                downloadIndicator.IsRunning = false;
+                downloadOverlay.IsVisible = false;
+            }
         }
 
         private async void MediaView_MediaFailed(object? sender, MediaFailedEventArgs e)
