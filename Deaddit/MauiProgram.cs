@@ -31,6 +31,7 @@ namespace Deaddit
             });
 
             // Register individual handlers as transient
+            builder.Services.AddTransient<IUrlHandler, RedditInlineVideoUrlHandler>();
             builder.Services.AddTransient<IUrlHandler, RedditCommentsPostUrlHandler>();
             builder.Services.AddTransient<IUrlHandler, RedditSPostUrlHandler>();
             builder.Services.AddTransient<IUrlHandler, SubredditUrlHandler>();
