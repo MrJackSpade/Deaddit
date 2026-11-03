@@ -12,6 +12,12 @@ The Deaddit MAUI project **cannot** be built from WSL `dotnet` directly — the 
 
 Do this whenever you make code changes that touch the `Deaddit/` MAUI project — you can verify compilation without bothering the user. You don't need explicit permission to run a build; only publishing requires permission.
 
+## Reproducing bugs — drive the Windows app yourself
+
+The app runs natively on Windows. For ANY app bug (render issue, API error dialog, crash), build the Windows head (`dotnet build Deaddit\Deaddit.csproj -f net10.0-windows10.0.19041.0`), launch it, and drive it YOURSELF to reproduce before diagnosing. Never say you can't run the app, never ask the user to run it, never guess from code, never look for Android emulators.
+
+Computer-use tools are not required. Drive it from the shell: PowerShell UI Automation for native controls, WebView2 remote debugging (`WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9222`, set at user scope) + DevTools protocol for the WebView2-rendered posts/comments, and `CopyFromScreen` screenshots saved to a real path. The app uses the stored logged-in session itself, so this is how live-session API calls get exercised.
+
 ## Deployment
 
 Publishing runs entirely in GitHub Actions (`.github/workflows/publish.yml`). It builds the signed APK, computes the version from existing tags, creates the GitHub release (which creates the tag), and — for `release` only — posts to r/DeadditApp. Trigger it and follow it with:
