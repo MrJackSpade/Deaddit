@@ -212,7 +212,7 @@ namespace Deaddit.Pages
                 return null;
             }
 
-            string? owner = await _redditClient.GetTokenOwner(login.AccessToken);
+            string? owner = await _redditClient.GetTokenOwner(login.AccessToken, login.Cookies);
 
             if (owner == null)
             {
@@ -263,7 +263,11 @@ namespace Deaddit.Pages
 
         private async Task InitializeContent()
         {
-            _redditClient.SetTokenRefreshFunction(this.RefreshToken);
+            // In test mode a rejected session is an error to log, not a reason to open the login page.
+            if (!TestMode.IsEnabled)
+            {
+                _redditClient.SetTokenRefreshFunction(this.RefreshToken);
+            }
 
             await this.RestoreSession();
 

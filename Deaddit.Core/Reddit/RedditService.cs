@@ -79,9 +79,9 @@ namespace Deaddit.Core.Reddit
             return _client.ValidateBearerToken(token);
         }
 
-        public Task<string?> GetTokenOwner(string accessToken)
+        public Task<string?> GetTokenOwner(string accessToken, string? sessionCookies = null)
         {
-            return _client.GetTokenOwner(accessToken);
+            return _client.GetTokenOwner(accessToken, sessionCookies);
         }
 
         public async Task<Subreddit?> About(SubRedditDefinition subreddit)
@@ -351,9 +351,9 @@ namespace Deaddit.Core.Reddit
                 fullEndpoint = string.IsNullOrEmpty(endpoint) ? "/" : $"/{endpoint}";
             }
 
-            // Reddit blocks the "new" sort as a JSON listing, so the client has its own path for it.
-            List<ApiThing> toReturn = sort is ApiPostSort.New
-                ? RedditModelMapper.MapPostsTyped(await _client.GetNewPostsAsync(fullEndpoint, parameters)).Cast<ApiThing>().ToList()
+            // Reddit blocks these sorts as JSON listings, so the client has its own path for them.
+            List<ApiThing> toReturn = sort is ApiPostSort.New or ApiPostSort.Rising
+                ? RedditModelMapper.MapPostsTyped(await _client.GetSortedPostsAsync(fullEndpoint, parameters)).Cast<ApiThing>().ToList()
                 : RedditModelMapper.MapThings(await _client.GetListingAsync<object>(fullEndpoint, parameters));
 
             stopwatch.Stop();

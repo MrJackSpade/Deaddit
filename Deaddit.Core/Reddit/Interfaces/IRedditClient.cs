@@ -33,10 +33,10 @@ namespace Deaddit.Core.Reddit.Interfaces
         Task<bool> ValidateBearerToken(BearerToken token);
 
         /// <summary>
-        /// Resolves the username that owns a raw access token by calling /api/v1/me with
-        /// it directly. Returns the username on success, or null if the token is rejected.
+        /// Resolves the username that owns a login: through the browser session when the cookies are
+        /// given, otherwise through the access token. Returns null if Reddit rejects it.
         /// </summary>
-        Task<string?> GetTokenOwner(string accessToken);
+        Task<string?> GetTokenOwner(string accessToken, string? sessionCookies = null);
 
         Task<Subreddit?> About(SubRedditDefinition subreddit);
 

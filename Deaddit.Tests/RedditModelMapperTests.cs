@@ -8,6 +8,23 @@ namespace Deaddit.Tests
     public class RedditModelMapperTests
     {
         [TestMethod]
+        public void Map_Link_CrosspostRelativeUrl_BecomesAbsolute()
+        {
+            // As Reddit sends it for a crosspost, which has no domain either.
+            Link link = new() { Url = "/r/germany/comments/1xpk633/laternelaufen_traditional_foods/" };
+
+            Assert.AreEqual("https://www.reddit.com/r/germany/comments/1xpk633/laternelaufen_traditional_foods/", RedditModelMapper.Map(link).Url);
+        }
+
+        [TestMethod]
+        public void Map_Link_AbsoluteUrl_IsUnchanged()
+        {
+            Link link = new() { Url = "https://example.com/a.png" };
+
+            Assert.AreEqual("https://example.com/a.png", RedditModelMapper.Map(link).Url);
+        }
+
+        [TestMethod]
         public void Map_Link_WithoutMedia_ShouldHaveNullMedia()
         {
             // Arrange

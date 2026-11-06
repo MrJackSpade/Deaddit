@@ -199,7 +199,7 @@ namespace Deaddit.Pages
 
                 if (importData == null)
                 {
-                    await this.DisplayAlert("Error", "Failed to read settings file.", "OK");
+                    await _displayMessages.DisplayMessage("Failed to read settings file.");
                     return;
                 }
 

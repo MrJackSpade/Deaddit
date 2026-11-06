@@ -101,7 +101,12 @@ namespace Deaddit.Components.WebComponents
 
             if (string.IsNullOrWhiteSpace(thumbSrc) && !string.IsNullOrWhiteSpace(post.Url))
             {
-                string mimeType = UrlHelper.GetMimeTypeFromUri(new Uri(post.Url));
+                if (!Uri.TryCreate(post.Url, UriKind.Absolute, out Uri? postUri))
+                {
+                    throw new InvalidOperationException($"Post {post.Name} has a URL that isn't absolute: '{post.Url}'.");
+                }
+
+                string mimeType = UrlHelper.GetMimeTypeFromUri(postUri);
 
                 if (mimeType.StartsWith("image/"))
                 {
@@ -416,7 +421,7 @@ namespace Deaddit.Components.WebComponents
 
             if (!_apiPostHandler.CanLaunch(_post))
             {
-                await _navigation.NavigationStack[^1].DisplayAlert("Alert", $"Can not handle post", "OK");
+                await _displayMessages.DisplayMessage("Can not handle post");
                 return;
             }
 

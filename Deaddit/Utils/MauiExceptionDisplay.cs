@@ -9,6 +9,13 @@ namespace Deaddit.Utils
     {
         public async Task<bool> DisplayException(Exception exception)
         {
+            Log(exception.ToString());
+
+            if (TestMode.IsEnabled)
+            {
+                return true;
+            }
+
             try
             {
                 return await this.HandleException(exception);
@@ -23,6 +30,13 @@ namespace Deaddit.Utils
 
         public async Task<bool> DisplayMessage(string message)
         {
+            Log(message);
+
+            if (TestMode.IsEnabled)
+            {
+                return true;
+            }
+
             try
             {
                 Page page = this.GetCurrentPage();
@@ -45,6 +59,13 @@ namespace Deaddit.Utils
             }
 
             return true;
+        }
+
+        private static void Log(string message)
+        {
+            string line = $"[Deaddit] {DateTime.Now:HH:mm:ss} {message}";
+            Console.Error.WriteLine(line);
+            Debug.WriteLine(line);
         }
 
         private Page GetCurrentPage()

@@ -478,7 +478,7 @@ namespace Deaddit.Components.WebComponents
                 string? subreddit = Post?.SubRedditName;
                 if (string.IsNullOrEmpty(subreddit))
                 {
-                    await _navigation.NavigationStack[^1].DisplayAlert("Report", "Unable to determine subreddit", "OK");
+                    await _displayMessages.DisplayMessage("Unable to determine subreddit");
                     return;
                 }
 
@@ -512,7 +512,7 @@ namespace Deaddit.Components.WebComponents
                 string? subreddit = Post?.SubRedditName;
                 if (string.IsNullOrEmpty(subreddit))
                 {
-                    await _navigation.NavigationStack[^1].DisplayAlert("Report", "Unable to determine subreddit", "OK");
+                    await _displayMessages.DisplayMessage("Unable to determine subreddit");
                     return;
                 }
 

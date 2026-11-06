@@ -38,7 +38,7 @@ namespace Deaddit.Core.Reddit.Mapping
                 AuthorFlairRichText = source.AuthorFlairRichtext ?? [],
                 Body = source.Selftext ?? string.Empty,
                 BodyHtml = source.SelftextHtml ?? string.Empty,
-                Url = source.Url,
+                Url = ResolveUrl(source.Url),
                 UrlOverriddenByDest = source.UrlOverriddenByDest,
                 Domain = source.Domain,
                 SubRedditName = source.Subreddit,
@@ -211,6 +211,14 @@ namespace Deaddit.Core.Reddit.Mapping
         }
 
         #endregion Comment Mapping
+
+        /// <summary>
+        /// Reddit sends a crosspost's URL as a path on its own site (/r/sub/comments/...).
+        /// </summary>
+        private static string? ResolveUrl(string? url)
+        {
+            return url?.StartsWith('/') == true ? $"https://www.reddit.com{url}" : url;
+        }
 
         #region More Mapping
 
