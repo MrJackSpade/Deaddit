@@ -50,8 +50,6 @@ namespace Deaddit.Core.Reddit.Interfaces
 
         Task<Dictionary<string, UserPartialData>> GetPartialUserData(IEnumerable<string> usernames);
 
-        Task<ApiComment?> GetComment(string id);
-
         Task<ApiPost?> GetPost(string id);
 
         Task<List<ApiPost>> GetPosts(IEnumerable<string> ids);

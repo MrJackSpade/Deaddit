@@ -358,44 +358,21 @@ namespace Deaddit.Components.WebComponents
                 return Post;
             }
 
-            string? currentFullname = _comment.Name;
-            int safety = 64;
-
-            while (!string.IsNullOrEmpty(currentFullname) && safety-- > 0)
+            // A comment always names its post, and Reddit no longer serves a comment by ID alone.
+            if (string.IsNullOrEmpty(_comment.LinkId))
             {
-                if (currentFullname.StartsWith("t3_"))
-                {
-                    ApiPost? post = await _redditClient.GetPost(currentFullname);
-                    if (post is null)
-                    {
-                        await _displayMessages.DisplayMessage("The parent post could not be fetched.");
-                    }
-                    return post;
-                }
-
-                if (currentFullname.StartsWith("t1_"))
-                {
-                    ApiComment? fetched = await _redditClient.GetComment(currentFullname);
-                    if (fetched is null)
-                    {
-                        await _displayMessages.DisplayMessage("Unable to walk comment tree to the parent post.");
-                        return null;
-                    }
-
-                    if (!string.IsNullOrEmpty(fetched.LinkId))
-                    {
-                        return await _redditClient.GetPost(fetched.LinkId);
-                    }
-
-                    currentFullname = fetched.ParentId;
-                    continue;
-                }
-
-                break;
+                await _displayMessages.DisplayMessage("Unable to locate the parent post for this comment.");
+                return null;
             }
 
-            await _displayMessages.DisplayMessage("Unable to locate the parent post for this comment.");
-            return null;
+            ApiPost? post = await _redditClient.GetPost(_comment.LinkId);
+
+            if (post is null)
+            {
+                await _displayMessages.DisplayMessage("The parent post could not be fetched.");
+            }
+
+            return post;
         }
 
         private void EditPage_OnSubmitted(object? sender, ReplySubmittedEventArgs e)

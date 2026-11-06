@@ -284,46 +284,18 @@ namespace Deaddit.Core.Reddit
             return new Dictionary<string, UserPartialData>(result);
         }
 
-        public async Task<ApiComment?> GetComment(string id)
-        {
-            await this.EnsureAuthenticated();
-
-            Stopwatch stopwatch = Stopwatch.StartNew();
-
-            string fullname = id.StartsWith("t1_") ? id : $"t1_{id}";
-
-            Listing<Thing<Comment>>? result = await _client.GetCommentInfoAsync([fullname]);
-
-            stopwatch.Stop();
-            Debug.WriteLine($"[DEBUG] Time spent in GetComment method: {stopwatch.ElapsedMilliseconds}ms");
-
-            if (result?.Data?.Children?.Count > 0)
-            {
-                return RedditModelMapper.Map(result.Data.Children[0]);
-            }
-
-            return null;
-        }
-
         public async Task<ApiPost?> GetPost(string id)
         {
             await this.EnsureAuthenticated();
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            string fullname = id.StartsWith("t3_") ? id : $"t3_{id}";
-
-            Listing<Thing<Link>>? result = await _client.GetInfoAsync([fullname]);
+            Thing<Link>? result = await _client.GetPostAsync(id);
 
             stopwatch.Stop();
             Debug.WriteLine($"[DEBUG] Time spent in GetPost method: {stopwatch.ElapsedMilliseconds}ms");
 
-            if (result?.Data?.Children?.Count > 0)
-            {
-                return RedditModelMapper.Map(result.Data.Children[0]);
-            }
-
-            return null;
+            return result == null ? null : RedditModelMapper.Map(result);
         }
 
         public async Task<List<ApiPost>> GetPosts(IEnumerable<string> ids)
@@ -379,12 +351,13 @@ namespace Deaddit.Core.Reddit
                 fullEndpoint = string.IsNullOrEmpty(endpoint) ? "/" : $"/{endpoint}";
             }
 
-            Listing<Thing<object>>? result = await _client.GetListingAsync<object>(fullEndpoint, parameters);
+            // Reddit blocks the "new" sort as a JSON listing, so the client has its own path for it.
+            List<ApiThing> toReturn = sort is ApiPostSort.New
+                ? RedditModelMapper.MapPostsTyped(await _client.GetNewPostsAsync(fullEndpoint, parameters)).Cast<ApiThing>().ToList()
+                : RedditModelMapper.MapThings(await _client.GetListingAsync<object>(fullEndpoint, parameters));
 
             stopwatch.Stop();
             Debug.WriteLine($"[DEBUG] Time spent in GetPosts method: {stopwatch.ElapsedMilliseconds}ms");
-
-            List<ApiThing> toReturn = RedditModelMapper.MapThings(result);
 
             // Fallback to search API for empty user profiles
             if (toReturn.Count == 0 && after == null && endpoint.StartsWith("user/") && !fullEndpoint.EndsWith("/comments"))
@@ -474,7 +447,8 @@ namespace Deaddit.Core.Reddit
                 post.Name,
                 moreItem.ChildNames,
                 sort: null,
-                depth: 999);
+                depth: 999,
+                subreddit: post.SubRedditName);
 
             if (result == null)
             {
@@ -690,7 +664,7 @@ namespace Deaddit.Core.Reddit
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            await _client.SubscribeAsync(subreddit.Name!, subscribed);
+            await _client.SubscribeAsync(subreddit.DisplayName, subscribed);
 
             stopwatch.Stop();
             Debug.WriteLine($"[DEBUG] Time spent in ToggleSubscription method: {stopwatch.ElapsedMilliseconds}ms");
