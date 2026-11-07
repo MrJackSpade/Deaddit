@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.mrjackspade.deaddit.Services
 import com.mrjackspade.deaddit.core.html.Block
+import com.mrjackspade.deaddit.core.html.ProcessingImages
 import com.mrjackspade.deaddit.core.html.RedditHtml
 import com.mrjackspade.deaddit.core.model.Comment
 import com.mrjackspade.deaddit.core.model.Distinguished
@@ -65,7 +66,9 @@ class CommentModel(comment: Comment) {
     }
 
     private companion object {
-        fun parse(comment: Comment): List<Block> = comment.bodyHtml?.let(RedditHtml::parse) ?: emptyList()
+        /** The body, with stale "Processing img" placeholders shown as their images (see ProcessingImages). */
+        fun parse(comment: Comment): List<Block> =
+            comment.bodyHtml?.let { RedditHtml.parse(ProcessingImages.resolve(it, comment.mediaMetadata)) } ?: emptyList()
     }
 }
 
