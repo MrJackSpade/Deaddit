@@ -54,9 +54,9 @@ jobs:
 
       # Reddit.Api, compiled with NativeAOT into libredditapi.so for each ABI the app ships.
       - name: Build native Reddit.Api
-        env:
-          ANDROID_NDK_ROOT: ${{ env.ANDROID_HOME }}/ndk/28.2.13676358
         run: |
+          # ANDROID_HOME is the runner's environment, not the workflow's env context: set it here.
+          export ANDROID_NDK_ROOT="$ANDROID_HOME/ndk/28.2.13676358"
           for abi in arm64-v8a x86_64; do
             native/publish-android.sh "$abi" "$RUNNER_TEMP/native/$abi"
             mkdir -p "app/src/main/jniLibs/$abi"
