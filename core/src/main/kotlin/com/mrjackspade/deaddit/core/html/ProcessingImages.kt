@@ -13,14 +13,11 @@ import org.jsoup.nodes.Entities
 object ProcessingImages {
     private val PLACEHOLDER = Regex("""(?:<em>)?Processing img ([A-Za-z0-9]+)\.\.\.(?:</em>)?""")
 
-    /** [html] is body_html (plain or HTML-escaped, as RedditHtml takes it). */
+    /** [html] is body_html, as RedditHtml takes it. */
     fun resolve(html: String, media: Map<String, MediaMetadata>?): String {
         if (media.isNullOrEmpty()) return html
 
-        // Placeholders sit in the markup itself, so work on it unescaped.
-        val plain = if (html.trimStart().startsWith("&lt;")) Entities.unescape(html) else html
-
-        return PLACEHOLDER.replace(plain) { match ->
+        return PLACEHOLDER.replace(html) { match ->
             val url = media[match.groupValues[1]]?.let(::urlOf) ?: return@replace match.value
             val escaped = Entities.escape(url)
             "<a href=\"$escaped\">$escaped</a>"

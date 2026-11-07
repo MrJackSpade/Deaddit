@@ -7,6 +7,7 @@ import com.mrjackspade.deaddit.core.model.Comment
 import com.mrjackspade.deaddit.core.model.Post
 import com.mrjackspade.deaddit.core.model.RedditThing
 import com.mrjackspade.deaddit.core.model.UserPartialData
+import com.mrjackspade.deaddit.core.text.DotNetRegex
 import java.time.Duration
 import java.time.Instant
 
@@ -105,14 +106,15 @@ object Blocking {
 
     /**
      * An unset [ruleValue] skips; an empty [checkValue] fails. Strings compare case-insensitively,
-     * exactly or (with [partial]) as a substring. Regexes are case-sensitive, as in the C# app.
+     * exactly or (with [partial]) as a substring. Regexes run as .NET's Regex ran them in the C# app
+     * (see [DotNetRegex]), case-sensitive.
      */
     fun triggersOrSkip(ruleValue: String?, checkValue: String?, matchType: StringMatchType, partial: Boolean = false): TriggerState {
         if (ruleValue.isNullOrBlank()) return TriggerState.Skip
         if (checkValue.isNullOrBlank()) return TriggerState.NoMatch
 
         val match = when (matchType) {
-            StringMatchType.Regex -> Regex(ruleValue.trim('/')).containsMatchIn(checkValue)
+            StringMatchType.Regex -> DotNetRegex.isMatch(checkValue, ruleValue.trim('/'))
             StringMatchType.String -> if (partial) checkValue.contains(ruleValue, ignoreCase = true) else ruleValue.equals(checkValue, ignoreCase = true)
         }
 
@@ -120,24 +122,25 @@ object Blocking {
     }
 
     // ----- Rules made from a post or comment ("Block..." / "Whitelist...") -----
+    // A missing part of a name is blank, as C#'s string interpolation wrote null.
 
-    fun fromAuthor(thing: RedditThing) = BlockRule(author = thing.author, blockType = BlockType.Both, ruleName = "/u/${thing.author}")
+    fun fromAuthor(thing: RedditThing) = BlockRule(author = thing.author, blockType = BlockType.Both, ruleName = "/u/${thing.author.orEmpty()}")
 
-    fun fromDomain(post: Post) = BlockRule(domain = post.domain, blockType = BlockType.Post, ruleName = "(${post.domain})")
+    fun fromDomain(post: Post) = BlockRule(domain = post.domain, blockType = BlockType.Post, ruleName = "(${post.domain.orEmpty()})")
 
     fun fromFlair(post: Post) = BlockRule(
         flair = post.linkFlairText,
         subReddit = post.subreddit,
         blockType = BlockType.Post,
-        ruleName = "${post.subreddit} [${post.linkFlairText}]",
+        ruleName = "${post.subreddit.orEmpty()} [${post.linkFlairText.orEmpty()}]",
     )
 
     fun fromFlair(comment: Comment) = BlockRule(
         flair = comment.authorFlairText,
         subReddit = comment.subreddit,
         blockType = BlockType.Post,
-        ruleName = "${comment.subreddit} [${comment.authorFlairText}]",
+        ruleName = "${comment.subreddit.orEmpty()} [${comment.authorFlairText.orEmpty()}]",
     )
 
-    fun fromSubReddit(thing: RedditThing) = BlockRule(subReddit = thing.subreddit, blockType = BlockType.Post, ruleName = "/r/${thing.subreddit}")
+    fun fromSubReddit(thing: RedditThing) = BlockRule(subReddit = thing.subreddit, blockType = BlockType.Post, ruleName = "/r/${thing.subreddit.orEmpty()}")
 }

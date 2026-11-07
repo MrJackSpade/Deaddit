@@ -203,13 +203,14 @@ class RedditApi(private val runner: CommandRunner) {
     /** Uploads an image for a comment; returns the media key to reference it by. */
     suspend fun uploadMedia(bytes: ByteArray, filename: String, mimeType: String): String {
         val lease = call("GetMediaAssetUploadLease") { put("filepath", filename); put("mimetype", mimeType) }
+        check(lease !is JsonNull) { "Failed to get media upload lease" }
         val key = lease.jsonObject["args"]!!.jsonObject["fields"]!!.jsonArray
             .first { it.jsonObject["name"]?.jsonPrimitive?.content == "key" }.jsonObject["value"]!!.jsonPrimitive.content
         val uploaded = call("UploadMediaToS3") {
             put("lease", lease); put("filename", filename); put("mimetype", mimeType)
             put("fileBase64", java.util.Base64.getEncoder().encodeToString(bytes))
         }.jsonPrimitive.booleanOrNull == true
-        check(uploaded) { "Reddit's storage refused the upload of $filename." }
+        check(uploaded) { "Failed to upload media to S3" }
         return key
     }
 

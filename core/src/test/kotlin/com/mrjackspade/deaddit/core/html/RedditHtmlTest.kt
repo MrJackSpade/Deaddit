@@ -5,12 +5,18 @@ import org.junit.Test
 
 class RedditHtmlTest {
     @Test
-    fun parsesEscapedApiHtml() {
-        val html = "&lt;div class=\"md\"&gt;&lt;p&gt;Hello &lt;strong&gt;world&lt;/strong&gt;&lt;/p&gt;\n&lt;/div&gt;"
+    fun parsesApiHtml() {
+        val html = "<!-- SC_OFF --><div class=\"md\"><p>Hello <strong>world</strong> &amp; &lt;3</p>\n</div><!-- SC_ON -->"
         assertEquals(
-            listOf(Block.Paragraph(listOf(Span("Hello "), Span("world", bold = true)))),
+            listOf(Block.Paragraph(listOf(Span("Hello "), Span("world", bold = true), Span(" & <3")))),
             RedditHtml.parse(html),
         )
+    }
+
+    @Test
+    fun keepsCodeBlockLines() {
+        val html = "<div class=\"md\"><pre><code>line one\n  line two\n</code></pre>\n</div>"
+        assertEquals(listOf(Block.Code("line one\n  line two")), RedditHtml.parse(html))
     }
 
     @Test

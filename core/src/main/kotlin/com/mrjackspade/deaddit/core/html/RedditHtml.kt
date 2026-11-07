@@ -7,7 +7,8 @@ import org.jsoup.nodes.TextNode
 
 /**
  * Reddit's rendered markdown (body_html / selftext_html) as blocks of styled text, for native
- * rendering. Reddit sends it HTML-escaped inside JSON, wrapped in `<div class="md">`.
+ * rendering. Reddit sends it HTML-escaped inside JSON, wrapped in `<div class="md">`; Reddit.Api's
+ * models decode the escaping.
  */
 sealed interface Block {
     data class Paragraph(val text: List<Span>) : Block
@@ -37,10 +38,9 @@ data class Span(
 )
 
 object RedditHtml {
-    /** Parses Reddit's HTML. Accepts it escaped (as the API sends it) or plain. */
+    /** Parses Reddit's HTML, as Reddit.Api's models deliver it: already decoded from the JSON's escaping. */
     fun parse(html: String): List<Block> {
-        val unescaped = if (html.trimStart().startsWith("&lt;")) Jsoup.parse(html).text() else html
-        val body = Jsoup.parseBodyFragment(unescaped).body()
+        val body = Jsoup.parseBodyFragment(html).body()
         val root = body.selectFirst("div.md") ?: body
         return Parser().blocks(root)
     }

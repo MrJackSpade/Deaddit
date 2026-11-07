@@ -444,6 +444,8 @@ class PostPage(
             CollapsedReasonCode.Deleted -> "Deleted [${entry.count}]"
             CollapsedReasonCode.LowScore, CollapsedReasonCode.ScoreBelowThreshold -> "Low Score [${entry.count}]"
             CollapsedReasonCode.BlockedAuthor -> "Blocked [${entry.count}]"
+            // The C# app labelled any other reason with its name.
+            CollapsedReasonCode.Empty -> "Empty"
         }
 
         if (loadingMore === entry) {
