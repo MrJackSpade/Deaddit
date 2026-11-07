@@ -127,7 +127,7 @@ class VideoPlayerPage(private val services: Services, private val item: FileDown
             if (player !== exo) return
             exo.setMediaItem(MediaItem.fromUri(android.net.Uri.fromFile(file)))
             exo.prepare()
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             services.dialogs.error(e)
         }
     }
@@ -162,7 +162,7 @@ class VideoPlayerPage(private val services: Services, private val item: FileDown
         services.appScope.launch {
             try {
                 busy.run { services.media.shareDownloads("", listOf(item), services.media.gifConverter()) }
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 services.dialogs.error(e)
             }
         }
@@ -173,7 +173,7 @@ class VideoPlayerPage(private val services: Services, private val item: FileDown
         runningSave = scope.launch {
             try {
                 busy.run { services.media.save(listOf(item), services.media.gifConverter()) }
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 services.dialogs.error(e)
             }
         }

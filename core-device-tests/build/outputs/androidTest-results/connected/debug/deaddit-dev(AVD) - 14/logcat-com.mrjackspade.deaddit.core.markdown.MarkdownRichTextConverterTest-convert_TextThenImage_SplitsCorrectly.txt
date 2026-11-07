@@ -1,0 +1,2 @@
+11-07 13:28:48.984 31940 31959 I TestRunner: started: convert_TextThenImage_SplitsCorrectly(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)
+11-07 13:28:48.998 31940 31959 I TestRunner: finished: convert_TextThenImage_SplitsCorrectly(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)

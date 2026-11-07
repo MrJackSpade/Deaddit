@@ -1,0 +1,2 @@
+11-07 13:28:46.379 31940 31959 I TestRunner: started: numbersSpoilersAndSuperscripts(com.mrjackspade.deaddit.core.html.RedditHtmlTest)
+11-07 13:28:46.399 31940 31959 I TestRunner: finished: numbersSpoilersAndSuperscripts(com.mrjackspade.deaddit.core.html.RedditHtmlTest)

@@ -1,0 +1,2 @@
+11-07 13:28:48.477 31940 31959 I TestRunner: started: convert_PlainText_ReturnsSingleParagraph(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)
+11-07 13:28:48.489 31940 31959 I TestRunner: finished: convert_PlainText_ReturnsSingleParagraph(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)

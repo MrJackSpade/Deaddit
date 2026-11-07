@@ -1,0 +1,2 @@
+11-07 13:28:46.210 31940 31959 I TestRunner: started: leavesImagesThatAreStillProcessing(com.mrjackspade.deaddit.core.html.ProcessingImagesTest)
+11-07 13:28:46.224 31940 31959 I TestRunner: finished: leavesImagesThatAreStillProcessing(com.mrjackspade.deaddit.core.html.ProcessingImagesTest)

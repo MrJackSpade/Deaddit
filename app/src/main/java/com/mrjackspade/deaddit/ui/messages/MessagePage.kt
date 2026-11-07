@@ -41,7 +41,7 @@ class MessagePage(private val services: Services, private val user: User, privat
                 services.reddit.message(user.name, subject.text, body.text)
                 services.dialogs.message("Message sent")
                 leave()
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 services.dialogs.error(e)
             }
         }

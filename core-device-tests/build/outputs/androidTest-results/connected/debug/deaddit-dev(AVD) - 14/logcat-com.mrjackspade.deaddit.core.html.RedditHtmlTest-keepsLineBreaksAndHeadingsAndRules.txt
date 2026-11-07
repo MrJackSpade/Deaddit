@@ -1,0 +1,2 @@
+11-07 13:28:46.496 31940 31959 I TestRunner: started: keepsLineBreaksAndHeadingsAndRules(com.mrjackspade.deaddit.core.html.RedditHtmlTest)
+11-07 13:28:46.518 31940 31959 I TestRunner: finished: keepsLineBreaksAndHeadingsAndRules(com.mrjackspade.deaddit.core.html.RedditHtmlTest)

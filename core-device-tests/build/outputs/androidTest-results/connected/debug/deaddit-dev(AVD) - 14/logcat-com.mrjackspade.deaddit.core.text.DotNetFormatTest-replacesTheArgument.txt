@@ -1,0 +1,2 @@
+11-07 13:28:50.042 31940 31959 I TestRunner: started: replacesTheArgument(com.mrjackspade.deaddit.core.text.DotNetFormatTest)
+11-07 13:28:50.057 31940 31959 I TestRunner: finished: replacesTheArgument(com.mrjackspade.deaddit.core.text.DotNetFormatTest)

@@ -1,0 +1,18 @@
+{"kind": "Listing", "data": {"after": null, "dist": null, "modhash": "", "geo_filter": "", "before": null, "children": [
+{"kind": "t1", "data": {"id": "c1", "name": "t1_c1", "parent_id": "t3_p1", "link_id": "t3_p1", "author": "top", "author_fullname": "t2_a",
+  "body": "Top &amp; level", "body_html": "&lt;div class=\"md\"&gt;&lt;p&gt;Top &amp;amp; level&lt;/p&gt;\n&lt;/div&gt;",
+  "score": 10, "created_utc": 1730900000.0, "edited": false, "likes": null, "distinguished": null, "collapsed_reason_code": null,
+  "author_flair_text": "Flair &amp; more", "author_flair_richtext": [{"e": "text", "t": "Flair &amp; more"}],
+  "subreddit": "programming", "subreddit_id": "t5_2fwo", "permalink": "/r/programming/comments/p1/x/c1/", "depth": 0,
+  "replies": {"kind": "Listing", "data": {"after": null, "dist": null, "modhash": "", "geo_filter": "", "before": null, "children": [
+    {"kind": "t1", "data": {"id": "c2", "name": "t1_c2", "parent_id": "t1_c1", "link_id": "t3_p1", "author": "reply", "author_fullname": "t2_b",
+      "body": "Nested &lt;b&gt; &amp;amp;\n\n    a\n    b", "body_html": "&lt;div class=\"md\"&gt;&lt;p&gt;Nested &amp;lt;b&amp;gt; &amp;amp;amp;&lt;/p&gt;\n\n&lt;pre&gt;&lt;code&gt;a\nb\n&lt;/code&gt;&lt;/pre&gt;\n&lt;/div&gt;",
+      "score": 2, "created_utc": 1730900100.0, "edited": 1730900200.0, "likes": true, "distinguished": "admin", "collapsed_reason_code": "",
+      "collapsed": true, "author_flair_text": null, "author_flair_richtext": [], "subreddit": "programming", "subreddit_id": "t5_2fwo",
+      "permalink": "/r/programming/comments/p1/x/c2/", "depth": 1,
+      "replies": {"kind": "Listing", "data": {"after": null, "dist": null, "modhash": "", "geo_filter": "", "before": null, "children": [
+        {"kind": "more", "data": {"count": 3, "name": "t1_c3", "id": "c3", "parent_id": "t1_c2", "depth": 2, "children": ["c3", "c4", "c5"]}}
+      ]}}}}
+  ]}}}},
+{"kind": "more", "data": {"count": 0, "name": "t1__", "id": "_", "parent_id": "t3_p1", "depth": 0, "children": []}}
+]}}

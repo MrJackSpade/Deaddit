@@ -122,7 +122,7 @@ class Services(context: Context, val testMode: Boolean) {
     fun launchAction(block: suspend () -> Unit): Job = appScope.launch {
         try {
             block()
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             dialogs.error(e)
         }
     }

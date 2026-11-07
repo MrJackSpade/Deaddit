@@ -1,0 +1,2 @@
+11-07 13:28:50.586 31940 31959 I TestRunner: started: testNonEmojiAscii(com.mrjackspade.deaddit.core.text.EmojiDetectionTests)
+11-07 13:28:50.602 31940 31959 I TestRunner: finished: testNonEmojiAscii(com.mrjackspade.deaddit.core.text.EmojiDetectionTests)

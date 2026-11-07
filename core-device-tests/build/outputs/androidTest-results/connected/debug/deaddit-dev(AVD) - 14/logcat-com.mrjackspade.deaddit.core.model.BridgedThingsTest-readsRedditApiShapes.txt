@@ -1,0 +1,3 @@
+11-07 13:28:49.391 31940 31959 I TestRunner: started: readsRedditApiShapes(com.mrjackspade.deaddit.core.model.BridgedThingsTest)
+11-07 13:28:49.401   884   884 D StatusBarIconController: ignoring old pipeline callbacks, because the new mobile icons are enabled
+11-07 13:28:49.442 31940 31959 I TestRunner: finished: readsRedditApiShapes(com.mrjackspade.deaddit.core.model.BridgedThingsTest)

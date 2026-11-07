@@ -1,0 +1,2 @@
+11-07 13:28:52.948 31940 31959 I TestRunner: started: isWhiteSpace_MatchesDotNet(com.mrjackspade.deaddit.core.util.DotNetPortsTests)
+11-07 13:28:53.138 31940 31959 I TestRunner: finished: isWhiteSpace_MatchesDotNet(com.mrjackspade.deaddit.core.util.DotNetPortsTests)

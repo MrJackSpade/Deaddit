@@ -1,0 +1,2 @@
+11-07 13:28:46.623 31940 31959 I TestRunner: started: convert_InlineCode_ReturnsCodeMarkdown(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)
+11-07 13:28:46.648 31940 31959 I TestRunner: finished: convert_InlineCode_ReturnsCodeMarkdown(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)

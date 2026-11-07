@@ -121,7 +121,7 @@ class ReplyPage(
         scope.launch {
             try {
                 block()
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 services.dialogs.error(e)
             }
         }

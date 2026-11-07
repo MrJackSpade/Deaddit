@@ -75,7 +75,7 @@ class HistoryPage(private val services: Services) : Screen() {
         if (!loadLock.tryLock()) return
         try {
             load()
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             services.dialogs.error(e)
         } finally {
             loadLock.unlock()
@@ -90,7 +90,7 @@ class HistoryPage(private val services: Services) : Screen() {
             currentIndex = 0
             selected = null
             load()
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             services.dialogs.error(e)
         } finally {
             loadLock.unlock()

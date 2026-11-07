@@ -1,0 +1,2 @@
+11-07 13:28:47.494 31940 31959 I TestRunner: started: convert_MixedFormatting_ReturnsCorrectMarkdown(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)
+11-07 13:28:47.500 31940 31959 I TestRunner: finished: convert_MixedFormatting_ReturnsCorrectMarkdown(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)

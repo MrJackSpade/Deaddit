@@ -1,0 +1,2 @@
+11-07 13:28:48.922 31940 31959 I TestRunner: started: convert_SingleNewline_StaysInSameParagraph(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)
+11-07 13:28:48.930 31940 31959 I TestRunner: finished: convert_SingleNewline_StaysInSameParagraph(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)

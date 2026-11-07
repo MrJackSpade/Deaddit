@@ -1,0 +1,2 @@
+11-07 13:28:49.556 31940 31959 I TestRunner: started: blocklistSeesDecodedText(com.mrjackspade.deaddit.core.model.BridgedThingsTest)
+11-07 13:28:49.611 31940 31959 I TestRunner: finished: blocklistSeesDecodedText(com.mrjackspade.deaddit.core.model.BridgedThingsTest)

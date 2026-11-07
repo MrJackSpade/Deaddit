@@ -69,7 +69,7 @@ class LoginPage private constructor(private val navigator: Navigator) : Screen()
  */
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun LoginScreen(onLoggedIn: (WebLogin) -> Unit, onFailed: (Exception) -> Unit, modifier: Modifier = Modifier) {
+fun LoginScreen(onLoggedIn: (WebLogin) -> Unit, onFailed: (Throwable) -> Unit, modifier: Modifier = Modifier) {
     // "Sign in with Google/Apple" opens a popup that reports back to this page with postMessage,
     // so popups open as real windows: a WebView over the login page, closed when the provider
     // closes it. The open popup, so back can close it.
@@ -124,7 +124,7 @@ fun LoginScreen(onLoggedIn: (WebLogin) -> Unit, onFailed: (Exception) -> Unit, m
         while (true) {
             val login = try {
                 readLogin()
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 onFailed(e)
                 return@LaunchedEffect
             }

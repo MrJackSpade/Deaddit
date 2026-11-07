@@ -59,7 +59,7 @@ class SettingsPage(private val services: Services) : Screen() {
         scope.launch {
             try {
                 block()
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 services.dialogs.error(e)
             }
         }

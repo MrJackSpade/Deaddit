@@ -1,0 +1,2 @@
+11-07 13:28:52.044 31940 31959 I TestRunner: started: excludesSlurs(com.mrjackspade.deaddit.core.text.SwearObfuscatorTests)
+11-07 13:28:52.061 31940 31959 I TestRunner: finished: excludesSlurs(com.mrjackspade.deaddit.core.text.SwearObfuscatorTests)

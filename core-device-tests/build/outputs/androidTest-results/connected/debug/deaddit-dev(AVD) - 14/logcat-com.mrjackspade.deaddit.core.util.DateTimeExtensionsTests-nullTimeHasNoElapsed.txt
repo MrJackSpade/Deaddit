@@ -1,0 +1,2 @@
+11-07 13:28:52.658 31940 31959 I TestRunner: started: nullTimeHasNoElapsed(com.mrjackspade.deaddit.core.util.DateTimeExtensionsTests)
+11-07 13:28:52.667 31940 31959 I TestRunner: finished: nullTimeHasNoElapsed(com.mrjackspade.deaddit.core.util.DateTimeExtensionsTests)

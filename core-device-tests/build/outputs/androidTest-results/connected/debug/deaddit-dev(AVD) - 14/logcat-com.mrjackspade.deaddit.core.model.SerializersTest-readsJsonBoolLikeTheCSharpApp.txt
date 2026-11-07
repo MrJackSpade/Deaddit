@@ -1,0 +1,2 @@
+11-07 13:28:49.948 31940 31959 I TestRunner: started: readsJsonBoolLikeTheCSharpApp(com.mrjackspade.deaddit.core.model.SerializersTest)
+11-07 13:28:49.966 31940 31959 I TestRunner: finished: readsJsonBoolLikeTheCSharpApp(com.mrjackspade.deaddit.core.model.SerializersTest)

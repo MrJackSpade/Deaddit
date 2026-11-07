@@ -1,0 +1,2 @@
+11-07 13:28:49.459 31940 31959 I TestRunner: started: repliesAreDecodedAllTheWayDown(com.mrjackspade.deaddit.core.model.BridgedThingsTest)
+11-07 13:28:49.541 31940 31959 I TestRunner: finished: repliesAreDecodedAllTheWayDown(com.mrjackspade.deaddit.core.model.BridgedThingsTest)

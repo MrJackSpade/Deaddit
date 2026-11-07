@@ -1,0 +1,2 @@
+11-07 13:28:45.242 31940 31959 I TestRunner: started: titleAndBodyMatchPartiallyOrByRegex(com.mrjackspade.deaddit.core.blocking.BlockingTest)
+11-07 13:28:45.256 31940 31959 I TestRunner: finished: titleAndBodyMatchPartiallyOrByRegex(com.mrjackspade.deaddit.core.blocking.BlockingTest)

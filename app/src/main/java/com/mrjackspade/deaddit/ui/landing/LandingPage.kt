@@ -75,7 +75,7 @@ class LandingPage(private val services: Services) : Screen() {
             // As the C# page: a failed session restore is shown, and nothing more is listed.
             try {
                 services.restoreSession()
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 services.dialogs.error(e)
                 return@launch
             }
@@ -123,7 +123,7 @@ class LandingPage(private val services: Services) : Screen() {
         try {
             entries.removeAll { it.isMulti }
             services.reddit.multis().forEach { entries += entryFor(it) }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             services.dialogs.error(e)
         } finally {
             loadingMultis = false
@@ -137,7 +137,7 @@ class LandingPage(private val services: Services) : Screen() {
             } else {
                 addSubreddit()
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             services.dialogs.error(e)
         }
     }
@@ -176,7 +176,7 @@ class LandingPage(private val services: Services) : Screen() {
                 services.reddit.refreshUser()
                 loadMultis()
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             services.dialogs.error(e)
         }
     }
@@ -239,7 +239,7 @@ class LandingPage(private val services: Services) : Screen() {
                             try {
                                 entry.remove.invoke()
                                 if (selected === entry) selected = null
-                            } catch (e: Exception) {
+                            } catch (e: Throwable) {
                                 services.dialogs.error(e)
                             }
                         }

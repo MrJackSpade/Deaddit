@@ -1,0 +1,2 @@
+11-07 13:28:50.731 31940 31959 I TestRunner: started: trimsMatchingStrings(com.mrjackspade.deaddit.core.text.StringExtensionsTests)
+11-07 13:28:50.748 31940 31959 I TestRunner: finished: trimsMatchingStrings(com.mrjackspade.deaddit.core.text.StringExtensionsTests)

@@ -1,0 +1,2 @@
+11-07 13:28:48.545 31940 31959 I TestRunner: started: convert_BlockquoteWithFormatting_FormattingPreserved(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)
+11-07 13:28:48.559 31940 31959 I TestRunner: finished: convert_BlockquoteWithFormatting_FormattingPreserved(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)

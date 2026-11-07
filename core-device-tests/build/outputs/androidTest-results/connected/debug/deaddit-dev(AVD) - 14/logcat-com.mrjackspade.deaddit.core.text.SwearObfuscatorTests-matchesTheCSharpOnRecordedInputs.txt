@@ -1,0 +1,2 @@
+11-07 13:28:51.023 31940 31959 I TestRunner: started: matchesTheCSharpOnRecordedInputs(com.mrjackspade.deaddit.core.text.SwearObfuscatorTests)
+11-07 13:28:51.714 31940 31959 I TestRunner: finished: matchesTheCSharpOnRecordedInputs(com.mrjackspade.deaddit.core.text.SwearObfuscatorTests)

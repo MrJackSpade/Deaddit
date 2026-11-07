@@ -1,0 +1,2 @@
+11-07 13:28:52.076 31940 31959 I TestRunner: started: ignoresInnocentWord(com.mrjackspade.deaddit.core.text.SwearObfuscatorTests)
+11-07 13:28:52.177 31940 31959 I TestRunner: finished: ignoresInnocentWord(com.mrjackspade.deaddit.core.text.SwearObfuscatorTests)

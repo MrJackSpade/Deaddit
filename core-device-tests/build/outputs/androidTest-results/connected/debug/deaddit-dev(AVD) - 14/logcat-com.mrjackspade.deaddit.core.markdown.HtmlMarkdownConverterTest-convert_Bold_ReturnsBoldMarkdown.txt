@@ -1,0 +1,2 @@
+11-07 13:28:47.077 31940 31959 I TestRunner: started: convert_Bold_ReturnsBoldMarkdown(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)
+11-07 13:28:47.090 31940 31959 I TestRunner: finished: convert_Bold_ReturnsBoldMarkdown(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)

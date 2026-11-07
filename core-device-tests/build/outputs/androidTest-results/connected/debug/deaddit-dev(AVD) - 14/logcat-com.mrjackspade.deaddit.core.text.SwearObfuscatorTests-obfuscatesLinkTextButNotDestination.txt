@@ -1,0 +1,2 @@
+11-07 13:28:52.014 31940 31959 I TestRunner: started: obfuscatesLinkTextButNotDestination(com.mrjackspade.deaddit.core.text.SwearObfuscatorTests)
+11-07 13:28:52.031 31940 31959 I TestRunner: finished: obfuscatesLinkTextButNotDestination(com.mrjackspade.deaddit.core.text.SwearObfuscatorTests)

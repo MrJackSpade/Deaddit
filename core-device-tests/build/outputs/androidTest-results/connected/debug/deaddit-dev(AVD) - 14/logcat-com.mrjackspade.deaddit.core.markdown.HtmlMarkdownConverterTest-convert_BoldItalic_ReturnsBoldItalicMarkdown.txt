@@ -1,0 +1,2 @@
+11-07 13:28:47.345 31940 31959 I TestRunner: started: convert_BoldItalic_ReturnsBoldItalicMarkdown(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)
+11-07 13:28:47.362 31940 31959 I TestRunner: finished: convert_BoldItalic_ReturnsBoldItalicMarkdown(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)

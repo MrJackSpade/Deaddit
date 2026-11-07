@@ -1,0 +1,27 @@
+EXECUTING: C:\android-sdk\build-tools\35.0.0\aapt.exe dump badging G:\git\Deaddit\core-device-tests\build\outputs\apk\androidTest\debug\core-device-tests-debug-androidTest.apk
+CURRENT_WORKING_DIRECTORY: G:\git\Deaddit
+START_TIME: 2026-11-07 13:29:06.453
+START_TIME-NANOS: 2026-11-07 13:29:06.453622700
+ENVIRONMENT:
+
+*****************************************
+STDOUT/STDERR BELOW
+===================
+package: name='com.mrjackspade.deaddit.core.devicetests.test' versionCode='' versionName='' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
+sdkVersion:'26'
+targetSdkVersion:'26'
+application: label='' icon=''
+application-debuggable
+uses-library:'android.test.runner'
+feature-group: label=''
+  uses-feature: name='android.hardware.faketouch'
+  uses-implied-feature: name='android.hardware.faketouch' reason='default feature for all apps'
+supports-screens: 'small' 'normal' 'large' 'xlarge'
+supports-any-density: 'true'
+locales:
+densities:
+===================
+END_TIME: 2026-11-07 13:29:06.523
+END_TIME-NANOS: 2026-11-07 13:29:06.523282000
+DURATION: 69ms
+EXIT CODE: 0

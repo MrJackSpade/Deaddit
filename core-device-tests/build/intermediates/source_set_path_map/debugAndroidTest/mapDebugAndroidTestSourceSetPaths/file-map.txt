@@ -1,0 +1,6 @@
+com.mrjackspade.deaddit.core.devicetests.test.core-device-tests-tracing-1.1.0-0 C:\Users\Service Account\.gradle\caches\8.14.3\transforms\6e360c3611859a2a7a9cab635d2f95ce\transformed\tracing-1.1.0\res
+com.mrjackspade.deaddit.core.devicetests.test.core-device-tests-androidTest-1 G:\git\Deaddit\core-device-tests\build\generated\res\resValues\androidTest\debug
+com.mrjackspade.deaddit.core.devicetests.test.core-device-tests-mergeDebugAndroidTestResources-2 G:\git\Deaddit\core-device-tests\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\merged.dir
+com.mrjackspade.deaddit.core.devicetests.test.core-device-tests-mergeDebugAndroidTestResources-3 G:\git\Deaddit\core-device-tests\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\stripped.dir
+com.mrjackspade.deaddit.core.devicetests.test.core-device-tests-debugAndroidTest-4 G:\git\Deaddit\core-device-tests\build\intermediates\merged_res\debugAndroidTest\mergeDebugAndroidTestResources
+com.mrjackspade.deaddit.core.devicetests.test.core-device-tests-debug-5 G:\git\Deaddit\core-device-tests\build\intermediates\packaged_res\debug\packageDebugResources

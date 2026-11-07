@@ -1,0 +1,2 @@
+11-07 13:28:46.588 31940 31959 I TestRunner: started: parsesTables(com.mrjackspade.deaddit.core.html.RedditHtmlTest)
+11-07 13:28:46.605 31940 31959 I TestRunner: finished: parsesTables(com.mrjackspade.deaddit.core.html.RedditHtmlTest)

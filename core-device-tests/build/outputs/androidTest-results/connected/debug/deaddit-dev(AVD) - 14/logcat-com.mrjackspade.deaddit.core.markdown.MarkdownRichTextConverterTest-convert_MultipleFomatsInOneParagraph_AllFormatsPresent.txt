@@ -1,0 +1,2 @@
+11-07 13:28:49.094 31940 31959 I TestRunner: started: convert_MultipleFomatsInOneParagraph_AllFormatsPresent(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)
+11-07 13:28:49.104 31940 31959 I TestRunner: finished: convert_MultipleFomatsInOneParagraph_AllFormatsPresent(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)

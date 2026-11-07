@@ -1,0 +1,2 @@
+11-07 13:28:47.471 31940 31959 I TestRunner: started: convert_SimpleTable_ReturnsMarkdownTable(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)
+11-07 13:28:47.482 31940 31959 I TestRunner: finished: convert_SimpleTable_ReturnsMarkdownTable(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)

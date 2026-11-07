@@ -90,7 +90,7 @@ class ImageViewerPage(private val services: Services, private val items: List<Fi
                 if (selected.isNullOrEmpty()) return@launch
                 runningSave?.cancel()
                 busy.run { services.media.shareDownloads("", selected, services.media.gifConverter()) }
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 services.dialogs.error(e)
             }
         }
@@ -108,7 +108,7 @@ class ImageViewerPage(private val services: Services, private val items: List<Fi
                 runningSave?.cancel()
                 runningSave = coroutineContext[Job]
                 busy.run { services.media.save(selected, services.media.gifConverter()) }
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 services.dialogs.error(e)
             }
         }

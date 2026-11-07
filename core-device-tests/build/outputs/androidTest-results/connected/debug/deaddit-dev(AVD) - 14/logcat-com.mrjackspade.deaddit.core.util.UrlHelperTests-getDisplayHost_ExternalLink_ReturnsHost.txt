@@ -1,0 +1,2 @@
+11-07 13:29:03.104 31940 31959 I TestRunner: started: getDisplayHost_ExternalLink_ReturnsHost(com.mrjackspade.deaddit.core.util.UrlHelperTests)
+11-07 13:29:03.114 31940 31959 I TestRunner: finished: getDisplayHost_ExternalLink_ReturnsHost(com.mrjackspade.deaddit.core.util.UrlHelperTests)

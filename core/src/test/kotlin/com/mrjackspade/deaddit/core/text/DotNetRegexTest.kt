@@ -56,6 +56,9 @@ class DotNetRegexTest {
         assertTrue(DotNetRegex.isMatch("a\u0000b", "a\\0b"))
         assertTrue(DotNetRegex.isMatch("\n", "\\012"))
         assertTrue(DotNetRegex.isMatch("α", "\\p{IsGreek}"))
+        assertTrue(DotNetRegex.isMatch("a}", "a}"))
+        assertTrue(DotNetRegex.isMatch("aa", "^a{1,}$"))
+        assertTrue(DotNetRegex.isMatch("a", "\\p{L}"))
     }
 
     @Test

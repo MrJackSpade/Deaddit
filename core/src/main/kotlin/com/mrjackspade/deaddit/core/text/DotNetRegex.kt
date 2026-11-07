@@ -12,8 +12,8 @@ import java.util.regex.Pattern
  *   Inside a character class `\b` is a backspace in .NET.
  * - `.` and `$` treat only `\n` as a line end in .NET ([Pattern.UNIX_LINES]); `(?i)` folds
  *   Unicode case ([Pattern.UNICODE_CASE]).
- * - .NET reads as literals what Java rejects or reads as syntax: a `{` that isn't a quantifier, and
- *   `[` and `&` inside a character class.
+ * - .NET reads as literals what Java rejects or reads as syntax: a `{` or `}` that isn't part of a
+ *   quantifier, and `[` and `&` inside a character class.
  * - .NET-only syntax: class subtraction `[a-z-[aeiou]]`, comments `(?#...)`, `(?'name'...)` and
  *   `\k'name'` groups, `\0` octal escapes, and `\p{IsBlock}` Unicode block names.
  *
@@ -35,7 +35,8 @@ object DotNetRegex {
     private const val NON_WORD_CLASS = "[^$WORD]"
     private val BOUNDARY = "(?:(?<=$WORD_CLASS)(?!$WORD_CLASS)|(?<!$WORD_CLASS)(?=$WORD_CLASS))"
     private val NON_BOUNDARY = "(?:(?<=$WORD_CLASS)(?=$WORD_CLASS)|(?<!$WORD_CLASS)(?!$WORD_CLASS))"
-    private val QUANTIFIER = Regex("""\{\d+(,\d*)?}""")
+    // Android's java.util.regex (ICU) rejects an unescaped '}' that desktop Java reads as a literal.
+    private val QUANTIFIER = Regex("""\{\d+(,\d*)?\}""")
 
     private class Translator(private val pattern: String) {
         private val out = StringBuilder(pattern.length * 2)
@@ -67,6 +68,11 @@ object DotNetRegex {
                             out.append("\\{")
                             i++
                         }
+                    }
+                    c == '}' -> {
+                        // A literal in .NET; ICU (Android) rejects it unescaped.
+                        out.append("\\}")
+                        i++
                     }
                     else -> {
                         out.append(c)
@@ -149,9 +155,13 @@ object DotNetRegex {
                 }
                 'p', 'P' -> {
                     out.append('\\').append(c)
-                    if (pattern.startsWith("{Is", i)) {
-                        out.append("{In")
-                        i += 3
+                    // The name in braces, through its '}', as one piece (not a literal '}').
+                    if (i < pattern.length && pattern[i] == '{') {
+                        val end = pattern.indexOf('}', i)
+                        require(end >= 0) { "Incomplete \\p{X} character escape in '$pattern'." }
+                        val name = pattern.substring(i + 1, end)
+                        out.append('{').append(if (name.startsWith("Is")) "In" + name.substring(2) else name).append('}')
+                        i = end + 1
                     }
                 }
                 'k' -> {

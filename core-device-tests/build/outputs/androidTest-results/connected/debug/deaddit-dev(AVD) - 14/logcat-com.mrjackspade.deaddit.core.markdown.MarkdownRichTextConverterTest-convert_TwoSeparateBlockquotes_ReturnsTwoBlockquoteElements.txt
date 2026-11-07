@@ -1,0 +1,2 @@
+11-07 13:28:48.040 31940 31959 I TestRunner: started: convert_TwoSeparateBlockquotes_ReturnsTwoBlockquoteElements(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)
+11-07 13:28:48.056 31940 31959 I TestRunner: finished: convert_TwoSeparateBlockquotes_ReturnsTwoBlockquoteElements(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)

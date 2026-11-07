@@ -1,0 +1,2 @@
+11-07 13:28:45.530 31940 31959 I TestRunner: started: readsNamesAsEnumTryParse(com.mrjackspade.deaddit.core.config.ClaudeModelSerializerTest)
+11-07 13:28:45.548 31940 31959 I TestRunner: finished: readsNamesAsEnumTryParse(com.mrjackspade.deaddit.core.config.ClaudeModelSerializerTest)

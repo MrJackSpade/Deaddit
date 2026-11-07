@@ -1,0 +1,2 @@
+11-07 13:28:51.751 31940 31959 I TestRunner: started: leavesUrlsCodeAndReferencesIntact(com.mrjackspade.deaddit.core.text.SwearObfuscatorTests)
+11-07 13:28:51.774 31940 31959 I TestRunner: finished: leavesUrlsCodeAndReferencesIntact(com.mrjackspade.deaddit.core.text.SwearObfuscatorTests)

@@ -1,0 +1,2 @@
+11-07 13:28:50.785 31940 31959 I TestRunner: started: looksIdenticalOnceInvisibleCharactersAreRemovedAndScriptsFolded(com.mrjackspade.deaddit.core.text.SwearObfuscatorTests)
+11-07 13:28:51.004 31940 31959 I TestRunner: finished: looksIdenticalOnceInvisibleCharactersAreRemovedAndScriptsFolded(com.mrjackspade.deaddit.core.text.SwearObfuscatorTests)

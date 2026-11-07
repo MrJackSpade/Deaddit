@@ -1,0 +1,2 @@
+11-07 13:28:47.409 31940 31959 I TestRunner: started: convert_Null_ReturnsEmpty(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)
+11-07 13:28:47.419 31940 31959 I TestRunner: finished: convert_Null_ReturnsEmpty(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)

@@ -58,7 +58,7 @@ class SubredditAboutPage(private val services: Services, private val name: Strin
                 description = about.descriptionHtml?.let(RedditHtml::parse) ?: emptyList()
                 subscribed = about.userIsSubscriber == true
                 subreddit = about
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 services.dialogs.error(e)
             } finally {
                 loading = false
@@ -98,7 +98,7 @@ class SubredditAboutPage(private val services: Services, private val name: Strin
                 }
 
                 toggleSubscription(about)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 services.dialogs.error(e)
             }
         }

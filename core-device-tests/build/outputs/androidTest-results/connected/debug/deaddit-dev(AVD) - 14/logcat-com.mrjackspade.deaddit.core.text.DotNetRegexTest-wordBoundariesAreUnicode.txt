@@ -1,0 +1,2 @@
+11-07 13:28:50.213 31940 31959 I TestRunner: started: wordBoundariesAreUnicode(com.mrjackspade.deaddit.core.text.DotNetRegexTest)
+11-07 13:28:50.234 31940 31959 I TestRunner: finished: wordBoundariesAreUnicode(com.mrjackspade.deaddit.core.text.DotNetRegexTest)

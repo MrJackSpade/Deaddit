@@ -1,0 +1,2 @@
+11-07 13:28:45.593 31940 31959 I TestRunner: started: parsesHexColorsBothWays(com.mrjackspade.deaddit.core.config.SettingsImportTest)
+11-07 13:28:45.611 31940 31959 I TestRunner: finished: parsesHexColorsBothWays(com.mrjackspade.deaddit.core.config.SettingsImportTest)

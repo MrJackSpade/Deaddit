@@ -16,4 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Deaddit"
 
-include(":core", ":app")
+include(":core", ":app", ":core-device-tests")

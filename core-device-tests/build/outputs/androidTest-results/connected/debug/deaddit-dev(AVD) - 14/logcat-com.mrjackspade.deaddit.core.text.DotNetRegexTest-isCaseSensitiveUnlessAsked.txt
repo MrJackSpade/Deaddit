@@ -1,0 +1,2 @@
+11-07 13:28:50.124 31940 31959 I TestRunner: started: isCaseSensitiveUnlessAsked(com.mrjackspade.deaddit.core.text.DotNetRegexTest)
+11-07 13:28:50.132 31940 31959 I TestRunner: finished: isCaseSensitiveUnlessAsked(com.mrjackspade.deaddit.core.text.DotNetRegexTest)

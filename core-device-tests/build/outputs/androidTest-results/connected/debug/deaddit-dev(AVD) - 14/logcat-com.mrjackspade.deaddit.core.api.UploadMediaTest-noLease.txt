@@ -1,0 +1,2 @@
+11-07 13:28:44.963 31940 31959 I TestRunner: started: noLease(com.mrjackspade.deaddit.core.api.UploadMediaTest)
+11-07 13:28:44.982 31940 31959 I TestRunner: finished: noLease(com.mrjackspade.deaddit.core.api.UploadMediaTest)

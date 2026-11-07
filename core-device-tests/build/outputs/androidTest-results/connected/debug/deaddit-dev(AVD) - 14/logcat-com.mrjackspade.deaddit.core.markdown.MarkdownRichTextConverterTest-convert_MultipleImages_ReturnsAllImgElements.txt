@@ -1,0 +1,2 @@
+11-07 13:28:48.509 31940 31959 I TestRunner: started: convert_MultipleImages_ReturnsAllImgElements(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)
+11-07 13:28:48.524 31940 31959 I TestRunner: finished: convert_MultipleImages_ReturnsAllImgElements(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)

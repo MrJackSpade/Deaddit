@@ -1,0 +1,2 @@
+11-07 13:28:45.503 31940 31959 I TestRunner: started: missingIsTheDefault(com.mrjackspade.deaddit.core.config.ClaudeModelSerializerTest)
+11-07 13:28:45.515 31940 31959 I TestRunner: finished: missingIsTheDefault(com.mrjackspade.deaddit.core.config.ClaudeModelSerializerTest)

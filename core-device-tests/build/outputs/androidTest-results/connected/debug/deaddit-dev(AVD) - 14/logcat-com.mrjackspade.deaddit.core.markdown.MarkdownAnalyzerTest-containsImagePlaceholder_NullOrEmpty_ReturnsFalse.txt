@@ -1,0 +1,2 @@
+11-07 13:28:47.765 31940 31959 I TestRunner: started: containsImagePlaceholder_NullOrEmpty_ReturnsFalse(com.mrjackspade.deaddit.core.markdown.MarkdownAnalyzerTest)
+11-07 13:28:47.772 31940 31959 I TestRunner: finished: containsImagePlaceholder_NullOrEmpty_ReturnsFalse(com.mrjackspade.deaddit.core.markdown.MarkdownAnalyzerTest)

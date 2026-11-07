@@ -1,0 +1,2 @@
+11-07 13:28:49.922 31940 31959 I TestRunner: started: timestampsAtOrBeforeTheEpochAreNoDate(com.mrjackspade.deaddit.core.model.SerializersTest)
+11-07 13:28:49.938 31940 31959 I TestRunner: finished: timestampsAtOrBeforeTheEpochAreNoDate(com.mrjackspade.deaddit.core.model.SerializersTest)

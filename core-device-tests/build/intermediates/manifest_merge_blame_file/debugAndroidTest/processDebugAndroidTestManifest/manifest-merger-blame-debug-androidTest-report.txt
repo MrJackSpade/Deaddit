@@ -1,0 +1,47 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.mrjackspade.deaddit.core.devicetests.test" >
+4
+5    <uses-sdk
+5-->G:\git\Deaddit\core-device-tests\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest17647877184236182091.xml:5:5-74
+6        android:minSdkVersion="26"
+6-->G:\git\Deaddit\core-device-tests\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest17647877184236182091.xml:5:15-41
+7        android:targetSdkVersion="26" />
+7-->G:\git\Deaddit\core-device-tests\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest17647877184236182091.xml:5:42-71
+8
+9    <instrumentation
+9-->G:\git\Deaddit\core-device-tests\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest17647877184236182091.xml:11:5-15:95
+10        android:name="androidx.test.runner.AndroidJUnitRunner"
+10-->G:\git\Deaddit\core-device-tests\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest17647877184236182091.xml:11:22-76
+11        android:functionalTest="false"
+11-->G:\git\Deaddit\core-device-tests\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest17647877184236182091.xml:14:22-52
+12        android:handleProfiling="false"
+12-->G:\git\Deaddit\core-device-tests\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest17647877184236182091.xml:13:22-53
+13        android:label="Tests for com.mrjackspade.deaddit.core.devicetests.test"
+13-->G:\git\Deaddit\core-device-tests\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest17647877184236182091.xml:15:22-93
+14        android:targetPackage="com.mrjackspade.deaddit.core.devicetests.test" />
+14-->G:\git\Deaddit\core-device-tests\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest17647877184236182091.xml:12:22-91
+15
+16    <queries>
+16-->[androidx.test:runner:1.6.2] C:\Users\Service Account\.gradle\caches\8.14.3\transforms\ca4cf11963ea72acbcac4c2919ed6a21\transformed\runner-1.6.2\AndroidManifest.xml:24:5-28:15
+17        <package android:name="androidx.test.orchestrator" />
+17-->[androidx.test:runner:1.6.2] C:\Users\Service Account\.gradle\caches\8.14.3\transforms\ca4cf11963ea72acbcac4c2919ed6a21\transformed\runner-1.6.2\AndroidManifest.xml:25:9-62
+17-->[androidx.test:runner:1.6.2] C:\Users\Service Account\.gradle\caches\8.14.3\transforms\ca4cf11963ea72acbcac4c2919ed6a21\transformed\runner-1.6.2\AndroidManifest.xml:25:18-59
+18        <package android:name="androidx.test.services" />
+18-->[androidx.test:runner:1.6.2] C:\Users\Service Account\.gradle\caches\8.14.3\transforms\ca4cf11963ea72acbcac4c2919ed6a21\transformed\runner-1.6.2\AndroidManifest.xml:26:9-58
+18-->[androidx.test:runner:1.6.2] C:\Users\Service Account\.gradle\caches\8.14.3\transforms\ca4cf11963ea72acbcac4c2919ed6a21\transformed\runner-1.6.2\AndroidManifest.xml:26:18-55
+19        <package android:name="com.google.android.apps.common.testing.services" />
+19-->[androidx.test:runner:1.6.2] C:\Users\Service Account\.gradle\caches\8.14.3\transforms\ca4cf11963ea72acbcac4c2919ed6a21\transformed\runner-1.6.2\AndroidManifest.xml:27:9-83
+19-->[androidx.test:runner:1.6.2] C:\Users\Service Account\.gradle\caches\8.14.3\transforms\ca4cf11963ea72acbcac4c2919ed6a21\transformed\runner-1.6.2\AndroidManifest.xml:27:18-80
+20    </queries>
+21
+22    <application
+22-->G:\git\Deaddit\core-device-tests\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest17647877184236182091.xml:7:5-9:19
+23        android:debuggable="true"
+24        android:extractNativeLibs="false" >
+25        <uses-library android:name="android.test.runner" />
+25-->G:\git\Deaddit\core-device-tests\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest17647877184236182091.xml:8:9-60
+25-->G:\git\Deaddit\core-device-tests\build\intermediates\tmp\manifest\androidTest\debug\tempFile1ProcessTestManifest17647877184236182091.xml:8:23-57
+26    </application>
+27
+28</manifest>

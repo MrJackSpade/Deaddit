@@ -1,0 +1,2 @@
+11-07 13:28:49.065 31940 31959 I TestRunner: started: convert_Spoiler_ReturnsFormatCode16(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)
+11-07 13:28:49.079 31940 31959 I TestRunner: finished: convert_Spoiler_ReturnsFormatCode16(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)

@@ -139,7 +139,7 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
                 if (feed.kind == FeedKind.Account) {
                     header = services.reddit.userData(feed.name)
                 }
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 services.dialogs.error(e)
             }
             tryLoad()
@@ -150,7 +150,7 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
         if (!loadLock.tryLock()) return
         try {
             load()
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             services.dialogs.error(e)
         } finally {
             loadLock.unlock()
@@ -166,7 +166,7 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
         selected = null
         try {
             load()
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             services.dialogs.error(e)
         }
     }

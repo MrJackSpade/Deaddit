@@ -1,0 +1,2 @@
+11-07 13:28:46.266 31940 31959 I TestRunner: started: parsesApiHtml(com.mrjackspade.deaddit.core.html.RedditHtmlTest)
+11-07 13:28:46.285 31940 31959 I TestRunner: finished: parsesApiHtml(com.mrjackspade.deaddit.core.html.RedditHtmlTest)

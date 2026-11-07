@@ -1,0 +1,2 @@
+11-07 13:28:46.868 31940 31959 I TestRunner: started: convert_Link_ReturnsMarkdownLink(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)
+11-07 13:28:46.884 31940 31959 I TestRunner: finished: convert_Link_ReturnsMarkdownLink(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)

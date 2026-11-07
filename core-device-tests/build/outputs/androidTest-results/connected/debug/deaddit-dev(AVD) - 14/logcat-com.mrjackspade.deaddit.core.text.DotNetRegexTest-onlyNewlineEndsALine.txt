@@ -1,0 +1,2 @@
+11-07 13:28:50.155 31940 31959 I TestRunner: started: onlyNewlineEndsALine(com.mrjackspade.deaddit.core.text.DotNetRegexTest)
+11-07 13:28:50.167 31940 31959 I TestRunner: finished: onlyNewlineEndsALine(com.mrjackspade.deaddit.core.text.DotNetRegexTest)

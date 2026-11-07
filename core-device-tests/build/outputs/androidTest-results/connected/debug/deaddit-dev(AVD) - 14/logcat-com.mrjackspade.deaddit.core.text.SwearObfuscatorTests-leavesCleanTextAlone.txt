@@ -1,0 +1,2 @@
+11-07 13:28:51.829 31940 31959 I TestRunner: started: leavesCleanTextAlone(com.mrjackspade.deaddit.core.text.SwearObfuscatorTests)
+11-07 13:28:51.839 31940 31959 I TestRunner: finished: leavesCleanTextAlone(com.mrjackspade.deaddit.core.text.SwearObfuscatorTests)

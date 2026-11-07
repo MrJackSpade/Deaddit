@@ -13,6 +13,7 @@ coil = "3.2.0"
 media3 = "1.7.1"
 browser = "1.8.0"
 junit = "4.13.2"
+androidxTestRunner = "1.6.2"
 
 [libraries]
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -38,9 +39,11 @@ media3-hls = { module = "androidx.media3:media3-exoplayer-hls", version.ref = "m
 media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3" }
 browser = { module = "androidx.browser:browser", version.ref = "browser" }
 junit = { module = "junit:junit", version.ref = "junit" }
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRunner" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

@@ -175,7 +175,7 @@ class BrowserPage(private val services: Services, private val url: String) : Scr
         scope.launch {
             try {
                 action()
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 services.dialogs.error(e)
             }
         }

@@ -1,0 +1,77 @@
+11-07 13:28:53.354 31940 31959 I TestRunner: started: parse_MatchesDotNet(com.mrjackspade.deaddit.core.util.DotNetUriTests)
+11-07 13:28:53.786  4769 31490 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.tapandpay.gcmtask.TapAndPayGcmTaskService started execution. cause:4 exec_start_elapsed_seconds: 80320 [CONTEXT service_id=218 ]
+11-07 13:28:53.787  4769 31490 V NFC     : this device does not have NFC support
+11-07 13:28:53.788  4769 31490 W TapAndPay: NfcAdapter is null while obtaining CardEmulation instance. [CONTEXT service_id=79 ]
+11-07 13:28:53.788  4769 31490 W TapAndPay: java.lang.NullPointerException: NfcAdapter is null
+11-07 13:28:53.788  4769 31490 W TapAndPay: 	at android.nfc.cardemulation.CardEmulation.getInstance(CardEmulation.java:152)
+11-07 13:28:53.788  4769 31490 W TapAndPay: 	at cdoy.<init>(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+11-07 13:28:53.788  4769 31490 W TapAndPay: 	at com.google.android.gms.tapandpay.hce.task.TapAndPayAidRegistrationTaskOperation.a(:com.google.android.gms@231818047@23.18.18 (190800-535401451):5)
+11-07 13:28:53.788  4769 31490 W TapAndPay: 	at com.google.android.gms.tapandpay.gcmtask.TapAndPayGcmTaskChimeraService.a(:com.google.android.gms@231818047@23.18.18 (190800-535401451):4)
+11-07 13:28:53.788  4769 31490 W TapAndPay: 	at avzs.call(:com.google.android.gms@231818047@23.18.18 (190800-535401451):4)
+11-07 13:28:53.788  4769 31490 W TapAndPay: 	at java.util.concurrent.FutureTask.run(FutureTask.java:264)
+11-07 13:28:53.788  4769 31490 W TapAndPay: 	at aced.c(:com.google.android.gms@231818047@23.18.18 (190800-535401451):6)
+11-07 13:28:53.788  4769 31490 W TapAndPay: 	at aced.run(:com.google.android.gms@231818047@23.18.18 (190800-535401451):7)
+11-07 13:28:53.788  4769 31490 W TapAndPay: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+11-07 13:28:53.788  4769 31490 W TapAndPay: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+11-07 13:28:53.788  4769 31490 W TapAndPay: 	at acjn.run(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+11-07 13:28:53.788  4769 31490 W TapAndPay: 	at java.lang.Thread.run(Thread.java:1012)
+11-07 13:28:53.820  4769 31735 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.tapandpay.gcmtask.TapAndPayGcmTaskService finished executing. cause:4 result: 3 elapsed_millis: 66 uptime_millis: 66 exec_start_elapsed_seconds: 80320 [CONTEXT service_id=218 ]
+11-07 13:28:53.947  4769  4769 D BoundBrokerSvc: onBind: Intent { act=com.google.android.contextmanager.service.ContextManagerLogsUploadBoundService.ACTION_TASK_READY dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentInternalBoundBrokerService }
+11-07 13:28:53.947  4769  4769 D BoundBrokerSvc: Loading bound service for intent: Intent { act=com.google.android.contextmanager.service.ContextManagerLogsUploadBoundService.ACTION_TASK_READY dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentInternalBoundBrokerService }
+11-07 13:28:53.982  4769 31490 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.contextmanager.service.ContextManagerLogsUploadBoundService started execution. cause:5 exec_start_elapsed_seconds: 80320 [CONTEXT service_id=218 ]
+11-07 13:28:54.014  4769 31490 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.auth.account.be.legacy.AuthCronService started execution. cause:5 exec_start_elapsed_seconds: 80320 [CONTEXT service_id=218 ]
+11-07 13:28:54.035  4769 31965 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.contextmanager.service.ContextManagerLogsUploadBoundService finished executing. cause:5 result: 1 elapsed_millis: 97 uptime_millis: 97 exec_start_elapsed_seconds: 80320 [CONTEXT service_id=218 ]
+11-07 13:28:54.101  4769  4769 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.contextmanager.service.ContextManagerLogsUploadBoundService.ACTION_TASK_READY dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentInternalBoundBrokerService }
+11-07 13:28:54.158  3329  3776 I PhenotypeProcessReaper: Memory state is: 125
+11-07 13:28:54.304  3329  3329 W binder:3329_10: type=1400 audit(0.0:264): avc:  denied  { read } for  name="u:object_r:system_adbd_prop:s0" dev="tmpfs" ino=292 scontext=u:r:gmscore_app:s0:c512,c768 tcontext=u:object_r:system_adbd_prop:s0 tclass=file permissive=0 app=com.google.android.gms
+11-07 13:28:54.315  3329  8017 W libc    : Access denied finding property "persist.adb.tls_server.enable"
+11-07 13:28:54.316  3329  3329 W binder:3329_10: type=1400 audit(0.0:265): avc:  denied  { read } for  name="u:object_r:adbd_prop:s0" dev="tmpfs" ino=60 scontext=u:r:gmscore_app:s0:c512,c768 tcontext=u:object_r:adbd_prop:s0 tclass=file permissive=0 app=com.google.android.gms
+11-07 13:28:54.367   355 31969 I resolv  : GetAddrInfoHandler::run: {102 786534 102 983142 10128 0}
+11-07 13:28:54.369  3329  8017 D TrafficStats: tagSocket(101) with statsTag=0x1809, statsUid=-1
+11-07 13:28:54.397  4769  5730 W GmsUrlRequestImpl: Content-Type header is overwritten.
+11-07 13:28:54.415   355 31970 I resolv  : GetAddrInfoHandler::run: {102 786534 102 983142 10128 0}
+11-07 13:28:54.424   355 31971 I resolv  : res_nmkquery: (QUERY, IN, AAAA)
+11-07 13:28:54.430   355 31972 I resolv  : res_nmkquery: (QUERY, IN, A)
+11-07 13:28:54.483   355 31971 I resolv  : res_nsend: used send_dg 264 terrno: 0
+11-07 13:28:54.484   355 31971 I resolv  : doQuery: rcode=0, ancount=8, return value=264
+11-07 13:28:54.495   355 31972 I resolv  : res_nsend: used send_dg 168 terrno: 0
+11-07 13:28:54.495   355 31972 I resolv  : doQuery: rcode=0, ancount=8, return value=168
+11-07 13:28:54.508  4769  5306 D TrafficStats: tagSocket(170) with statsTag=0x401, statsUid=10128
+11-07 13:28:54.695  4769  5730 W GLSUser : [AppCertManager] Exception while requesting key:
+11-07 13:28:54.695  4769  5730 W GLSUser : java.util.concurrent.ExecutionException: avvw: Parse Proto Exception.
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at dlnv.s(:com.google.android.gms@231818047@23.18.18 (190800-535401451):3)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at dlnv.get(:com.google.android.gms@231818047@23.18.18 (190800-535401451):7)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at oub.b(:com.google.android.gms@231818047@23.18.18 (190800-535401451):78)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at otz.b(:com.google.android.gms@231818047@23.18.18 (190800-535401451):4)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at otu.a(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at otx.a(:com.google.android.gms@231818047@23.18.18 (190800-535401451):6)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at lzq.call(:com.google.android.gms@231818047@23.18.18 (190800-535401451):14)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at java.util.concurrent.FutureTask.run(FutureTask.java:264)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at aced.c(:com.google.android.gms@231818047@23.18.18 (190800-535401451):6)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at aced.run(:com.google.android.gms@231818047@23.18.18 (190800-535401451):7)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at acjn.run(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at java.lang.Thread.run(Thread.java:1012)
+11-07 13:28:54.695  4769  5730 W GLSUser : Caused by: avvw: Parse Proto Exception.
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at avwn.f(:com.google.android.gms@231818047@23.18.18 (190800-535401451):5)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at avxk.onSucceeded(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at jf.onSucceeded(:com.google.android.gms.dynamite_cronetdynamite@231818047@23.18.18 (190800-0):0)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at ie.run(:com.google.android.gms.dynamite_cronetdynamite@231818047@23.18.18 (190800-0):4)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	... 6 more
+11-07 13:28:54.695  4769  5730 W GLSUser : Caused by: dzfz: Protocol message contained an invalid tag (zero).
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at dzdb.k(:com.google.android.gms@231818047@23.18.18 (190800-535401451):13)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at dzha.c(:com.google.android.gms@231818047@23.18.18 (190800-535401451):47)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at dzha.h(:com.google.android.gms@231818047@23.18.18 (190800-535401451):45)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at dzfd.A(:com.google.android.gms@231818047@23.18.18 (190800-535401451):2)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at dzex.f(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at dzcx.d(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at dzcx.c(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at dzcx.n(:com.google.android.gms@231818047@23.18.18 (190800-535401451):0)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at avwn.h(:com.google.android.gms@231818047@23.18.18 (190800-535401451):7)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	at avwn.f(:com.google.android.gms@231818047@23.18.18 (190800-535401451):1)
+11-07 13:28:54.695  4769  5730 W GLSUser : 	... 9 more
+11-07 13:28:54.732  4769 31965 I NetworkScheduler.Stats: Task com.google.android.gms/com.google.android.gms.auth.account.be.legacy.AuthCronService finished executing. cause:5 result: 3 elapsed_millis: 764 uptime_millis: 764 exec_start_elapsed_seconds: 80320 [CONTEXT service_id=218 ]
+11-07 13:28:55.185   884   884 D StatusBarIconController: ignoring old pipeline callback because the new wifi icon is enabled
+11-07 13:28:58.202   884   884 D StatusBarIconController: ignoring old pipeline callback because the new wifi icon is enabled
+11-07 13:28:58.549 31940 31959 I TestRunner: finished: parse_MatchesDotNet(com.mrjackspade.deaddit.core.util.DotNetUriTests)

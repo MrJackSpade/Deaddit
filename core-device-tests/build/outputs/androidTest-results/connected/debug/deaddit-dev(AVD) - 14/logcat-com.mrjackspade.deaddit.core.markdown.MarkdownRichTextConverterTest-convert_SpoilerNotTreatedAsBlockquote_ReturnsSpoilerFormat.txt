@@ -1,0 +1,2 @@
+11-07 13:28:48.740 31940 31959 I TestRunner: started: convert_SpoilerNotTreatedAsBlockquote_ReturnsSpoilerFormat(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)
+11-07 13:28:48.752 31940 31959 I TestRunner: finished: convert_SpoilerNotTreatedAsBlockquote_ReturnsSpoilerFormat(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)

@@ -1,0 +1,2 @@
+11-07 13:28:49.307 31940 31959 I TestRunner: started: decodesEveryImageUrlOnce(com.mrjackspade.deaddit.core.model.BridgedThingsTest)
+11-07 13:28:49.377 31940 31959 I TestRunner: finished: decodesEveryImageUrlOnce(com.mrjackspade.deaddit.core.model.BridgedThingsTest)

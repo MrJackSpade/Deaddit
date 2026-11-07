@@ -11,7 +11,7 @@ object Links {
                 return
             }
             services.posts.urls.launch(url, services.posts)
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             services.dialogs.error(e)
         }
     }

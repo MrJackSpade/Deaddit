@@ -1,0 +1,2 @@
+11-07 13:28:45.305 31940 31959 I TestRunner: started: emptyRuleMatchesNothing(com.mrjackspade.deaddit.core.blocking.BlockingTest)
+11-07 13:28:45.322 31940 31959 I TestRunner: finished: emptyRuleMatchesNothing(com.mrjackspade.deaddit.core.blocking.BlockingTest)

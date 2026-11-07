@@ -1,0 +1,2 @@
+11-07 13:28:47.845 31940 31959 I TestRunner: started: hasNestedBlockquote_PlainText_ReturnsFalse(com.mrjackspade.deaddit.core.markdown.MarkdownAnalyzerTest)
+11-07 13:28:47.856 31940 31959 I TestRunner: finished: hasNestedBlockquote_PlainText_ReturnsFalse(com.mrjackspade.deaddit.core.markdown.MarkdownAnalyzerTest)

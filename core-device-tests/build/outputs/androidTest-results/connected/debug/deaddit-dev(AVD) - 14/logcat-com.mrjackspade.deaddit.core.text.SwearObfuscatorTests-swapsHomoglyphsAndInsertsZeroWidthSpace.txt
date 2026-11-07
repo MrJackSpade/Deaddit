@@ -1,0 +1,2 @@
+11-07 13:28:51.800 31940 31959 I TestRunner: started: swapsHomoglyphsAndInsertsZeroWidthSpace(com.mrjackspade.deaddit.core.text.SwearObfuscatorTests)
+11-07 13:28:51.815 31940 31959 I TestRunner: finished: swapsHomoglyphsAndInsertsZeroWidthSpace(com.mrjackspade.deaddit.core.text.SwearObfuscatorTests)

@@ -1,0 +1,2 @@
+11-07 13:28:47.378 31940 31959 I TestRunner: started: convert_LineBreak_SingleNewline(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)
+11-07 13:28:47.384 31940 31959 I TestRunner: finished: convert_LineBreak_SingleNewline(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)

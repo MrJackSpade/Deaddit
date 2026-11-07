@@ -1,0 +1,2 @@
+11-07 13:28:51.890 31940 31959 I TestRunner: started: catchesSwear(com.mrjackspade.deaddit.core.text.SwearObfuscatorTests)
+11-07 13:28:51.996 31940 31959 I TestRunner: finished: catchesSwear(com.mrjackspade.deaddit.core.text.SwearObfuscatorTests)

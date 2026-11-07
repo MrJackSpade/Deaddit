@@ -1,0 +1,2 @@
+11-07 13:28:47.442 31940 31959 I TestRunner: started: convert_Spoiler_ReturnsSpoilerMarkdown(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)
+11-07 13:28:47.458 31940 31959 I TestRunner: finished: convert_Spoiler_ReturnsSpoilerMarkdown(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)

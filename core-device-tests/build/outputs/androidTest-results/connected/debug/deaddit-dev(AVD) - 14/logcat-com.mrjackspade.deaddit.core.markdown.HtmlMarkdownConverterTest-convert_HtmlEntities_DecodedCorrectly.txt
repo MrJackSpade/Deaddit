@@ -1,0 +1,2 @@
+11-07 13:28:46.662 31940 31959 I TestRunner: started: convert_HtmlEntities_DecodedCorrectly(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)
+11-07 13:28:46.666 31940 31959 I TestRunner: finished: convert_HtmlEntities_DecodedCorrectly(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)

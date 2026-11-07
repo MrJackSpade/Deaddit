@@ -1,0 +1,2 @@
+11-07 13:28:51.852 31940 31959 I TestRunner: started: isDeterministic(com.mrjackspade.deaddit.core.text.SwearObfuscatorTests)
+11-07 13:28:51.870 31940 31959 I TestRunner: finished: isDeterministic(com.mrjackspade.deaddit.core.text.SwearObfuscatorTests)

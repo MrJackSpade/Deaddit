@@ -1,0 +1,2 @@
+11-07 13:28:53.155 31940 31959 I TestRunner: started: hls_ResolvesAsDotNetDoes(com.mrjackspade.deaddit.core.util.DotNetPortsTests)
+11-07 13:28:53.206 31940 31959 I TestRunner: finished: hls_ResolvesAsDotNetDoes(com.mrjackspade.deaddit.core.util.DotNetPortsTests)

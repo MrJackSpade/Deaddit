@@ -1,0 +1,2 @@
+11-07 13:28:49.866 31940 31959 I TestRunner: started: keepsTheUrlsTheModelDecoded(com.mrjackspade.deaddit.core.model.MediaMetadataTest)
+11-07 13:28:49.871 31940 31959 I TestRunner: finished: keepsTheUrlsTheModelDecoded(com.mrjackspade.deaddit.core.model.MediaMetadataTest)

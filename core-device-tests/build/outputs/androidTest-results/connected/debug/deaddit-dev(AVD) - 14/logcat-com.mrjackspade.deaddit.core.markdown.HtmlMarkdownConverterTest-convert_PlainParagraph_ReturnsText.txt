@@ -1,0 +1,2 @@
+11-07 13:28:46.842 31940 31959 I TestRunner: started: convert_PlainParagraph_ReturnsText(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)
+11-07 13:28:46.851 31940 31959 I TestRunner: finished: convert_PlainParagraph_ReturnsText(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)

@@ -135,7 +135,7 @@ class PostPage(
             loading = true
             try {
                 addChildren(root, null, services.reddit.comments(post, focus), loadMore = false)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 services.dialogs.error(e)
             } finally {
                 loading = false
@@ -230,7 +230,7 @@ class PostPage(
             entry.loading = true
             try {
                 replace(entry, services.reddit.moreComments(post, node))
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 if (topLevel) containerOf(entry).remove(entry)
                 services.dialogs.error(e)
             } finally {
