@@ -292,8 +292,11 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
                 last >= listState.layoutInfo.totalItemsCount - 1 - services.settings.hacks.value.pageBuffer
             }
         }
+        // The load runs in the page's scope, not this effect's: the effect restarts whenever the
+        // list moves in or out of range of the end, and a restart cancelled the load in flight,
+        // silently, with no new page (and the page it had fetched skipped, "after" having moved on).
         LaunchedEffect(nearEnd, items.size) {
-            if (nearEnd && started && !exhausted && !loading) tryLoad()
+            if (nearEnd && started && !exhausted && !loading) scope.launch { tryLoad() }
         }
 
         BackHandler(enabled = bufferBack == true) {
