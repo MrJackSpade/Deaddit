@@ -114,9 +114,9 @@ data class MediaMetadata(
 /** "u" is an image, "gif"/"mp4" an animation, each with its size. */
 @Serializable
 data class MediaMetadataSource(
-    @SerialName("u") val url: String? = null,
-    val gif: String? = null,
-    val mp4: String? = null,
+    @SerialName("u") @Serializable(HtmlDecodedUrlSerializer::class) val url: String? = null,
+    @Serializable(HtmlDecodedUrlSerializer::class) val gif: String? = null,
+    @Serializable(HtmlDecodedUrlSerializer::class) val mp4: String? = null,
     @SerialName("x") val width: Int = 0,
     @SerialName("y") val height: Int = 0,
 )
