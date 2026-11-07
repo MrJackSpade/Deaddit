@@ -55,7 +55,7 @@ class MessagePage(private val services: Services, private val user: User, privat
             Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())) {
                 UserHeader(services, user, showMessage = false)
                 // Shown, not selectable, as the C# page added it without a selection group.
-                if (replyTo != null) MessageView(services, scope, replyTo, isSelected = false, onSelect = { }, selectable = false)
+                if (replyTo != null) MessageView(services, replyTo, isSelected = false, onSelect = { }, selectable = false)
             }
 
             TextInput(subject, { subject = it }, background = styling.primaryColor.color, placeholder = "Subject")

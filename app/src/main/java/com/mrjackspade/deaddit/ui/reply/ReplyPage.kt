@@ -104,11 +104,10 @@ class ReplyPage(
         }
     }
 
-    private val postController = PostController(services, scope, inList = false, fromHistory = false, onSelect = { _, _ -> })
+    private val postController = PostController(services, inList = false, fromHistory = false, onSelect = { _, _ -> })
 
     private val commentController = CommentController(
         services,
-        scope,
         post = null,
         // The C# page didn't listen for these: a deleted comment stays, a reply isn't shown.
         onDeleted = { },

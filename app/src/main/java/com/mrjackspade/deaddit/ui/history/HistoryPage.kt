@@ -54,7 +54,6 @@ class HistoryPage(private val services: Services) : Screen() {
 
     private val controller = PostController(
         services,
-        scope,
         inList = true,
         fromHistory = true,
         onSelect = { model, toggle ->

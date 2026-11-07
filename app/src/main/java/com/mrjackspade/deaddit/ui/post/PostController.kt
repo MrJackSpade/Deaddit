@@ -9,17 +9,15 @@ import com.mrjackspade.deaddit.core.model.link
 import com.mrjackspade.deaddit.ui.Option
 import com.mrjackspade.deaddit.ui.Pages
 import com.mrjackspade.deaddit.ui.comment.Reporting
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 /**
  * What a post's buttons do (the C# RedditPostWebComponent and PostPage handlers).
  * [inList] is true in a feed; [onBlockAdded] lets the feed drop what a new block rule matches;
- * [onHidden] removes the post from the page.
+ * [onHidden] removes the post from the page. What the buttons start runs in the app's scope
+ * ([Services.launchAction]), so leaving the page doesn't drop its result.
  */
 class PostController(
     private val services: Services,
-    private val scope: CoroutineScope,
     private val inList: Boolean,
     private val fromHistory: Boolean,
     /** Selects the post; toggles when the second argument is true. */
@@ -36,14 +34,12 @@ class PostController(
         },
         onShare = { run { share(model) } },
         onSave = { run { toggleSave(model) } },
-        onHide = {
-            run {
-                if (services.reddit.isLoggedIn) services.reddit.setVisible(model.post, false)
-                onHidden(model)
-            }
-        },
+        // The C# app called Reddit's hide only when IRedditClient.CanLogIn: when it had API
+        // credentials (a username, password, app key and secret), which it was never given
+        // (MauiProgram made its RedditService without them). So Hide only took the post off the page.
+        onHide = { onHidden(model) },
         onMore = { run { more(model) } },
-        onComments = { comments(model) },
+        onComments = { run { comments(model) } },
     )
 
     private fun comments(model: PostModel) {
@@ -160,12 +156,6 @@ class PostController(
     }
 
     private fun run(block: suspend () -> Unit) {
-        scope.launch {
-            try {
-                block()
-            } catch (e: Exception) {
-                services.dialogs.error(e)
-            }
-        }
+        services.launchAction(block)
     }
 }

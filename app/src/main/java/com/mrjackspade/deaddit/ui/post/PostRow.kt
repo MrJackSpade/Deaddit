@@ -37,8 +37,15 @@ import com.mrjackspade.deaddit.ui.color
 import com.mrjackspade.deaddit.ui.px
 import com.mrjackspade.deaddit.ui.flair.Flair
 
-/** A post as shown, with what the user can change on it. */
+/**
+ * A post as shown, with what the user can change on it. Made where the post is loaded, so a post
+ * that can't be shown (a malformed link) fails that load, whose error is shown, as the C# app's
+ * row did when it was built; drawing it can't throw.
+ */
 class PostModel(val post: Post, val state: PostState) {
+    /** The thumbnail: Reddit's, or the post's own link when that's an image. */
+    val thumbnail: String? = thumbnailFor(post)
+
     var likes by mutableStateOf(post.likes)
     var score by mutableIntStateOf(post.score)
     var saved by mutableStateOf(post.saved)
@@ -90,9 +97,8 @@ fun PostRow(
 
     Column(Modifier.fillMaxWidth().background(background).alpha(if (dimmed) styling.visitedOpacity.toFloat() else 1f)) {
         Row(Modifier.fillMaxWidth()) {
-            val thumbnail = thumbnailFor(post)
             AsyncImage(
-                model = thumbnail,
+                model = model.thumbnail,
                 contentDescription = "Open ${post.title}",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.size(styling.thumbnailSize.dp).clickable(role = Role.Button, onClick = actions.onThumbnail),
@@ -144,7 +150,6 @@ fun PostRow(
     }
 }
 
-/** The thumbnail: Reddit's, or the post's own link when that's an image. */
 private fun thumbnailFor(post: Post): String? {
     val thumbnail = post.thumbnailUrl()
     if (!thumbnail.isNullOrBlank()) return thumbnail

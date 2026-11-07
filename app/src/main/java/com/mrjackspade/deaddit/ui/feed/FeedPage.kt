@@ -2,14 +2,12 @@ package com.mrjackspade.deaddit.ui.feed
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -26,6 +24,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -48,6 +47,8 @@ import com.mrjackspade.deaddit.core.model.UserPartialData
 import com.mrjackspade.deaddit.core.model.thumbnailUrl
 import com.mrjackspade.deaddit.core.model.titleOrEmpty
 import com.mrjackspade.deaddit.core.model.urlOrEmpty
+import com.mrjackspade.deaddit.ui.FlexRow
+import com.mrjackspade.deaddit.ui.Links
 import com.mrjackspade.deaddit.ui.LocalStyling
 import com.mrjackspade.deaddit.ui.Pages
 import com.mrjackspade.deaddit.ui.Screen
@@ -55,10 +56,14 @@ import com.mrjackspade.deaddit.ui.Spinner
 import com.mrjackspade.deaddit.ui.TopBar
 import com.mrjackspade.deaddit.ui.TopBarButton
 import com.mrjackspade.deaddit.ui.color
-import com.mrjackspade.deaddit.ui.Links
 import com.mrjackspade.deaddit.ui.comment.CommentController
+import com.mrjackspade.deaddit.ui.comment.CommentEntry
 import com.mrjackspade.deaddit.ui.comment.CommentModel
 import com.mrjackspade.deaddit.ui.comment.CommentView
+import com.mrjackspade.deaddit.ui.comment.ThreadRowFrame
+import com.mrjackspade.deaddit.ui.comment.findEntry
+import com.mrjackspade.deaddit.ui.comment.flattenThread
+import com.mrjackspade.deaddit.ui.comment.removeEntry
 import com.mrjackspade.deaddit.ui.message.MessageView
 import com.mrjackspade.deaddit.ui.post.PostController
 import com.mrjackspade.deaddit.ui.post.PostModel
@@ -79,14 +84,25 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
     sealed interface Item {
         val thing: RedditThing
         class PostEntry(val model: PostModel) : Item { override val thing get() = model.post }
-        class CommentEntry(val model: CommentModel) : Item { override val thing get() = model.comment }
+
+        /** A comment, with the replies the user writes to it here (shown under it, as in C#). */
+        class CommentItem(val entry: CommentEntry) : Item { override val thing get() = entry.model.comment }
         class MessageEntry(val message: Message) : Item { override val thing get() = message }
     }
 
     private val items = mutableStateListOf<Item>()
     private var sort by mutableStateOf(initialSort)
+
+    /** The sort buttons show only for a feed opened with a sort, as in C#. */
+    private val showSorts = initialSort != null && feed.sorts.isNotEmpty()
+
     private var after: String? = null
-    private var exhausted by mutableStateOf(false)
+
+    /**
+     * The last page asked for came back empty. The next scroll gesture asks Reddit again, with the
+     * same cursor, as the C# app did on each scroll to the bottom; there's no permanent end.
+     */
+    private var reachedEnd by mutableStateOf(false)
     private var loading by mutableStateOf(false)
     private var blockEnabled by mutableStateOf(feed.filteredByDefault && feed.kind != FeedKind.Account)
     private var header by mutableStateOf<User?>(null)
@@ -102,14 +118,19 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
      */
     private var bufferBack by mutableStateOf<Boolean?>(null)
 
-    // Duplicate detection, across everything loaded so far.
-    private val loadedNames = HashSet<String>()
-    private val loadedTitles = HashSet<String>()
-    private val loadedUrls = HashSet<String>()
+    /**
+     * Everything loaded since the last reload, less what a new block rule took away (the C#
+     * _loadedPosts): hidden posts stay. The duplicate checks are rebuilt from it at each load.
+     */
+    private val loaded = mutableListOf<RedditThing>()
+
+    /** Thumbnail ETags seen, across every page since the last reload. */
     private val loadedEtags = HashSet<String>()
 
     private var started = false
 
+    // Loads run in the page's scope: one is wanted only while the page is open, and the page stays
+    // open (its scope alive) for as long as it's on the back stack, whatever else is shown on top.
     private fun start() {
         if (started) return
         started = true
@@ -138,13 +159,11 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
 
     private suspend fun reload() = loadLock.withLock {
         items.clear()
-        after = null
-        exhausted = false
-        selected = null
-        loadedNames.clear()
-        loadedTitles.clear()
-        loadedUrls.clear()
+        loaded.clear()
         loadedEtags.clear()
+        after = null
+        reachedEnd = false
+        selected = null
         try {
             load()
         } catch (e: Exception) {
@@ -159,13 +178,16 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
             val blocking = services.settings.blocking.value
             val added = mutableListOf<Item>()
 
+            // What's been seen, from what's loaded; blank titles and links are no duplicates.
+            val loadedNames = loaded.mapTo(HashSet()) { it.name }
+            val loadedTitles = loaded.map { it.titleOrEmpty }.filterTo(HashSet()) { it.isNotBlank() }
+            val loadedUrls = loaded.map { it.urlOrEmpty }.filterTo(HashSet()) { it.isNotBlank() }
+
             do {
                 val things = services.reddit.getPosts(feed, sort, hacks.pageSize, after, hacks.defaultRegion).take(hacks.pageSize)
 
-                if (things.isEmpty()) {
-                    exhausted = true
-                    break
-                }
+                reachedEnd = things.isEmpty()
+                if (things.isEmpty()) break
 
                 // Account-based rules need each author's account data, which only a logged-in
                 // session can fetch, and which a user's own page doesn't filter on.
@@ -183,7 +205,7 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
                 for (thing in things) {
                     after = thing.name
 
-                    val state = postState(thing, userData)
+                    val state = postState(thing, userData, loadedTitles, loadedUrls)
 
                     if (state == PostState.Block && blockEnabled) continue
                     if (!loadedNames.add(thing.name)) continue
@@ -192,19 +214,20 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
                         is Post -> {
                             if (thing.hidden) continue
 
-                            loadedTitles += thing.titleOrEmpty
-                            loadedUrls += thing.urlOrEmpty
+                            thing.titleOrEmpty.takeIf { it.isNotBlank() }?.let { loadedTitles += it }
+                            thing.urlOrEmpty.takeIf { it.isNotBlank() }?.let { loadedUrls += it }
                             if (blocking.duplicateThumbHandling != PostState.None) {
                                 thing.thumbnailUrl()?.takeIf { it.isNotEmpty() }?.let { loadedEtags += services.etags.get(it) }
                             }
 
                             Item.PostEntry(PostModel(thing, state).also { it.visited = services.visits.hasVisited(thing) })
                         }
-                        is Comment -> Item.CommentEntry(CommentModel(thing))
+                        is Comment -> Item.CommentItem(CommentEntry(CommentModel(thing), null))
                         is Message -> Item.MessageEntry(thing)
                     }
 
                     added += item
+                    loaded += thing
                 }
             } while (added.size < hacks.pageSize)
 
@@ -218,7 +241,7 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
     }
 
     /** Blocked, dimmed as already seen, or shown normally; blocking wins over dimming. */
-    private suspend fun postState(thing: RedditThing, userData: Map<String, UserPartialData>?): PostState {
+    private suspend fun postState(thing: RedditThing, userData: Map<String, UserPartialData>?, loadedTitles: Set<String>, loadedUrls: Set<String>): PostState {
         val blocking = services.settings.blocking.value
 
         if (!Blocking.isAllowed(blocking, thing, userData)) return PostState.Block
@@ -243,7 +266,6 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
 
     private val postController = PostController(
         services,
-        scope,
         inList = true,
         fromHistory = false,
         onSelect = { model, toggle ->
@@ -256,21 +278,35 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
 
     private val commentController = CommentController(
         services,
-        scope,
         post = null,
-        onDeleted = { model -> items.removeAll { it.thing.name == model.comment.name } },
-        // A reply from a feed has no thread to appear in.
-        onReplied = { _, _ -> },
-        onLink = { url -> scope.launch { Links.open(services, url) } },
+        onDeleted = ::removeComment,
+        onReplied = ::addReply,
+        onLink = { url -> services.appScope.launch { Links.open(services, url) } },
     )
+
+    /** A comment deleted here: one the feed listed goes from the feed, a reply from under its comment. */
+    private fun removeComment(model: CommentModel) {
+        if (items.removeAll { it is Item.CommentItem && it.entry.model === model }) return
+        for (item in items) {
+            if (item is Item.CommentItem && removeEntry(item.entry.children, model)) return
+        }
+    }
+
+    /** The user's reply goes first under the comment replied to (RedditCommentWebComponent). */
+    private fun addReply(parent: CommentModel, reply: Comment) {
+        val parentEntry = items.firstNotNullOfOrNull { item -> (item as? Item.CommentItem)?.let { findEntry(listOf(it.entry), parent) } }
+            ?: throw IllegalStateException("Replied to a comment that isn't on the page.")
+        parentEntry.children.add(0, CommentEntry(CommentModel(reply), parentEntry))
+    }
 
     /** "Hide Self Karma": no score on the user's own posts and comments. */
     private fun hidesScore(author: String?) =
         services.settings.hacks.value.hideSelfKarma && author.equals(services.reddit.loggedInUser, ignoreCase = true)
 
-    /** A new block rule removes what it matches from the page. */
+    /** A new block rule removes what it matches from the page, and from what counts as seen. */
     fun onBlockAdded(rule: BlockRule) {
         items.removeAll { Blocking.isMatch(rule, it.thing) }
+        loaded.removeAll { Blocking.isMatch(rule, it) }
     }
 
     fun remove(item: Item) {
@@ -295,8 +331,12 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
         // The load runs in the page's scope, not this effect's: the effect restarts whenever the
         // list moves in or out of range of the end, and a restart cancelled the load in flight,
         // silently, with no new page (and the page it had fetched skipped, "after" having moved on).
-        LaunchedEffect(nearEnd, items.size) {
-            if (nearEnd && started && !exhausted && !loading) scope.launch { tryLoad() }
+        LaunchedEffect(nearEnd, items.size, reachedEnd) {
+            if (nearEnd && started && !reachedEnd && !loading) scope.launch { tryLoad() }
+        }
+        // Past the end, each scroll asks again.
+        LaunchedEffect(listState) {
+            snapshotFlow { listState.isScrollInProgress }.collect { scrolling -> if (scrolling) reachedEnd = false }
         }
 
         BackHandler(enabled = bufferBack == true) {
@@ -330,7 +370,7 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
             LazyColumn(Modifier.fillMaxSize().navigationBarsPadding(), listState) {
                 header?.let { user -> item(key = "header") { UserHeader(services, user) } }
 
-                if (feed.sorts.isNotEmpty()) {
+                if (showSorts) {
                     item(key = "sorts") { SortButtons() }
                 }
 
@@ -345,20 +385,27 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
                             actions = postController.actions(item.model),
                         )
 
-                        is Item.CommentEntry -> CommentView(
-                            services,
-                            item.model,
-                            post = null,
-                            isSelected = isSelected,
-                            onSelect = {
-                                selected = item.thing.name
-                                commentController.onSelected(item.model)
-                            },
-                            actions = commentController.actions(item.model),
-                            modifier = Modifier.padding(5.dp),
-                        )
+                        // Padded left, top and bottom, as the C# comment box; the user's replies under it.
+                        is Item.CommentItem -> Column {
+                            for (row in flattenThread(listOf(item.entry))) {
+                                val entry = row.entry as CommentEntry
+                                ThreadRowFrame(row, selected, endPadding = 0.dp) {
+                                    CommentView(
+                                        services,
+                                        entry.model,
+                                        post = null,
+                                        isSelected = selected == entry.key,
+                                        onSelect = {
+                                            selected = entry.key
+                                            commentController.onSelected(entry.model)
+                                        },
+                                        actions = commentController.actions(entry.model),
+                                    )
+                                }
+                            }
+                        }
 
-                        is Item.MessageEntry -> MessageView(services, scope, item.message, isSelected) {
+                        is Item.MessageEntry -> MessageView(services, item.message, isSelected) {
                             selected = item.thing.name
                         }
                     }
@@ -369,14 +416,15 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
         }
     }
 
+    /** One button per sort, each as wide as its label with the spare room shared (CSS flex-grow). */
     @Composable
     private fun SortButtons() {
         val styling = LocalStyling.current
-        Row(Modifier.fillMaxWidth()) {
+        FlexRow(Modifier.fillMaxWidth()) {
             for (option in feed.sorts) {
                 Text(
                     option.label,
-                    Modifier.weight(1f)
+                    Modifier
                         .background(if (option == sort) styling.tertiaryColor.color else styling.secondaryColor.color)
                         .clickable(role = Role.Button) {
                             sort = option
