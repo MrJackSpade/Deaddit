@@ -27,3 +27,17 @@ credentials.yaml
 .claude/
 *.keystore
 *.jks
+
+# Gradle / Android (Kotlin app)
+.gradle/
+local.properties
+/build/
+/app/build/
+/core/build/
+/app/.cxx/
+# Built from Reddit.Api by native/build-android.sh (locally) or publish.yml (CI)
+/app/src/main/jniLibs/
+
+.kotlin/
+/native/RedditApi.Native/bin/
+/native/RedditApi.Native/obj/

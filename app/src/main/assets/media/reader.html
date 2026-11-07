@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background-color: %BACKGROUND_COLOR%;
+            color: %TEXT_COLOR%;
+            font-family: -apple-system, Roboto, sans-serif;
+            font-size: %BODY_FONT_SIZE%px;
+            line-height: 1.6;
+            margin: 0;
+            padding: 16px;
+            overflow-wrap: break-word;
+        }
+        h1 { font-size: %TITLE_FONT_SIZE%px; line-height: 1.3; margin: 0 0 8px 0; }
+        h2, h3, h4, h5, h6 { line-height: 1.3; margin: 1.4em 0 0.4em 0; }
+        .byline {
+            color: %SUBTEXT_COLOR%;
+            font-size: %SUBTEXT_FONT_SIZE%px;
+            margin: 0 0 20px 0;
+            border-bottom: 1px solid %SUBTEXT_COLOR%;
+            padding-bottom: 12px;
+        }
+        a { color: %LINK_COLOR%; }
+        img, video, figure { max-width: 100%; height: auto; margin: 0 auto; display: block; }
+        figcaption { color: %SUBTEXT_COLOR%; font-size: %SUBTEXT_FONT_SIZE%px; text-align: center; }
+        pre {
+            background-color: %CODE_COLOR%;
+            padding: 12px;
+            overflow-x: auto;
+            border-radius: 4px;
+        }
+        code { background-color: %CODE_COLOR%; border-radius: 3px; }
+        blockquote {
+            border-left: 3px solid %SUBTEXT_COLOR%;
+            margin-left: 0;
+            padding-left: 12px;
+            color: %SUBTEXT_COLOR%;
+        }
+        table { max-width: 100%; display: block; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>%TITLE%</h1>
+    <div class="byline">%BYLINE%</div>
+    %CONTENT%
+</body>
+</html>

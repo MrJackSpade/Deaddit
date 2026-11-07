@@ -48,11 +48,20 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Install MAUI Android workload
-        run: dotnet workload install maui-android
+      # The NDK the app's Gradle build names (r28c), also used to link Reddit.Api natively.
+      - name: Install Android NDK
+        run: echo "y" | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;28.2.13676358" > /dev/null
 
-      - name: Install Android dependencies
-        run: dotnet build Deaddit/Deaddit.csproj -f net10.0-android -t:InstallAndroidDependencies -p:AndroidSdkDirectory="$ANDROID_HOME" -p:AcceptAndroidSDKLicenses=true
+      # Reddit.Api, compiled with NativeAOT into libredditapi.so for each ABI the app ships.
+      - name: Build native Reddit.Api
+        env:
+          ANDROID_NDK_ROOT: ${{ env.ANDROID_HOME }}/ndk/28.2.13676358
+        run: |
+          for abi in arm64-v8a x86_64; do
+            native/publish-android.sh "$abi" "$RUNNER_TEMP/native/$abi"
+            mkdir -p "app/src/main/jniLibs/$abi"
+            cp "$RUNNER_TEMP/native/$abi/libredditapi.so" "app/src/main/jniLibs/$abi/"
+          done
 
       - name: Restore signing keystore
         env:
@@ -61,18 +70,13 @@ jobs:
 
       - name: Build signed APK
         env:
+          DEADDIT_KEYSTORE: ${{ runner.temp }}/deaddit.keystore
           DEADDIT_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           DEADDIT_KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
           DEADDIT_STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-        run: >
-          dotnet build Deaddit/Deaddit.csproj -f net10.0-android -c Release
-          --artifacts-path "$RUNNER_TEMP/build"
-          -p:DeadditVersion=${{ steps.version.outputs.version }}
-          -p:AndroidSdkDirectory="$ANDROID_HOME"
-          -p:AndroidSigningKeyStore="$RUNNER_TEMP/deaddit.keystore"
-          -p:AndroidSigningKeyAlias="$DEADDIT_KEY_ALIAS"
-          -p:AndroidSigningKeyPass=env:DEADDIT_KEY_PASS
-          -p:AndroidSigningStorePass=env:DEADDIT_STORE_PASS
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          ./gradlew --no-daemon :core:test :app:assembleRelease -PdeadditVersion=${{ steps.version.outputs.version }}
 
       - name: Remove keystore
         if: always()
@@ -81,7 +85,7 @@ jobs:
       - name: Stage APK
         run: |
           mkdir -p "$RUNNER_TEMP/out"
-          mv "$RUNNER_TEMP/build/bin/Deaddit/release_net10.0-android/com.companyname.deaddit-Signed.apk" \
+          mv app/build/outputs/apk/release/app-release.apk \
              "$RUNNER_TEMP/out/Deaddit-${{ steps.version.outputs.version }}.apk"
 
       - name: Create GitHub release

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- What the ${applicationId}.files FileProvider may hand to other apps: files being shared, written by MediaService. -->
+<paths>
+    <cache-path name="share" path="share/" />
+</paths>

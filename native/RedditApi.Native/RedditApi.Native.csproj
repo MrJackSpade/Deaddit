@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Compiles Reddit.Api into a native shared library for the Kotlin app (libredditapi.so).
+    Reddit.Api itself is unchanged, so fixes there carry over to every app that uses it.
+    Build on Linux: native/build-android.sh.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>libredditapi</AssemblyName>
+    <RootNamespace>RedditApi.Native</RootNamespace>
+
+    <PublishAot>true</PublishAot>
+    <NativeLib>Shared</NativeLib>
+    <InvariantGlobalization>true</InvariantGlobalization>
+
+    <!-- Reddit.Api serializes with reflection; keep its types and allow it. -->
+    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Reddit.Api\Reddit.Api\Reddit.Api.csproj" />
+    <TrimmerRootAssembly Include="Reddit.Api" />
+    <!-- Without a SONAME, anything linking against the library records its build path instead. -->
+    <LinkerArg Include="-Wl,-soname,libredditapi.so" />
+  </ItemGroup>
+
+</Project>

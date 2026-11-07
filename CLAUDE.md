@@ -1,32 +1,29 @@
 # CLAUDE.md
 
+## The app
+
+Deaddit is a native Android app: Kotlin + Jetpack Compose, Gradle (`app/` UI, `core/` pure-Kotlin logic with unit tests). Reddit access is the C# `Reddit.Api` library (submodule), compiled with NativeAOT into `libredditapi.so` and called through a JSON bridge: `native/RedditApi.Native` (C# exports and commands), `app/src/main/cpp/bridge.c` (JNI), `app/.../api/NativeRedditApi.kt` (Kotlin side; OkHttp does the HTTP for .NET, which has no TLS on Android). The old MAUI app (`Deaddit/`, `Deaddit.Core/`, `Maui.WebComponents/`, `Deaddit.Tests/`) is kept only as reference until it's deleted; the Kotlin app has the same package ID and migrates its stored data (`settings/MauiMigration.kt`).
+
 ## Building
 
-The Deaddit MAUI project **cannot** be built from WSL `dotnet` directly — the NuGet config has Windows-baked fallback paths (`C:\Program Files (x86)\Microsoft Visual Studio\Shared\NuGetPackages`) that fail to resolve under Linux. `Deaddit.Core` builds fine from WSL; the MAUI head does not.
+- Kotlin: `gradlew.bat --no-daemon :app:assembleDebug` and `:core:test`. Run long builds in the background.
+- `libredditapi.so` (gitignored, in `app/src/main/jniLibs/<abi>/`): .NET can only build it on Linux, so locally `bash native/build-android.sh [arm64-v8a] [x86_64]` runs `native/publish-android.sh` in the QEMU builder VM (`G:\VMs\deaddit-linux-builder`, see its README; start it with its `start.ps1`). Rebuild it after any change to `Reddit.Api` or `native/`. Never edit `build-android.sh` while it's running (bash reads scripts as it goes).
+- NativeAOT can't do reflection over generic types nothing references at compile time: Reddit.Api's JSON goes through `Reddit.Api/Json/RedditJsonContext.cs` there, so add new model types to it.
 
-**Compile-check the MAUI project from WSL via Windows cmd** (no publish, just verify it builds):
+## Reproducing bugs — drive the app yourself
 
-```bash
-/mnt/c/Windows/System32/cmd.exe /c "cd /d Z:\git\Deaddit && dotnet build Deaddit\Deaddit.csproj -f net10.0-android"
-```
+For ANY app bug, reproduce it on the dev emulator (`emulator-5554`, AVD `deaddit-dev`, see `G:\VMs\deaddit-android-emulator`) before diagnosing. Never ask the user to run it, never guess from code. The RP6 is the user's device: use it only for test rounds they set up. Never touch `192.168.1.118` (an unrelated RG DS).
 
-Do this whenever you make code changes that touch the `Deaddit/` MAUI project — you can verify compilation without bothering the user. You don't need explicit permission to run a build; only publishing requires permission.
-
-## Reproducing bugs — drive the Windows app yourself
-
-The app runs natively on Windows. For ANY app bug (render issue, API error dialog, crash), build the Windows head (`dotnet build Deaddit\Deaddit.csproj -f net10.0-windows10.0.19041.0 -p:WindowsPackageType=None -p:WindowsAppSDKSelfContained=true`; without those flags the exe crashes on launch), launch it, and drive it YOURSELF to reproduce before diagnosing. Never say you can't run the app, never ask the user to run it, never guess from code, never look for Android emulators.
-
-Always launch it in test mode when driving it: `DEADDIT_TEST_MODE=1` on the launched process, with stderr redirected to a file (`Start-Process -RedirectStandardError`). The user's desktop is in use, so errors must go to the log, never to a dialog on their screen; test mode also stops a rejected session opening the login page. Every failed request and displayed error is logged, so read the log rather than inferring from the screen.
-
-Computer-use tools are not required. Drive it from the shell: WebView2 remote debugging (`WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9222 --remote-allow-origins=http://localhost`, set only on the launched process, not at user scope) + DevTools protocol for the WebView2-rendered posts/comments, PowerShell UI Automation for native controls, and `PrintWindow` screenshots saved to a real path. Click the actual element (a "More" sits inside a reply container with its own `onclick` and the same text), ideally with `Input.dispatchMouseEvent`. The app uses the stored logged-in session itself, so this is how live-session API calls get exercised.
-
+- Test mode: `adb shell run-as com.companyname.deaddit touch files/test-mode` — errors go to logcat instead of dialogs and nothing opens the login page. Read `adb logcat` (tags `Deaddit`, `RedditApi`, `RealImageLoader`, `AndroidRuntime`): every failed request and error is logged with its full .NET or JVM stack.
+- Drive it with `adb shell input tap/swipe`, find elements with `uiautomator dump` (icon buttons have content descriptions), and save screenshots with `adb exec-out screencap -p` to a real path.
+- Debug builds expose WebViews (login, browser, image viewer) to DevTools: `adb forward tcp:9333 localabstract:webview_devtools_remote_<pid>`, then the DevTools protocol on `http://127.0.0.1:9333/json`.
 ## Reddit endpoints
 
 Reddit keeps blocking endpoints with a 403 "blocked by network security" page. `Reddit.Api/Reddit.Api/Client` is split by host into `OAuth/`, `Www/` and `Old/`, and each partial's header comment records what happened and why its calls are there. Reddit is closing the public API (access starts closing 2027-01-12, closes for everyone in March 2027), so calls are moving off OAuth; see `Client/OAuth/RedditClient.OAuth.cs` for what's left. When something breaks, read those first and check `www` first, for parity with Reddit's main site. Probe with a throwaway test using the stored session, and clear any change of endpoint with the user before making it.
 
 ## Deployment
 
-Publishing runs entirely in GitHub Actions (`.github/workflows/publish.yml`). It builds the signed APK, computes the version from existing tags, creates the GitHub release (which creates the tag), and — for `release` only — posts to r/DeadditApp. Trigger it and follow it with:
+Publishing runs entirely in GitHub Actions (`.github/workflows/publish.yml`). It builds `libredditapi.so` for each ABI, runs the core tests, builds the signed APK, computes the version from existing tags, creates the GitHub release (which creates the tag), and — for `release` only — posts to r/DeadditApp. Trigger it and follow it with:
 
 ```bash
 gh workflow run publish.yml --ref main -f channel=preview
