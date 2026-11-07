@@ -1,6 +1,8 @@
 package com.mrjackspade.deaddit.ui
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Typography
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -36,6 +38,22 @@ fun DeadditTheme(styling: ApplicationStyling, hacks: ApplicationHacks, content: 
     )
 
     CompositionLocalProvider(LocalStyling provides styling, LocalHacks provides hacks) {
-        MaterialTheme(colorScheme = scheme, content = content)
+        MaterialTheme(colorScheme = scheme, typography = NaturalLineHeights, content = content)
     }
+}
+
+/**
+ * Material's text styles fix each line's height for their own font size (24sp for body text);
+ * with the user's sizes instead that spread lines apart. Lines take the font's own height
+ * instead, as they did in the C# app's WebView (CSS "line-height: normal").
+ */
+private val NaturalLineHeights: Typography = Typography().let { t ->
+    fun TextStyle.natural() = copy(lineHeight = TextUnit.Unspecified)
+    Typography(
+        displayLarge = t.displayLarge.natural(), displayMedium = t.displayMedium.natural(), displaySmall = t.displaySmall.natural(),
+        headlineLarge = t.headlineLarge.natural(), headlineMedium = t.headlineMedium.natural(), headlineSmall = t.headlineSmall.natural(),
+        titleLarge = t.titleLarge.natural(), titleMedium = t.titleMedium.natural(), titleSmall = t.titleSmall.natural(),
+        bodyLarge = t.bodyLarge.natural(), bodyMedium = t.bodyMedium.natural(), bodySmall = t.bodySmall.natural(),
+        labelLarge = t.labelLarge.natural(), labelMedium = t.labelMedium.natural(), labelSmall = t.labelSmall.natural(),
+    )
 }

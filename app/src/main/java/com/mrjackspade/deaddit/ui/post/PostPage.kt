@@ -347,10 +347,10 @@ class PostPage(
         val styling = LocalStyling.current
 
         @Composable
-        fun androidx.compose.foundation.layout.RowScope.Button(text: String, description: String, onClick: () -> Unit) {
+        fun Button(text: String, description: String, onClick: () -> Unit) {
             Text(
                 text,
-                Modifier.weight(1f).clickable(role = Role.Button, onClick = onClick).padding(10.dp)
+                Modifier.clickable(role = Role.Button, onClick = onClick).padding(10.dp)
                     .semantics { contentDescription = description },
                 color = styling.textColor.color,
                 fontSize = styling.titleFontSize.px,
@@ -368,7 +368,7 @@ class PostPage(
             }
         }
 
-        Row(Modifier.fillMaxWidth().background(styling.secondaryColor.color)) {
+        com.mrjackspade.deaddit.ui.FlexRow(Modifier.fillMaxWidth().background(styling.secondaryColor.color)) {
             Button("Share", "Share") {
                 run {
                     services.dialogs.choose(

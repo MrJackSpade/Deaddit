@@ -133,7 +133,7 @@ fun PostRow(
         }
 
         if (selected) {
-            Row(Modifier.fillMaxWidth().background(background)) {
+            com.mrjackspade.deaddit.ui.FlexRow(Modifier.fillMaxWidth().background(background)) {
                 ActionButton("Share", actions.onShare)
                 ActionButton(if (model.saved) "Unsave" else "Save", actions.onSave)
                 ActionButton("Hide", actions.onHide)
@@ -192,11 +192,11 @@ private fun VoteColumn(model: PostModel, hideScore: Boolean, onVote: (VoteState)
 }
 
 @Composable
-private fun androidx.compose.foundation.layout.RowScope.ActionButton(text: String, onClick: () -> Unit, description: String? = null) {
+private fun ActionButton(text: String, onClick: () -> Unit, description: String? = null) {
     val styling = LocalStyling.current
     Text(
         text,
-        Modifier.weight(1f).clickable(role = Role.Button, onClick = onClick).padding(10.dp)
+        Modifier.clickable(role = Role.Button, onClick = onClick).padding(10.dp)
             .let { m -> if (description != null) m.semantics { contentDescription = description } else m },
         fontSize = styling.titleFontSize.px,
         color = styling.textColor.color,

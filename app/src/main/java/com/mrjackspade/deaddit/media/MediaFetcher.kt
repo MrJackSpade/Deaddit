@@ -132,18 +132,27 @@ class MediaFetcher(private val http: OkHttpClient, private val tempDir: File) {
                 )
                 val info = MediaCodec.BufferInfo()
 
+                // AAC usually starts a frame before zero (Reddit's at -21333us, the encoder's
+                // priming), and the muxer takes no negative times: shift both streams so the
+                // earliest sample is at zero, keeping them in sync.
+                val shift = -minOf(0L, sources.minOf { it.extractor.sampleTime })
+
                 while (true) {
-                    // The source whose next sample comes first; -1 sample time is the end of a stream.
-                    val next = sources.filter { it.extractor.sampleTime >= 0 }.minByOrNull { it.extractor.sampleTime } ?: break
+                    // The source whose next sample comes first, among those that haven't ended.
+                    val next = sources.filter { !it.ended }.minByOrNull { it.extractor.sampleTime } ?: break
                     val buffer = next.bufferFor()
 
                     info.offset = 0
                     info.size = next.extractor.readSampleData(buffer, 0)
-                    info.presentationTimeUs = next.extractor.sampleTime
+                    if (info.size < 0) {
+                        next.ended = true
+                        continue
+                    }
+                    info.presentationTimeUs = next.extractor.sampleTime + shift
                     info.flags = toCodecFlags(next.extractor.sampleFlags)
 
                     muxer.writeSampleData(next.track, buffer, info)
-                    next.extractor.advance()
+                    if (!next.extractor.advance()) next.ended = true
                 }
 
                 muxer.stop()
@@ -162,6 +171,9 @@ class MediaFetcher(private val http: OkHttpClient, private val tempDir: File) {
 
         private class Source(val extractor: MediaExtractor, val track: Int, private val fileLength: Long) {
             private var buffer: ByteBuffer? = null
+
+            /** Past the last sample. Its sampleTime is then -1, but a real sample's can be negative too. */
+            var ended = false
 
             /** A buffer big enough for the next sample. */
             fun bufferFor(): ByteBuffer {
