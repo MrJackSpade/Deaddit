@@ -61,9 +61,6 @@ class Services(context: Context, val testMode: Boolean) {
      */
     fun claude() = com.mrjackspade.deaddit.ai.ClaudeService(http, settings.ai.value)
 
-    /** Work that outlives the page that started it, as the C# app's fire-and-forget tasks did. */
-    val appScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + Dispatchers.Main.immediate)
-
     /** What opening, sharing or saving a post or link does, by kind. First match wins (the C# MauiProgram's order). */
     val posts: com.mrjackspade.deaddit.handlers.PostHandlers by lazy {
         com.mrjackspade.deaddit.handlers.PostHandlers(

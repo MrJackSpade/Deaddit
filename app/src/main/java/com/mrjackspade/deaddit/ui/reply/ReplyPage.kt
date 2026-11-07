@@ -112,7 +112,7 @@ class ReplyPage(
         // The C# page didn't listen for these: a deleted comment stays, a reply isn't shown.
         onDeleted = { },
         onReplied = { _, _ -> },
-        onLink = { url -> scope.launch { Links.open(services, url) } },
+        onLink = { url -> services.launchAction { Links.open(services, url) } },
     )
 
     private fun leave() = services.navigator.remove(this)
@@ -232,7 +232,7 @@ class ReplyPage(
                                     HtmlBody(
                                         post.bodyHtml?.let(RedditHtml::parse) ?: emptyList(),
                                         styling.titleFontSize.px,
-                                        onLink = { url -> scope.launch { Links.open(services, url) } },
+                                        onLink = { url -> services.launchAction { Links.open(services, url) } },
                                         modifier = Modifier.fillMaxWidth().padding(2.dp)
                                             .border(1.dp, styling.textColor.color)
                                             .background(styling.primaryColor.color)
