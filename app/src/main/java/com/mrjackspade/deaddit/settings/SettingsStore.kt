@@ -15,11 +15,11 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 
 /**
- * The app's settings, each stored as JSON under its own key. Every value is Compose state, so
- * screens that read one redraw when it's saved.
+ * The app's settings, each stored as JSON under its C# type's full name, as the C# app kept them.
+ * Every value is Compose state, so screens that read one redraw when it's saved.
  */
 class SettingsStore(context: Context) {
-    private val preferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    private val preferences = AppPreferences.of(context)
 
     inner class Setting<T : Any>(private val key: String, private val serializer: KSerializer<T>, default: () -> T) {
         var value: T by mutableStateOf(
@@ -35,10 +35,10 @@ class SettingsStore(context: Context) {
         fun update(change: (T) -> T) = save(change(value))
     }
 
-    val styling = Setting("ApplicationStyling", serializer<ApplicationStyling>()) { ApplicationStyling() }
-    val hacks = Setting("ApplicationHacks", serializer<ApplicationHacks>()) { ApplicationHacks() }
-    val blocking = Setting("BlockConfiguration", serializer<BlockConfiguration>()) { BlockConfiguration() }
-    val ai = Setting("AIConfiguration", serializer<AIConfiguration>()) { AIConfiguration() }
-    val savePaths = Setting("SavePathConfiguration", serializer<SavePathConfiguration>()) { SavePathConfiguration() }
-    val landing = Setting("LandingPageConfiguration", serializer<LandingPageConfiguration>()) { LandingPageConfiguration() }
+    val styling = Setting("Deaddit.Core.Configurations.Models.ApplicationStyling", serializer<ApplicationStyling>()) { ApplicationStyling() }
+    val hacks = Setting("Deaddit.Core.Configurations.Models.ApplicationHacks", serializer<ApplicationHacks>()) { ApplicationHacks() }
+    val blocking = Setting("Deaddit.Core.Configurations.Models.BlockConfiguration", serializer<BlockConfiguration>()) { BlockConfiguration() }
+    val ai = Setting("Deaddit.Configurations.AIConfiguration", serializer<AIConfiguration>()) { AIConfiguration() }
+    val savePaths = Setting("Deaddit.Core.Configurations.Models.SavePathConfiguration", serializer<SavePathConfiguration>()) { SavePathConfiguration() }
+    val landing = Setting("Deaddit.Core.Configurations.Models.LandingPageConfiguration", serializer<LandingPageConfiguration>()) { LandingPageConfiguration() }
 }

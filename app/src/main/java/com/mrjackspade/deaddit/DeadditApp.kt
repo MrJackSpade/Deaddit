@@ -22,9 +22,6 @@ class DeadditApp : Application(), SingletonImageLoader.Factory {
         // Reddit.Api's own default user agent, as the MAUI app sent.
         NativeRedditApi.init(userAgent = null)
 
-        // Before anything reads its settings: replacing the MAUI app, take over what it stored.
-        com.mrjackspade.deaddit.settings.MauiMigration.run(this)
-
         services = Services(this, testMode = File(filesDir, TEST_MODE_FLAG).exists())
     }
 

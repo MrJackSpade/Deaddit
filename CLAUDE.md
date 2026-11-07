@@ -2,7 +2,7 @@
 
 ## The app
 
-Deaddit is a native Android app: Kotlin + Jetpack Compose, Gradle (`app/` UI, `core/` pure-Kotlin logic with unit tests). Reddit access is the C# `Reddit.Api` library (submodule), compiled with NativeAOT into `libredditapi.so` and called through a JSON bridge: `native/RedditApi.Native` (C# exports and commands), `app/src/main/cpp/bridge.c` (JNI), `app/.../api/NativeRedditApi.kt` (Kotlin side; OkHttp does the HTTP for .NET, which has no TLS on Android). The old MAUI app was deleted after the port (find it in git history before commit "Delete the C# app"); the Kotlin app has the same package ID and migrates the data it stored (`settings/MauiMigration.kt`).
+Deaddit is a native Android app: Kotlin + Jetpack Compose, Gradle (`app/` UI, `core/` pure-Kotlin logic with unit tests). Reddit access is the C# `Reddit.Api` library (submodule), compiled with NativeAOT into `libredditapi.so` and called through a JSON bridge: `native/RedditApi.Native` (C# exports and commands), `app/src/main/cpp/bridge.c` (JNI), `app/.../api/NativeRedditApi.kt` (Kotlin side; OkHttp does the HTTP for .NET, which has no TLS on Android). The old MAUI app was deleted after the port (find it in git history before commit "Delete the C# app"); the Kotlin app has the same package ID and uses the data it stored as-is: the same SharedPreferences file (`${packageName}_preferences`, see `settings/AppPreferences.kt`), keys and formats. Never copy or convert stored data into a new format.
 
 ## Building
 

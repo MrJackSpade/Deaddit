@@ -6,10 +6,17 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
-/** Posts opened from a feed, per subreddit, so feeds can dim them. */
+/**
+ * Posts opened from a feed, per subreddit, so feeds can dim them. Stored as the C#
+ * PreferencesVisitTracker kept them, under "PreferencesVisitTracker_<subreddit id>": one string of
+ * visits, each 4 bytes of date (days since 2000-01-01, little-endian), the name, then a NUL, all as
+ * ASCII chars.
+ */
 class VisitTracker(context: Context) {
-    private val preferences = context.getSharedPreferences("visits", Context.MODE_PRIVATE)
+    private val preferences = AppPreferences.of(context)
     private val loaded = HashMap<String, MutableSet<String>>()
 
     @Synchronized
@@ -21,14 +28,47 @@ class VisitTracker(context: Context) {
     @Synchronized
     fun visit(thing: RedditThing) {
         val subredditId = subredditIdOf(thing) ?: throw IllegalArgumentException("${thing.name} has no subreddit to record its visit under.")
-        val visits = visits(subredditId)
-        if (visits.add(thing.name)) {
-            preferences.edit().putString(subredditId, visits.joinToString("\n")).apply()
+        if (visits(subredditId).add(thing.name)) {
+            val key = KEY_PREFIX + subredditId
+            val packed = preferences.getString(key, "")!! + packVisit(LocalDate.now(), thing.name)
+            preferences.edit().putString(key, packed).apply()
         }
     }
 
     private fun visits(subredditId: String): MutableSet<String> = loaded.getOrPut(subredditId) {
-        preferences.getString(subredditId, null)?.split('\n')?.filter { it.isNotEmpty() }?.toMutableSet() ?: LinkedHashSet()
+        visitNames(preferences.getString(KEY_PREFIX + subredditId, "")!!).toMutableSet()
+    }
+
+    companion object {
+        private const val KEY_PREFIX = "PreferencesVisitTracker_"
+        private val BASE_DATE = LocalDate.of(2000, 1, 1)
+
+        /** One visit, as the C# Serialize wrote it (bytes over 127 become '?', as .NET's ASCII encoding does). */
+        internal fun packVisit(date: LocalDate, name: String): String {
+            val days = ChronoUnit.DAYS.between(BASE_DATE, date).toInt()
+            val dateChars = (0 until 4).map { i -> ((days shr (8 * i)) and 0xFF).let { if (it > 127) '?' else it.toChar() } }
+            return dateChars.joinToString("") + name + '\u0000'
+        }
+
+        /**
+         * The post names in a packed string, split exactly as the C# SplitVisits did (a NUL only ends
+         * a visit after its first 9 chars, since the date bytes can contain NULs).
+         */
+        internal fun visitNames(packed: String): List<String> {
+            val names = mutableListOf<String>()
+            val part = StringBuilder()
+            for (c in packed) {
+                if (part.length <= 8) {
+                    part.append(c)
+                } else if (c == '\u0000') {
+                    names += part.substring(4)
+                    part.clear()
+                } else {
+                    part.append(c)
+                }
+            }
+            return names.filter { it.isNotEmpty() }
+        }
     }
 
     private fun subredditIdOf(thing: RedditThing): String? = when (thing) {
@@ -38,9 +78,9 @@ class VisitTracker(context: Context) {
     }
 }
 
-/** Posts the user opened, most recent first, for the History page. */
+/** Posts the user opened, most recent first, for the History page: a JSON list, as the C# app kept it. */
 class HistoryTracker(context: Context) {
-    private val preferences = context.getSharedPreferences("history", Context.MODE_PRIVATE)
+    private val preferences = AppPreferences.of(context)
     private var history: MutableList<String>? = null
 
     @Synchronized
