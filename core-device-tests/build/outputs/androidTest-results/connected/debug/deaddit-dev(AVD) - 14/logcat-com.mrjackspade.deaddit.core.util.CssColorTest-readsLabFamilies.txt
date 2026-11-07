@@ -1,2 +1,0 @@
-11-07 13:28:52.374 31940 31959 I TestRunner: started: readsLabFamilies(com.mrjackspade.deaddit.core.util.CssColorTest)
-11-07 13:28:52.392 31940 31959 I TestRunner: finished: readsLabFamilies(com.mrjackspade.deaddit.core.util.CssColorTest)

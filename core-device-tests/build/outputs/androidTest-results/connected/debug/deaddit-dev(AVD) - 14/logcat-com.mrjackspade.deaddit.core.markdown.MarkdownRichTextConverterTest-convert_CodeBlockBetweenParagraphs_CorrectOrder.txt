@@ -1,2 +1,0 @@
-11-07 13:28:48.592 31940 31959 I TestRunner: started: convert_CodeBlockBetweenParagraphs_CorrectOrder(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)
-11-07 13:28:48.607 31940 31959 I TestRunner: finished: convert_CodeBlockBetweenParagraphs_CorrectOrder(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)

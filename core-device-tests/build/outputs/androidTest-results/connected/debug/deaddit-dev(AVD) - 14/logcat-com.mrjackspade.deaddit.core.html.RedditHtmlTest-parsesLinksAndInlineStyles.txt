@@ -1,2 +1,0 @@
-11-07 13:28:46.340 31940 31959 I TestRunner: started: parsesLinksAndInlineStyles(com.mrjackspade.deaddit.core.html.RedditHtmlTest)
-11-07 13:28:46.363 31940 31959 I TestRunner: finished: parsesLinksAndInlineStyles(com.mrjackspade.deaddit.core.html.RedditHtmlTest)

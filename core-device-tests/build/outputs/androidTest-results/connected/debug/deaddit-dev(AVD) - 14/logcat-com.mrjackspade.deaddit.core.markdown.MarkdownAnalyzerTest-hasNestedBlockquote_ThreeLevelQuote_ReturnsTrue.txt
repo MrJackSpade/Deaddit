@@ -1,2 +1,0 @@
-11-07 13:28:47.698 31940 31959 I TestRunner: started: hasNestedBlockquote_ThreeLevelQuote_ReturnsTrue(com.mrjackspade.deaddit.core.markdown.MarkdownAnalyzerTest)
-11-07 13:28:47.706 31940 31959 I TestRunner: finished: hasNestedBlockquote_ThreeLevelQuote_ReturnsTrue(com.mrjackspade.deaddit.core.markdown.MarkdownAnalyzerTest)

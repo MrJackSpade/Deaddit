@@ -1,2 +1,0 @@
-11-07 13:28:47.881 31940 31959 I TestRunner: started: convert_SuperscriptParens_ReturnsFormatCode8(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)
-11-07 13:28:47.907 31940 31959 I TestRunner: finished: convert_SuperscriptParens_ReturnsFormatCode8(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)

@@ -1,2 +1,0 @@
-11-07 13:28:52.623 31940 31959 I TestRunner: started: years(com.mrjackspade.deaddit.core.util.DateTimeExtensionsTests)
-11-07 13:28:52.638 31940 31959 I TestRunner: finished: years(com.mrjackspade.deaddit.core.util.DateTimeExtensionsTests)

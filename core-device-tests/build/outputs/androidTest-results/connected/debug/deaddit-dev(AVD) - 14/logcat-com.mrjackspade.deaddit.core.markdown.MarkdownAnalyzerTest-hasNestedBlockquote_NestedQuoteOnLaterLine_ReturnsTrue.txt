@@ -1,2 +1,0 @@
-11-07 13:28:47.636 31940 31959 I TestRunner: started: hasNestedBlockquote_NestedQuoteOnLaterLine_ReturnsTrue(com.mrjackspade.deaddit.core.markdown.MarkdownAnalyzerTest)
-11-07 13:28:47.651 31940 31959 I TestRunner: finished: hasNestedBlockquote_NestedQuoteOnLaterLine_ReturnsTrue(com.mrjackspade.deaddit.core.markdown.MarkdownAnalyzerTest)

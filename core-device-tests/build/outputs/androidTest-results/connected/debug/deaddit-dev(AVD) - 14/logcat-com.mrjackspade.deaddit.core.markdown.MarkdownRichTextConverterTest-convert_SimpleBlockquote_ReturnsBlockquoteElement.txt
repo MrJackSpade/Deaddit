@@ -1,2 +1,0 @@
-11-07 13:28:47.981 31940 31959 I TestRunner: started: convert_SimpleBlockquote_ReturnsBlockquoteElement(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)
-11-07 13:28:47.995 31940 31959 I TestRunner: finished: convert_SimpleBlockquote_ReturnsBlockquoteElement(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)

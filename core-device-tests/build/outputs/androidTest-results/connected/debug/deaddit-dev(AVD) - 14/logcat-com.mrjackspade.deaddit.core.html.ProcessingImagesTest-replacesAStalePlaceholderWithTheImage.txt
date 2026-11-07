@@ -1,2 +1,0 @@
-11-07 13:28:46.236 31940 31959 I TestRunner: started: replacesAStalePlaceholderWithTheImage(com.mrjackspade.deaddit.core.html.ProcessingImagesTest)
-11-07 13:28:46.254 31940 31959 I TestRunner: finished: replacesAStalePlaceholderWithTheImage(com.mrjackspade.deaddit.core.html.ProcessingImagesTest)

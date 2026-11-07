@@ -1,2 +1,0 @@
-11-07 13:28:48.098 31940 31959 I TestRunner: started: convert_StandaloneImage_ReturnsImgElement(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)
-11-07 13:28:48.120 31940 31959 I TestRunner: finished: convert_StandaloneImage_ReturnsImgElement(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)

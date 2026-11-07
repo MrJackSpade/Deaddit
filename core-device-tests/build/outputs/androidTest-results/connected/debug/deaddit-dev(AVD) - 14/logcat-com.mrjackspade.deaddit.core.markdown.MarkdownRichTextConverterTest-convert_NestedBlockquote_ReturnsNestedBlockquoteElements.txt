@@ -1,2 +1,0 @@
-11-07 13:28:48.870 31940 31959 I TestRunner: started: convert_NestedBlockquote_ReturnsNestedBlockquoteElements(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)
-11-07 13:28:48.884 31940 31959 I TestRunner: finished: convert_NestedBlockquote_ReturnsNestedBlockquoteElements(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)

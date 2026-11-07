@@ -1,2 +1,0 @@
-11-07 13:28:50.646 31940 31959 I TestRunner: started: testComplexEmojis(com.mrjackspade.deaddit.core.text.EmojiDetectionTests)
-11-07 13:28:50.655 31940 31959 I TestRunner: finished: testComplexEmojis(com.mrjackspade.deaddit.core.text.EmojiDetectionTests)

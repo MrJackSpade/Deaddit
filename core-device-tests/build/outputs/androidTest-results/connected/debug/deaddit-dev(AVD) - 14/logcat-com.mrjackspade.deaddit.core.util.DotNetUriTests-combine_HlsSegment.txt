@@ -1,2 +1,0 @@
-11-07 13:28:53.218 31940 31959 I TestRunner: started: combine_HlsSegment(com.mrjackspade.deaddit.core.util.DotNetUriTests)
-11-07 13:28:53.239 31940 31959 I TestRunner: finished: combine_HlsSegment(com.mrjackspade.deaddit.core.util.DotNetUriTests)

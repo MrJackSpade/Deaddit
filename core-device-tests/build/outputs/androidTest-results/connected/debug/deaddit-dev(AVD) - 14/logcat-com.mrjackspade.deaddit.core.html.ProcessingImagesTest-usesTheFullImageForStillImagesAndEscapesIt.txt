@@ -1,3 +1,0 @@
-11-07 13:28:46.126 31940 31959 I TestRunner: started: usesTheFullImageForStillImagesAndEscapesIt(com.mrjackspade.deaddit.core.html.ProcessingImagesTest)
-11-07 13:28:46.195 31940 31959 D CompatibilityChangeReporter: Compat change id reported: 247079863; UID 10196; state: DISABLED
-11-07 13:28:46.197 31940 31959 I TestRunner: finished: usesTheFullImageForStillImagesAndEscapesIt(com.mrjackspade.deaddit.core.html.ProcessingImagesTest)

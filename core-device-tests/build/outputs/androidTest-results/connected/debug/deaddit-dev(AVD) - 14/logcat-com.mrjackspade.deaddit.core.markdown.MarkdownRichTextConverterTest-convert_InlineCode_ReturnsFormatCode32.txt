@@ -1,2 +1,0 @@
-11-07 13:28:49.014 31940 31959 I TestRunner: started: convert_InlineCode_ReturnsFormatCode32(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)
-11-07 13:28:49.026 31940 31959 I TestRunner: finished: convert_InlineCode_ReturnsFormatCode32(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)

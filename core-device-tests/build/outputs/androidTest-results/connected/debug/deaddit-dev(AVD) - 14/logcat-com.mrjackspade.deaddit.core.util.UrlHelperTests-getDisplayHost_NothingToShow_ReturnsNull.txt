@@ -1,2 +1,0 @@
-11-07 13:29:03.081 31940 31959 I TestRunner: started: getDisplayHost_NothingToShow_ReturnsNull(com.mrjackspade.deaddit.core.util.UrlHelperTests)
-11-07 13:29:03.086 31940 31959 I TestRunner: finished: getDisplayHost_NothingToShow_ReturnsNull(com.mrjackspade.deaddit.core.util.UrlHelperTests)

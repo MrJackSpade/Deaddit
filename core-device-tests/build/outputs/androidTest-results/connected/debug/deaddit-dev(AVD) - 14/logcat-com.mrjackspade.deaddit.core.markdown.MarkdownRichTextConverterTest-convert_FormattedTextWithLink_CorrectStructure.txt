@@ -1,2 +1,0 @@
-11-07 13:28:47.952 31940 31959 I TestRunner: started: convert_FormattedTextWithLink_CorrectStructure(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)
-11-07 13:28:47.964 31940 31959 I TestRunner: finished: convert_FormattedTextWithLink_CorrectStructure(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)

@@ -15,6 +15,7 @@ local.properties
 /build/
 /app/build/
 /core/build/
+/core-device-tests/build/
 /app/.cxx/
 
 # Built from Reddit.Api by native/build-android.sh (locally) or publish.yml (CI)

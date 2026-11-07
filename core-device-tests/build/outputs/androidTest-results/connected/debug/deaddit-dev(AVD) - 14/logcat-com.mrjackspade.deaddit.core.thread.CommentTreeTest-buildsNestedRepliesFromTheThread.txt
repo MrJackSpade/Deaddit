@@ -1,2 +1,0 @@
-11-07 13:28:52.191 31940 31959 I TestRunner: started: buildsNestedRepliesFromTheThread(com.mrjackspade.deaddit.core.thread.CommentTreeTest)
-11-07 13:28:52.212 31940 31959 I TestRunner: finished: buildsNestedRepliesFromTheThread(com.mrjackspade.deaddit.core.thread.CommentTreeTest)

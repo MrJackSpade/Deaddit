@@ -1,2 +1,0 @@
-11-07 13:28:50.621 31940 31959 I TestRunner: started: testEmojiSubstitution(com.mrjackspade.deaddit.core.text.EmojiDetectionTests)
-11-07 13:28:50.636 31940 31959 I TestRunner: finished: testEmojiSubstitution(com.mrjackspade.deaddit.core.text.EmojiDetectionTests)

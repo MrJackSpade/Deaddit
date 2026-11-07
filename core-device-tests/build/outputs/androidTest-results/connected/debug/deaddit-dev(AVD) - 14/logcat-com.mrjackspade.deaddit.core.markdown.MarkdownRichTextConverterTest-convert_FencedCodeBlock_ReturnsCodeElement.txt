@@ -1,2 +1,0 @@
-11-07 13:28:48.394 31940 31959 I TestRunner: started: convert_FencedCodeBlock_ReturnsCodeElement(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)
-11-07 13:28:48.402 31940 31959 I TestRunner: finished: convert_FencedCodeBlock_ReturnsCodeElement(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)

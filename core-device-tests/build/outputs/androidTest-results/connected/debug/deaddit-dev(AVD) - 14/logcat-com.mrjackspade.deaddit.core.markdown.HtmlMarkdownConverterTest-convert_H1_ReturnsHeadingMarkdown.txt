@@ -1,2 +1,0 @@
-11-07 13:28:47.243 31940 31959 I TestRunner: started: convert_H1_ReturnsHeadingMarkdown(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)
-11-07 13:28:47.263 31940 31959 I TestRunner: finished: convert_H1_ReturnsHeadingMarkdown(com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverterTest)

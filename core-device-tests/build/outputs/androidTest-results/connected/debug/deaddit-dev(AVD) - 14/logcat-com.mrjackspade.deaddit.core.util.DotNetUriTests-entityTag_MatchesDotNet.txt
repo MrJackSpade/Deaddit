@@ -1,2 +1,0 @@
-11-07 13:28:53.309 31940 31959 I TestRunner: started: entityTag_MatchesDotNet(com.mrjackspade.deaddit.core.util.DotNetUriTests)
-11-07 13:28:53.338 31940 31959 I TestRunner: finished: entityTag_MatchesDotNet(com.mrjackspade.deaddit.core.util.DotNetUriTests)

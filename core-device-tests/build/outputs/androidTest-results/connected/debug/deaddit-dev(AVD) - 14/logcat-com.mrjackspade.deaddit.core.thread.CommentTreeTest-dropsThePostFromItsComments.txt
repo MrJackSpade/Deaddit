@@ -1,2 +1,0 @@
-11-07 13:28:52.229 31940 31959 I TestRunner: started: dropsThePostFromItsComments(com.mrjackspade.deaddit.core.thread.CommentTreeTest)
-11-07 13:28:52.243 31940 31959 I TestRunner: finished: dropsThePostFromItsComments(com.mrjackspade.deaddit.core.thread.CommentTreeTest)

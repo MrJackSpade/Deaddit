@@ -1,2 +1,0 @@
-11-07 13:28:52.466 31940 31959 I TestRunner: started: valuesTheBrowserIgnoresAreNull(com.mrjackspade.deaddit.core.util.CssColorTest)
-11-07 13:28:52.491 31940 31959 I TestRunner: finished: valuesTheBrowserIgnoresAreNull(com.mrjackspade.deaddit.core.util.CssColorTest)

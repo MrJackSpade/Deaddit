@@ -1,2 +1,0 @@
-11-07 13:28:45.202 31940 31959 I TestRunner: started: ruleMatchesWhenAllSetFieldsMatch(com.mrjackspade.deaddit.core.blocking.BlockingTest)
-11-07 13:28:45.215 31940 31959 I TestRunner: finished: ruleMatchesWhenAllSetFieldsMatch(com.mrjackspade.deaddit.core.blocking.BlockingTest)

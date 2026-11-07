@@ -1,2 +1,0 @@
-11-07 13:28:49.978 31940 31959 I TestRunner: started: unknownEnumValuesFailTheRead(com.mrjackspade.deaddit.core.model.SerializersTest)
-11-07 13:28:49.995 31940 31959 I TestRunner: finished: unknownEnumValuesFailTheRead(com.mrjackspade.deaddit.core.model.SerializersTest)

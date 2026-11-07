@@ -1,2 +1,0 @@
-11-07 13:28:48.198 31940 31959 I TestRunner: started: convert_Link_ReturnsLinkElement(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)
-11-07 13:28:48.203 31940 31959 I TestRunner: finished: convert_Link_ReturnsLinkElement(com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverterTest)

@@ -1,2 +1,0 @@
-11-07 13:28:52.765 31940 31959 I TestRunner: started: tryParseInt_MatchesDotNet(com.mrjackspade.deaddit.core.util.DotNetPortsTests)
-11-07 13:28:52.794 31940 31959 I TestRunner: finished: tryParseInt_MatchesDotNet(com.mrjackspade.deaddit.core.util.DotNetPortsTests)

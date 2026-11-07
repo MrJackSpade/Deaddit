@@ -1,2 +1,0 @@
-11-07 13:28:52.412 31940 31959 I TestRunner: started: validFormsNotImplementedThrow(com.mrjackspade.deaddit.core.util.CssColorTest)
-11-07 13:28:52.424 31940 31959 I TestRunner: finished: validFormsNotImplementedThrow(com.mrjackspade.deaddit.core.util.CssColorTest)

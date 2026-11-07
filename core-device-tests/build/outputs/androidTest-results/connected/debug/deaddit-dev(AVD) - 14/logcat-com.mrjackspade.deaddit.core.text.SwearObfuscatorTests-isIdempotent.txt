@@ -1,2 +1,0 @@
-11-07 13:28:51.725 31940 31959 I TestRunner: started: isIdempotent(com.mrjackspade.deaddit.core.text.SwearObfuscatorTests)
-11-07 13:28:51.743 31940 31959 I TestRunner: finished: isIdempotent(com.mrjackspade.deaddit.core.text.SwearObfuscatorTests)
