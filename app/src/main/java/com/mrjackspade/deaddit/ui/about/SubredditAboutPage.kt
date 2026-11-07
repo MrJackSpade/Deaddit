@@ -1,6 +1,8 @@
 package com.mrjackspade.deaddit.ui.about
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,15 +20,17 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.mrjackspade.deaddit.Services
 import com.mrjackspade.deaddit.core.html.Block
 import com.mrjackspade.deaddit.core.html.RedditHtml
 import com.mrjackspade.deaddit.core.model.Subreddit
-import com.mrjackspade.deaddit.ui.FlatButton
 import com.mrjackspade.deaddit.ui.Links
 import com.mrjackspade.deaddit.ui.LocalStyling
 import com.mrjackspade.deaddit.ui.Option
@@ -64,7 +68,8 @@ class SubredditAboutPage(private val services: Services, private val name: Strin
 
     /** With multis, a choice of the home feed and each multi; otherwise subscribes or unsubscribes. */
     private fun onSubscribe() {
-        scope.launch {
+        // In the app's scope: a (un)subscription isn't dropped by leaving the page.
+        services.appScope.launch {
             try {
                 val about = subreddit ?: throw IllegalStateException("r/$name hasn't loaded.")
 
@@ -104,6 +109,17 @@ class SubredditAboutPage(private val services: Services, private val name: Strin
         subscribed = !subscribed
     }
 
+    /** A MAUI Button at its defaults, on a transparent background: 14 text, 14 by 10 padding, 44 tall at least. */
+    @Composable
+    private fun MauiButton(text: String, onClick: () -> Unit) {
+        Box(
+            Modifier.heightIn(min = 44.dp).clickable(role = Role.Button, onClick = onClick).padding(horizontal = 14.dp, vertical = 10.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(text, color = LocalStyling.current.textColor.color, fontSize = 14.sp)
+        }
+    }
+
     @Composable
     override fun Content() {
         val styling = LocalStyling.current
@@ -122,7 +138,8 @@ class SubredditAboutPage(private val services: Services, private val name: Strin
                     modifier = Modifier.size(styling.thumbnailSize.dp),
                 )
                 Column(Modifier.weight(1f).padding(start = 10.dp)) {
-                    Text(about?.displayName ?: "", color = styling.textColor.color)
+                    // A MAUI Label's default size.
+                    Text(about?.displayName ?: "", color = styling.textColor.color, fontSize = 14.sp)
                     Text(
                         about?.let { "${it.subscribers} subscribers, ${it.activeUserCount ?: ""} online" } ?: "",
                         color = styling.subTextColor.color,
@@ -133,9 +150,9 @@ class SubredditAboutPage(private val services: Services, private val name: Strin
 
             Row(Modifier.fillMaxWidth().background(styling.highlightColor.color)) {
                 // The C# Rules and More buttons did nothing.
-                FlatButton("Rules") { }
-                FlatButton("More") { }
-                FlatButton(if (subscribed) "Unsubscribe" else "Subscribe") { onSubscribe() }
+                MauiButton("Rules") { }
+                MauiButton("More") { }
+                MauiButton(if (subscribed) "Unsubscribe" else "Subscribe") { onSubscribe() }
             }
 
             if (loading) {
@@ -145,7 +162,7 @@ class SubredditAboutPage(private val services: Services, private val name: Strin
                     com.mrjackspade.deaddit.ui.html.HtmlBody(
                         description,
                         styling.commentFontSize.px,
-                        onLink = { url -> scope.launch { Links.open(services, url) } },
+                        onLink = { url -> services.appScope.launch { Links.open(services, url) } },
                         modifier = Modifier.padding(5.dp),
                     )
                 }

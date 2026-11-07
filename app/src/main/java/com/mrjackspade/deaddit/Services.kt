@@ -16,7 +16,11 @@ import com.mrjackspade.deaddit.settings.VisitTracker
 import com.mrjackspade.deaddit.ui.Dialogs
 import com.mrjackspade.deaddit.ui.Navigator
 import com.mrjackspade.deaddit.ui.login.LoginPage
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -85,6 +89,23 @@ class Services(context: Context, val testMode: Boolean) {
     lateinit var navigator: Navigator
 
     val hasNavigator: Boolean get() = ::navigator.isInitialized
+
+    /**
+     * Work the user started (a vote, a save, a report, opening a post), which runs to completion
+     * however the user moves on: the C# app never cancelled anything it started. A page's own
+     * scope ([com.mrjackspade.deaddit.ui.Screen.scope]) is cancelled when the page is closed, so
+     * whatever was waiting on the result there (the "reported" alert, the saved mark) was dropped.
+     */
+    val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
+    /** Runs a user action in [appScope], showing its error. */
+    fun launchAction(block: suspend () -> Unit): Job = appScope.launch {
+        try {
+            block()
+        } catch (e: Exception) {
+            dialogs.error(e)
+        }
+    }
 
     init {
         // In test mode a rejected session is an error to log, not a reason to open the login page.

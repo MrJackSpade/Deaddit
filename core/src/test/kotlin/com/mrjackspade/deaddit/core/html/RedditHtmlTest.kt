@@ -118,6 +118,20 @@ class RedditHtmlTest {
     }
 
     @Test
+    fun tableCellsWithoutAlignmentAreUnspecified() {
+        val html = """<div class="md"><table><thead><tr><th>A</th></tr></thead><tbody><tr><td>1</td></tr></tbody></table></div>"""
+        assertEquals(
+            listOf(
+                Block.Table(
+                    header = listOf(Cell(Align.Unspecified, listOf(Span("A")))),
+                    rows = listOf(listOf(Cell(Align.Unspecified, listOf(Span("1"))))),
+                ),
+            ),
+            RedditHtml.parse(html),
+        )
+    }
+
+    @Test
     fun numbersSpoilersAndSuperscripts() {
         val html = """<div class="md"><p><span class="md-spoiler-text">one</span> x<sup>2<sup>3</sup></sup> <span class="md-spoiler-text">two</span></p></div>"""
         assertEquals(

@@ -9,18 +9,17 @@ import com.mrjackspade.deaddit.core.model.VoteState
 import com.mrjackspade.deaddit.core.service.CommentFocus
 import com.mrjackspade.deaddit.ui.Option
 import com.mrjackspade.deaddit.ui.Pages
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 /**
  * What a comment's buttons do (the C# RedditCommentWebComponent's handlers), for any page that
  * shows comments. [post] is the thread when known; [onDeleted] removes the comment from the page;
  * [onReplied] adds the user's new reply under it; [onLink] opens a tapped link. [contextOf] gives
  * the thread above a comment, root first, for the reply and edit pages (the C# Parent chain).
+ * What the buttons start runs in the app's scope ([Services.launchAction]), so leaving the page
+ * doesn't drop its result.
  */
 class CommentController(
     private val services: Services,
-    private val scope: CoroutineScope,
     private val post: Post?,
     private val onDeleted: (CommentModel) -> Unit,
     private val onReplied: (CommentModel, Comment) -> Unit,
@@ -39,8 +38,9 @@ class CommentController(
         onLink = onLink,
     )
 
-    /** Selecting an unread inbox reply marks it read. */
+    /** Selecting a comment; an unread inbox reply is marked read. */
     fun onSelected(model: CommentModel) {
+        model.everSelected = true
         if (model.isNew) run {
             services.reddit.markRead(model.comment, true)
             model.isNew = false
@@ -129,13 +129,7 @@ class CommentController(
     }
 
     private fun run(block: suspend () -> Unit) {
-        scope.launch {
-            try {
-                block()
-            } catch (e: Exception) {
-                services.dialogs.error(e)
-            }
-        }
+        services.launchAction(block)
     }
 }
 

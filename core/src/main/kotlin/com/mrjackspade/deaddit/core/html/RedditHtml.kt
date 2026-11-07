@@ -19,7 +19,8 @@ sealed interface Block {
     data object Rule : Block
 }
 
-enum class Align { Start, Center, End }
+/** A table cell's alignment; [Unspecified] when the HTML gives none (a header cell is then centered). */
+enum class Align { Start, Center, End, Unspecified }
 
 data class Cell(val align: Align, val text: List<Span>)
 
@@ -94,7 +95,8 @@ object RedditHtml {
                 val align = when (cell.attr("align").ifEmpty { cell.attr("style").substringAfter("text-align:", "").trim().trimEnd(';') }) {
                     "center" -> Align.Center
                     "right" -> Align.End
-                    else -> Align.Start
+                    "left" -> Align.Start
+                    else -> Align.Unspecified
                 }
                 Cell(align, trim(inlines(cell)))
             }

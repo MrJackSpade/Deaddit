@@ -185,7 +185,8 @@ data class Comment(
     override val body: String = "",
     @SerialName("body_html") val bodyHtml: String? = null,
     val score: Int = 0,
-    @SerialName("score_hidden") val scoreHidden: Boolean = false,
+    /** Null when Reddit leaves it out; the C# app hid the score then too. */
+    @SerialName("score_hidden") val scoreHidden: Boolean? = null,
     @SerialName("created_utc") @Serializable(RedditInstantSerializer::class) override val createdUtc: Instant? = null,
     @Serializable(RedditInstantSerializer::class) val edited: Instant? = null,
     val permalink: String? = null,
@@ -225,6 +226,7 @@ data class Message(
     val new: Boolean = false,
     val context: String? = null,
     @SerialName("was_comment") val wasComment: Boolean = false,
+    val distinguished: Distinguished? = null,
 ) : RedditThing
 
 /** A "load more" placeholder. No children means "continue this thread". */

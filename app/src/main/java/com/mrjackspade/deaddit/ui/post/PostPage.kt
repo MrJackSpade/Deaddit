@@ -4,37 +4,29 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
 import com.mrjackspade.deaddit.Services
 import com.mrjackspade.deaddit.core.blocking.Blocking
 import com.mrjackspade.deaddit.core.config.PostState
@@ -50,22 +42,30 @@ import com.mrjackspade.deaddit.core.service.CommentFocus
 import com.mrjackspade.deaddit.core.thread.CommentNode
 import com.mrjackspade.deaddit.core.thread.MoreNode
 import com.mrjackspade.deaddit.core.thread.ThreadNode
+import com.mrjackspade.deaddit.ui.FlexRow
 import com.mrjackspade.deaddit.ui.Links
 import com.mrjackspade.deaddit.ui.LocalStyling
+import com.mrjackspade.deaddit.ui.Option
 import com.mrjackspade.deaddit.ui.Pages
 import com.mrjackspade.deaddit.ui.Screen
 import com.mrjackspade.deaddit.ui.Spinner
 import com.mrjackspade.deaddit.ui.color
 import com.mrjackspade.deaddit.ui.comment.CommentController
+import com.mrjackspade.deaddit.ui.comment.CommentEntry
 import com.mrjackspade.deaddit.ui.comment.CommentModel
 import com.mrjackspade.deaddit.ui.comment.CommentView
+import com.mrjackspade.deaddit.ui.comment.ThreadEntry
+import com.mrjackspade.deaddit.ui.comment.ThreadRowFrame
+import com.mrjackspade.deaddit.ui.comment.findEntry
+import com.mrjackspade.deaddit.ui.comment.flattenThread
+import com.mrjackspade.deaddit.ui.comment.removeEntry
 import com.mrjackspade.deaddit.ui.html.HtmlBody
 import com.mrjackspade.deaddit.ui.px
 import kotlinx.coroutines.launch
 
 /**
- * A post and its comments (the C# app's PostPage). The thread is a tree of [Entry]s, drawn as a
- * flat list with depth guides so only what's on screen is laid out, however big the thread.
+ * A post and its comments (the C# app's PostPage). The thread is a tree of [ThreadEntry]s, drawn
+ * as a flat list with level lines so only what's on screen is laid out, however big the thread.
  */
 class PostPage(
     private val services: Services,
@@ -73,15 +73,6 @@ class PostPage(
     private val focus: CommentFocus?,
     private val fromHistory: Boolean,
 ) : Screen() {
-
-    /** A row of the thread: a comment (with its replies), or a "more" button. */
-    private sealed class Entry(val key: String, val parent: CommentEntry?) {
-        val depth: Int = if (parent == null) 0 else parent.depth + 1
-    }
-
-    private class CommentEntry(val model: CommentModel, parent: CommentEntry?) : Entry(model.comment.name, parent) {
-        val children = mutableListOf<Entry>()
-    }
 
     /**
      * Reddit's "load more" ([node] set), or a group of comments Reddit collapsed for one reason
@@ -93,20 +84,24 @@ class PostPage(
         val node: MoreNode? = null,
         val collapsed: List<CommentNode>? = null,
         val reason: CollapsedReasonCode? = null,
-    ) : Entry(key, parent) {
+    ) : ThreadEntry(key, parent) {
         var clicked = false
+        var loading by mutableStateOf(false)
         val count: Int get() = node?.more?.count ?: collapsed!!.size
     }
 
     private val postModel = PostModel(post, PostState.None)
-    private val root = mutableListOf<Entry>()
+    private val root = mutableStateListOf<ThreadEntry>()
 
-    /** Bumped on every change to the tree, to redraw the flattened list. */
-    private var version by mutableIntStateOf(0)
+    /** Numbers the "more" rows: Reddit names every "continue this thread" stub alike (t1__). */
+    private var nextMoreKey = 0
+
     private var loading by mutableStateOf(false)
-    private var loadingMore by mutableStateOf<MoreEntry?>(null)
     private var selected by mutableStateOf<String?>(null)
     private var autoLoadImages by mutableStateOf(services.settings.hacks.value.autoLoadCommentImages)
+
+    /** The image button's label, set once: the C# button kept showing 🖼 after it was tapped. */
+    private val imageButtonLabel = if (autoLoadImages) "" else "🖼"
 
     private val postBody = run {
         val visible = post.body.trim().filter { it != '‌' }
@@ -118,17 +113,16 @@ class PostPage(
     }
 
     private val postController = PostController(
-        services, scope, inList = false, fromHistory = fromHistory,
+        services, inList = false, fromHistory = fromHistory,
         onSelect = { _, _ -> },
     )
 
     private val commentController = CommentController(
         services,
-        scope,
         post = post,
-        onDeleted = { model -> removeComment(model) },
+        onDeleted = { model -> removeEntry(root, model) },
         onReplied = { parent, reply -> addReply(parent, reply) },
-        onLink = { url -> scope.launch { Links.open(services, url) } },
+        onLink = ::openLink,
         contextOf = ::contextOf,
     )
 
@@ -149,12 +143,17 @@ class PostPage(
         }
     }
 
+    private fun openLink(url: String) {
+        services.appScope.launch { Links.open(services, url) }
+    }
+
     /**
      * Adds a level of the thread under [parent]. Comments Reddit collapsed are grouped by reason
      * behind one button each, unless this is the result of opening such a button ([loadMore]).
      */
-    private fun addChildren(container: MutableList<Entry>, parent: CommentEntry?, nodes: List<ThreadNode>, loadMore: Boolean) {
+    private fun addChildren(container: MutableList<ThreadEntry>, parent: CommentEntry?, nodes: List<ThreadNode>, loadMore: Boolean) {
         val collapsed = LinkedHashMap<CollapsedReasonCode, MutableList<CommentNode>>()
+        val added = ArrayList<ThreadEntry>()
 
         for (node in nodes) {
             val reason = (node as? CommentNode)?.comment?.collapsedReasonCode
@@ -169,17 +168,17 @@ class PostPage(
                 is CommentNode -> {
                     val entry = CommentEntry(CommentModel(node.comment), parent)
                     addChildren(entry.children, entry, node.replies, loadMore = false)
-                    container += entry
+                    added += entry
                 }
-                is MoreNode -> container += MoreEntry("more-${node.more.name}", parent, node = node)
+                is MoreNode -> added += MoreEntry("more-${nextMoreKey++}", parent, node = node)
             }
         }
 
         for ((reason, comments) in collapsed) {
-            container += MoreEntry("collapsed-${parent?.key}-$reason-${comments.first().comment.name}", parent, collapsed = comments, reason = reason)
+            added += MoreEntry("more-${nextMoreKey++}", parent, collapsed = comments, reason = reason)
         }
 
-        version++
+        container += added
     }
 
     private fun shouldRender(node: ThreadNode): Boolean {
@@ -190,84 +189,64 @@ class PostPage(
         return true
     }
 
-    private fun containerOf(entry: Entry): MutableList<Entry> = entry.parent?.children ?: root
+    private fun containerOf(entry: ThreadEntry): MutableList<ThreadEntry> = entry.parent?.children ?: root
+
+    /** Puts [nodes] where [entry] is, in its place. */
+    private fun replace(entry: MoreEntry, nodes: List<ThreadNode>) {
+        val container = containerOf(entry)
+        val added = ArrayList<ThreadEntry>()
+        addChildren(added, entry.parent, nodes, loadMore = true)
+        val index = container.indexOf(entry)
+        container.removeAt(index)
+        container.addAll(index, added)
+    }
 
     private fun onMore(entry: MoreEntry) {
-        val node = entry.node
-
         // A collapsed group already holds its comments.
         if (entry.collapsed != null) {
-            val container = containerOf(entry)
-            val index = container.indexOf(entry)
-            container.removeAt(index)
-            val added = mutableListOf<Entry>()
-            addChildren(added, entry.parent, entry.collapsed, loadMore = true)
-            container.addAll(index, added)
-            version++
+            replace(entry, entry.collapsed)
             return
         }
 
-        // No children to load means "continue this thread" (only possible under a comment).
-        if (node!!.more.children.isEmpty()) {
-            val parent = node.parent ?: throw IllegalStateException("For some reason the more comment parent wasn't a proper comment")
-            commentController.continueThread(parent)
+        val node = entry.node!!
+
+        // Under a comment, no children to load means "continue this thread", from that comment.
+        if (entry.parent != null && node.more.children.isEmpty()) {
+            services.launchAction {
+                val parent = node.parent ?: throw IllegalStateException("For some reason the more comment parent wasn't a proper comment")
+                commentController.continueThread(parent)
+            }
             return
         }
 
         if (entry.clicked) return
         entry.clicked = true
 
-        scope.launch {
-            loadingMore = entry
+        // At the top of the thread the C# page took the button away before loading, so one that
+        // fails is gone rather than left dead; a "continue this thread" there loads nothing.
+        val topLevel = entry.parent == null
+
+        services.appScope.launch {
+            entry.loading = true
             try {
-                val loaded = services.reddit.moreComments(post, node)
-                val container = containerOf(entry)
-                val index = container.indexOf(entry)
-                container.removeAt(index)
-                val added = mutableListOf<Entry>()
-                addChildren(added, entry.parent, loaded, loadMore = true)
-                container.addAll(index, added)
-                version++
+                replace(entry, services.reddit.moreComments(post, node))
             } catch (e: Exception) {
+                if (topLevel) containerOf(entry).remove(entry)
                 services.dialogs.error(e)
             } finally {
-                loadingMore = null
+                entry.loading = false
             }
         }
-    }
-
-    private fun removeComment(model: CommentModel) {
-        fun remove(list: MutableList<Entry>): Boolean {
-            if (list.removeAll { it is CommentEntry && it.model === model }) return true
-            return list.any { it is CommentEntry && remove(it.children) }
-        }
-        remove(root)
-        version++
-    }
-
-    /** The entry showing [model], wherever it is in the tree. */
-    private fun entryOf(model: CommentModel): CommentEntry? {
-        fun find(list: List<Entry>): CommentEntry? {
-            for (entry in list) {
-                if (entry is CommentEntry) {
-                    if (entry.model === model) return entry
-                    find(entry.children)?.let { return it }
-                }
-            }
-            return null
-        }
-        return find(root)
     }
 
     private fun addReply(parent: CommentModel, reply: Comment) {
-        val parentEntry = entryOf(parent) ?: throw IllegalStateException("Replied to a comment that isn't on the page.")
+        val parentEntry = findEntry(root, parent) ?: throw IllegalStateException("Replied to a comment that isn't on the page.")
         parentEntry.children.add(0, CommentEntry(CommentModel(reply), parentEntry))
-        version++
     }
 
     /** The thread above a comment, root first: the post, then each comment it's under. */
     private fun contextOf(model: CommentModel): List<RedditThing> {
-        val entry = entryOf(model) ?: throw IllegalStateException("A comment that isn't on the page.")
+        val entry = findEntry(root, model) ?: throw IllegalStateException("A comment that isn't on the page.")
         val chain = ArrayList<RedditThing>()
         var ancestor = entry.parent
         while (ancestor != null) {
@@ -280,20 +259,6 @@ class PostPage(
 
     private fun addTopLevelReply(reply: Comment) {
         root.add(0, CommentEntry(CommentModel(reply.copy(likes = VoteState.Upvote)), null))
-        version++
-    }
-
-    /** The tree in reading order. */
-    private fun flatten(): List<Entry> {
-        val rows = ArrayList<Entry>()
-        fun walk(list: List<Entry>) {
-            for (entry in list) {
-                rows += entry
-                if (entry is CommentEntry) walk(entry.children)
-            }
-        }
-        walk(root)
-        return rows
     }
 
     @Composable
@@ -302,7 +267,7 @@ class PostPage(
 
         LaunchedEffect(Unit) { start() }
 
-        val rows = remember(version) { flatten() }
+        val rows by remember { derivedStateOf { flattenThread(root) } }
 
         LazyColumn(
             Modifier.fillMaxSize().background(styling.secondaryColor.color).statusBarsPadding().navigationBarsPadding(),
@@ -325,7 +290,7 @@ class PostPage(
                     HtmlBody(
                         blocks,
                         styling.titleFontSize.px,
-                        onLink = { url -> scope.launch { Links.open(services, url) } },
+                        onLink = ::openLink,
                         modifier = Modifier.fillMaxWidth().padding(2.dp)
                             .border(1.dp, styling.textColor.color)
                             .background(styling.primaryColor.color)
@@ -334,8 +299,26 @@ class PostPage(
                 }
             }
 
-            items(rows, key = { it.key }) { entry ->
-                ThreadRow(entry)
+            // The comment container's 5px right padding.
+            items(rows, key = { it.entry.key }) { row ->
+                ThreadRowFrame(row, selected, endPadding = 5.dp) {
+                    when (val entry = row.entry) {
+                        is CommentEntry -> CommentView(
+                            services,
+                            entry.model,
+                            post,
+                            isSelected = selected == entry.key,
+                            onSelect = {
+                                selected = entry.key
+                                commentController.onSelected(entry.model)
+                            },
+                            actions = commentController.actions(entry.model),
+                            inline = ::inlineMedia,
+                        )
+
+                        is MoreEntry -> MoreButton(entry)
+                    }
+                }
             }
 
             if (loading) item(key = "spinner") { Spinner() }
@@ -358,71 +341,22 @@ class PostPage(
             )
         }
 
-        fun run(block: suspend () -> Unit) {
-            scope.launch {
-                try {
-                    block()
-                } catch (e: Exception) {
-                    services.dialogs.error(e)
-                }
-            }
-        }
-
-        com.mrjackspade.deaddit.ui.FlexRow(Modifier.fillMaxWidth().background(styling.secondaryColor.color)) {
+        FlexRow(Modifier.fillMaxWidth().background(styling.secondaryColor.color)) {
             Button("Share", "Share") {
-                run {
+                services.launchAction {
                     services.dialogs.choose(
                         "Share:",
                         // As in the C# app, "File" shares the post's link.
-                        com.mrjackspade.deaddit.ui.Option("File") { postController.shareLink(post) },
-                        com.mrjackspade.deaddit.ui.Option("Link") { postController.shareLink(post) },
-                        com.mrjackspade.deaddit.ui.Option("Comments") { postController.shareComments(post) },
+                        Option("File") { postController.shareLink(post) },
+                        Option("Link") { postController.shareLink(post) },
+                        Option("Comments") { postController.shareComments(post) },
                     )
                 }
             }
-            Button(if (postModel.saved) "Unsave" else "Save", "Save") { run { postController.toggleSave(postModel) } }
-            Button("...", "More") { run { postController.more(postModel) } }
-            Button(if (autoLoadImages) "" else "🖼", "Load images") { autoLoadImages = true }
+            Button(if (postModel.saved) "Unsave" else "Save", "Save") { services.launchAction { postController.toggleSave(postModel) } }
+            Button("...", "More") { services.launchAction { postController.more(postModel) } }
+            Button(imageButtonLabel, "Load images") { autoLoadImages = true }
             Button("Reply", "Reply") { Pages.openReply(services, post) { reply -> addTopLevelReply(reply) } }
-        }
-    }
-
-    @Composable
-    private fun ThreadRow(entry: Entry) {
-        val styling = LocalStyling.current
-
-        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min).padding(end = 5.dp)) {
-            // One rule per level, in the highlight color when the comment it hangs from is selected.
-            var ancestor = entry.parent
-            val rules = ArrayList<Boolean>()
-            while (ancestor != null) {
-                rules.add(0, selected == ancestor.key)
-                ancestor = ancestor.parent
-            }
-
-            Spacer(Modifier.width(5.dp))
-            for (highlighted in rules) {
-                Box(Modifier.width(1.dp).fillMaxHeight().background(if (highlighted) styling.highlightColor.color else styling.subTextColor.color))
-                Spacer(Modifier.width(13.dp))
-            }
-
-            when (entry) {
-                is CommentEntry -> CommentView(
-                    services,
-                    entry.model,
-                    post,
-                    isSelected = selected == entry.key,
-                    onSelect = {
-                        selected = entry.key
-                        commentController.onSelected(entry.model)
-                    },
-                    actions = commentController.actions(entry.model),
-                    inline = ::inlineMedia,
-                    modifier = Modifier.weight(1f).padding(vertical = 5.dp),
-                )
-
-                is MoreEntry -> MoreButton(entry, Modifier.weight(1f))
-            }
         }
     }
 
@@ -431,12 +365,13 @@ class PostPage(
         if (!autoLoadImages || !services.posts.urls.canInline(url)) return null
         val image = services.posts.urls.inlineUrl(url) ?: return null
         return {
-            com.mrjackspade.deaddit.ui.media.InlineImage(image, url, onClick = { scope.launch { Links.open(services, url) } })
+            com.mrjackspade.deaddit.ui.media.InlineImage(image, url, onClick = { openLink(url) })
         }
     }
 
+    /** The C# MoreCommentsWebComponent: a full-width block, padded 5px left, top and bottom. */
     @Composable
-    private fun MoreButton(entry: MoreEntry, modifier: Modifier) {
+    private fun MoreButton(entry: MoreEntry) {
         val styling = LocalStyling.current
 
         val label = when (entry.reason) {
@@ -446,13 +381,13 @@ class PostPage(
             CollapsedReasonCode.BlockedAuthor -> "Blocked [${entry.count}]"
         }
 
-        if (loadingMore === entry) {
-            Box(modifier) { Spinner() }
+        if (entry.loading) {
+            Box(Modifier.fillMaxWidth()) { Spinner() }
         } else {
             Text(
                 label,
-                modifier.padding(vertical = 5.dp).background(styling.primaryColor.color)
-                    .clickable(role = Role.Button) { onMore(entry) }.padding(5.dp),
+                Modifier.fillMaxWidth().background(styling.primaryColor.color)
+                    .clickable(role = Role.Button) { onMore(entry) }.padding(start = 5.dp, top = 5.dp, bottom = 5.dp),
                 color = styling.textColor.color,
                 fontSize = (styling.titleFontSize * 0.9).toInt().toDouble().px,
             )

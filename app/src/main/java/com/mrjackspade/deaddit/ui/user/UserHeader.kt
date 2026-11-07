@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,7 +17,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.mrjackspade.deaddit.Services
 import com.mrjackspade.deaddit.core.model.User
@@ -48,7 +48,14 @@ fun UserHeader(services: Services, user: User, showMessage: Boolean = true) {
                     .semantics { contentDescription = "Message /u/${user.name}" },
                 contentAlignment = Alignment.Center,
             ) {
-                Text("🗨", color = styling.textColor.color, fontSize = (styling.thumbnailSize * 0.75).sp)
+                // The C# button's font size was the thumbnail size; the glyph overflows its box,
+                // centered, as it did there.
+                Text(
+                    "🗨",
+                    Modifier.wrapContentSize(unbounded = true),
+                    color = styling.textColor.color,
+                    fontSize = styling.thumbnailSize.toDouble().px,
+                )
             }
         }
     }
