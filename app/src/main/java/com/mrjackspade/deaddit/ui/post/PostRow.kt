@@ -99,7 +99,7 @@ fun PostRow(
         Row(Modifier.fillMaxWidth()) {
             AsyncImage(
                 model = model.thumbnail,
-                contentDescription = "Open ${post.title}",
+                contentDescription = "Open ${com.mrjackspade.deaddit.core.html.HtmlText.display(post.title)}",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.size(styling.thumbnailSize.dp).clickable(role = Role.Button, onClick = actions.onThumbnail),
             )
@@ -108,7 +108,7 @@ fun PostRow(
                 Modifier.weight(1f).clickable(onClick = actions.onSelect).padding(start = 5.dp, end = 5.dp, bottom = 5.dp),
             ) {
                 Text(
-                    post.title,
+                    com.mrjackspade.deaddit.core.html.HtmlText.display(post.title),
                     fontSize = styling.titleFontSize.px,
                     color = when (post.distinguished) {
                         Distinguished.Moderator -> styling.moderatorTitleTextColor.color

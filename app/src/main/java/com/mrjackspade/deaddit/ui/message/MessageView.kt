@@ -94,7 +94,7 @@ private fun Header(message: Message) {
     InlineFlow {
         AuthorName(message.author ?: "", message.distinguished, isOp = false)
         // A word at a time, so the subject wraps along the line as inline text does.
-        for (word in words("- ${message.subject}")) {
+        for (word in words("- ${com.mrjackspade.deaddit.core.html.HtmlText.display(message.subject)}")) {
             Text(word, color = text, fontSize = CssMediumFontSize, fontWeight = FontWeight.Bold)
         }
     }
