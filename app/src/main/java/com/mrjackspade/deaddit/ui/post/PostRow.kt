@@ -155,8 +155,8 @@ private fun thumbnailFor(post: Post): String? {
     if (!thumbnail.isNullOrBlank()) return thumbnail
     val link = post.link
     if (link.isNullOrBlank()) return null
-    val uri = java.net.URI(link)
-    if (!uri.isAbsolute) throw IllegalStateException("Post ${post.name} has a URL that isn't absolute: '$link'.")
+    // Uri.TryCreate(..., UriKind.Absolute), as the C# RedditPostWebComponent did.
+    if (!com.mrjackspade.deaddit.core.model.isAbsoluteUrl(link)) throw IllegalStateException("Post ${post.name} has a URL that isn't absolute: '$link'.")
     return if (UrlHelper.getMimeTypeFromUri(link).startsWith("image/")) link else null
 }
 

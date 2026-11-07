@@ -11,6 +11,7 @@ import com.mrjackspade.deaddit.core.config.BlockConfiguration
 import com.mrjackspade.deaddit.core.config.LandingPageConfiguration
 import com.mrjackspade.deaddit.core.config.SavePathConfiguration
 import com.mrjackspade.deaddit.core.config.SettingsJson
+import com.mrjackspade.deaddit.core.util.DotNetStrings
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 
@@ -22,8 +23,12 @@ class SettingsStore(context: Context) {
     private val preferences = AppPreferences.of(context)
 
     inner class Setting<T : Any>(private val key: String, private val serializer: KSerializer<T>, default: () -> T) {
+        /** As the C# PreferencesConfigurationService.Read: a missing, empty or whitespace value is the defaults. */
         var value: T by mutableStateOf(
-            preferences.getString(key, null)?.let { SettingsJson.decodeFromString(serializer, it) } ?: default(),
+            preferences.getString(key, null)
+                ?.takeUnless(DotNetStrings::isNullOrWhiteSpace)
+                ?.let { SettingsJson.decodeFromString(serializer, it) }
+                ?: default(),
         )
             private set
 

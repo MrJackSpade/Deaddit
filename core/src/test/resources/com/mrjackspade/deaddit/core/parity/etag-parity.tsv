@@ -1,0 +1,74 @@
+"abc"	"abc"
+"abc"	W/"abc"
+"abc"	w/"abc"
+"abc"	W/ "abc"
+"abc"	W/\u0009"abc"
+<null>	abc
+<null>	"abc
+<null>	abc"
+"a\u005C"b"	"a\u005C"b"
+"a\u005C\u005C"	"a\u005C\u005C"
+<null>	*
+<null>	W/*
+""	""
+""	W/""
+"abc"	 "abc" 
+<null>	"abc" x
+<null>	"abc","def"
+<null>	"abc" ,
+<null>	W/"a"b
+<null>	W"a"
+<null>	W/
+<null>	W/"
+"\u00E9"	"\u00E9"
+"a b"	"a b"
+<null>	
+<null>	 
+"abc"	"abc"\u0009
+<null>	W/"""
+"a\u005C"	"a\u005C"
+<null>	"\u005C
+<null>	x"abc"
+<null>	W /"abc"
+<null>	W//"abc"
+<null>	"a""b"
+"a,b"	"a,b"
+"5d8c72a5edda8d6a:0"	"5d8c72a5edda8d6a:0"
+"5d8c-72a5"	W/"5d8c-72a5"
+"\u0001"	"\u0001"
+"a\u007Fb"	"a\u007Fb"
+"a\u005C\u00E9"	"a\u005C\u00E9"
+"a\u005C\u0001"	"a\u005C\u0001"
+<null>	"abc" , 
+<null>	,"abc"
+<null>	"abc";x
+<null>	("abc")
+<null>	'abc'
+"a\u005Cb"	"a\u005Cb"
+"abc"	"abc"	"abc"
+"abc"	"abc"	W/"abc"
+"abc"	"abc"	abc
+"abc"	"abc"	
+"abc"	"abc"	*
+"abc"	W/"abc"	"abc"
+"abc"	W/"abc"	W/"abc"
+"abc"	W/"abc"	abc
+"abc"	W/"abc"	
+"abc"	W/"abc"	*
+<null>	abc	"abc"
+<null>	abc	W/"abc"
+<null>	abc	abc
+<null>	abc	
+<null>	abc	*
+<null>		"abc"
+<null>		W/"abc"
+<null>		abc
+<null>		
+<null>		*
+<null>	*	"abc"
+<null>	*	W/"abc"
+<null>	*	abc
+<null>	*	
+<null>	*	*
+"a"	"a"	"b"	"c"
+<null>	abc	abc	"c"

@@ -2,6 +2,7 @@ package com.mrjackspade.deaddit.settings
 
 import android.content.Context
 import com.mrjackspade.deaddit.core.model.RedditThing
+import com.mrjackspade.deaddit.core.util.DotNetDictionary
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
@@ -115,9 +116,13 @@ class HistoryTracker(context: Context) {
     }
 }
 
-/** Notes the user attaches to usernames, shown next to them. Stored as "user\ttag" lines. */
+/**
+ * Notes the user attaches to usernames, shown next to them. Stored as "user\ttag" lines. Usernames compare ignoring
+ * case and keep the order of the C# UserTagCollection's Dictionary (in the order added; see [DotNetDictionary]),
+ * in the file and in [all].
+ */
 class UserTags(private val file: File) {
-    private val tags = sortedMapOf<String, String>(String.CASE_INSENSITIVE_ORDER)
+    private val tags = DotNetDictionary.ordinalIgnoreCase<String>()
 
     init {
         if (file.exists()) {
@@ -149,12 +154,12 @@ class UserTags(private val file: File) {
     @Synchronized
     fun import(imported: Map<String, String>) {
         tags.clear()
-        tags.putAll(imported)
+        for ((username, tag) in imported) tags[username] = tag
         flush()
     }
 
     private fun flush() {
         file.parentFile?.mkdirs()
-        file.writeText(tags.entries.joinToString("") { "${it.key}\t${it.value}\n" })
+        file.writeText(tags.toMap().entries.joinToString("") { "${it.key}\t${it.value}\n" })
     }
 }

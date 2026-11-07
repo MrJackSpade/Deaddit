@@ -38,21 +38,21 @@ class NotLoggedInException(message: String) : IllegalStateException(message)
  */
 class RedditService(private val api: RedditApi, private val hacks: () -> ApplicationHacks) {
 
-    /** The logged-in user, or null. Updated by [refreshUser]. */
-    @Volatile
-    var loggedInUser: String? = null
-        private set
+    /** The session's user, expired or not; null without a session (the C# LoggedInUser: Reddit.Api's AuthenticatedUser). */
+    val loggedInUser: String? get() = api.session?.authenticatedUser
 
-    val isLoggedIn: Boolean get() = loggedInUser != null
+    /** Whether there's a session that hasn't expired, checked at each read (the C# IsLoggedIn: Reddit.Api's IsAuthenticated). */
+    val isLoggedIn: Boolean get() = api.session?.isExpired == false
 
+    /** Checks that the session mirrored in [RedditApi.session] is the one Reddit.Api holds; a mismatch is a bug. */
     suspend fun refreshUser() {
-        loggedInUser = api.authenticatedUser()
+        val native = api.authenticatedUser()
+        check(native == loggedInUser) { "Reddit.Api's session is for '$native', but the app's mirror of it is for '$loggedInUser'." }
     }
 
     /** One page of a feed. Things are listed in Reddit's order; [Feed.User] falls back to search when empty. */
     suspend fun getPosts(feed: Feed, sort: Sort?, pageSize: Int, after: String?, region: Region): List<RedditThing> {
         api.tryAuthenticate()
-        refreshUser()
 
         val parameters = ListingParameters(
             after = after,
@@ -199,7 +199,6 @@ class RedditService(private val api: RedditApi, private val hacks: () -> Applica
 
     suspend fun createMulti(name: String): Multi? {
         api.ensureAuthenticated()
-        refreshUser()
         val user = loggedInUser ?: throw NotLoggedInException("You must be logged in to create a multireddit.")
         return api.createMulti("user/$user/m/$name", name)
     }

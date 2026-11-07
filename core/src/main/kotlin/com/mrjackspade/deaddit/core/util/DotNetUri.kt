@@ -7,41 +7,70 @@ import java.text.Normalizer
 class UriFormatException(message: String) : IllegalArgumentException(message)
 
 /**
- * A port of the parts of .NET's System.Uri (as shipped in .NET 10, System.Private.Uri) that UrlHelper relies on:
- * absolute parsing (`new Uri(s)` / `Uri.TryCreate(s, UriKind.Absolute, out uri)`), [scheme], [host],
- * [getLeftPartPath] and [absolutePath].
+ * A port of the parts of .NET's System.Uri (as shipped in .NET 10, System.Private.Uri) the app relies on: parsing
+ * (`new Uri(s)`, `Uri.TryCreate(s, UriKind.Absolute, out uri)`, `new Uri(s, UriKind.RelativeOrAbsolute)`),
+ * resolving a reference against a base (`new Uri(baseUri, relative)`), [scheme], [host], [absolutePath],
+ * [absoluteUri], [getLeftPartPath] and [toString].
  *
- * UrlHelper's results hinge on System.Uri's exact acceptance rules and canonicalization (IPv4 forms like
- * "0x7f.1", IDN hosts, dot-segment removal, percent-decoding of unreserved chars, backslashes), which
- * java.net.URI does not share, so the .NET code is ported here method by method, keeping its names and flow so it
- * can be checked against the decompiled source. Scope: built-in schemes and unregistered ("V1 unknown") schemes,
- * never user-escaped, path/query canonicalization on, running on a non-Windows OS (Android), so Windows-only
- * branches are left out.
+ * The C# app's results hinge on System.Uri's exact acceptance rules and canonicalization (IPv4 forms like
+ * "0x7f.1", IDN hosts, lowercased hosts, underscores in hosts, dot-segment removal, percent-decoding of unreserved
+ * chars, backslashes, spaces), which java.net.URI does not share, so the .NET code is ported here method by method,
+ * keeping its names and flow so it can be checked against the decompiled source. Scope: built-in schemes and
+ * unregistered ("V1 unknown") schemes, never user-escaped, path/query canonicalization on, running on a non-Windows
+ * OS (Android), so Windows-only branches are left out. UriComponents.NormalizedHost is not ported.
  *
  * Where .NET reads through a char pointer it can read the string's terminating NUL; [at] reproduces that.
  */
-internal class DotNetUri private constructor(private var string: String) {
+class DotNetUri private constructor(private var string: String) {
     private var flags = 0L
     private var syntax: Syntax? = null
     private var originalUnicodeString: String? = null
     private var info: UriInfo? = null
 
-    val scheme: String get() = syntax!!.schemeName
+    /** Uri.IsAbsoluteUri: false for a relative reference made by [createRelativeOrAbsolute]. */
+    val isAbsoluteUri: Boolean get() = syntax != null
 
-    /** Uri.Host. */
-    val host: String get() = getComponentsHelper(C_HOST)
+    /** Uri.Scheme. */
+    val scheme: String get() = absoluteSyntax.schemeName
+
+    /** Uri.Host: lowercased for DNS hosts, as .NET canonicalizes them. */
+    val host: String get() = getParts(C_HOST, FMT_URI_ESCAPED)
 
     /** Uri.AbsolutePath. */
     val absolutePath: String
         get() {
-            val text = getComponentsHelper(C_PATH or C_KEEP_DELIMITER)
+            val text = getParts(C_PATH or C_KEEP_DELIMITER, FMT_URI_ESCAPED)
             return if (isDosPath && text[0] == '/') text.substring(1) else text
         }
+
+    /** Uri.AbsoluteUri: the escaped, canonical form, which is what .NET's HTTP handlers put on the wire. */
+    val absoluteUri: String get() = getParts(C_ABSOLUTE_URI, FMT_URI_ESCAPED)
+
+    /** Uri.OriginalString. */
+    val originalString: String get() = originalUnicodeString ?: string
 
     /** Uri.GetLeftPart(UriPartial.Path). */
     fun getLeftPartPath(): String {
         ensureUriInfo()
-        return getComponentsHelper(C_SCHEME_AND_SERVER or C_USER_INFO or C_PATH)
+        return getParts(C_SCHEME_AND_SERVER or C_USER_INFO or C_PATH, FMT_URI_ESCAPED)
+    }
+
+    /** Uri.ToString(): the canonical form with everything unescaped but '#', '?' and '%'. A relative reference is returned as given. */
+    override fun toString(): String {
+        if (syntax == null) {
+            return string
+        }
+        ensureUriInfo()
+        return getComponentsHelper(C_ABSOLUTE_URI, FMT_V1_TO_STRING)
+    }
+
+    private val absoluteSyntax: Syntax
+        get() = syntax ?: throw IllegalStateException("This operation is not supported for a relative URI.")
+
+    /** Uri.GetParts / InternalGetComponents for the simple (built-in) parsers. */
+    private fun getParts(uriParts: Int, formatAs: Int): String {
+        absoluteSyntax
+        return getComponentsHelper(uriParts, formatAs)
     }
 
     // region Syntax
@@ -79,7 +108,22 @@ internal class DotNetUri private constructor(private var string: String) {
     private val isImplicitFile: Boolean get() = inFact(F_IMPLICIT_FILE)
     private val isDosPath: Boolean get() = inFact(F_DOS_PATH)
     private val isUncPath: Boolean get() = inFact(F_UNC_PATH)
-    private val originalString: String get() = originalUnicodeString ?: string
+    private val isUnixPath: Boolean get() = inFact(F_UNIX_PATH)
+
+    /** Uri.DnsSafeHost. */
+    private val dnsSafeHost: String
+        get() {
+            ensureHostString()
+            val info = info!!
+            val text = info.hostString!!
+            return when {
+                hostType == F_IPV6_HOST_TYPE -> text.substring(1, text.length - 1) + (info.scopeId ?: "")
+                hostType == F_BASIC_HOST_TYPE && inFact(F_HOST_NOT_CANONICAL or F_E_HOST_NOT_CANONICAL) -> StringBuilder().also {
+                    unescapeString(text, 0, text.length, it, '￿', '￿', '￿', U_UNESCAPE or U_UNESCAPE_ALL, syntax, isQuery = false)
+                }.toString()
+                else -> text
+            }
+        }
 
     private val securedPathIndex: Int
         get() {
@@ -94,8 +138,23 @@ internal class DotNetUri private constructor(private var string: String) {
 
     // region Creation
 
-    private fun initializeUri(): UriFormatException? {
-        var e: UriFormatException?
+    /**
+     * InitializeUri for UriKind.Absolute ([allowRelative] false) or UriKind.RelativeOrAbsolute. [err] is
+     * ParseScheme's result. A relative reference leaves [syntax] null.
+     */
+    private fun initializeUri(err: Int, allowRelative: Boolean): UriFormatException? {
+        if (err == E_NONE) {
+            if (isImplicitFile && allowRelative && notAny(F_DOS_PATH) &&
+                ((string.length >= 2 && (string[0] != '\\' || string[1] != '\\')) || isUnixPath)
+            ) {
+                syntax = null
+                flags = 0L
+                return null
+            }
+        } else if (err > E_LAST_ERROR_OKAY_FOR_RELATIVE_URIS) {
+            return exception(err)
+        }
+
         var flag = false
 
         if (checkForUnicodeOrEscapedUnreserved(string)) {
@@ -104,18 +163,39 @@ internal class DotNetUri private constructor(private var string: String) {
             originalUnicodeString = string
         }
 
-        val err = privateParseMinimal()
-        e = if (err != E_NONE) exception(err) else null
+        if (syntax != null) {
+            var e: UriFormatException? = null
+            val err2 = privateParseMinimal()
 
-        if (flag) {
-            try {
-                ensureParseRemaining()
-            } catch (ex: UriFormatException) {
-                e = ex
+            if (err2 != E_NONE) {
+                if (allowRelative && err2 <= E_LAST_ERROR_OKAY_FOR_RELATIVE_URIS) {
+                    syntax = null
+                    flags = 0L
+                    return null
+                }
+                e = exception(err2)
             }
+
+            if (flag) {
+                try {
+                    ensureParseRemaining()
+                } catch (ex: UriFormatException) {
+                    e = ex
+                }
+            }
+
+            return e
         }
 
-        return e
+        if (allowRelative && err != E_NONE && err <= E_LAST_ERROR_OKAY_FOR_RELATIVE_URIS) {
+            flags = flags and F_HAS_UNICODE
+            if (flag) {
+                string = escapeUnescapeIri(originalUnicodeString!!, 0, originalUnicodeString!!.length, 0)
+            }
+            return null
+        }
+
+        return exception(err)
     }
 
     private fun parseScheme(): Int {
@@ -1078,9 +1158,12 @@ internal class DotNetUri private constructor(private var string: String) {
 
     // region Components
 
-    private fun getComponentsHelper(uriComponents: Int): String {
+    private fun getComponentsHelper(uriComponentsIn: Int, uriFormat: Int): String {
+        var uriComponents = uriComponentsIn
+        val syntax = syntax!!
+
         if (uriComponents == C_SCHEME) {
-            return syntax!!.schemeName
+            return syntax.schemeName
         }
 
         ensureParseRemaining()
@@ -1090,12 +1173,27 @@ internal class DotNetUri private constructor(private var string: String) {
             ensureHostString()
         }
 
-        if (uriComponents == C_HOST) {
+        if (uriComponents == C_PORT || uriComponents == C_STRONG_PORT) {
+            if (inFact(F_NOT_DEFAULT_PORT) || (uriComponents == C_STRONG_PORT && syntax.defaultPort != -1)) {
+                return info!!.portValue.toString()
+            }
+            return ""
+        }
+
+        if ((uriComponents and C_STRONG_PORT) != 0) {
+            uriComponents = uriComponents or C_PORT
+        }
+
+        if (uriComponents == C_HOST && (uriFormat == FMT_URI_ESCAPED || (flags and (F_HOST_NOT_CANONICAL or F_E_HOST_NOT_CANONICAL)) == 0L)) {
             ensureHostString()
             return info!!.hostString!!
         }
 
-        return getEscapedParts(uriComponents)
+        return when (uriFormat) {
+            FMT_URI_ESCAPED -> getEscapedParts(uriComponents)
+            FMT_UNESCAPED, FMT_SAFE_UNESCAPED, FMT_V1_TO_STRING -> getUnescapedParts(uriComponents, uriFormat)
+            else -> throw IllegalArgumentException("uriFormat")
+        }
     }
 
     private fun getEscapedParts(uriParts: Int): String {
@@ -1116,22 +1214,120 @@ internal class DotNetUri private constructor(private var string: String) {
                 return fromUser
             }
         }
-        return recreateParts(uriParts, num)
+        return recreateParts(uriParts, num, FMT_URI_ESCAPED)
+    }
+
+    private fun getUnescapedParts(uriParts: Int, formatAs: Int): String {
+        var num = flags.toInt() and 0x7F
+        if ((uriParts and C_PATH) != 0) {
+            if (inFact(F_SHOULD_BE_COMPRESSED or F_FIRST_SLASH_ABSENT or F_BACKSLASH_IN_PATH)) {
+                num = num or 0x10
+            } else if (isDosPath && string[info!!.path + securedPathIndex - 1] == '|') {
+                num = num or 0x10
+            }
+        }
+        if (((uriParts and 0xFFFF) and num) == 0) {
+            val fromUser = getUriPartsFromUserString(uriParts)
+            if (fromUser != null) {
+                return fromUser
+            }
+        }
+        return recreateParts(uriParts, num, formatAs)
     }
 
     private fun getUriPartsFromUserString(uriParts: Int): String? {
         val info = info!!
+        val s = string
         return when (uriParts and C_KEEP_DELIMITER.inv()) {
-            C_PATH -> {
-                val num = if (uriParts != C_PATH || !inFact(F_AUTHORITY_FOUND) || info.end <= info.path || string[info.path] != '/') info.path else info.path + 1
-                if (num >= info.query) "" else string.substring(num, info.query)
+            C_SCHEME_AND_SERVER ->
+                if (!inFact(F_HAS_USER_INFO)) s.substring(info.scheme, info.path)
+                else s.substring(info.scheme, info.user) + s.substring(info.host, info.path)
+
+            C_HOST_AND_PORT ->
+                if (inFact(F_HAS_USER_INFO)) {
+                    if (inFact(F_NOT_DEFAULT_PORT) || syntax!!.defaultPort == -1) s.substring(info.host, info.path)
+                    else s.substring(info.host, info.path) + ":" + info.portValue
+                } else {
+                    strongAuthorityFromUserString(info, s)
+                }
+
+            C_ABSOLUTE_URI ->
+                if (info.scheme == 0 && info.end == s.length) s else s.substring(info.scheme, info.end)
+
+            C_HTTP_REQUEST_URL ->
+                if (inFact(F_HAS_USER_INFO)) s.substring(info.scheme, info.user) + s.substring(info.host, info.fragment)
+                else if (info.scheme == 0 && info.fragment == s.length) s
+                else s.substring(info.scheme, info.fragment)
+
+            C_SCHEME_AND_SERVER or C_USER_INFO -> s.substring(info.scheme, info.path)
+
+            C_HTTP_REQUEST_URL or C_USER_INFO ->
+                if (info.scheme == 0 && info.fragment == s.length) s else s.substring(info.scheme, info.fragment)
+
+            C_SCHEME -> if (uriParts != C_SCHEME) s.substring(info.scheme, info.user) else syntax!!.schemeName
+
+            C_HOST -> {
+                var num2 = info.path
+                if (inFact(F_PORT_NOT_CANONICAL or F_NOT_DEFAULT_PORT)) {
+                    while (s[--num2] != ':') {
+                        // Back to the port's ':'.
+                    }
+                }
+                if (num2 - info.host != 0) s.substring(info.host, num2) else ""
             }
-            // GetLeftPart(Path) asks for SchemeAndServer | UserInfo | Path, which has no shortcut.
+
+            C_PATH -> {
+                val num = if (uriParts != C_PATH || !inFact(F_AUTHORITY_FOUND) || info.end <= info.path || s[info.path] != '/') info.path else info.path + 1
+                if (num >= info.query) "" else s.substring(num, info.query)
+            }
+
+            C_QUERY -> {
+                val num = if (uriParts != C_QUERY) info.query else info.query + 1
+                if (num >= info.fragment) "" else s.substring(num, info.fragment)
+            }
+
+            C_FRAGMENT -> {
+                val num = if (uriParts != C_FRAGMENT) info.fragment else info.fragment + 1
+                if (num >= info.end) "" else s.substring(num, info.end)
+            }
+
+            C_USER_INFO or C_HOST or C_PORT -> userHostPortFromUserString(info, s)
+
+            C_STRONG_AUTHORITY -> strongAuthorityFromUserString(info, s)
+
+            C_PATH_AND_QUERY -> s.substring(info.path, info.fragment)
+
+            C_HTTP_REQUEST_URL or C_FRAGMENT ->
+                if (inFact(F_HAS_USER_INFO)) s.substring(info.scheme, info.user) + s.substring(info.host, info.end)
+                else if (info.scheme == 0 && info.end == s.length) s
+                else s.substring(info.scheme, info.end)
+
+            C_PATH_AND_QUERY or C_FRAGMENT -> s.substring(info.path, info.end)
+
+            C_USER_INFO -> {
+                if (notAny(F_HAS_USER_INFO)) {
+                    ""
+                } else {
+                    val num = if (uriParts != C_USER_INFO) info.host else info.host - 1
+                    if (info.user >= num) "" else s.substring(info.user, num)
+                }
+            }
+
             else -> null
         }
     }
 
-    private fun recreateParts(parts: Int, nonCanonical: Int): String {
+    private fun strongAuthorityFromUserString(info: UriInfo, s: String): String {
+        if (!inFact(F_NOT_DEFAULT_PORT) && syntax!!.defaultPort != -1) {
+            return s.substring(info.user, info.path) + ":" + info.portValue
+        }
+        return userHostPortFromUserString(info, s)
+    }
+
+    private fun userHostPortFromUserString(info: UriInfo, s: String): String =
+        if (info.path - info.user != 0) s.substring(info.user, info.path) else ""
+
+    private fun recreateParts(parts: Int, nonCanonical: Int, formatAs: Int): String {
         ensureHostString()
         val info = info!!
         val str = string
@@ -1152,7 +1348,27 @@ internal class DotNetUri private constructor(private var string: String) {
         if ((parts and C_USER_INFO) != 0 && inFact(F_HAS_USER_INFO)) {
             val span = str.substring(info.user, info.host)
             if ((nonCanonical and 2) != 0) {
-                escapeString(span, dest, checkExistingEscaped = true, noEscape = UNRESERVED_RESERVED_EXCEPT_QUESTION_MARK_HASH)
+                when (formatAs) {
+                    FMT_URI_ESCAPED ->
+                        if (notAny(F_USER_ESCAPED)) {
+                            escapeString(span, dest, checkExistingEscaped = true, noEscape = UNRESERVED_RESERVED_EXCEPT_QUESTION_MARK_HASH)
+                        } else {
+                            dest.append(span)
+                        }
+
+                    FMT_SAFE_UNESCAPED -> {
+                        unescapeString(
+                            span, 0, span.length - 1, dest, '@', '/', '\\',
+                            if (inFact(F_USER_ESCAPED)) U_UNESCAPE else U_ESCAPE_UNESCAPE, syntax, isQuery = false,
+                        )
+                        dest.append('@')
+                    }
+
+                    FMT_UNESCAPED ->
+                        unescapeString(span, 0, span.length, dest, '￿', '￿', '￿', U_UNESCAPE or U_UNESCAPE_ALL, syntax, isQuery = false)
+
+                    else -> dest.append(span)
+                }
             } else {
                 dest.append(span)
             }
@@ -1164,30 +1380,83 @@ internal class DotNetUri private constructor(private var string: String) {
         if ((parts and C_HOST) != 0) {
             val text = info.hostString!!
             if (text.isNotEmpty()) {
-                // UriEscaped: the host is copied as is.
-                dest.append(text)
+                val unescapeMode = if (formatAs != FMT_URI_ESCAPED && hostType == F_BASIC_HOST_TYPE && (nonCanonical and 4) != 0) {
+                    if (formatAs == FMT_UNESCAPED) U_UNESCAPE or U_UNESCAPE_ALL else if (inFact(F_USER_ESCAPED)) U_UNESCAPE else U_ESCAPE_UNESCAPE
+                } else {
+                    U_COPY_ONLY
+                }
+                unescapeString(text, 0, text.length, dest, '/', '?', '#', unescapeMode, syntax, isQuery = false)
             }
         }
 
-        if ((parts and C_PORT) != 0 && inFact(F_NOT_DEFAULT_PORT)) {
+        if ((parts and C_PORT) != 0 && (inFact(F_NOT_DEFAULT_PORT) || ((parts and C_STRONG_PORT) != 0 && syntax.defaultPort != -1))) {
             dest.append(':')
             dest.append(info.portValue)
         }
 
         if ((parts and C_PATH) != 0) {
-            getCanonicalPath(dest)
+            getCanonicalPath(dest, formatAs)
             if (parts == C_PATH) {
                 val start = if (inFact(F_AUTHORITY_FOUND) && dest.isNotEmpty() && dest[0] == '/') 1 else 0
                 return dest.substring(start)
             }
         }
 
-        // Query and fragment are never requested here.
+        if ((parts and C_QUERY) != 0 && info.query < info.fragment) {
+            val num = info.query + 1
+            if (parts != C_QUERY) {
+                dest.append('?')
+            }
+            var unescapeMode = U_COPY_ONLY
+            var escaped = false
+            if ((nonCanonical and 0x20) != 0) {
+                if (formatAs == FMT_URI_ESCAPED) {
+                    if (notAny(F_USER_ESCAPED)) {
+                        escapeString(str.substring(num, info.fragment), dest, checkExistingEscaped = true, noEscape = UNRESERVED_RESERVED_EXCEPT_HASH)
+                        escaped = true
+                    }
+                } else {
+                    unescapeMode = unescapeModeFor(formatAs)
+                }
+            }
+            if (!escaped) {
+                unescapeString(str, num, info.fragment, dest, '#', '￿', '￿', unescapeMode, syntax, isQuery = true)
+            }
+        }
+
+        if ((parts and C_FRAGMENT) != 0 && info.fragment < info.end) {
+            val num2 = info.fragment + 1
+            if (parts != C_FRAGMENT) {
+                dest.append('#')
+            }
+            var unescapeMode = U_COPY_ONLY
+            var escaped = false
+            if ((nonCanonical and 0x40) != 0) {
+                if (formatAs == FMT_URI_ESCAPED) {
+                    if (notAny(F_USER_ESCAPED)) {
+                        escapeString(str.substring(num2, info.end), dest, checkExistingEscaped = true, noEscape = UNRESERVED_RESERVED)
+                        escaped = true
+                    }
+                } else {
+                    unescapeMode = unescapeModeFor(formatAs)
+                }
+            }
+            if (!escaped) {
+                unescapeString(str, num2, info.end, dest, '#', '￿', '￿', unescapeMode, syntax, isQuery = false)
+            }
+        }
+
         return dest.toString()
     }
 
-    /** GetCanonicalPath with UriFormat.UriEscaped. */
-    private fun getCanonicalPath(dest: StringBuilder) {
+    /** The UnescapeMode RecreateParts uses for a non-canonical query or fragment in a non-escaped [formatAs]. */
+    private fun unescapeModeFor(formatAs: Int): Int = when (formatAs) {
+        FMT_V1_TO_STRING -> (if (inFact(F_USER_ESCAPED)) U_UNESCAPE else U_ESCAPE_UNESCAPE) or U_V1_TO_STRING
+        FMT_UNESCAPED -> U_UNESCAPE or U_UNESCAPE_ALL
+        else -> if (inFact(F_USER_ESCAPED)) U_UNESCAPE else U_ESCAPE_UNESCAPE
+    }
+
+    private fun getCanonicalPath(dest: StringBuilder, formatAs: Int) {
         val info = info!!
         val syntax = syntax!!
 
@@ -1202,28 +1471,35 @@ internal class DotNetUri private constructor(private var string: String) {
         var length = dest.length
         val securedPathIndex = securedPathIndex
 
-        if (inFact(F_SHOULD_BE_COMPRESSED)) {
-            dest.append(string, info.path, info.query)
-            if (syntax.inFact(S_UNESCAPE_DOTS_AND_SLASHES) && inFact(F_PATH_NOT_CANONICAL) && !isImplicitFile) {
-                unescapeOnly(dest, length, '.', '/', if (syntax.inFact(S_CONVERT_PATH_SLASHES)) '\\' else '\uffff')
+        if (formatAs == FMT_URI_ESCAPED) {
+            if (inFact(F_SHOULD_BE_COMPRESSED)) {
+                dest.append(string, info.path, info.query)
+                if (syntax.inFact(S_UNESCAPE_DOTS_AND_SLASHES) && inFact(F_PATH_NOT_CANONICAL) && !isImplicitFile) {
+                    unescapeOnly(dest, length, '.', '/', if (syntax.inFact(S_CONVERT_PATH_SLASHES)) '\\' else '￿')
+                }
+            } else if (inFact(F_E_PATH_NOT_CANONICAL) && notAny(F_USER_ESCAPED)) {
+                var span = string
+                if (securedPathIndex != 0 && span[securedPathIndex + info.path - 1] == '|') {
+                    val array = span.toCharArray()
+                    array[securedPathIndex + info.path - 1] = ':'
+                    span = String(array)
+                }
+                escapeString(span.substring(info.path, info.query), dest, !isImplicitFile, UNRESERVED_RESERVED_EXCEPT_QUESTION_MARK_HASH)
+            } else {
+                dest.append(string, info.path, info.query)
             }
-        } else if (inFact(F_E_PATH_NOT_CANONICAL) && notAny(F_USER_ESCAPED)) {
-            var span = string
-            if (securedPathIndex != 0 && span[securedPathIndex + info.path - 1] == '|') {
-                val array = span.toCharArray()
-                array[securedPathIndex + info.path - 1] = ':'
-                span = String(array)
+
+            if (inFact(F_BACKSLASH_IN_PATH) && syntax.notAny(S_CONVERT_PATH_SLASHES) && syntax.inFact(S_FILE_LIKE_URI) && !isImplicitFile) {
+                val region = dest.substring(length)
+                dest.setLength(length)
+                escapeString(region, dest, checkExistingEscaped = true, noEscape = UNRESERVED_RESERVED)
+                length = dest.length
             }
-            escapeString(span.substring(info.path, info.query), dest, !isImplicitFile, UNRESERVED_RESERVED_EXCEPT_QUESTION_MARK_HASH)
         } else {
             dest.append(string, info.path, info.query)
-        }
-
-        if (inFact(F_BACKSLASH_IN_PATH) && syntax.notAny(S_CONVERT_PATH_SLASHES) && syntax.inFact(S_FILE_LIKE_URI) && !isImplicitFile) {
-            val region = dest.substring(length)
-            dest.setLength(length)
-            escapeString(region, dest, checkExistingEscaped = true, noEscape = UNRESERVED_RESERVED)
-            length = dest.length
+            if (inFact(F_SHOULD_BE_COMPRESSED) && syntax.inFact(S_UNESCAPE_DOTS_AND_SLASHES) && inFact(F_PATH_NOT_CANONICAL) && !isImplicitFile) {
+                unescapeOnly(dest, length, '.', '/', if (syntax.inFact(S_CONVERT_PATH_SLASHES)) '\\' else '￿')
+            }
         }
 
         val num = length + securedPathIndex
@@ -1241,11 +1517,31 @@ internal class DotNetUri private constructor(private var string: String) {
             if (length < dest.length && dest[length] == '\\') {
                 dest.setCharAt(length, '/')
             }
-            if (notAny(F_USER_ESCAPED) && inFact(F_E_PATH_NOT_CANONICAL)) {
+            if (formatAs == FMT_URI_ESCAPED && notAny(F_USER_ESCAPED) && inFact(F_E_PATH_NOT_CANONICAL)) {
                 val tail = dest.substring(length)
                 dest.setLength(length)
                 escapeString(tail, dest, !isImplicitFile, UNRESERVED_RESERVED_EXCEPT_QUESTION_MARK_HASH)
+                length = dest.length
             }
+        }
+
+        if (formatAs == FMT_URI_ESCAPED || !inFact(F_PATH_NOT_CANONICAL)) {
+            return
+        }
+
+        var unescapeMode = when (formatAs) {
+            FMT_V1_TO_STRING -> (if (inFact(F_USER_ESCAPED)) U_UNESCAPE else U_ESCAPE_UNESCAPE) or U_V1_TO_STRING
+            FMT_UNESCAPED -> if (!isImplicitFile) U_UNESCAPE or U_UNESCAPE_ALL else U_COPY_ONLY
+            else -> if (inFact(F_USER_ESCAPED)) U_UNESCAPE else U_ESCAPE_UNESCAPE
+        }
+        if (formatAs != FMT_UNESCAPED && isImplicitFile) {
+            unescapeMode = unescapeMode and U_UNESCAPE.inv()
+        }
+
+        if (unescapeMode != U_COPY_ONLY) {
+            val tail = dest.substring(length)
+            dest.setLength(length)
+            unescapeString(tail, 0, tail.length, dest, '?', '#', '￿', unescapeMode, syntax, isQuery = false)
         }
     }
 
@@ -1263,23 +1559,259 @@ internal class DotNetUri private constructor(private var string: String) {
             if (uri.parseScheme() != E_NONE) {
                 return null
             }
+            // Uri.CreateHelper: TryCreate answers false for a string .NET refuses (UriFormatException), as .NET does.
             return try {
-                if (uri.initializeUri() == null) uri else null
+                if (uri.initializeUri(E_NONE, allowRelative = false) == null) uri else null
             } catch (_: UriFormatException) {
                 null
             }
         }
 
-        /** `new Uri(uriString)`. */
+        /** `new Uri(uriString)`. Throws [UriFormatException] where .NET did. */
         fun create(uriString: String): DotNetUri {
+            val uri = DotNetUri(uriString)
+            uri.initializeUri(uri.parseScheme(), allowRelative = false)?.let { throw it }
+            return uri
+        }
+
+        /**
+         * `Uri.TryCreate(uriString, UriKind.RelativeOrAbsolute, out uri)`: null where .NET answers false. Unlike
+         * [createRelativeOrAbsolute], a string without a valid scheme is kept exactly as given (Uri.CreateHelper makes
+         * that relative Uri without initializing it).
+         */
+        fun tryCreateRelativeOrAbsolute(uriString: String?): DotNetUri? {
+            if (uriString == null) {
+                return null
+            }
             val uri = DotNetUri(uriString)
             val err = uri.parseScheme()
             if (err != E_NONE) {
-                throw exception(err)
+                if (err > E_LAST_ERROR_OKAY_FOR_RELATIVE_URIS) {
+                    return null
+                }
+                return DotNetUri(uriString)
             }
-            uri.initializeUri()?.let { throw it }
+            // Uri.CreateHelper: TryCreate answers false for a string .NET refuses (UriFormatException), as .NET does.
+            return try {
+                if (uri.initializeUri(E_NONE, allowRelative = true) == null) uri else null
+            } catch (_: UriFormatException) {
+                null
+            }
+        }
+
+        /** `new Uri(uriString, UriKind.RelativeOrAbsolute)`: see [isAbsoluteUri]. Throws [UriFormatException] where .NET did. */
+        fun createRelativeOrAbsolute(uriString: String): DotNetUri {
+            val uri = DotNetUri(uriString)
+            uri.initializeUri(uri.parseScheme(), allowRelative = true)?.let { throw it }
             return uri
         }
+
+        /**
+         * `new Uri(baseUri, relativeUri)`: [relativeUri] resolved against [baseUri] (an absolute URI) the way .NET
+         * does it (Uri.CreateUri, ResolveHelper, GetCombinedString, CombineUri), which is not RFC 3986's algorithm.
+         * Throws [UriFormatException] where .NET did.
+         */
+        fun create(baseUri: DotNetUri, relativeUri: String): DotNetUri {
+            require(baseUri.isAbsoluteUri) { "baseUri must be absolute" }
+
+            val relative = createRelativeOrAbsolute(relativeUri)
+            if (relative.isAbsoluteUri) {
+                return relative
+            }
+
+            return create(resolveHelper(baseUri, relative))
+        }
+
+        /** Uri.ResolveHelper for a relative [relativeUri]: the string to parse as the combined absolute URI. */
+        private fun resolveHelper(baseUri: DotNetUri, relativeUri: DotNetUri): String {
+            var text = relativeUri.originalString
+            val baseSyntax = baseUri.syntax!!
+
+            if (text.isNotEmpty() && (isLWS(text[0]) || isLWS(text[text.length - 1]))) {
+                text = text.trim(' ', '\n', '\r', '\t')
+            }
+
+            if (text.isEmpty()) {
+                return baseUri.getParts(C_ABSOLUTE_URI, FMT_SAFE_UNESCAPED)
+            }
+
+            if (text[0] == '#' && !baseUri.isImplicitFile && baseSyntax.inFact(S_MAY_HAVE_FRAGMENT)) {
+                return baseUri.getParts(C_HTTP_REQUEST_URL or C_USER_INFO, FMT_URI_ESCAPED) + text
+            }
+
+            if (text[0] == '?' && !baseUri.isImplicitFile && baseSyntax.inFact(S_MAY_HAVE_QUERY)) {
+                return baseUri.getParts(C_SCHEME_AND_SERVER or C_USER_INFO or C_PATH, FMT_URI_ESCAPED) + text
+            }
+
+            if (text.length >= 3 && (text[1] == ':' || text[1] == '|') && isAsciiLetter(text[0]) && (text[2] == '\\' || text[2] == '/')) {
+                if (baseUri.isImplicitFile) {
+                    return text
+                }
+                if (baseSyntax.inFact(S_ALLOW_DOS_PATH)) {
+                    val delimiter = if (!baseUri.inFact(F_AUTHORITY_FOUND)) {
+                        if (baseSyntax.inFact(S_PATH_IS_ROOTED)) ":/" else ":"
+                    } else {
+                        if (baseSyntax.inFact(S_PATH_IS_ROOTED)) ":///" else "://"
+                    }
+                    return baseUri.scheme + delimiter + text
+                }
+            }
+
+            // ResolveHelper hands back baseUri itself when the combined string is its own; parsing that string again is the same URI.
+            return getCombinedString(baseUri, text)
+        }
+
+        private fun getCombinedString(baseUri: DotNetUri, relativeStrIn: String): String {
+            var relativeStr = relativeStrIn
+            var i = 0
+
+            while (i < relativeStr.length && relativeStr[i] != '/' && relativeStr[i] != '\\' && relativeStr[i] != '?' && relativeStr[i] != '#') {
+                if (relativeStr[i] == ':') {
+                    if (i < 2) {
+                        break
+                    }
+                    val error = IntRef(E_NONE)
+                    val uriParser = checkSchemeSyntax(relativeStr.substring(0, i), error)
+                    if (error.value != E_NONE) {
+                        break
+                    }
+                    if (sameParser(baseUri.syntax!!, uriParser!!)) {
+                        relativeStr = if (i + 1 >= relativeStr.length) "" else relativeStr.substring(i + 1)
+                        break
+                    }
+                    return relativeStr
+                }
+                i++
+            }
+
+            if (relativeStr.isEmpty()) {
+                return baseUri.originalString
+            }
+
+            return combineUri(baseUri, relativeStr, FMT_SAFE_UNESCAPED)
+        }
+
+        /** Reference equality of .NET's UriParser objects: one per built-in syntax, and one per unknown scheme name. */
+        private fun sameParser(a: Syntax, b: Syntax): Boolean =
+            a === b || (a.inFact(S_V1_UNKNOWN_URI) && b.inFact(S_V1_UNKNOWN_URI) && a.schemeName == b.schemeName)
+
+        private fun combineUri(basePart: DotNetUri, relativePartIn: String, uriFormat: Int): String {
+            var relativePart = relativePartIn
+            val baseSyntax = basePart.syntax!!
+            var c = relativePart[0]
+
+            if (basePart.isDosPath && (c == '/' || c == '\\') && (relativePart.length == 1 || (relativePart[1] != '/' && relativePart[1] != '\\'))) {
+                var num = basePart.originalString.indexOf(':')
+                if (basePart.isImplicitFile) {
+                    return basePart.originalString.substring(0, num + 1) + relativePart
+                }
+                num = basePart.originalString.indexOf(':', num + 1)
+                return basePart.originalString.substring(0, num + 1) + relativePart
+            }
+
+            if (staticIsFile(baseSyntax) && (c == '\\' || c == '/')) {
+                if (relativePart.length >= 2 && (relativePart[1] == '\\' || relativePart[1] == '/')) {
+                    return if (!basePart.isImplicitFile) "file:$relativePart" else relativePart
+                }
+                if (basePart.isUncPath) {
+                    var span = basePart.getParts(C_PATH or C_KEEP_DELIMITER, FMT_UNESCAPED)
+                    val num2 = span.substring(1).indexOf('/')
+                    if (num2 >= 0) {
+                        span = span.substring(0, num2 + 1)
+                    }
+                    if (basePart.isImplicitFile) {
+                        return "\\\\" + basePart.getParts(C_HOST, FMT_UNESCAPED) + span + relativePart
+                    }
+                    return "file://" + basePart.getParts(C_HOST, uriFormat) + span + relativePart
+                }
+                return "file://$relativePart"
+            }
+
+            val flag = baseSyntax.inFact(S_CONVERT_PATH_SLASHES)
+            var text: String
+
+            if (c == '/' || (c == '\\' && flag)) {
+                if (relativePart.length >= 2 && relativePart[1] == '/') {
+                    return basePart.scheme + ":" + relativePart
+                }
+                text = if (basePart.hostType != F_IPV6_HOST_TYPE) {
+                    basePart.getParts(C_SCHEME_AND_SERVER or C_USER_INFO, uriFormat)
+                } else {
+                    basePart.getParts(C_SCHEME or C_USER_INFO, uriFormat) + "[" + basePart.dnsSafeHost + "]" +
+                        basePart.getParts(C_PORT or C_KEEP_DELIMITER, uriFormat)
+                }
+                if (!flag || c != '\\') {
+                    return text + relativePart
+                }
+                return text + "/" + relativePart.substring(1)
+            }
+
+            text = basePart.getParts(C_PATH or C_KEEP_DELIMITER, if (basePart.isImplicitFile) FMT_UNESCAPED else uriFormat)
+            var num3 = text.length
+            val array = CharArray(num3 + relativePart.length)
+
+            if (num3 > 0) {
+                text.toCharArray(array, 0, 0, num3)
+                while (num3 > 0) {
+                    if (array[--num3] == '/') {
+                        num3++
+                        break
+                    }
+                }
+            }
+
+            relativePart.toCharArray(array, num3, 0, relativePart.length)
+
+            c = if (baseSyntax.inFact(S_MAY_HAVE_QUERY)) '?' else '￿'
+            val c2 = if (!basePart.isImplicitFile && baseSyntax.inFact(S_MAY_HAVE_FRAGMENT)) '#' else '￿'
+            var extra = ""
+
+            if (c != '￿' || c2 != '￿') {
+                var i = 0
+                while (i < relativePart.length && array[num3 + i] != c && array[num3 + i] != c2) {
+                    i++
+                }
+                if (i == 0) {
+                    extra = relativePart
+                } else if (i < relativePart.length) {
+                    extra = relativePart.substring(i)
+                }
+                num3 += i
+            } else {
+                num3 += relativePart.length
+            }
+
+            if (basePart.hostType == F_IPV6_HOST_TYPE) {
+                text = if (!basePart.isImplicitFile) {
+                    basePart.getParts(C_SCHEME or C_USER_INFO, uriFormat) + "[" + basePart.dnsSafeHost + "]" +
+                        basePart.getParts(C_PORT or C_KEEP_DELIMITER, uriFormat)
+                } else {
+                    "\\\\[" + basePart.dnsSafeHost + "]"
+                }
+            } else if (basePart.isImplicitFile) {
+                if (basePart.isDosPath) {
+                    num3 = compressRange(array, 3, num3, baseSyntax)
+                    return String(array, 1, num3 - 1) + extra
+                }
+                // Not Windows: a Unix path's host part is used as is.
+                text = if (!basePart.isUnixPath) "\\\\" + basePart.getParts(C_HOST, FMT_UNESCAPED) else basePart.getParts(C_HOST, FMT_UNESCAPED)
+            } else {
+                text = basePart.getParts(C_SCHEME_AND_SERVER or C_USER_INFO, uriFormat)
+            }
+
+            num3 = compressRange(array, basePart.securedPathIndex, num3, baseSyntax)
+            return text + String(array, 0, num3) + extra
+        }
+
+        /** Uri.Compress(char[], start, ref destLength, syntax): the new length. */
+        private fun compressRange(dest: CharArray, start: Int, destLength: Int, syntax: Syntax): Int {
+            val region = dest.copyOfRange(start, destLength)
+            val length = compress(region, syntax.inFact(S_CONVERT_PATH_SLASHES), syntax.inFact(S_CANONICALIZE_AS_FILE_PATH))
+            System.arraycopy(region, 0, dest, start, length)
+            return start + length
+        }
+
+        private fun staticIsFile(syntax: Syntax) = syntax.inFact(S_FILE_LIKE_URI)
 
         // Flags
         private const val F_SCHEME_NOT_CANONICAL = 0x1L
@@ -1341,9 +1873,28 @@ internal class DotNetUri private constructor(private var string: String) {
         private const val C_PATH = 0x10
         private const val C_QUERY = 0x20
         private const val C_FRAGMENT = 0x40
+        private const val C_STRONG_PORT = 0x80
         private const val C_SCHEME_AND_SERVER = 0xD
+        private const val C_HOST_AND_PORT = C_HOST or C_STRONG_PORT
+        private const val C_STRONG_AUTHORITY = C_HOST_AND_PORT or C_USER_INFO
+        private const val C_HTTP_REQUEST_URL = 0x3D
+        private const val C_PATH_AND_QUERY = 0x30
         private const val C_ABSOLUTE_URI = 0x7F
         private const val C_KEEP_DELIMITER = 0x40000000
+
+        // UriFormat (V1ToString is the internal (UriFormat)0x7FFF Uri.ToString uses)
+        private const val FMT_URI_ESCAPED = 1
+        private const val FMT_UNESCAPED = 2
+        private const val FMT_SAFE_UNESCAPED = 3
+        private const val FMT_V1_TO_STRING = 0x7FFF
+
+        // UnescapeMode
+        private const val U_COPY_ONLY = 0
+        private const val U_ESCAPE = 1
+        private const val U_UNESCAPE = 2
+        private const val U_ESCAPE_UNESCAPE = U_ESCAPE or U_UNESCAPE
+        private const val U_V1_TO_STRING = 4
+        private const val U_UNESCAPE_ALL = 8
 
         // UriSyntaxFlags
         private const val S_MUST_HAVE_AUTHORITY = 1
@@ -1379,6 +1930,7 @@ internal class DotNetUri private constructor(private var string: String) {
         private const val E_BAD_SCHEME = 2
         private const val E_BAD_AUTHORITY = 3
         private const val E_EMPTY_URI_STRING = 4
+        private const val E_LAST_ERROR_OKAY_FOR_RELATIVE_URIS = 5
         private const val E_SCHEME_LIMIT = 6
         private const val E_MUST_ROOTED_PATH = 7
         private const val E_BAD_HOST_NAME = 8
@@ -1549,6 +2101,106 @@ internal class DotNetUri private constructor(private var string: String) {
         private const val UNRESERVED = "-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~"
         private const val UNRESERVED_RESERVED = "!#$&'()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_abcdefghijklmnopqrstuvwxyz~"
         private const val UNRESERVED_RESERVED_EXCEPT_QUESTION_MARK_HASH = "!$&'()*+,-./0123456789:;=@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_abcdefghijklmnopqrstuvwxyz~"
+        private const val UNRESERVED_RESERVED_EXCEPT_HASH = "!$&'()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_abcdefghijklmnopqrstuvwxyz~"
+
+        /** UriHelper.UnescapeString: [input] from [start] to [end] into [dest], per [unescapeMode] (UnescapeMode flags). */
+        private fun unescapeString(
+            input: String, startIn: Int, end: Int, dest: StringBuilder, rsvd1: Char, rsvd2: Char, rsvd3: Char,
+            unescapeMode: Int, syntax: Syntax?, isQuery: Boolean,
+        ) {
+            if ((unescapeMode and U_ESCAPE_UNESCAPE) == 0) {
+                dest.append(input, startIn, end)
+                return
+            }
+
+            var start = startIn
+            var flag = false
+            // IriParsingStatic(syntax): every syntax ported here allows IRI parsing.
+            val flag2 = (syntax == null || syntax.inFact(S_ALLOW_IRI_PARSING)) && (unescapeMode and U_ESCAPE_UNESCAPE) == U_ESCAPE_UNESCAPE
+            var i = start
+
+            while (i < end) {
+                var c = '\u0000'
+
+                scan@ while (i < end) {
+                    c = input[i]
+                    if (c == '%') {
+                        if ((unescapeMode and U_UNESCAPE) == 0) {
+                            flag = true
+                            break@scan
+                        }
+                        if (i + 2 < end) {
+                            c = decodeHexChars(input[i + 1], input[i + 2])
+                            if (unescapeMode < U_UNESCAPE_ALL) {
+                                when {
+                                    c == '￿' -> {
+                                        if ((unescapeMode and U_ESCAPE) == 0) {
+                                            i++
+                                            continue@scan
+                                        }
+                                        flag = true
+                                    }
+
+                                    c == '%' -> {
+                                        i += 3
+                                        continue@scan
+                                    }
+
+                                    c == rsvd1 || c == rsvd2 || c == rsvd3 -> {
+                                        i += 3
+                                        continue@scan
+                                    }
+
+                                    (unescapeMode and U_V1_TO_STRING) == 0 && isNotSafeForUnescape(c) -> {
+                                        i += 3
+                                        continue@scan
+                                    }
+
+                                    flag2 && ((c <= '\u009f' && isNotSafeForUnescape(c)) || (c > '\u009f' && !checkIriUnicodeRange(c, isQuery))) -> {
+                                        i += 3
+                                        continue@scan
+                                    }
+                                }
+                                break@scan
+                            }
+                            if (c != '￿') {
+                                break@scan
+                            }
+                        } else if (unescapeMode < U_UNESCAPE_ALL) {
+                            flag = true
+                            break@scan
+                        }
+                    } else if ((unescapeMode and (U_UNESCAPE or U_UNESCAPE_ALL)) != (U_UNESCAPE or U_UNESCAPE_ALL) && (unescapeMode and U_ESCAPE) != 0) {
+                        if (c == rsvd1 || c == rsvd2 || c == rsvd3) {
+                            flag = true
+                            break@scan
+                        }
+                        if ((unescapeMode and U_V1_TO_STRING) == 0 && (c <= '\u001f' || (c >= '\u007f' && c <= '\u009f'))) {
+                            flag = true
+                            break@scan
+                        }
+                    }
+                    i++
+                }
+
+                dest.append(input, start, i)
+
+                if (i != end) {
+                    if (flag) {
+                        // (byte)pStr[i]: the char's low byte.
+                        percentEncodeByte(input[i].code and 0xFF, dest)
+                        flag = false
+                        i++
+                    } else if (c <= '\u007f') {
+                        dest.append(c)
+                        i += 3
+                    } else {
+                        i += unescapePercentEncodedUtf8Sequence(input, i, end - i, dest, isQuery, flag2)
+                    }
+                    start = i
+                }
+            }
+        }
 
         private fun hexValue(c: Char): Int = when (c) {
             in '0'..'9' -> c - '0'

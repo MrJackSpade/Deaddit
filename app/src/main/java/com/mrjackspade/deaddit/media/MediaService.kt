@@ -15,6 +15,8 @@ import com.mrjackspade.deaddit.core.util.UrlHelper
 import com.mrjackspade.deaddit.handlers.FileDownload
 import com.mrjackspade.deaddit.settings.SettingsStore
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import java.io.File
@@ -60,12 +62,17 @@ class MediaService(
         platform.shareFiles(files, types.singleOrNull() ?: "*/*", title)
     }
 
-    /** Downloads the files (converting those [converter] takes) into the user's save folders. */
+    /**
+     * Downloads the files (converting those [converter] takes) into the user's save folders. Cancelling the calling
+     * coroutine stops it between files and mid-download or mid-copy, as the C# FileStorage's CancellationToken did.
+     */
     suspend fun save(downloads: List<FileDownload>, converter: StreamConverter? = null) {
         require(downloads.isNotEmpty()) { "Nothing to save." }
         val savePaths = settings.savePaths.value
 
         for (item in downloads) {
+            currentCoroutineContext().ensureActive()
+
             val fileName = if (converter != null && converter.canConvert(item.fileName)) converter.convertFileName(item.fileName) else item.fileName
             val targetDirectory = resolveTargetDirectory(fileName, savePaths)
 
@@ -86,7 +93,13 @@ class MediaService(
     private suspend fun fetch(item: FileDownload, converter: StreamConverter?): Pair<String, File> = withContext(Dispatchers.IO) {
         val tempDir = File(context.cacheDir, "media-temp").apply { mkdirs() }
         val downloaded = File(tempDir, UUID.randomUUID().toString())
-        fetcher.fetch(item.downloadUrl, downloaded)
+        try {
+            fetcher.fetch(item.downloadUrl, downloaded)
+        } catch (e: Throwable) {
+            // A failed or cancelled download leaves no partial temp file behind.
+            downloaded.delete()
+            throw e
+        }
 
         if (converter != null && converter.canConvert(item.fileName)) {
             val converted = File(tempDir, UUID.randomUUID().toString())
@@ -117,7 +130,7 @@ class MediaService(
                 withContext(Dispatchers.IO) {
                     val dir = File(directory)
                     dir.mkdirs()
-                    source.copyTo(File(dir, fileName), overwrite = true)
+                    source.inputStream().use { input -> File(dir, fileName).outputStream().use { input.copyToCancellable(it) } }
                 }
             }
 
@@ -125,7 +138,7 @@ class MediaService(
         }
     }
 
-    private fun writeToTree(tree: Uri, fileName: String, source: File) {
+    private suspend fun writeToTree(tree: Uri, fileName: String, source: File) {
         val resolver = context.contentResolver
         val parent = DocumentsContract.buildDocumentUriUsingTree(tree, DocumentsContract.getTreeDocumentId(tree))
 
@@ -148,14 +161,14 @@ class MediaService(
             ?: DocumentsContract.createDocument(resolver, parent, mimeTypeOf(fileName), fileName)
             ?: throw IllegalStateException("Couldn't create $fileName in $tree")
 
-        resolver.openOutputStream(target, "wt")!!.use { output -> source.inputStream().use { it.copyTo(output) } }
+        resolver.openOutputStream(target, "wt")!!.use { output -> source.inputStream().use { it.copyToCancellable(output) } }
     }
 
     /** Asks where to save, with Android's "save as" dialog. Cancelling it skips the file. */
     private suspend fun saveWithDialog(fileName: String, source: File) {
         val target = activityResults.launch(ActivityResultContracts.CreateDocument(mimeTypeOf(fileName)), fileName) ?: return
         withContext(Dispatchers.IO) {
-            context.contentResolver.openOutputStream(target, "wt")!!.use { output -> source.inputStream().use { it.copyTo(output) } }
+            context.contentResolver.openOutputStream(target, "wt")!!.use { output -> source.inputStream().use { it.copyToCancellable(output) } }
         }
     }
 
