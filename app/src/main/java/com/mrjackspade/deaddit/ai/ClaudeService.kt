@@ -40,7 +40,8 @@ data class ClaudeUsage(@SerialName("input_tokens") val inputTokens: Int = 0, @Se
 
 @Serializable
 data class ClaudeMessageResponse(
-    val content: List<ClaudeContentBlock> = emptyList(),
+    /** Null when the response has no "content" (or a null one), as the C# model's was. */
+    val content: List<ClaudeContentBlock>? = null,
     val id: String? = null,
     val model: String? = null,
     val role: String? = null,
@@ -73,10 +74,15 @@ class ClaudeService(http: OkHttpClient, configuration: AIConfiguration) {
         encodeDefaults = true
     }
 
-    /** Sends [input] as the user's message under the system [prompt]; the reply's first text. */
+    /**
+     * Sends [input] as the user's message under the system [prompt]; the reply's first text. As the C#
+     * `response.Content.FirstOrDefault()?.Text ?? string.Empty`: a response without content is an error (the C#
+     * crashed on it), an empty content list or a first block without text is "".
+     */
     suspend fun sendMessage(prompt: String, input: String, model: String? = null, temperature: Double = 0.0): String {
         val response = sendMessage(listOf(ClaudeMessage("user", input)), systemPrompt = prompt, model = model, temperature = temperature)
-        return response.content.firstOrNull()?.text ?: ""
+        val content = response.content ?: throw IllegalStateException("Claude's response has no content: $response")
+        return content.firstOrNull()?.text ?: ""
     }
 
     suspend fun sendMessage(

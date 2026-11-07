@@ -1,11 +1,12 @@
 package com.mrjackspade.deaddit.media
 
 import com.mrjackspade.deaddit.core.model.isAbsoluteUrl
-import kotlinx.coroutines.Dispatchers
+import com.mrjackspade.deaddit.core.util.DotNetHttpHeaders
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.util.concurrent.ConcurrentHashMap
@@ -17,18 +18,25 @@ import java.util.concurrent.ConcurrentHashMap
 class ETagCache(private val http: OkHttpClient) {
     private val cache = ConcurrentHashMap<String, String>()
 
+    /**
+     * Fetches the URLs' ETags, at most one request per processor at a time: the C# Parallel.ForEachAsync, whose
+     * default degree of parallelism is Environment.ProcessorCount.
+     */
     suspend fun cache(urls: List<String>) = coroutineScope {
-        urls.map { async { get(it) } }.awaitAll()
+        val permits = Semaphore(Runtime.getRuntime().availableProcessors())
+        urls.map { async { permits.withPermit { get(it) } } }.awaitAll()
     }
 
-    /** The URL's ETag; empty when it isn't an absolute URL or the server sends none. */
+    /**
+     * The URL's ETag as the C# stored it (`response.Headers.ETag?.Tag ?? ""`): the quoted tag without any `W/`, so a
+     * weak and a strong ETag with the same tag match; empty when it isn't an absolute URL, or the server sends no
+     * ETag or one .NET can't parse.
+     */
     suspend fun get(url: String): String {
         if (!isAbsoluteUrl(url)) return ""
         cache[url]?.let { return it }
 
-        val etag = withContext(Dispatchers.IO) {
-            http.newCall(Request.Builder().url(url).head().build()).execute().use { it.header("ETag") ?: "" }
-        }
+        val etag = http.fetch(Request.Builder().url(url).head().build()) { DotNetHttpHeaders.entityTag(it.headers("ETag")) ?: "" }
 
         cache.putIfAbsent(url, etag)
         return etag

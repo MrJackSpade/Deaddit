@@ -20,11 +20,12 @@ class KeepAliveService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         createNotificationChannel()
 
-        // The launcher icon, which the C# notification used; this app has no icon of its own yet.
+        // The app icon, as the C# SetSmallIcon(Resource.Mipmap.appicon): a full-color icon, which Android draws in
+        // the status bar as the silhouette of its opaque pixels.
         val notification = Notification.Builder(this, CHANNEL_ID)
             .setContentTitle("Deaddit")
             .setContentText("Running")
-            .setSmallIcon(android.R.drawable.sym_def_app_icon)
+            .setSmallIcon(R.drawable.appicon)
             .setOngoing(true)
             .build()
 

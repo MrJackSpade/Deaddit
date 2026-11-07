@@ -31,7 +31,7 @@ class DeadditApp : Application(), SingletonImageLoader.Factory {
             // Failed loads go to logcat (Coil reports nothing otherwise).
             .logger(coil3.util.DebugLogger(coil3.util.Logger.Level.Error))
             .components {
-                add(OkHttpNetworkFetcherFactory(callFactory = { services.http }))
+                add(OkHttpNetworkFetcherFactory(callFactory = { services.imageHttp }))
                 // Android's animated decoder exists from API 28; Coil's own GIF decoder before that.
                 if (android.os.Build.VERSION.SDK_INT >= 28) add(AnimatedImageDecoder.Factory()) else add(coil3.gif.GifDecoder.Factory())
             }

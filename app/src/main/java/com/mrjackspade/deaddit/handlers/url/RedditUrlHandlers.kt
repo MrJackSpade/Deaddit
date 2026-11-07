@@ -5,10 +5,10 @@ import com.mrjackspade.deaddit.core.model.Comment
 import com.mrjackspade.deaddit.core.service.CommentFocus
 import com.mrjackspade.deaddit.handlers.FileDownload
 import com.mrjackspade.deaddit.handlers.PostHandlers
+import com.mrjackspade.deaddit.core.util.DotNetHttpHeaders
 import com.mrjackspade.deaddit.handlers.UrlHandler
+import com.mrjackspade.deaddit.media.fetch
 import com.mrjackspade.deaddit.ui.Pages
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import okhttp3.Request
 
 /**
@@ -62,7 +62,9 @@ class RedditCommentsPostUrlHandler(private val services: Services) : UrlHandler 
         val commentId = match?.groups?.get(2)?.value
 
         val post = services.reddit.getPost(postId) ?: throw IllegalStateException("Reddit returned no post for id '$postId'")
-        val focus = commentId?.let { CommentFocus(Comment(id = it, name = "t1_$it")) }
+        // As the C# `new ApiComment { Id = commentId }`: only the ID, no name. The thread is fetched by that ID, and
+        // the focus is then only the parent its top-level comments and "load more"s hang from, which reads no name.
+        val focus = commentId?.let { CommentFocus(Comment(id = it, name = "")) }
 
         Pages.openPost(services, post, focus)
     }
@@ -75,8 +77,6 @@ class RedditCommentsPostUrlHandler(private val services: Services) : UrlHandler 
 
 /** Reddit's share links (/r/sub/s/xyz) redirect to the real thread: follow that one redirect, then open where it points. */
 class RedditSPostUrlHandler(private val services: Services) : UrlHandler {
-    private val noRedirects by lazy { services.http.newBuilder().followRedirects(false).followSslRedirects(false).build() }
-
     override fun canDownload(url: String?, posts: PostHandlers?) = false
     override fun canInline(url: String) = false
 
@@ -92,10 +92,13 @@ class RedditSPostUrlHandler(private val services: Services) : UrlHandler {
         val caller = requireNotNull(posts)
 
         val request = Request.Builder().url(url).header("User-Agent", "Deaddit").build()
-        val newUrl = withContext(Dispatchers.IO) {
-            noRedirects.newCall(request).execute().use { response ->
-                response.header("Location") ?: throw IllegalStateException("Reddit sent no redirect for $url (HTTP ${response.code})")
-            }
+        // `Headers.Location.ToString()`: the target as .NET's Uri displays it, %-escapes decoded but for '#', '?' and '%'.
+        // Location holds one value, so of several .NET reads the first; one it can't parse threw (a null Location).
+        val newUrl = services.httpNoRedirects.fetch(request) { response ->
+            val location = response.headers("Location").firstOrNull()
+                ?: throw IllegalStateException("Reddit sent no redirect for $url (HTTP ${response.code})")
+            DotNetHttpHeaders.location(location)
+                ?: throw IllegalStateException("Reddit's redirect for $url is not a URI .NET can parse: '$location'")
         }
 
         if (newUrl != url) {

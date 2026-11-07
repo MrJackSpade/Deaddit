@@ -2,6 +2,8 @@ package com.mrjackspade.deaddit.handlers.url
 
 import com.mrjackspade.deaddit.Services
 import com.mrjackspade.deaddit.core.model.isAbsoluteUrl
+import com.mrjackspade.deaddit.core.util.DotNetStrings
+import com.mrjackspade.deaddit.core.util.DotNetUri
 import com.mrjackspade.deaddit.core.util.UrlHelper
 import com.mrjackspade.deaddit.handlers.FileDownload
 import com.mrjackspade.deaddit.handlers.PostHandlers
@@ -10,7 +12,6 @@ import com.mrjackspade.deaddit.ui.Pages
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
-import java.net.URI
 
 /**
  * RedGifs pages: finds the video file's properly capitalized name in the page, then plays the
@@ -83,7 +84,7 @@ class RedGifsHandler(private val services: Services) : UrlHandler {
     private fun isRedGifs(url: String): Boolean {
         // As in the C#, the MIME check runs first, so a string that isn't a URI throws here.
         if (UrlHelper.getMimeTypeFromUri(url).startsWith("image/")) return false
-        return hostOf(url)?.endsWith("redgifs.com", ignoreCase = true) == true
+        return hostOf(url)?.let { DotNetStrings.endsWithOrdinalIgnoreCase(it, "redgifs.com") } == true
     }
 }
 
@@ -97,20 +98,22 @@ class GiphyHandler(private val services: Services) : UrlHandler {
     override suspend fun launch(url: String, posts: PostHandlers?) = Pages.openImages(services, listOf(FileDownload.of(getDirectUrl(url))))
 
     private fun getDirectUrl(url: String): String {
-        val uri = URI(url)
-        val host = uri.host ?: ""
+        // .NET's Uri: the host is lowercased, so "MEDIA.giphy.com" is a direct media URL too.
+        val uri = DotNetUri.create(url)
+        val host = uri.host
 
         // Already a direct media URL
         if (host.contains("media") || host == "i.giphy.com") return url
 
         // https://giphy.com/gifs/some-slug-ID -> extract ID (last segment after last hyphen)
-        val lastSegment = (uri.rawPath ?: "").split('/').last()
+        val lastSegment = uri.absolutePath.split('/').last()
         val id = if (lastSegment.contains('-')) lastSegment.substring(lastSegment.lastIndexOf('-') + 1) else lastSegment
 
         return "https://i.giphy.com/$id.gif"
     }
 
-    private fun isGiphy(url: String?) = url != null && isAbsoluteUrl(url) && hostOf(url)?.endsWith("giphy.com", ignoreCase = true) == true
+    // Uri.TryCreate answers false for null; Host.EndsWith(..., OrdinalIgnoreCase).
+    private fun isGiphy(url: String?) = url != null && hostOf(url)?.let { DotNetStrings.endsWithOrdinalIgnoreCase(it, "giphy.com") } == true
 }
 
 /** Any link whose extension is an image type. */
@@ -153,8 +156,8 @@ class GenericUrlHandler(private val services: Services) : UrlHandler {
     override suspend fun launch(url: String, posts: PostHandlers?) = Pages.openBrowser(services, url)
 }
 
-/** The URL's host, or null when it has none (the C# Uri.TryCreate(..., Absolute) then Uri.Host). */
-private fun hostOf(url: String): String? {
-    if (!isAbsoluteUrl(url)) return null
-    return URI(url).host
-}
+/**
+ * The URL's host, or null when it isn't an absolute URI: the C# `Uri.TryCreate(url, UriKind.Absolute, out uri)` then
+ * `uri.Host`, with .NET's parsing (lowercased host, underscores allowed; "" for a URI without one).
+ */
+private fun hostOf(url: String): String? = DotNetUri.tryCreate(url)?.host

@@ -76,8 +76,23 @@ class RedditApi(private val runner: CommandRunner) {
 
     // ----- Session -----
 
+    /**
+     * The session Reddit.Api holds, mirrored here so it can be read without a call into .NET. Reddit.Api only ever
+     * gets a session from the host: through [setSession], or from the host's session refresher, which reports it with
+     * [sessionRefreshed]. (It never logs in by itself: the app gives it no credentials.)
+     */
+    @Volatile
+    var session: Session? = null
+        private set
+
     suspend fun setSession(session: Session) {
         call("SetBearerToken") { put("token", RedditJson.encodeToJsonElement(Session.serializer(), session)) }
+        this.session = session
+    }
+
+    /** Records the session the host's refresher handed Reddit.Api, which sets it itself (RefreshSessionAsync). */
+    fun sessionRefreshed(session: Session) {
+        this.session = session
     }
 
     suspend fun getTokenOwner(accessToken: String, sessionCookies: String?): String? =

@@ -3,6 +3,7 @@ package com.mrjackspade.deaddit
 import android.content.Context
 import android.util.Log
 import android.webkit.CookieManager
+import com.mrjackspade.deaddit.api.AndroidMessageHandlerRedirects
 import com.mrjackspade.deaddit.api.NativeRedditApi
 import com.mrjackspade.deaddit.core.api.RedditApi
 import com.mrjackspade.deaddit.core.model.RedditJson
@@ -16,7 +17,10 @@ import com.mrjackspade.deaddit.settings.VisitTracker
 import com.mrjackspade.deaddit.ui.Dialogs
 import com.mrjackspade.deaddit.ui.Navigator
 import com.mrjackspade.deaddit.ui.login.LoginPage
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -35,13 +39,30 @@ class Services(context: Context, val testMode: Boolean) {
     val userTags = UserTags(File(context.filesDir, "user_tags.tsv"))
     val dialogs = Dialogs(testMode)
 
-    /** For everything but Reddit.Api's own requests: media, ETags, Claude. */
     // OkHttp limits connect/read/write to 10s by default; 0 removes those limits.
-    val http = okhttp3.OkHttpClient.Builder()
+    private val baseHttp = okhttp3.OkHttpClient.Builder()
         .connectTimeout(0, java.util.concurrent.TimeUnit.MILLISECONDS)
         .readTimeout(0, java.util.concurrent.TimeUnit.MILLISECONDS)
         .writeTimeout(0, java.util.concurrent.TimeUnit.MILLISECONDS)
         .build()
+
+    /**
+     * For everything but Reddit.Api's own requests: media, ETags, Claude. Redirects are followed as the C# app's
+     * `new HttpClient()` (AndroidMessageHandler) followed them, but never from https to http.
+     */
+    val http = AndroidMessageHandlerRedirects.install(baseHttp.newBuilder()).build()
+
+    /**
+     * For Coil's inline images, which the C# app's WebView loaded (not its HttpClient), so they keep OkHttp's own
+     * redirect following.
+     */
+    val imageHttp: okhttp3.OkHttpClient = baseHttp
+
+    /** [http] without following redirects (the C# `new HttpClientHandler { AllowAutoRedirect = false }`). */
+    val httpNoRedirects = baseHttp.newBuilder().followRedirects(false).followSslRedirects(false).build()
+
+    /** App-wide UI work no page owns, such as showing an error nothing waits on (the C#'s un-awaited DisplayException). */
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     val platform = com.mrjackspade.deaddit.Platform(context)
     /** System pickers and permission prompts, awaited; MainActivity attaches itself. */
     val activityResults = com.mrjackspade.deaddit.media.ActivityResults()
@@ -91,8 +112,14 @@ class Services(context: Context, val testMode: Boolean) {
         if (!testMode) {
             // Reddit.Api asks for this from one of its own threads, mid-request, and waits.
             NativeRedditApi.sessionRefresher = {
-                runBlocking { loginViaBrowser() }?.let { RedditJson.encodeToString(Session.serializer(), it) }
+                runBlocking { loginViaBrowser() }?.let { session ->
+                    // Reddit.Api takes this session as its own; the app's mirror of it follows.
+                    api.sessionRefreshed(session)
+                    RedditJson.encodeToString(Session.serializer(), session)
+                }
             }
+            // The C# RefreshToken showed the failure without waiting on it; the request goes on without a session.
+            NativeRedditApi.sessionRefreshFailed = { e -> appScope.launch { dialogs.error(e) } }
         }
     }
 

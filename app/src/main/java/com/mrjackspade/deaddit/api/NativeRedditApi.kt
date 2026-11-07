@@ -16,6 +16,7 @@ import kotlinx.serialization.json.put
 import okhttp3.Headers
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
+import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 
@@ -27,12 +28,11 @@ import okhttp3.RequestBody.Companion.toRequestBody
 object NativeRedditApi {
     private const val TAG = "RedditApi"
 
+    // As the C# app's HttpClient over AndroidMessageHandler (HttpURLConnection) sent them: HTTP/1.1 only, and
+    // redirects followed as that handler followed them (Reddit 301s /r/All to /r/all; see AndroidMessageHandlerRedirects).
     // OkHttp limits connect/read/write to 10s by default; 0 removes those limits.
-    // Redirects are followed as .NET's HttpClient follows them (Reddit 301s /r/All to /r/all),
-    // except from https to http, which .NET refuses too.
-    private val http = OkHttpClient.Builder()
-        .followRedirects(true)
-        .followSslRedirects(false)
+    private val http = AndroidMessageHandlerRedirects.install(OkHttpClient.Builder())
+        .protocols(listOf(Protocol.HTTP_1_1))
         .connectTimeout(0, java.util.concurrent.TimeUnit.MILLISECONDS)
         .readTimeout(0, java.util.concurrent.TimeUnit.MILLISECONDS)
         .writeTimeout(0, java.util.concurrent.TimeUnit.MILLISECONDS)
@@ -110,13 +110,22 @@ object NativeRedditApi {
         return result.toString().toByteArray(Charsets.UTF_8)
     }
 
-    /** Called by .NET when Reddit rejects the session. Never throws. */
+    /** Shown a session refresh that failed: the C# RefreshToken's DisplayException. */
+    @Volatile
+    var sessionRefreshFailed: ((Exception) -> Unit)? = null
+
+    /**
+     * Called by .NET when Reddit rejects the session. Never throws (it returns into native code): as the C#
+     * RefreshToken did, a failure is shown to the user ([sessionRefreshFailed]) and the request goes on without a
+     * new session.
+     */
     @JvmStatic
     fun refreshSession(): ByteArray? {
         return try {
             sessionRefresher?.invoke()?.toByteArray(Charsets.UTF_8)
         } catch (e: Exception) {
             Log.e(TAG, "session refresh failed", e)
+            sessionRefreshFailed?.invoke(e)
             null
         }
     }

@@ -1,5 +1,7 @@
 package com.mrjackspade.deaddit.core.model
 
+import com.mrjackspade.deaddit.core.util.DotNetUri
+
 /** The post's link. Reddit sends a crosspost's as a path on its own site (/r/sub/comments/...). */
 val Post.link: String?
     get() = url?.let { if (it.startsWith('/')) "https://www.reddit.com$it" else it }
@@ -21,9 +23,8 @@ val RedditThing.titleOrEmpty: String get() = (this as? Post)?.title?.trim() ?: "
 val RedditThing.urlOrEmpty: String
     get() = (this as? Post)?.link?.takeIf(::isAbsoluteUrl) ?: ""
 
-/** Whether [value] parses as an absolute URI (the C# app's Uri.TryCreate(..., Absolute)). */
-fun isAbsoluteUrl(value: String): Boolean = try {
-    java.net.URI(value).isAbsolute
-} catch (_: java.net.URISyntaxException) {
-    false
-}
+/**
+ * Whether [value] parses as an absolute URI: the C# app's `Uri.TryCreate(value, UriKind.Absolute, out _)`, with
+ * .NET's acceptance rules (spaces, '|', '%', underscores in hosts; on Android a rooted path is a file URI).
+ */
+fun isAbsoluteUrl(value: String): Boolean = DotNetUri.tryCreate(value) != null

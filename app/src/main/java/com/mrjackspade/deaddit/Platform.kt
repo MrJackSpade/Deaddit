@@ -9,14 +9,18 @@ import java.io.File
 
 /** Android's share sheet and clipboard, from anywhere. */
 class Platform(private val context: Context) {
-    /** Shares text, as the MAUI ShareTextRequest did (title shown as the sheet's subject). */
+    /**
+     * Shares text, as MAUI's Android Share did a ShareTextRequest with Text (or Uri) and Title: [title] is only the
+     * share sheet's title (the C# never set a Subject, so no EXTRA_SUBJECT), and blank text is sent as "".
+     */
     fun shareText(text: String?, title: String?) {
         val send = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, text)
-            putExtra(Intent.EXTRA_SUBJECT, title)
+            putExtra(Intent.EXTRA_TEXT, if (text.isNullOrBlank()) "" else text)
         }
-        context.startActivity(Intent.createChooser(send, title).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        context.startActivity(
+            Intent.createChooser(send, title ?: "").setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK),
+        )
     }
 
     /** Shares files from the app's cache, through its FileProvider. */

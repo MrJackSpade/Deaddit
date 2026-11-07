@@ -5,17 +5,17 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.media.MediaMuxer
 import android.os.Build
+import com.mrjackspade.deaddit.core.util.DashManifest
+import com.mrjackspade.deaddit.core.util.HlsPlaylist
+import com.mrjackspade.deaddit.core.util.dotNetRequestUrl
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.w3c.dom.Element
 import java.io.File
-import java.io.StringReader
-import java.net.URI
 import java.nio.ByteBuffer
 import java.util.UUID
-import javax.xml.parsers.DocumentBuilderFactory
 
 /**
  * Fetches a media URL into a file (the C# FileStreamService): HLS playlists as their video
@@ -35,7 +35,7 @@ class MediaFetcher(private val http: OkHttpClient, private val tempDir: File) {
                 val media = M3U8Downloader(http).download(url, tempDir)
                 try {
                     // As in the C#: only the video segments are kept; the audio is downloaded and dropped.
-                    media.video.copyTo(target, overwrite = true)
+                    media.video.inputStream().use { input -> target.outputStream().use { input.copyToCancellable(it) } }
                 } finally {
                     media.video.delete()
                     media.audio?.delete()
@@ -48,46 +48,27 @@ class MediaFetcher(private val http: OkHttpClient, private val tempDir: File) {
         }
     }
 
-    /** GETs [url] into [target]; a non-success status is an error. */
-    fun download(url: String, target: File) {
-        http.newCall(Request.Builder().url(url).build()).execute().use { response ->
+    /** GETs [url] into [target]; a non-success status is an error. Cancelling the coroutine stops the download. */
+    suspend fun download(url: String, target: File) {
+        http.fetch(Request.Builder().url(url).build()) { response ->
             if (!response.isSuccessful) throw IllegalStateException("HTTP ${response.code} downloading $url")
-            target.outputStream().use { response.body!!.byteStream().copyTo(it) }
+            target.outputStream().use { response.body!!.byteStream().copyToCancellable(it) }
         }
     }
 
-    private fun getString(url: String): String =
-        http.newCall(Request.Builder().url(url).build()).execute().use { response ->
+    private suspend fun getString(url: String): String =
+        http.fetch(Request.Builder().url(url).build()) { response ->
             if (!response.isSuccessful) throw IllegalStateException("HTTP ${response.code} downloading $url")
             response.body!!.string()
         }
 
-    private fun fetchMuxedDash(dashUrl: String, target: File) {
-        val manifest = getString(dashUrl)
-
-        val factory = DocumentBuilderFactory.newInstance().apply { isNamespaceAware = true }
-        val doc = factory.newDocumentBuilder().parse(org.xml.sax.InputSource(StringReader(manifest)))
+    private suspend fun fetchMuxedDash(dashUrl: String, target: File) {
+        val manifest = DashManifest.parse(getString(dashUrl))
 
         val baseUrl = dashUrl.substring(0, dashUrl.lastIndexOf('/') + 1)
 
-        val adaptationSets = doc.getElementsByTagNameNS("*", "AdaptationSet").elements()
-
-        fun representations(contentType: String) = adaptationSets
-            .filter { it.getAttribute("contentType") == contentType }
-            .flatMap { it.getElementsByTagNameNS("*", "Representation").elements() }
-
-        fun baseUrlOf(representation: Element): String? =
-            representation.getElementsByTagNameNS("*", "BaseURL").elements().firstOrNull()?.textContent
-
-        // Find video URL (highest bandwidth). Every DASH Representation carries a bandwidth.
-        val videoBaseUrl = representations("video")
-            .sortedByDescending { it.getAttribute("bandwidth").toInt() }
-            .map(::baseUrlOf)
-            .firstOrNull()
-            ?: throw IllegalStateException("No video stream found in DASH manifest")
-
-        // Find audio URL
-        val audioBaseUrl = representations("audio").map(::baseUrlOf).firstOrNull()
+        val videoBaseUrl = manifest.videoBaseUrl ?: throw IllegalStateException("No video stream found in DASH manifest")
+        val audioBaseUrl = manifest.audioBaseUrl
 
         if (audioBaseUrl == null) {
             download(baseUrl + videoBaseUrl, target)
@@ -108,8 +89,6 @@ class MediaFetcher(private val http: OkHttpClient, private val tempDir: File) {
             audio.delete()
         }
     }
-
-    private fun org.w3c.dom.NodeList.elements(): List<Element> = (0 until length).map { item(it) as Element }
 
     companion object {
         /** Muxes the first track of [video] and of [audio] into an MP4 at [output], interleaved by time. */
@@ -195,21 +174,18 @@ class MediaFetcher(private val http: OkHttpClient, private val tempDir: File) {
     }
 }
 
+
 /** Downloads an HLS stream's segments (the C# M3U8Downloader). */
 class M3U8Downloader(private val http: OkHttpClient) {
     /** The concatenated video segments, and the default audio's if the playlist names one. */
     class MediaData(val video: File, val audio: File?)
 
-    fun download(m3u8Url: String, tempDir: File): MediaData {
+    suspend fun download(m3u8Url: String, tempDir: File): MediaData {
         // Step 1: Download the master playlist content
-        val masterPlaylistContent = try {
-            getString(m3u8Url)
-        } catch (e: Exception) {
-            throw Exception("Error downloading master playlist: ${e.message}", e)
-        }
+        val masterPlaylistContent = wrapping("Error downloading master playlist") { getString(m3u8Url) }
 
         // Step 2: Parse the master playlist to find video and audio playlists
-        val (videoPlaylistUrl, audioPlaylistUrl) = parseMasterPlaylist(masterPlaylistContent, m3u8Url)
+        val (videoPlaylistUrl, audioPlaylistUrl) = HlsPlaylist.parseMaster(masterPlaylistContent, m3u8Url)
 
         if (videoPlaylistUrl.isNullOrEmpty()) {
             throw Exception("No video playlist found in the master playlist.")
@@ -232,84 +208,38 @@ class M3U8Downloader(private val http: OkHttpClient) {
         return MediaData(video, audio)
     }
 
-    private fun getString(url: String): String =
-        http.newCall(Request.Builder().url(url).build()).execute().use { response ->
+    /** GETs [url] as .NET's HttpClient sent it: the string parsed and re-escaped by System.Uri. */
+    private suspend fun getString(url: String): String =
+        http.fetch(Request.Builder().url(dotNetRequestUrl(url)).build()) { response ->
             if (!response.isSuccessful) throw IllegalStateException("HTTP ${response.code} downloading $url")
             response.body!!.string()
         }
 
-    private fun downloadSegments(segmentUrls: List<String>, target: File) {
+    private suspend fun downloadSegments(segmentUrls: List<String>, target: File) {
         target.outputStream().use { output ->
             for ((index, segmentUrl) in segmentUrls.withIndex()) {
-                try {
-                    http.newCall(Request.Builder().url(segmentUrl).build()).execute().use { response ->
+                wrapping("Error downloading segment ${index + 1}") {
+                    http.fetch(Request.Builder().url(dotNetRequestUrl(segmentUrl)).build()) { response ->
                         if (!response.isSuccessful) throw IllegalStateException("HTTP ${response.code} downloading $segmentUrl")
-                        response.body!!.byteStream().copyTo(output)
-                    }
-                } catch (e: Exception) {
-                    throw Exception("Error downloading segment ${index + 1}: ${e.message}", e)
-                }
-            }
-        }
-    }
-
-    private fun getSegmentUrls(playlistUrl: String): List<String> {
-        val playlistContent = try {
-            getString(playlistUrl)
-        } catch (e: Exception) {
-            throw Exception("Error downloading playlist: ${e.message}", e)
-        }
-
-        return parseMediaPlaylist(playlistContent, playlistUrl)
-    }
-
-    private fun parseMasterPlaylist(content: String, baseUrl: String): Pair<String?, String?> {
-        var videoPlaylistUrl: String? = null
-        var audioPlaylistUrl: String? = null
-
-        val lines = content.lineSequence().iterator()
-        while (lines.hasNext()) {
-            val line = lines.next()
-            if (line.startsWith("#EXT-X-MEDIA")) {
-                // Parse audio track
-                if (line.contains("TYPE=AUDIO") && line.contains("DEFAULT=YES")) {
-                    val uri = getAttributeValue(line, "URI")
-                    if (!uri.isNullOrEmpty()) {
-                        audioPlaylistUrl = getAbsoluteUrl(baseUrl, uri)
+                        response.body!!.byteStream().copyToCancellable(output)
                     }
                 }
-            } else if (line.startsWith("#EXT-X-STREAM-INF")) {
-                // The next line should be the video playlist URL; the first one found is used.
-                val playlistUrl = if (lines.hasNext()) lines.next() else null
-                if (!playlistUrl.isNullOrEmpty()) {
-                    val absoluteUrl = getAbsoluteUrl(baseUrl, playlistUrl)
-                    if (videoPlaylistUrl == null) videoPlaylistUrl = absoluteUrl
-                }
             }
         }
-
-        return videoPlaylistUrl to audioPlaylistUrl
     }
 
-    private fun parseMediaPlaylist(content: String, baseUrl: String): List<String> =
-        content.lineSequence()
-            .filter { !it.startsWith("#") && it.isNotBlank() }
-            .map { getAbsoluteUrl(baseUrl, it.trim()) }
-            .toList()
+    private suspend fun getSegmentUrls(playlistUrl: String): List<String> {
+        val playlistContent = wrapping("Error downloading playlist") { getString(playlistUrl) }
 
-    private fun getAbsoluteUrl(baseUrl: String, relativeUrl: String): String = URI(baseUrl).resolve(relativeUrl).toString()
+        return HlsPlaylist.parseMedia(playlistContent, playlistUrl)
+    }
 
-    private fun getAttributeValue(line: String, attributeName: String): String? {
-        for (part in line.split(',')) {
-            val keyValue = part.split('=', limit = 2)
-            if (keyValue.size == 2 && keyValue[0].trim().equals(attributeName, ignoreCase = true)) {
-                var value = keyValue[1].trim()
-                if (value.startsWith("\"") && value.endsWith("\"")) {
-                    value = value.substring(1, value.length - 1)
-                }
-                return value
-            }
-        }
-        return null
+    /** The C#'s `catch (Exception ex) { throw new Exception(what + ": " + ex.Message, ex) }`; a cancellation passes through as is. */
+    private suspend fun <T> wrapping(what: String, block: suspend () -> T): T = try {
+        block()
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        throw Exception("$what: ${e.message}", e)
     }
 }
