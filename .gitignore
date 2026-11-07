@@ -1,43 +1,23 @@
 .vs/
-Deaddit.Tests/bin/
-Deaddit.Tests/obj/
-Deaddit.Core/bin/
-Deaddit.Core/obj/
-Deaddit/bin/
-Deaddit/obj/
-Release/obj/
-Release/bin/Deaddit.Core/
-Release/bin/Deaddit/release_net8.0-android/Deaddit.dll
-Release/bin/Deaddit/release_net8.0-android/Deaddit.pdb
-Release/bin/Deaddit/release_net8.0-android/Deaddit.Core.dll
-Release/bin/Deaddit/release_net8.0-android/Deaddit.Core.pdb
-Release/bin/Deaddit/release_net8.0-android/Deaddit.runtimeconfig.json
-Release/bin/Deaddit/release_net8.0-android/Deaddit.xml
-Maui.WebComponents/obj/
-Maui.WebComponents/bin/
-Release/bin/Maui.WebComponents/
-Release/bin/Deaddit/release_net8.0-android/Maui.WebComponents.dll
-Release/bin/Deaddit/release_net8.0-android/Maui.WebComponents.pdb
-Release/bin/Deaddit/release_net8.0-android/com.companyname.deaddit.apk
-Release/bin/Deaddit/release_net8.0-android/com.companyname.deaddit-Signed.apk.idsig
-Pat.dat
-Release/
-credentials.yaml
 *.user
 .claude/
+
+# Secrets: never commit these
+Pat.dat
+credentials.yaml
 *.keystore
 *.jks
 
-# Gradle / Android (Kotlin app)
+# Gradle / Android
 .gradle/
+.kotlin/
 local.properties
 /build/
 /app/build/
 /core/build/
 /app/.cxx/
+
 # Built from Reddit.Api by native/build-android.sh (locally) or publish.yml (CI)
 /app/src/main/jniLibs/
-
-.kotlin/
 /native/RedditApi.Native/bin/
 /native/RedditApi.Native/obj/
