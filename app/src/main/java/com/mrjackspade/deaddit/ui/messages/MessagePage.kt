@@ -59,7 +59,7 @@ class MessagePage(private val services: Services, private val user: User, privat
             }
 
             TextInput(subject, { subject = it }, background = styling.primaryColor.color, placeholder = "Subject")
-            TextInput(body, { body = it }, background = styling.primaryColor.color, placeholder = "Body", singleLine = false, modifier = Modifier.weight(1f, fill = false))
+            TextInput(body, { body = it }, background = styling.primaryColor.color, placeholder = "Body", singleLine = false)
 
             Row(Modifier.fillMaxWidth().background(styling.secondaryColor.color)) {
                 FlatButton("Cancel") { leave() }

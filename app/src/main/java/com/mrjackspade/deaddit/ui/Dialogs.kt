@@ -41,31 +41,34 @@ class Option(val label: String?, val action: suspend () -> Unit)
  * One shows at a time; [Host] draws it.
  */
 class Dialogs(private val testMode: Boolean) {
-    private sealed interface Request
-    private class Alert(val title: String, val message: String, val accept: String, val cancel: String?, val result: CompletableDeferred<Boolean>) : Request
-    private class Sheet(val title: String?, val options: List<String>, val result: CompletableDeferred<String?>) : Request
-    private class Prompt(val title: String, val message: String, val initial: String, val result: CompletableDeferred<String?>) : Request
+    /** A dialog on screen, and the answer it's waiting for; [R] is that answer's type. */
+    private sealed class Request<R> {
+        val result = CompletableDeferred<R>()
+    }
+    private class Alert(val title: String, val message: String, val accept: String, val cancel: String?) : Request<Boolean>()
+    private class Sheet(val title: String?, val options: List<String>) : Request<String?>()
+    private class Prompt(val title: String, val message: String, val initial: String) : Request<String?>()
 
-    private var current by mutableStateOf<Request?>(null)
+    private var current by mutableStateOf<Request<*>?>(null)
     private var busy by mutableIntStateOf(0)
 
     suspend fun alert(title: String, message: String, accept: String = "OK") {
-        show<Boolean>(Alert(title, message, accept, null, CompletableDeferred()))
+        show(Alert(title, message, accept, null))
     }
 
     suspend fun confirm(title: String, message: String, accept: String, cancel: String): Boolean =
-        show(Alert(title, message, accept, cancel, CompletableDeferred()))
+        show(Alert(title, message, accept, cancel))
 
     /** Shows the options (blank ones left out) and runs the chosen one. */
     suspend fun choose(title: String?, vararg options: Option) {
         val shown = options.filter { !it.label.isNullOrBlank() }
-        val picked = show(Sheet(title, shown.map { it.label!! }, CompletableDeferred())) ?: return
+        val picked = show(Sheet(title, shown.map { it.label!! })) ?: return
         shown.first { it.label == picked }.action()
     }
 
     /** The entered text, or null when cancelled. */
     suspend fun prompt(title: String, message: String = "", initial: String = ""): String? =
-        show(Prompt(title, message, initial, CompletableDeferred()))
+        show(Prompt(title, message, initial))
 
     /** Shows a spinner over the page while [work] runs. */
     suspend fun <T> busy(work: suspend () -> T): T {
@@ -102,24 +105,20 @@ class Dialogs(private val testMode: Boolean) {
         alert("Alert", text)
     }
 
-    private suspend fun <T> show(request: Request): T {
+    /** Shows [request] and waits for its answer, typed by the request itself. */
+    private suspend fun <R> show(request: Request<R>): R {
         if (testMode) {
             Log.w(TAG, "Dialog in test mode: ${describe(request)}")
         }
         current = request
         try {
-            @Suppress("UNCHECKED_CAST")
-            return when (request) {
-                is Alert -> request.result.await()
-                is Sheet -> request.result.await()
-                is Prompt -> request.result.await()
-            } as T
+            return request.result.await()
         } finally {
             if (current === request) current = null
         }
     }
 
-    private fun describe(request: Request) = when (request) {
+    private fun describe(request: Request<*>) = when (request) {
         is Alert -> "alert '${request.title}': ${request.message}"
         is Sheet -> "choose '${request.title}': ${request.options}"
         is Prompt -> "prompt '${request.title}'"

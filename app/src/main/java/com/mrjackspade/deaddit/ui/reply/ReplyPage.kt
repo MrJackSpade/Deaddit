@@ -252,12 +252,13 @@ class ReplyPage(
                 }
             }
 
+            // As the C# page's grid ("*, Auto"): the thread above takes what's left, and the box
+            // sizes to its text (an auto-sizing Editor), growing as it's typed into.
             TextInput(
                 text,
                 { text = it },
                 background = styling.primaryColor.color,
                 singleLine = false,
-                modifier = Modifier.weight(1f, fill = false),
             )
 
             Row(
