@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.size.Size
@@ -59,6 +60,8 @@ class ImageSelectPage private constructor(private val services: Services, privat
                     "Select Images",
                     Modifier.weight(1f),
                     color = styling.textColor.color,
+                    // A MAUI Label's 14.
+                    fontSize = 14.sp,
                     textAlign = TextAlign.Center,
                 )
                 TopBarButton(Icons.Filled.Check, "OK") { confirm() }

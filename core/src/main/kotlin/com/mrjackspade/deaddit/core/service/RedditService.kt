@@ -204,9 +204,10 @@ class RedditService(private val api: RedditApi, private val hacks: () -> Applica
         return api.createMulti("user/$user/m/$name", name)
     }
 
-    suspend fun deleteMulti(multi: Multi) {
+    /** Whether Reddit deleted it (the C# DeleteMulti's bool). */
+    suspend fun deleteMulti(multi: Multi): Boolean {
         api.ensureAuthenticated()
-        api.deleteMulti(multi.path.trimStart('/'))
+        return api.deleteMulti(multi.path.trimStart('/'))
     }
 
     suspend fun addSubredditToMulti(multi: Multi, subreddit: String) {

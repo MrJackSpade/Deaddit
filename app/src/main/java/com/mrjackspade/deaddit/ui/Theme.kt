@@ -45,10 +45,11 @@ fun DeadditTheme(styling: ApplicationStyling, hacks: ApplicationHacks, content: 
 /**
  * Material's text styles fix each line's height for their own font size (24sp for body text);
  * with the user's sizes instead that spread lines apart. Lines take the font's own height
- * instead, as they did in the C# app's WebView (CSS "line-height: normal").
+ * instead, as they did in the C# app's WebView (CSS "line-height: normal"). Material also spaces
+ * letters apart (0.5sp for body text); the C# app's text had no letter spacing.
  */
 private val NaturalLineHeights: Typography = Typography().let { t ->
-    fun TextStyle.natural() = copy(lineHeight = TextUnit.Unspecified)
+    fun TextStyle.natural() = copy(lineHeight = TextUnit.Unspecified, letterSpacing = 0.sp)
     Typography(
         displayLarge = t.displayLarge.natural(), displayMedium = t.displayMedium.natural(), displaySmall = t.displaySmall.natural(),
         headlineLarge = t.headlineLarge.natural(), headlineMedium = t.headlineMedium.natural(), headlineSmall = t.headlineSmall.natural(),

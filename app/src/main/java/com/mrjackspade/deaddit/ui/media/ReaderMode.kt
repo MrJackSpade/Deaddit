@@ -69,7 +69,13 @@ object ReaderMode {
 
         // Android hands the result back as a quoted JS string literal
         val base64 = Json.parseToJsonElement(evaluated).jsonPrimitive.content
-        val json = Base64.decode(base64, Base64.DEFAULT).toString(Charsets.UTF_8)
+        // As the C# ExtractPageHtml: a payload that isn't base64 is a page it couldn't read.
+        val bytes = try {
+            Base64.decode(base64, Base64.DEFAULT)
+        } catch (e: IllegalArgumentException) {
+            return Result.Unreadable
+        }
+        val json = bytes.toString(Charsets.UTF_8)
         val element = Json.parseToJsonElement(json)
         if (element is JsonNull) return Result.NoArticle
 

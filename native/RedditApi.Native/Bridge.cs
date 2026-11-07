@@ -143,7 +143,9 @@ namespace RedditApi.Native
                     Status = (inner as RedditHttpException)?.StatusCode is { } status ? (int)status : null,
                     Url = (inner as RedditHttpException)?.Url,
                     Codes = (inner as RedditApiException)?.Errors.Select(e => e.Code).ToList(),
-                    Detail = inner.ToString()
+                    Detail = inner.ToString(),
+                    // Interpolated as the C# app's dialog did ($"{ex.StackTrace}"): null writes nothing.
+                    StackTrace = $"{inner.StackTrace}"
                 }
             };
 

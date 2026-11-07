@@ -26,15 +26,15 @@ import androidx.media3.ui.PlayerView
 import com.mrjackspade.deaddit.Services
 import com.mrjackspade.deaddit.core.util.UrlHelper
 import com.mrjackspade.deaddit.handlers.FileDownload
+import com.mrjackspade.deaddit.ui.BusyCounter
+import com.mrjackspade.deaddit.ui.BusyOverlay
 import com.mrjackspade.deaddit.ui.LocalStyling
 import com.mrjackspade.deaddit.ui.Screen
 import com.mrjackspade.deaddit.ui.TopBar
 import com.mrjackspade.deaddit.ui.TopBarButton
 import com.mrjackspade.deaddit.ui.color
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.Request
@@ -51,9 +51,9 @@ import java.io.IOException
 class VideoPlayerPage(private val services: Services, private val item: FileDownload) : Screen() {
     private val busy = BusyCounter()
 
-    // Shares outlive the page (the C# never cancelled them); saves stop when it closes, as the C# OnDisappearing cancelled them.
-    private val shares = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-    private var download: Job? = null
+    // Shares outlive the page (the C# never cancelled them); saves stop when it closes, as the C#
+    // OnDisappearing cancelled them. The running save, which the next share or save cancels (the C# _downloadCts).
+    private var runningSave: Job? = null
 
     private var player: ExoPlayer? = null
 
@@ -93,8 +93,8 @@ class VideoPlayerPage(private val services: Services, private val item: FileDown
             if (loadStarted) return@LaunchedEffect
             loadStarted = true
             val exo = playerView.get(context).player as ExoPlayer
-            // On the page's scope, so the download isn't tied to this composition.
-            scope.launch { load(exo, context) }
+            // Off the page's scope: as the C# LoadTopQuality, the download runs on when the page is left.
+            services.appScope.launch { load(exo, context) }
         }
 
         Box(Modifier.fillMaxSize()) {
@@ -123,6 +123,8 @@ class VideoPlayerPage(private val services: Services, private val item: FileDown
         try {
             val file = File(File(context.cacheDir, "video"), item.fileName)
             busy.run { services.media.fetcher.fetch(item.launchUrl, file) }
+            // A page left meanwhile has released its player: the file stays cached, unplayed.
+            if (player !== exo) return
             exo.setMediaItem(MediaItem.fromUri(android.net.Uri.fromFile(file)))
             exo.prepare()
         } catch (e: Exception) {
@@ -154,9 +156,10 @@ class VideoPlayerPage(private val services: Services, private val item: FileDown
         services.dialogs.message(message)
     }
 
+    /** As the C# OnShareClicked: cancels a running save; the share itself is never cancelled. */
     private fun share() {
-        download?.cancel()
-        download = shares.launch {
+        runningSave?.cancel()
+        services.appScope.launch {
             try {
                 busy.run { services.media.shareDownloads("", listOf(item), services.media.gifConverter()) }
             } catch (e: Exception) {
@@ -166,8 +169,8 @@ class VideoPlayerPage(private val services: Services, private val item: FileDown
     }
 
     private fun save() {
-        download?.cancel()
-        download = scope.launch {
+        runningSave?.cancel()
+        runningSave = scope.launch {
             try {
                 busy.run { services.media.save(listOf(item), services.media.gifConverter()) }
             } catch (e: Exception) {

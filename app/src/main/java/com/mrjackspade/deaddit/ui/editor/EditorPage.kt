@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -15,18 +16,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,19 +31,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mrjackspade.deaddit.Services
 import com.mrjackspade.deaddit.core.config.DynamicColor
 import com.mrjackspade.deaddit.ui.FilledButton
+import com.mrjackspade.deaddit.ui.FormInput
+import com.mrjackspade.deaddit.ui.MauiButton
 import com.mrjackspade.deaddit.ui.LocalStyling
 import com.mrjackspade.deaddit.ui.Screen
-import com.mrjackspade.deaddit.ui.TextInput
 import com.mrjackspade.deaddit.ui.color
 import com.mrjackspade.deaddit.ui.px
 import kotlinx.coroutines.launch
@@ -84,6 +84,7 @@ class EditorPage<T> private constructor(
                 for (field in schema.fields) FieldView(field)
             }
 
+            // Two equal columns, as the C# page's grid: nested pages hide Submit, leaving Back in the first.
             Row(Modifier.fillMaxWidth().background(styling.secondaryColor.color)) {
                 ButtonBarButton(if (topLevel) "Cancel" else "Back") { leave() }
                 if (topLevel) {
@@ -91,24 +92,21 @@ class EditorPage<T> private constructor(
                         onSubmit!!(ref.get())
                         leave()
                     }
+                } else {
+                    Spacer(Modifier.weight(1f))
                 }
             }
         }
     }
 
+    /** A MAUI Button with a 5 margin, in the primary color. */
     @Composable
     private fun androidx.compose.foundation.layout.RowScope.ButtonBarButton(text: String, onClick: () -> Unit) {
         val styling = LocalStyling.current
-        Box(
-            Modifier.weight(1f).padding(5.dp).background(styling.primaryColor.color, RoundedCornerShape(4.dp))
-                .clickable(role = Role.Button, onClick = onClick).padding(12.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(text, color = styling.textColor.color, fontSize = 14.sp)
-        }
+        MauiButton(text, styling.primaryColor.color, Modifier.weight(1f).padding(5.dp), onClick = onClick)
     }
 
-    /** One field: its label (with its description as a long-press tooltip) and its input. */
+    /** One field: its label (with an "i" button for its description) and its input. */
     @Composable
     private fun FieldView(field: Field<T>) {
         Column(Modifier.fillMaxWidth().padding(5.dp).padding(5.dp)) {
@@ -133,21 +131,28 @@ class EditorPage<T> private constructor(
         }
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
+    /**
+     * The label, and beside it for a described field a round "i" button that shows the
+     * description in an alert titled with the label (the C# FormFieldComponent).
+     */
     @Composable
     private fun Label(field: Field<T>) {
         val styling = LocalStyling.current
-        val label = @Composable { Text(field.label, color = styling.textColor.color, fontSize = styling.subTextFontSize.px) }
-
         val description = field.description
-        if (description.isNullOrBlank()) {
-            label()
-        } else {
-            TooltipBox(
-                positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                tooltip = { PlainTooltip { Text(description) } },
-                state = rememberTooltipState(isPersistent = true),
-            ) { label() }
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(field.label, color = styling.textColor.color, fontSize = styling.subTextFontSize.px)
+            if (!description.isNullOrBlank()) {
+                Box(
+                    Modifier.padding(start = 8.dp).size(20.dp).clip(CircleShape).background(styling.tertiaryColor.color)
+                        .clickable(role = Role.Button, onClickLabel = "About ${field.label}") {
+                            scope.launch { services.dialogs.alert(field.label, description, "OK") }
+                        },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text("i", color = styling.textColor.color, fontSize = 12.sp)
+                }
+            }
         }
     }
 
@@ -170,7 +175,7 @@ class EditorPage<T> private constructor(
         var value by remember { mutableStateOf(TextFieldValue(text)) }
         if (value.text != text) value = TextFieldValue(text)
 
-        TextInput(
+        FormInput(
             value,
             {
                 value = it
@@ -192,7 +197,7 @@ class EditorPage<T> private constructor(
         var valid by remember { mutableStateOf(true) }
 
         Column {
-            TextInput(
+            FormInput(
                 value,
                 {
                     value = it
@@ -201,6 +206,8 @@ class EditorPage<T> private constructor(
                 background = styling.tertiaryColor.color,
                 border = if (valid) styling.tertiaryColor.color else ERROR,
                 modifier = Modifier.semantics { contentDescription = label },
+                // An HTML type="number" input, which brings up the number keyboard.
+                keyboard = KeyboardType.Decimal,
             )
             if (!valid) Text(error, Modifier.padding(top = 4.dp), color = ERROR, fontSize = 12.sp)
         }
@@ -224,7 +231,7 @@ class EditorPage<T> private constructor(
                         .border(1.dp, styling.tertiaryColor.color, RoundedCornerShape(4.dp))
                         .background(Color(0xFF000000.toInt() or (current.toArgb() and 0xFFFFFF)), RoundedCornerShape(4.dp)),
                 )
-                TextInput(
+                FormInput(
                     value,
                     { changed ->
                         value = changed
@@ -300,11 +307,11 @@ class EditorPage<T> private constructor(
                 labels.forEachIndexed { index, label ->
                     Column {
                         Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text(label, Modifier.weight(1f), color = styling.textColor.color, maxLines = 1)
-                            FilledButton("Edit", styling.primaryColor.color, Modifier.padding(start = 8.dp).semantics { contentDescription = "Edit $label" }) {
+                            Text(label, Modifier.weight(1f), color = styling.textColor.color)
+                            FilledButton("Edit", styling.primaryColor.color, Modifier.padding(start = 8.dp).semantics { contentDescription = "Edit $label" }, horizontal = 8.dp, vertical = 4.dp) {
                                 field.edit(ref, index, nested)
                             }
-                            FilledButton("Remove", REMOVE, Modifier.padding(start = 8.dp).semantics { contentDescription = "Remove $label" }, textColor = Color.White) {
+                            FilledButton("Remove", REMOVE, Modifier.padding(start = 8.dp).semantics { contentDescription = "Remove $label" }, textColor = Color.White, horizontal = 8.dp, vertical = 4.dp) {
                                 field.remove(ref, index)
                             }
                         }

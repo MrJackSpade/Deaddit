@@ -39,6 +39,11 @@ class LoginPage private constructor(private val navigator: Navigator) : Screen()
                 result.complete(login)
                 navigator.remove(this)
             },
+            // As the C# page: a failed check ends the login, and whoever waits on it gets the error.
+            onFailed = { e ->
+                result.completeExceptionally(e)
+                navigator.remove(this)
+            },
             modifier = Modifier.fillMaxSize(),
         )
     }
@@ -59,11 +64,12 @@ class LoginPage private constructor(private val navigator: Navigator) : Screen()
 /**
  * Reddit's own login page. Login happens over XHR with no navigation to hook, so this polls the
  * cookie jar until it holds a logged-in, unexpired token_v2. A token left from an earlier session
- * may be expired; Reddit replaces it as the page loads, so polling continues past it.
+ * may be expired; Reddit replaces it as the page loads, so polling continues past it. A cookie
+ * that can't be read stops the polling and goes to [onFailed].
  */
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun LoginScreen(onLoggedIn: (WebLogin) -> Unit, modifier: Modifier = Modifier) {
+fun LoginScreen(onLoggedIn: (WebLogin) -> Unit, onFailed: (Exception) -> Unit, modifier: Modifier = Modifier) {
     // "Sign in with Google/Apple" opens a popup that reports back to this page with postMessage,
     // so popups open as real windows: a WebView over the login page, closed when the provider
     // closes it. The open popup, so back can close it.
@@ -116,7 +122,13 @@ fun LoginScreen(onLoggedIn: (WebLogin) -> Unit, modifier: Modifier = Modifier) {
 
     LaunchedEffect(Unit) {
         while (true) {
-            readLogin()?.let { login ->
+            val login = try {
+                readLogin()
+            } catch (e: Exception) {
+                onFailed(e)
+                return@LaunchedEffect
+            }
+            if (login != null) {
                 onLoggedIn(login)
                 return@LaunchedEffect
             }

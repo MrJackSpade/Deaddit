@@ -3,21 +3,9 @@ package com.mrjackspade.deaddit.ui.media
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 
 /**
@@ -54,30 +42,5 @@ class RetainedView<V : View>(private val create: (Context) -> V) {
                 v
             },
         )
-    }
-}
-
-/** Work in progress on a page, shown as that page's spinner overlay (the MAUI pages' busy/download overlay). */
-class BusyCounter {
-    var count by mutableIntStateOf(0)
-        private set
-
-    suspend fun <T> run(work: suspend () -> T): T {
-        count++
-        try {
-            return work()
-        } finally {
-            count--
-        }
-    }
-}
-
-@Composable
-fun BusyOverlay(busy: BusyCounter) {
-    if (busy.count <= 0) return
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Box(Modifier.background(Color(0xAA000000), RoundedCornerShape(12.dp)).padding(30.dp)) {
-            CircularProgressIndicator(color = Color.White)
-        }
     }
 }

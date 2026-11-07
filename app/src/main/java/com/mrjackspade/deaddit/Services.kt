@@ -50,8 +50,15 @@ class Services(context: Context, val testMode: Boolean) {
     /** The application context, for the settings page's files and the keep-alive service. */
     val appContext: Context = context.applicationContext
 
-    /** AI Assist. Made on first use from the AI settings of that moment, as the C# DI singleton was. */
-    val claude by lazy { com.mrjackspade.deaddit.ai.ClaudeService(http, settings.ai.value) }
+    /**
+     * AI Assist, made from the AI settings as they are now: the C# registered ClaudeService as
+     * transient, so each reply page got one built from the live settings, and a changed key took
+     * effect on the next reply.
+     */
+    fun claude() = com.mrjackspade.deaddit.ai.ClaudeService(http, settings.ai.value)
+
+    /** Work that outlives the page that started it, as the C# app's fire-and-forget tasks did. */
+    val appScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + Dispatchers.Main.immediate)
 
     /** What opening, sharing or saving a post or link does, by kind. First match wins (the C# MauiProgram's order). */
     val posts: com.mrjackspade.deaddit.handlers.PostHandlers by lazy {

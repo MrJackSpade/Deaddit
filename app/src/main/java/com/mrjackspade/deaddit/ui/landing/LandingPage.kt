@@ -25,6 +25,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -46,10 +47,13 @@ import kotlinx.coroutines.launch
 /** The first page: the fixed feeds, the user's subscriptions and their multis. */
 class LandingPage(private val services: Services) : Screen() {
     /** One row: a feed to open, and (for removable rows) how to remove it. */
-    private class Entry(val label: String, val open: () -> Unit, val remove: (suspend () -> Unit)? = null)
+    private class Entry(val label: String, val open: () -> Unit, val isMulti: Boolean = false, val remove: (suspend () -> Unit)? = null)
 
-    private val subscriptions = mutableStateListOf<Entry>()
-    private val multis = mutableStateListOf<Entry>()
+    /**
+     * The subscriptions and multis, in the order they were added to the page, as the C# page's
+     * one list of rows: the stored subscriptions, then the multis, then whatever is added.
+     */
+    private val entries = mutableStateListOf<Entry>()
     private var loadingMultis by mutableStateOf(false)
     private var selected by mutableStateOf<Entry?>(null)
 
@@ -68,13 +72,15 @@ class LandingPage(private val services: Services) : Screen() {
         started = true
 
         scope.launch {
+            // As the C# page: a failed session restore is shown, and nothing more is listed.
             try {
                 services.restoreSession()
             } catch (e: Exception) {
                 services.dialogs.error(e)
+                return@launch
             }
 
-            services.settings.landing.value.subscriptions.forEach { subscriptions += entryFor(it) }
+            services.settings.landing.value.subscriptions.forEach { entries += entryFor(it) }
 
             loadMultis()
         }
@@ -84,7 +90,7 @@ class LandingPage(private val services: Services) : Screen() {
         val feed = Feed.fromName(subscription.thingName!!)
         lateinit var entry: Entry
         entry = Entry(feed.displayName, { Pages.openFeed(services, feed) }) {
-            subscriptions.remove(entry)
+            entries.remove(entry)
             services.settings.landing.update { config ->
                 val index = config.subscriptions.indexOfFirst { Feed.fromName(it.thingName!!) == feed }
                 config.copy(subscriptions = config.subscriptions.filterIndexed { i, _ -> i != index })
@@ -96,16 +102,16 @@ class LandingPage(private val services: Services) : Screen() {
     private fun entryFor(multi: Multi): Entry {
         val feed = Feed.Multi(multi.name)
         lateinit var entry: Entry
-        entry = Entry(feed.displayName, { Pages.openFeed(services, feed) }) {
+        entry = Entry(feed.displayName, { Pages.openFeed(services, feed) }, isMulti = true) {
             val confirmed = services.dialogs.confirm(
                 "Delete Multi",
                 "Delete \"${multi.displayName}\"? This will permanently remove it from your Reddit account and cannot be undone.",
                 "Delete",
                 "Cancel",
             )
-            if (confirmed) {
-                services.reddit.deleteMulti(multi)
-                multis.remove(entry)
+            // The row goes only once Reddit says the multi is gone.
+            if (confirmed && services.reddit.deleteMulti(multi)) {
+                entries.remove(entry)
             }
         }
         return entry
@@ -115,8 +121,8 @@ class LandingPage(private val services: Services) : Screen() {
         if (!services.reddit.isLoggedIn) return
         loadingMultis = true
         try {
-            multis.clear()
-            services.reddit.multis().forEach { multis += entryFor(it) }
+            entries.removeAll { it.isMulti }
+            services.reddit.multis().forEach { entries += entryFor(it) }
         } catch (e: Exception) {
             services.dialogs.error(e)
         } finally {
@@ -143,13 +149,13 @@ class LandingPage(private val services: Services) : Screen() {
 
         val subscription = SubRedditSubscription(displayString = result, sort = PostSort.Hot, thingName = result)
         services.settings.landing.update { it.copy(subscriptions = it.subscriptions + subscription) }
-        subscriptions += entryFor(subscription)
+        entries += entryFor(subscription)
     }
 
     private suspend fun addMulti() {
         val name = services.dialogs.prompt("", "Enter a name for the new multi")
         if (name.isNullOrBlank()) return
-        services.reddit.createMulti(name)?.let { multis += entryFor(it) }
+        services.reddit.createMulti(name)?.let { entries += entryFor(it) }
     }
 
     private fun onProfile() = scope.launch {
@@ -181,7 +187,7 @@ class LandingPage(private val services: Services) : Screen() {
 
         LaunchedEffect(Unit) { start() }
 
-        Column(Modifier.fillMaxSize().background(styling.tertiaryColor.color)) {
+        Column(Modifier.fillMaxSize().background(styling.secondaryColor.color)) {
             TopBar {
                 TopBarButton(Icons.Filled.Settings, "Settings") { Pages.openSettings(services) }
                 TopBarButton(Icons.Filled.Mail, "Messages") { Pages.openMessages(services) }
@@ -192,8 +198,7 @@ class LandingPage(private val services: Services) : Screen() {
 
             LazyColumn(Modifier.fillMaxSize().navigationBarsPadding(), rememberLazyListState()) {
                 items(fixed) { Row(it) }
-                items(subscriptions) { Row(it) }
-                items(multis) { Row(it) }
+                items(entries) { Row(it) }
                 if (loadingMultis) item { Spinner() }
             }
         }
@@ -214,10 +219,15 @@ class LandingPage(private val services: Services) : Screen() {
                     Modifier.weight(1f).clickable(onClick = entry.open).padding(10.dp),
                     color = styling.textColor.color,
                 )
+                // The C# row's "⚙" text, padded as the label so the row keeps the same height.
                 if (entry.remove != null) {
-                    TopBarButton(Icons.Filled.Settings, "Options for ${entry.label}") {
-                        selected = if (isSelected) null else entry
-                    }
+                    Text(
+                        "\u2699",
+                        Modifier.clickable(role = Role.Button) { selected = if (isSelected) null else entry }
+                            .padding(10.dp)
+                            .semantics { contentDescription = "Options for ${entry.label}" },
+                        color = styling.textColor.color,
+                    )
                 }
             }
 

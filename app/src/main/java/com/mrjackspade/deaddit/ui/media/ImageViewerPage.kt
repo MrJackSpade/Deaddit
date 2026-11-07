@@ -17,14 +17,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.mrjackspade.deaddit.Services
 import com.mrjackspade.deaddit.handlers.FileDownload
+import com.mrjackspade.deaddit.ui.BusyCounter
+import com.mrjackspade.deaddit.ui.BusyOverlay
 import com.mrjackspade.deaddit.ui.Pages
 import com.mrjackspade.deaddit.ui.Screen
 import com.mrjackspade.deaddit.ui.TopBar
 import com.mrjackspade.deaddit.ui.TopBarButton
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 /**
@@ -35,9 +34,9 @@ import kotlinx.coroutines.launch
 class ImageViewerPage(private val services: Services, private val items: List<FileDownload>) : Screen() {
     private val busy = BusyCounter()
 
-    // Saves and shares outlive the page: the MAUI page only cancelled them from a back button it never showed.
-    private val downloads = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-    private var download: Job? = null
+    // Saves and shares outlive the page: the MAUI page only cancelled them from a back button it
+    // never showed. The running save, which the next share or save cancels (the C# _downloadCts).
+    private var runningSave: Job? = null
 
     private val webView = RetainedView { context -> createWebView(context) }
 
@@ -71,8 +70,8 @@ class ImageViewerPage(private val services: Services, private val items: List<Fi
             Column(Modifier.fillMaxSize()) {
                 TopBar {
                     Spacer(Modifier.weight(1f))
-                    TopBarButton(Icons.Filled.Share, "Share") { start { share() } }
-                    TopBarButton(Icons.Filled.Save, "Save") { start { save() } }
+                    TopBarButton(Icons.Filled.Share, "Share") { share() }
+                    TopBarButton(Icons.Filled.Save, "Save") { save() }
                 }
                 webView.Content(Modifier.fillMaxWidth().weight(1f))
             }
@@ -80,28 +79,39 @@ class ImageViewerPage(private val services: Services, private val items: List<Fi
         }
     }
 
-    /** Runs a share or save, replacing any still running (the C# _downloadCts). */
-    private fun start(work: suspend () -> Unit) {
-        download?.cancel()
-        download = downloads.launch {
+    /**
+     * As the C# OnShareClicked: once images are picked, cancels a running save; the share itself
+     * is never cancelled (C# gave it no token).
+     */
+    private fun share() {
+        services.appScope.launch {
             try {
-                work()
+                val selected = promptForSelection()
+                if (selected.isNullOrEmpty()) return@launch
+                runningSave?.cancel()
+                busy.run { services.media.shareDownloads("", selected, services.media.gifConverter()) }
             } catch (e: Exception) {
                 services.dialogs.error(e)
             }
         }
     }
 
-    private suspend fun share() {
-        val selected = promptForSelection()
-        if (selected.isNullOrEmpty()) return
-        busy.run { services.media.shareDownloads("", selected, services.media.gifConverter()) }
-    }
-
-    private suspend fun save() {
-        val selected = promptForSelection()
-        if (selected.isNullOrEmpty()) return
-        busy.run { services.media.save(selected, services.media.gifConverter()) }
+    /**
+     * As the C# OnSaveClicked: once images are picked, cancels a running save and becomes the
+     * one the next share or save cancels. Backing out of the selection leaves a running save be.
+     */
+    private fun save() {
+        services.appScope.launch {
+            try {
+                val selected = promptForSelection()
+                if (selected.isNullOrEmpty()) return@launch
+                runningSave?.cancel()
+                runningSave = coroutineContext[Job]
+                busy.run { services.media.save(selected, services.media.gifConverter()) }
+            } catch (e: Exception) {
+                services.dialogs.error(e)
+            }
+        }
     }
 
     private suspend fun promptForSelection(): List<FileDownload>? {

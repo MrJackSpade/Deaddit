@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,6 +26,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -42,6 +44,7 @@ import com.mrjackspade.deaddit.core.text.DotNetFormat
 import com.mrjackspade.deaddit.ui.FlatButton
 import com.mrjackspade.deaddit.ui.Links
 import com.mrjackspade.deaddit.ui.LocalStyling
+import com.mrjackspade.deaddit.ui.MauiButton
 import com.mrjackspade.deaddit.ui.Option
 import com.mrjackspade.deaddit.ui.Screen
 import com.mrjackspade.deaddit.ui.TextInput
@@ -84,7 +87,9 @@ class ReplyPage(
 
     // Prompts whose model has since been removed read as None: they're never offered.
     private val availablePrompts: List<AiPrompt> = services.settings.ai.value.prompts.filter { it.model != ClaudeModel.None }
-    private val showAi = services.claude.isConfigured && availablePrompts.isNotEmpty()
+    // This page's own, from the AI settings as it opens (the C# page's transient ClaudeService).
+    private val claude = services.claude()
+    private val showAi = claude.isConfigured && availablePrompts.isNotEmpty()
 
     private sealed interface ChainRow
     private class PostRowEntry(val model: PostModel) : ChainRow
@@ -167,7 +172,11 @@ class ReplyPage(
 
     private fun aiAssist() = launch {
         var chosen: AiPrompt? = null
-        services.dialogs.choose("Select AI Prompt", *availablePrompts.map { prompt -> Option(prompt.displayName) { chosen = prompt } }.toTypedArray())
+        services.dialogs.choose(
+            "Select AI Prompt",
+            *availablePrompts.map { prompt -> Option(prompt.displayName) { chosen = prompt } }.toTypedArray(),
+            cancel = "Cancel",
+        )
         val prompt = chosen ?: return@launch
 
         var systemPrompt = prompt.textContent
@@ -181,7 +190,7 @@ class ReplyPage(
 
         aiLoading = true
         try {
-            val reply = services.claude.sendMessage(systemPrompt, history, prompt.model.id)
+            val reply = claude.sendMessage(systemPrompt, history, prompt.model.id)
             text = TextFieldValue(reply, TextRange(reply.length))
         } finally {
             aiLoading = false
@@ -271,10 +280,12 @@ class ReplyPage(
                 FlatButton("📷", description = "Attach image") { attachImage() }
                 FlatButton("Submit") { submit() }
                 if (showAi) {
-                    FlatButton(
+                    // A transparent MAUI Button with padding 10, greyed out while it's disabled.
+                    MauiButton(
                         if (aiLoading) "Loading..." else "AI Assist",
-                        Modifier.padding(4.dp),
+                        Color.Transparent,
                         fontSize = styling.titleFontSize.px,
+                        padding = PaddingValues(10.dp),
                         enabled = !aiLoading,
                     ) { aiAssist() }
                     if (aiLoading) CircularProgressIndicator(Modifier.size(24.dp), color = styling.textColor.color)

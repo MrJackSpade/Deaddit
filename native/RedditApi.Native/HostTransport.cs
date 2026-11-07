@@ -108,6 +108,12 @@ namespace RedditApi.Native
         /// The whole exception: type, message, inner exceptions and stack.
         /// </summary>
         public string Detail { get; set; } = string.Empty;
+
+        /// <summary>
+        /// The exception's own stack trace (Exception.StackTrace), as the C# app's error dialog
+        /// showed it; empty when it was never thrown.
+        /// </summary>
+        public string StackTrace { get; set; } = string.Empty;
     }
 
     internal sealed class BridgeFailure

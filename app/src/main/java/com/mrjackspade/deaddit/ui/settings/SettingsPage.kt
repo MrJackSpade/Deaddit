@@ -6,11 +6,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 
 import android.content.Intent
 import android.net.Uri
+import android.content.Context
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,13 +18,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -37,6 +34,7 @@ import com.mrjackspade.deaddit.core.config.SavePathConfiguration
 import com.mrjackspade.deaddit.core.config.SettingsExportData
 import com.mrjackspade.deaddit.core.config.SettingsJson
 import com.mrjackspade.deaddit.ui.LocalStyling
+import com.mrjackspade.deaddit.ui.MauiButton
 import com.mrjackspade.deaddit.ui.Screen
 import com.mrjackspade.deaddit.ui.TopBar
 import com.mrjackspade.deaddit.ui.TopBarButton
@@ -119,7 +117,7 @@ class SettingsPage(private val services: Services) : Screen() {
         )
         if (!confirmed) return@launch
 
-        val file = services.activityResults.launch(ActivityResultContracts.OpenDocument(), arrayOf("*/*")) ?: return@launch
+        val file = services.activityResults.launch(OpenDocumentTitled("Select settings file"), arrayOf("*/*")) ?: return@launch
         val json = read(file)
 
         val data = SettingsJson.decodeFromString(SettingsExportData.serializer().nullable, json)
@@ -166,7 +164,7 @@ class SettingsPage(private val services: Services) : Screen() {
         Column(Modifier.fillMaxSize().background(styling.tertiaryColor.color)) {
             TopBar {
                 TopBarButton(Icons.AutoMirrored.Filled.ArrowBack, "Back") { services.navigator.remove(this@SettingsPage) }
-                Text("Settings", Modifier.weight(1f), color = styling.textColor.color, textAlign = TextAlign.Center)
+                Text("Settings", Modifier.weight(1f), color = styling.textColor.color, fontSize = 14.sp, textAlign = TextAlign.Center)
             }
 
             Column(
@@ -210,17 +208,23 @@ class SettingsPage(private val services: Services) : Screen() {
         }
     }
 
+    /** A MAUI Button in the secondary color, as the C# page colored them. */
     @Composable
     private fun SettingsButton(text: String, modifier: Modifier = Modifier, description: String? = null, onClick: () -> Unit) {
-        val styling = LocalStyling.current
-        Box(
-            modifier.background(styling.secondaryColor.color, RoundedCornerShape(8.dp))
-                .clickable(role = Role.Button, onClickLabel = description, onClick = onClick)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(text, color = styling.textColor.color, fontSize = 14.sp)
-        }
+        MauiButton(text, LocalStyling.current.secondaryColor.color, modifier, description = description, onClick = onClick)
+    }
+
+    /**
+     * The system's document picker inside a chooser titled [title], as MAUI's FilePicker opened
+     * it (Intent.createChooser with its PickerTitle).
+     */
+    private class OpenDocumentTitled(private val title: String) : ActivityResultContract<Array<String>, Uri?>() {
+        private val open = ActivityResultContracts.OpenDocument()
+
+        override fun createIntent(context: Context, input: Array<String>): Intent =
+            Intent.createChooser(open.createIntent(context, input), title)
+
+        override fun parseResult(resultCode: Int, intent: Intent?): Uri? = open.parseResult(resultCode, intent)
     }
 
     private companion object {

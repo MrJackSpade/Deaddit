@@ -19,6 +19,7 @@ import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
@@ -196,7 +197,8 @@ class RedditApi(private val runner: CommandRunner) {
             put("request", buildJsonObject { put("display_name", displayName); put("visibility", "private") })
         }.takeIf { it !is JsonNull }?.jsonObject?.get("data")?.let { RedditJson.decodeFromJsonElement<Multi>(it) }
 
-    suspend fun deleteMulti(multipath: String) { call("DeleteMulti") { put("multipath", multipath) } }
+    /** Whether Reddit deleted it. */
+    suspend fun deleteMulti(multipath: String): Boolean = call("DeleteMulti") { put("multipath", multipath) }.jsonPrimitive.boolean
     suspend fun addSubredditToMulti(multipath: String, subreddit: String) { call("AddSubredditToMulti") { put("multipath", multipath); put("subreddit", subreddit) } }
     suspend fun removeSubredditFromMulti(multipath: String, subreddit: String) { call("RemoveSubredditFromMulti") { put("multipath", multipath); put("subreddit", subreddit) } }
 
