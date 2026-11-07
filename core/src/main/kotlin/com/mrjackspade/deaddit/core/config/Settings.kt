@@ -8,6 +8,11 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonPrimitive
+import com.mrjackspade.deaddit.core.text.DotNetText
+import com.mrjackspade.deaddit.core.markdown.DotNetText as DotNetString
 import com.mrjackspade.deaddit.core.session.Session
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
@@ -161,15 +166,54 @@ enum class ClaudeModel(val id: String) {
     Claude_Haiku_4_5("claude-haiku-4-5-20251001"),
 }
 
-/** Mirrors the C# ClaudeModelJsonConverter: by member name, case-insensitive, unknown → None. */
+/**
+ * The C# ClaudeModelJsonConverter: a JSON string that .NET's `Enum.TryParse(name, ignoreCase: true)`
+ * reads as a defined member is that member; anything else (null, a number, an unknown name) is None.
+ */
 object ClaudeModelSerializer : KSerializer<ClaudeModel> {
     override val descriptor = PrimitiveSerialDescriptor("ClaudeModel", PrimitiveKind.STRING)
 
     override fun serialize(encoder: Encoder, value: ClaudeModel) = encoder.encodeString(value.name)
 
     override fun deserialize(decoder: Decoder): ClaudeModel {
-        val name = decoder.decodeString()
-        return ClaudeModel.entries.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: ClaudeModel.None
+        val element = (decoder as JsonDecoder).decodeJsonElement()
+        if (element !is JsonPrimitive || element is JsonNull || !element.isString) return ClaudeModel.None
+        return tryParse(element.content)?.let { value -> ClaudeModel.entries.getOrNull(value) } ?: ClaudeModel.None
+    }
+
+    /**
+     * .NET's `Enum.TryParse<ClaudeModel>(value, ignoreCase: true)`: the member's value, which may be
+     * undefined, or null when it doesn't parse. Leading white space is skipped; then a value starting
+     * with a digit or sign is an Int32 (trailing white space allowed), and anything else is member
+     * names separated by commas, each trimmed, whose values are OR'd together.
+     */
+    internal fun tryParse(value: String): Int? {
+        val text = DotNetString.trimStart(value)
+        if (text.isEmpty()) return null
+
+        val first = text[0]
+        if (first in '0'..'9' || first == '-' || first == '+') return parseInt32(text)
+
+        var result = 0
+        for (part in text.split(',')) {
+            val name = DotNetString.trim(part)
+            val member = ClaudeModel.entries.firstOrNull { DotNetText.asciiFold(it.name) == DotNetText.asciiFold(name) }
+                ?: return null
+            result = result or member.ordinal
+        }
+        return result
+    }
+
+    /** Int32 with NumberStyles.AllowLeadingSign | AllowTrailingWhite, invariant culture. */
+    private fun parseInt32(text: String): Int? {
+        var end = text.length
+        while (end > 0 && text[end - 1] == '\u0000') end--
+        while (end > 0 && (text[end - 1] == ' ' || text[end - 1] in '\t'..'\r')) end--
+
+        val number = text.substring(0, end)
+        val digits = if (number.startsWith('-') || number.startsWith('+')) number.substring(1) else number
+        if (digits.isEmpty() || !digits.all { it in '0'..'9' }) return null
+        return number.toIntOrNull()
     }
 }
 

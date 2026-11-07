@@ -7,20 +7,30 @@ import java.time.Instant
 
 enum class VoteState(val direction: Int) { Upvote(1), None(0), Downvote(-1) }
 
-@Serializable
-enum class Distinguished {
-    @SerialName("moderator") Moderator,
-    @SerialName("admin") Admin,
-    @SerialName("special") Special,
-}
+/** Reddit.Api's DistinguishedKind: null is its Null, [Empty] is "". */
+@Serializable(DistinguishedSerializer::class)
+enum class Distinguished { Empty, Moderator, Admin }
 
-@Serializable
-enum class CollapsedReasonCode {
-    @SerialName("deleted") Deleted,
-    @SerialName("low_score") LowScore,
-    @SerialName("score-below-threshold") ScoreBelowThreshold,
-    @SerialName("BLOCKED_AUTHOR") BlockedAuthor,
-}
+object DistinguishedSerializer : EmptyStringEnumSerializer<Distinguished>(
+    "Distinguished",
+    Distinguished.Empty,
+    mapOf(Distinguished.Moderator to "moderator", Distinguished.Admin to "admin"),
+)
+
+/** Reddit.Api's CollapsedReasonCode: null is its Null (not collapsed), [Empty] is "". */
+@Serializable(CollapsedReasonCodeSerializer::class)
+enum class CollapsedReasonCode { Empty, ScoreBelowThreshold, LowScore, Deleted, BlockedAuthor }
+
+object CollapsedReasonCodeSerializer : EmptyStringEnumSerializer<CollapsedReasonCode>(
+    "CollapsedReasonCode",
+    CollapsedReasonCode.Empty,
+    mapOf(
+        CollapsedReasonCode.ScoreBelowThreshold to "score-below-threshold",
+        CollapsedReasonCode.LowScore to "low_score",
+        CollapsedReasonCode.Deleted to "deleted",
+        CollapsedReasonCode.BlockedAuthor to "BLOCKED_AUTHOR",
+    ),
+)
 
 /** A part of a richtext flair: text, or an emoji image. */
 @Serializable
@@ -42,8 +52,9 @@ sealed interface RedditThing {
     val createdUtc: Instant?
 }
 
+/** A preview image. Reddit.Api's model decodes its URL. */
 @Serializable
-data class ImageSource(@Serializable(HtmlDecodedUrlSerializer::class) val url: String? = null, val width: Int = 0, val height: Int = 0)
+data class ImageSource(val url: String? = null, val width: Int = 0, val height: Int = 0)
 
 @Serializable
 data class PreviewImage(
@@ -111,12 +122,12 @@ data class MediaMetadata(
     @SerialName("p") val previews: List<MediaMetadataSource> = emptyList(),
 )
 
-/** "u" is an image, "gif"/"mp4" an animation, each with its size. */
+/** "u" is an image, "gif"/"mp4" an animation, each with its size. Reddit.Api's model decodes the URLs. */
 @Serializable
 data class MediaMetadataSource(
-    @SerialName("u") @Serializable(HtmlDecodedUrlSerializer::class) val url: String? = null,
-    @Serializable(HtmlDecodedUrlSerializer::class) val gif: String? = null,
-    @Serializable(HtmlDecodedUrlSerializer::class) val mp4: String? = null,
+    @SerialName("u") val url: String? = null,
+    val gif: String? = null,
+    val mp4: String? = null,
     @SerialName("x") val width: Int = 0,
     @SerialName("y") val height: Int = 0,
 )
@@ -129,7 +140,7 @@ data class Post(
     override val author: String? = null,
     @SerialName("author_fullname") override val authorFullname: String? = null,
     @SerialName("author_flair_text") @Serializable(BlankAsNullSerializer::class) val authorFlairText: String? = null,
-    @SerialName("author_flair_background_color") @Serializable(BlankAsNullSerializer::class) val authorFlairBackgroundColor: String? = null,
+    @SerialName("author_flair_background_color") @Serializable(JsonColorSerializer::class) val authorFlairBackgroundColor: String? = null,
     @SerialName("author_flair_text_color") @Serializable(BlankAsNullSerializer::class) val authorFlairTextColor: String? = null,
     @SerialName("author_flair_richtext") val authorFlairRichtext: List<FlairPart> = emptyList(),
     @SerialName("selftext") override val body: String = "",
@@ -144,7 +155,7 @@ data class Post(
     @Serializable(HtmlDecodedUrlSerializer::class) val url: String? = null,
     @SerialName("is_self") val isSelf: Boolean = false,
     @SerialName("is_video") val isVideo: Boolean = false,
-    @SerialName("is_gallery") val isGallery: Boolean = false,
+    @SerialName("is_gallery") @Serializable(JsonBoolSerializer::class) val isGallery: Boolean = false,
     @SerialName("over_18") val isNsfw: Boolean = false,
     val spoiler: Boolean = false,
     val hidden: Boolean = false,
@@ -158,7 +169,7 @@ data class Post(
     @Serializable(VoteStateSerializer::class) val likes: VoteState = VoteState.None,
     val distinguished: Distinguished? = null,
     @SerialName("link_flair_text") @Serializable(BlankAsNullSerializer::class) val linkFlairText: String? = null,
-    @SerialName("link_flair_background_color") @Serializable(BlankAsNullSerializer::class) val linkFlairBackgroundColor: String? = null,
+    @SerialName("link_flair_background_color") @Serializable(JsonColorSerializer::class) val linkFlairBackgroundColor: String? = null,
     @SerialName("link_flair_text_color") @Serializable(BlankAsNullSerializer::class) val linkFlairTextColor: String? = null,
     @SerialName("link_flair_richtext") val linkFlairRichtext: List<FlairPart> = emptyList(),
     @Serializable(HtmlDecodedUrlSerializer::class) val thumbnail: String? = null,
@@ -179,7 +190,7 @@ data class Comment(
     override val author: String? = null,
     @SerialName("author_fullname") override val authorFullname: String? = null,
     @SerialName("author_flair_text") @Serializable(BlankAsNullSerializer::class) val authorFlairText: String? = null,
-    @SerialName("author_flair_background_color") @Serializable(BlankAsNullSerializer::class) val authorFlairBackgroundColor: String? = null,
+    @SerialName("author_flair_background_color") @Serializable(JsonColorSerializer::class) val authorFlairBackgroundColor: String? = null,
     @SerialName("author_flair_text_color") @Serializable(BlankAsNullSerializer::class) val authorFlairTextColor: String? = null,
     @SerialName("author_flair_richtext") val authorFlairRichtext: List<FlairPart> = emptyList(),
     override val body: String = "",

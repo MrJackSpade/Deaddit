@@ -6,13 +6,16 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class ProcessingImagesTest {
-    /** The user's comment as www.reddit.com served it on 2026-11-07, trimmed to what matters. */
+    /**
+     * The user's comment as www.reddit.com served it on 2026-11-07, trimmed to what matters, with
+     * body_html decoded as Reddit.Api's Comment model delivers it.
+     */
     private val comment = RedditJson.decodeFromString(
         Comment.serializer(),
         """
         {"id":"19s92t68yz56o","name":"t1_19s92t68yz56o",
          "body":"*Processing img akmw191b530i1...*",
-         "body_html":"&lt;div class=\"md\"&gt;&lt;p&gt;&lt;em&gt;Processing img akmw191b530i1...&lt;/em&gt;&lt;/p&gt;\n&lt;/div&gt;",
+         "body_html":"<div class=\"md\"><p><em>Processing img akmw191b530i1...</em></p>\n</div>",
          "media_metadata":{"akmw191b530i1":{"status":"valid","e":"AnimatedImage","m":"image/gif",
            "s":{"y":438,"gif":"https://i.redd.it/akmw191b530i1.gif","mp4":"https://preview.redd.it/akmw191b530i1.gif?format=mp4&s=591b","x":640},
            "id":"akmw191b530i1"}}}

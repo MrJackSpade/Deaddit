@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -15,6 +16,8 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.mrjackspade.deaddit.core.model.FlairPart
+import com.mrjackspade.deaddit.core.util.CssColor
+import com.mrjackspade.deaddit.core.util.CssColorValue
 import com.mrjackspade.deaddit.ui.LocalHacks
 import com.mrjackspade.deaddit.ui.LocalStyling
 import com.mrjackspade.deaddit.ui.color
@@ -27,7 +30,7 @@ private val EMOJI_TAG = Regex(":[a-zA-Z0-9\\-_]*:")
 /**
  * A user or link flair: its richtext (with emoji images) when there is some and flair images are
  * resolved, otherwise its text. Draws nothing when there's nothing to show.
- * [textColor] is Reddit's "dark"/"light"; [background] is a hex color or null.
+ * [textColor] is Reddit's "dark"/"light"; [background] is a CSS color or null.
  *
  * [inline] is how a comment shows it, on a line of its own: text flair is an inline box there, its
  * padding painted over the lines around it without making its line taller ([InlineChip]). A post
@@ -51,11 +54,18 @@ fun Flair(text: String?, richtext: List<FlairPart>, background: String?, textCol
         else -> styling.subTextColor.color
     }
 
-    val backgroundColor = background?.let { Color(com.mrjackspade.deaddit.core.util.CssColor.parse(it)) } ?: styling.primaryColor.color
+    // The C# app put the color into the flair's style, where a value the browser rejects applied
+    // nothing: no background, or (swapped) the inherited text color.
+    val parsed = remember(background) { background?.let(CssColor::parse) }
     val swapped = styling.swapFlairColors && background != null
 
-    val fg = if (swapped) backgroundColor else flairText
-    val bg = if (swapped) styling.primaryColor.color else backgroundColor
+    val fg = if (swapped) (parsed as? CssColorValue.Argb)?.let { Color(it.argb) } ?: Color.Unspecified else flairText
+    val bg = when {
+        swapped || background == null -> styling.primaryColor.color
+        parsed is CssColorValue.Argb -> Color(parsed.argb)
+        parsed == CssColorValue.CurrentColor -> fg
+        else -> Color.Transparent
+    }
 
     if (parts == null && inline) {
         InlineFlow(modifier) { InlineChip(plain!!, fg, bg, styling.subTextFontSize.px) }

@@ -7,6 +7,7 @@ import com.mrjackspade.deaddit.core.config.BlockType
 import com.mrjackspade.deaddit.core.model.Comment
 import com.mrjackspade.deaddit.core.model.Post
 import com.mrjackspade.deaddit.core.model.UserPartialData
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -77,5 +78,24 @@ class BlockingTest {
         assertFalse(Blocking.isAllowed(BlockConfiguration(maxLinkKarma = 9), post, data, now))
         assertFalse(Blocking.isAllowed(BlockConfiguration(maxLinkKarmaRatio = 1.5), post, data, now))
         assertTrue(Blocking.isAllowed(BlockConfiguration(maxLinkKarmaRatio = 2.5), post, data, now))
+    }
+
+    @Test
+    fun regexRulesRunAsDotNetRegex() {
+        val arabic = post.copy(title = "Top ٣ memes")
+        assertTrue(Blocking.isMatch(BlockRule(title = "/\\d/"), arabic))
+        assertFalse(Blocking.isMatch(BlockRule(title = "/a meme/"), post))
+        assertTrue(Blocking.isMatch(BlockRule(title = "/A Meme/"), post))
+    }
+
+    @Test
+    fun ruleNamesLeaveMissingPartsBlank() {
+        val bare = Post(id = "p", name = "t3_p")
+        assertEquals("/u/", Blocking.fromAuthor(bare).ruleName)
+        assertEquals("()", Blocking.fromDomain(bare).ruleName)
+        assertEquals(" []", Blocking.fromFlair(bare).ruleName)
+        assertEquals("/r/", Blocking.fromSubReddit(bare).ruleName)
+        assertEquals("pics []", Blocking.fromFlair(post.copy(linkFlairText = null)).ruleName)
+        assertEquals("pics []", Blocking.fromFlair(comment).ruleName)
     }
 }

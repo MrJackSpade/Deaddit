@@ -40,14 +40,14 @@ namespace RedditApi.Native
 
                 // ----- Reads -----
                 case "GetListing":
-                    return await client.GetListingAsync<object>(Str(args, "endpoint"), OptModel<ListingParameters>(args, "parameters"));
+                    return TypedThings.Listing(await client.GetListingAsync<object>(Str(args, "endpoint"), OptModel<ListingParameters>(args, "parameters")), Bridge.ModelJson);
                 case "GetSortedPosts":
                     return await client.GetSortedPostsAsync(Str(args, "path"), OptModel<ListingParameters>(args, "parameters"));
                 case "GetComments":
                     {
                         (Thing<Link>? post, Listing<Thing<Comment>>? comments) = await client.GetCommentsAsync(
                             Str(args, "articleId"), OptStr(args, "commentId"), OptStr(args, "sort"), OptInt(args, "limit"), OptInt(args, "depth"), OptInt(args, "context"));
-                        return new Dictionary<string, object?> { ["post"] = post, ["comments"] = comments };
+                        return new Dictionary<string, object?> { ["post"] = post, ["comments"] = TypedThings.WithTypedReplies(comments, Bridge.ModelJson) };
                     }
                 case "GetMoreChildren":
                     return await client.GetMoreChildrenAsync(Str(args, "linkFullname"), StrList(args, "children"), OptStr(args, "sort"), OptInt(args, "depth"), OptStr(args, "subreddit"));
