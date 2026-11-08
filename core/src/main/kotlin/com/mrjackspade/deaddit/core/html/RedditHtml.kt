@@ -9,6 +9,11 @@ import org.jsoup.nodes.TextNode
  * Reddit's rendered markdown (body_html / selftext_html) as blocks of styled text, for native
  * rendering. Reddit sends it HTML-escaped inside JSON, wrapped in `<div class="md">`; Reddit.Api's
  * models decode the escaping.
+ *
+ * Bodies read from www.reddit.com's HTML are www's own rendering of the same text, and parse the same
+ * way, plus: wrapper elements around the content (`<shreddit-async-loader>`, `<shreddit-mod-comment>`,
+ * a span around a div), `<shreddit-spoiler>`, and images as `<figure>`s linking to the full image,
+ * read as the link the markdown had (a paragraph that is just the link, its URL as its text).
  */
 sealed interface Block {
     data class Paragraph(val text: List<Span>) : Block
@@ -64,6 +69,13 @@ object RedditHtml {
                 if (node is Element && node.tagName() in BLOCK_TAGS) {
                     flushLoose()
                     result += block(node)
+                } else if (node is Element && node.tagName() == "figure") {
+                    flushLoose()
+                    result += figure(node)
+                } else if (node is Element && node.select(BLOCK_SELECTOR).isNotEmpty()) {
+                    // A wrapper (www's loaders, a span around a div): its content stands in its place.
+                    flushLoose()
+                    result += blocks(node)
                 } else {
                     loose += node
                 }
@@ -88,6 +100,13 @@ object RedditHtml {
             // A wrapper with no meaning of its own: its content stands in its place.
             "div" -> blocks(element)
             else -> throw IllegalArgumentException("Unhandled block element <${element.tagName()}>")
+        }
+
+        /** www's image: a link to the full image (or GIF), read as the paragraph the markdown had. */
+        private fun figure(figure: Element): List<Block> {
+            val href = figure.selectFirst("a[href]")?.attr("href")
+                ?: throw IllegalArgumentException("A <figure> without a link: $figure")
+            return listOf(Block.Paragraph(listOf(Span(href, link = href))))
         }
 
         private fun table(table: Element): Block.Table {
@@ -130,6 +149,7 @@ object RedditHtml {
                 "a" -> children(style.copy(link = node.attr("href")))
                 "br" -> listOf(style.span("\n"))
                 "span" -> if (node.hasClass("md-spoiler-text")) children(style.copy(spoiler = spoilers++)) else children(style)
+                "shreddit-spoiler" -> children(style.copy(spoiler = spoilers++))
                 "img" -> listOf(style.copy(link = style.link ?: node.attr("src")).span(node.attr("alt").ifEmpty { node.attr("src") }))
                 // A block element inside an inline context (e.g. a list item's paragraph): keep its text, on its own line.
                 in BLOCK_TAGS -> listOf(style.span("\n")) + children(style) + listOf(style.span("\n"))
@@ -177,6 +197,8 @@ object RedditHtml {
     }
 
     private val BLOCK_TAGS = setOf("p", "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "ul", "ol", "pre", "table", "hr", "div")
+
+    private val BLOCK_SELECTOR = (BLOCK_TAGS + "figure").joinToString(",")
 
     // Collapses HTML source whitespace (newlines between tags) the way a browser would.
     private val WHITESPACE = Regex("[ \\t\\r\\n]+")

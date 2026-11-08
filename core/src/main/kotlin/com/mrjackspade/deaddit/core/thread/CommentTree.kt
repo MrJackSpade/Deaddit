@@ -20,65 +20,41 @@ class MoreNode(val more: More, override var parent: Comment?) : ThreadNode
 
 object CommentTree {
     /**
-     * The tree for a post's comments, from GetComments. [parent] is the comment the response is
-     * focused on (top-level nodes reply to it), or null for the whole thread. The post itself can
-     * come back among the comments; [postId] drops it.
+     * The tree for a post's comments, from GetComments (or www's comments, which come nested the
+     * same way). [parent] is the comment the response is focused on (top-level nodes reply to it),
+     * or null for the whole thread. The post itself can come back among the comments; [postId]
+     * drops it. [prepare] makes each comment what the app shows, before its node is made.
      */
-    fun fromComments(items: List<ListingItem>, postId: String, parent: Comment?): List<ThreadNode> =
+    fun fromComments(items: List<ListingItem>, postId: String, parent: Comment?, prepare: (Comment) -> Comment = { it }): List<ThreadNode> =
         items.mapNotNull { item ->
             when (item) {
                 is ListingItem.MoreItem -> MoreNode(item.more, parent)
-                is ListingItem.CommentItem -> if (item.comment.id == postId) null else commentWithReplies(item.comment, parent)
+                is ListingItem.CommentItem -> if (item.comment.id == postId) null else commentWithReplies(item.comment, parent, prepare)
                 else -> throw IllegalStateException("Unexpected $item among a post's comments.")
             }
         }
 
-    /**
-     * Nests the flat result of a "load more" (GetMoreChildren) by parent ID. What doesn't reply to
-     * another loaded comment takes the place of the "load more", replying to [parent].
-     */
-    fun fromMoreChildren(items: List<ListingItem>, parent: Comment?): List<ThreadNode> {
-        val comments = LinkedHashMap<String, CommentNode>()
-        val all = items.map { item ->
-            when (item) {
-                is ListingItem.CommentItem -> CommentNode(item.comment, null).also { comments[item.comment.name] = it }
-                is ListingItem.MoreItem -> MoreNode(item.more, null)
-                else -> throw IllegalStateException("Unexpected $item among loaded comments.")
-            }
+    /** Every comment in [items] and their replies, all the way down, as received. */
+    fun allComments(items: List<ListingItem>): Sequence<Comment> = sequence {
+        for (item in items) {
+            if (item !is ListingItem.CommentItem) continue
+            yield(item.comment)
+            val replies = item.comment.replies
+            if (replies is JsonObject) yieldAll(allComments(ListingItem.parseListing(replies)))
         }
-
-        val topLevel = mutableListOf<ThreadNode>()
-
-        for (node in all) {
-            val parentId = when (node) {
-                is CommentNode -> node.comment.parentId
-                is MoreNode -> node.more.parentId
-            }
-
-            val parentNode = parentId?.let(comments::get)
-
-            if (parentNode != null) {
-                node.parent = parentNode.comment
-                parentNode.replies += node
-            } else {
-                topLevel += node
-            }
-        }
-
-        topLevel.forEach { it.parent = parent }
-        return topLevel
     }
 
-    private fun commentWithReplies(comment: Comment, parent: Comment?): CommentNode {
+    private fun commentWithReplies(received: Comment, parent: Comment?, prepare: (Comment) -> Comment = { it }): CommentNode {
+        val comment = prepare(received)
         val node = CommentNode(comment, parent)
 
         // Reddit sends "replies" as an empty string when there are none, otherwise a listing.
-        val replies = comment.replies
+        val replies = received.replies
         if (replies is JsonObject) {
             for (item in ListingItem.parseListing(replies)) {
                 node.replies += when (item) {
                     is ListingItem.MoreItem -> MoreNode(item.more, comment)
-                    is ListingItem.CommentItem -> commentWithReplies(item.comment, comment)
+                    is ListingItem.CommentItem -> commentWithReplies(item.comment, comment, prepare)
                     else -> throw IllegalStateException("Unexpected $item among replies to ${comment.name}.")
                 }
             }

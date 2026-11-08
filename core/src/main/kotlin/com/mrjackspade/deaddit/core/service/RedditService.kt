@@ -7,9 +7,11 @@ import com.mrjackspade.deaddit.core.config.ApplicationHacks
 import com.mrjackspade.deaddit.core.config.Region
 import com.mrjackspade.deaddit.core.feed.Feed
 import com.mrjackspade.deaddit.core.feed.Sort
+import com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverter
 import com.mrjackspade.deaddit.core.markdown.MarkdownAnalyzer
 import com.mrjackspade.deaddit.core.markdown.MarkdownRichTextConverter
 import com.mrjackspade.deaddit.core.model.Comment
+import com.mrjackspade.deaddit.core.model.CommentText
 import com.mrjackspade.deaddit.core.model.Multi
 import com.mrjackspade.deaddit.core.model.Post
 import com.mrjackspade.deaddit.core.model.RedditThing
@@ -31,6 +33,9 @@ data class CommentFocus(val comment: Comment, val context: Int = MAX_CONTEXT) {
 }
 
 class NotLoggedInException(message: String) : IllegalStateException(message)
+
+/** The language www translates comments in other languages into. */
+private const val TRANSLATE_INTO = "en"
 
 /**
  * The app's Reddit operations (the C# app's RedditService): logs in as each call needs, applies
@@ -89,19 +94,61 @@ class RedditService(private val api: RedditApi, private val hacks: () -> Applica
         return things.take(pageSize)
     }
 
-    /** A post's comment tree; focused on [focus] with its context when given. */
+    /**
+     * A post's comment tree, from www's HTML; focused on [focus] and its parents when given (www
+     * sends all of a focused comment's parents, so [CommentFocus.context] doesn't apply).
+     */
     suspend fun comments(post: Post, focus: CommentFocus? = null): List<ThreadNode> {
-        api.tryAuthenticate()
-        val (_, items) = api.getComments(post.id, focus?.comment?.id, focus?.context)
-        return CommentTree.fromComments(items, post.id, focus?.comment)
+        api.ensureAuthenticated()
+        val subreddit = requireNotNull(post.subreddit) { "${post.name} has no subreddit." }
+        val load = { translate: String? -> suspend { api.getThreadComments(subreddit, post.name, focus?.comment?.name, translate) } }
+        val items = load(null)()
+        return CommentTree.fromComments(items, post.id, focus?.comment, prepare(translations(items, load(TRANSLATE_INTO))))
     }
 
     /** The comments behind a "load more", nested, to put in its place. */
     suspend fun moreComments(post: Post, more: MoreNode): List<ThreadNode> {
         api.ensureAuthenticated()
-        if (more.more.children.isEmpty()) return emptyList()
-        val items = api.getMoreChildren(post.name, more.more.children, post.subreddit)
-        return CommentTree.fromMoreChildren(items, more.parent)
+        if (!more.more.loadsInPlace) return emptyList()
+
+        val subreddit = requireNotNull(post.subreddit) { "${post.name} has no subreddit." }
+        val parent = more.parent?.name ?: post.name
+        val load = { translate: String? -> suspend { api.getMoreComments(more.more, post.name, subreddit, parent, translate) } }
+        val items = load(null)()
+        return CommentTree.fromComments(items, post.id, more.parent, prepare(translations(items, load(TRANSLATE_INTO))))
+    }
+
+    /**
+     * www's translations of the comments in [items] that are in another language, by name: loaded
+     * again translated, only when there are any.
+     */
+    private suspend fun translations(items: List<ListingItem>, loadTranslated: suspend () -> List<ListingItem>): Map<String, Comment> {
+        val translatable = CommentTree.allComments(items).filter { it.translatable }.map { it.name }.toSet()
+        if (translatable.isEmpty()) return emptyMap()
+
+        return CommentTree.allComments(loadTranslated())
+            .filter { it.translated && it.name in translatable }
+            .associateBy { it.name }
+    }
+
+    /**
+     * Makes a comment from www's HTML what the app shows: its markdown rebuilt from its HTML (www
+     * doesn't send it), and the translation in its place when there is one, keeping the original.
+     */
+    private fun prepare(translations: Map<String, Comment>): (Comment) -> Comment = { comment ->
+        val written = comment.copy(body = HtmlMarkdownConverter.convert(comment.bodyHtml))
+        val translation = translations[comment.name]
+
+        if (translation == null) {
+            written
+        } else {
+            written.copy(
+                body = HtmlMarkdownConverter.convert(translation.bodyHtml),
+                bodyHtml = translation.bodyHtml,
+                translated = true,
+                original = CommentText(written.body, written.bodyHtml),
+            )
+        }
     }
 
     suspend fun getPost(idOrFullname: String): Post? {

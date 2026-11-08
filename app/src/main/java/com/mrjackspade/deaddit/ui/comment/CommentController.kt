@@ -29,7 +29,7 @@ class CommentController(
     fun actions(model: CommentModel) = CommentActions(
         onVote = { direction -> vote(model, direction) },
         onMore = { run { more(model) } },
-        onShare = { services.platform.shareText("https://www.reddit.com${model.comment.permalink}", model.comment.body) },
+        onShare = { services.platform.shareText("https://www.reddit.com${model.comment.permalink}", model.body) },
         onReply = {
             Pages.openReply(services, model.comment, contextOf(model)) { reply ->
                 onReplied(model, reply.copy(likes = VoteState.Upvote, parentId = model.comment.name))
@@ -67,7 +67,7 @@ class CommentController(
                     services.reddit.setSaved(comment, saved)
                     model.saved = saved
                 },
-                Option("Copy Raw") { services.platform.copy(comment.body) },
+                Option("Copy Raw") { services.platform.copy(model.body) },
                 Option("Copy Permalink") { services.platform.copy("https://www.reddit.com${comment.permalink}") },
                 Option("View Context") {
                     resolvePost(comment)?.let { Pages.openPost(services, it, CommentFocus(comment)) }

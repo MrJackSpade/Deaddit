@@ -211,7 +211,7 @@ class PostPage(
         val node = entry.node!!
 
         // Under a comment, no children to load means "continue this thread", from that comment.
-        if (entry.parent != null && node.more.children.isEmpty()) {
+        if (entry.parent != null && !node.more.loadsInPlace) {
             services.launchAction {
                 val parent = node.parent ?: throw IllegalStateException("For some reason the more comment parent wasn't a proper comment")
                 commentController.continueThread(parent)
@@ -375,7 +375,7 @@ class PostPage(
         val styling = LocalStyling.current
 
         val label = when (entry.reason) {
-            null -> if (entry.node!!.more.children.isNotEmpty()) "More [${entry.count}]" else "Continue Thread"
+            null -> if (entry.node!!.more.loadsInPlace) "More [${entry.count}]" else "Continue Thread"
             CollapsedReasonCode.Deleted -> "Deleted [${entry.count}]"
             CollapsedReasonCode.LowScore, CollapsedReasonCode.ScoreBelowThreshold -> "Low Score [${entry.count}]"
             CollapsedReasonCode.BlockedAuthor -> "Blocked [${entry.count}]"

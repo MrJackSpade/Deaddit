@@ -53,14 +53,29 @@ class CommentModel(comment: Comment) {
     /** Whether it has been selected: the line beside its replies stays the text color once deselected. */
     var everSelected by mutableStateOf(false)
 
-    /** The body, parsed once per edit. */
+    /** For a comment www translated: whether it's showing as written rather than translated. */
+    var showingOriginal by mutableStateOf(false)
+        private set
+
+    /** The body, parsed once per edit (or switch between translation and original). */
     var blocks: List<Block> by mutableStateOf(parse(comment))
         private set
 
+    /** The markdown of the body as shown. */
+    val body: String get() = comment.original?.takeIf { showingOriginal }?.body ?: comment.body
+
     /** Replaces the body with an edited version. */
     fun edited(updated: Comment) {
-        comment = comment.copy(body = updated.body, bodyHtml = updated.bodyHtml)
+        comment = comment.copy(body = updated.body, bodyHtml = updated.bodyHtml, translated = false, original = null)
+        showingOriginal = false
         blocks = parse(comment)
+    }
+
+    /** Switches a translated comment between www's translation and the comment as written. */
+    fun toggleTranslation() {
+        val original = checkNotNull(comment.original) { "${comment.name} isn't translated." }
+        showingOriginal = !showingOriginal
+        blocks = parse(if (showingOriginal) comment.copy(body = original.body, bodyHtml = original.bodyHtml) else comment)
     }
 
     /** Applies a tap on ▲ or ▼, as the C# comment did, and returns the state to send. */
@@ -179,6 +194,16 @@ private fun Header(services: Services, model: CommentModel, post: Post?) {
             }
 
             Text(" ${comment.createdUtc.elapsed()}", color = sub, fontSize = subSize)
+
+            if (comment.original != null) {
+                Text(
+                    if (model.showingOriginal) " original" else " translated",
+                    Modifier.clickable(role = Role.Button) { model.toggleTranslation() }
+                        .semantics { contentDescription = if (model.showingOriginal) "Show translation" else "Show original" },
+                    color = sub,
+                    fontSize = subSize,
+                )
+            }
         }
 
         val tag = comment.author?.let(services.userTags::get)

@@ -119,21 +119,27 @@ class RedditApi(private val runner: CommandRunner) {
     suspend fun getSortedPosts(path: String, parameters: ListingParameters): Page =
         call("GetSortedPosts") { put("path", path); put("parameters", parameters.toJson()) }.toPage()
 
-    /** A post and its comment tree, optionally focused on one comment with some parent context. */
-    suspend fun getComments(postId: String, commentId: String? = null, context: Int? = null): Pair<Post?, List<ListingItem>> {
-        val result = call("GetComments") { put("articleId", postId); put("commentId", commentId); put("context", context) }.jsonObject
-        val post = result["post"]?.takeIf { it !is JsonNull }?.let { RedditJson.decodeFromJsonElement<Post>(it.jsonObject["data"]!!) }
-        val comments = result["comments"]?.takeIf { it !is JsonNull }?.toPage()?.items ?: emptyList()
-        return post to comments
-    }
-
-    /** The comments behind a "load more", flat: rebuild the tree from parent IDs. */
-    suspend fun getMoreChildren(linkFullname: String, children: List<String>, subreddit: String?): List<ListingItem> =
-        call("GetMoreChildren") {
-            put("linkFullname", linkFullname)
-            put("children", JsonArray(children.map(::JsonPrimitive)))
-            put("depth", 999)
+    /**
+     * A thread's comments from www's HTML (or one comment's, with its parents), as a tree, with
+     * "load more" placeholders for the rest. [translate] is a language to have www translate into.
+     */
+    suspend fun getThreadComments(subreddit: String, linkFullname: String, commentFullname: String?, translate: String?): List<ListingItem> =
+        call("GetThreadComments") {
             put("subreddit", subreddit)
+            put("linkFullname", linkFullname)
+            put("commentFullname", commentFullname)
+            put("translate", translate)
+        }.jsonArray.map(ListingItem::parse)
+
+    /** The comments behind one of www's "load more" placeholders, as a tree in its place. */
+    suspend fun getMoreComments(more: More, linkFullname: String, subreddit: String, parentFullname: String, translate: String?): List<ListingItem> =
+        call("GetMoreComments") {
+            put("moreUrl", requireNotNull(more.moreUrl) { "${more.name} isn't one of www's \"load more\" placeholders." })
+            put("cursor", requireNotNull(more.moreCursor) { "${more.name} has no cursor." })
+            put("linkFullname", linkFullname)
+            put("subreddit", subreddit)
+            put("parentFullname", parentFullname)
+            put("translate", translate)
         }.jsonArray.map(ListingItem::parse)
 
     suspend fun getPost(idOrFullname: String): Post? =

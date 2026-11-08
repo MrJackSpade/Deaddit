@@ -50,30 +50,4 @@ class CommentTreeTest {
         val items = ListingItem.parseListing(json(listing(comment("p", "t3_p"), comment("a", "t3_p"))))
         assertEquals(listOf("a"), CommentTree.fromComments(items, "p", null).map { (it as CommentNode).comment.id })
     }
-
-    @Test
-    fun nestsLoadedCommentsByParent() {
-        val parent = RedditJson.decodeFromString(com.mrjackspade.deaddit.core.model.Comment.serializer(), """{"id":"x","name":"t1_x"}""")
-
-        // GetMoreChildren returns things flat, parents before children.
-        val items = listOf(
-            comment("c", "t1_x"),
-            comment("d", "t1_c"),
-            more("m", "t1_d", listOf("g")),
-            comment("e", "t1_c"),
-            comment("f", "t1_x"),
-        ).map { ListingItem.parse(json(it)) }
-
-        val tree = CommentTree.fromMoreChildren(items, parent)
-
-        assertEquals(listOf("c", "f"), tree.map { (it as CommentNode).comment.id })
-        tree.forEach { assertSame(parent, it.parent) }
-
-        val c = tree[0] as CommentNode
-        assertEquals(listOf("d", "e"), c.replies.map { (it as CommentNode).comment.id })
-        val d = c.replies[0] as CommentNode
-        assertSame(c.comment, d.parent)
-        assertEquals("m", (d.replies.single() as MoreNode).more.id)
-        assertSame(d.comment, d.replies.single().parent)
-    }
 }

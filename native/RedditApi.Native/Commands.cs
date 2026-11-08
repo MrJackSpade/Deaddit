@@ -49,6 +49,10 @@ namespace RedditApi.Native
                             Str(args, "articleId"), OptStr(args, "commentId"), OptStr(args, "sort"), OptInt(args, "limit"), OptInt(args, "depth"), OptInt(args, "context"));
                         return new Dictionary<string, object?> { ["post"] = post, ["comments"] = TypedThings.WithTypedReplies(comments, Bridge.ModelJson) };
                     }
+                case "GetThreadComments":
+                    return await client.GetThreadCommentsAsync(Str(args, "subreddit"), Str(args, "linkFullname"), OptStr(args, "commentFullname"), OptStr(args, "translate"));
+                case "GetMoreComments":
+                    return await client.GetMoreCommentsAsync(Str(args, "moreUrl"), Str(args, "cursor"), Str(args, "linkFullname"), Str(args, "subreddit"), Str(args, "parentFullname"), OptStr(args, "translate"));
                 case "GetMoreChildren":
                     return await client.GetMoreChildrenAsync(Str(args, "linkFullname"), StrList(args, "children"), OptStr(args, "sort"), OptInt(args, "depth"), OptStr(args, "subreddit"));
                 case "GetPost":

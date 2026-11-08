@@ -2,6 +2,7 @@ package com.mrjackspade.deaddit.core.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonElement
 import java.time.Instant
 
@@ -219,6 +220,11 @@ data class Comment(
     /** Inbox only: whether it's unread, and the link to it in context. */
     val new: Boolean = false,
     val context: String? = null,
+    /** Read from www's HTML: whether www can translate it, and whether this is its translation. */
+    val translatable: Boolean = false,
+    val translated: Boolean = false,
+    /** When this is www's translation, the comment as written, to switch back to. */
+    @Transient val original: CommentText? = null,
     @Serializable(RawJsonSerializer::class) val replies: JsonElement? = null,
 ) : RedditThing
 
@@ -240,7 +246,13 @@ data class Message(
     val distinguished: Distinguished? = null,
 ) : RedditThing
 
-/** A "load more" placeholder. No children means "continue this thread". */
+/** A comment's text: its markdown and its HTML. */
+data class CommentText(val body: String, val bodyHtml: String?)
+
+/**
+ * A "load more" placeholder. From www's HTML, [moreUrl] and [moreCursor] load it; from Reddit's
+ * JSON, [children]. Neither means "continue this thread".
+ */
 @Serializable
 data class More(
     val id: String,
@@ -249,4 +261,9 @@ data class More(
     val count: Int = 0,
     val depth: Int = 0,
     val children: List<String> = emptyList(),
-)
+    @SerialName("more_url") val moreUrl: String? = null,
+    @SerialName("more_cursor") val moreCursor: String? = null,
+) {
+    /** Whether it loads comments in place; otherwise it's "continue this thread". */
+    val loadsInPlace: Boolean get() = moreUrl != null || children.isNotEmpty()
+}

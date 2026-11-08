@@ -7,7 +7,7 @@ Deaddit is a native Android app: Kotlin + Jetpack Compose, Gradle (`app/` UI, `c
 ## Building
 
 - Kotlin: `gradlew.bat --no-daemon :app:assembleDebug` and `:core:test`. Run long builds in the background.
-- `:core:test` runs on the desktop JVM, whose java.util.regex/java.text differ from Android's (ICU): a pattern desktop Java accepts can throw on the phone. `:core-device-tests:connectedDebugAndroidTest` runs the same tests on `emulator-5554`; run it after any change to `core/`.
+- `:core:test` runs on the desktop JVM, whose java.util.regex/java.text differ from Android's (ICU): a pattern desktop Java accepts can throw on the phone. `:core-device-tests:connectedDebugAndroidTest` runs the same tests on `emulator-5554`; run it after any change to `core/`, as `ANDROID_SERIAL=emulator-5554 gradlew.bat ...`: otherwise Gradle runs it on every connected device, the RP6 included.
 - `libredditapi.so` (gitignored, in `app/src/main/jniLibs/<abi>/`): .NET can only build it on Linux, so locally `bash native/build-android.sh [arm64-v8a] [x86_64]` runs `native/publish-android.sh` in the QEMU builder VM (`G:\VMs\deaddit-linux-builder`, see its README; start it with its `start.ps1`). Rebuild it after any change to `Reddit.Api` or `native/`. Never edit `build-android.sh` while it's running (bash reads scripts as it goes).
 - NativeAOT can't do reflection over generic types nothing references at compile time: Reddit.Api's JSON goes through `Reddit.Api/Json/RedditJsonContext.cs` there, so add new model types to it.
 

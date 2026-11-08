@@ -173,4 +173,50 @@ line two</p>
             RedditHtml.parse(html),
         )
     }
+
+    // www.reddit.com's rendering of comment bodies (ShredditCommentParser's body HTML).
+
+    @Test
+    fun parsesWwwBodies() {
+        val html = """<div class="py-0 xs:mx-xs" dir="auto" id="t1_x-post-rtjson-content"> <p> It ends, <shreddit-spoiler>Cirno wins</shreddit-spoiler>, and <s>not</s> sadly. </p> </div>"""
+        assertEquals(
+            listOf(Block.Paragraph(listOf(Span("It ends, "), Span("Cirno wins", spoiler = 0), Span(", and "), Span("not", strike = true), Span(" sadly.")))),
+            RedditHtml.parse(html),
+        )
+    }
+
+    @Test
+    fun readsWwwWrappersAsTheirContent() {
+        // A bot's comment: www wraps it in <shreddit-mod-comment> and a span around the body's div.
+        val html = """<shreddit-mod-comment> <span class=""><div dir="auto" id="t1_x-post-rtjson-content"> <p> Hello </p><ul> <li> <p> one </p> </li><li> <p> two </p> </li> </ul></div></span></shreddit-mod-comment>"""
+        assertEquals(
+            listOf(
+                Block.Paragraph(listOf(Span("Hello"))),
+                Block.BulletList(ordered = false, start = 1, items = listOf(listOf(Block.Paragraph(listOf(Span("one")))), listOf(Block.Paragraph(listOf(Span("two")))))),
+            ),
+            RedditHtml.parse(html),
+        )
+    }
+
+    @Test
+    fun readsWwwImagesAsTheirLink() {
+        // As the markdown had them: a paragraph that is just the link, with its URL as its text.
+        val url = "https://preview.redd.it/gas-station-v0-dtzhj31gra0i1.jpeg?width=4284&format=pjpg"
+        val html = """<div id="t1_x-post-rtjson-content"> <figure class="rte-media"> <div class="w-fit"> <a href="${url.replace("&", "&amp;")}"> <img alt="Comment Image" src="x"> </a> </div> </figure> <p> Burger and beer. </p> </div>"""
+        assertEquals(
+            listOf(Block.Paragraph(listOf(Span(url, link = url))), Block.Paragraph(listOf(Span("Burger and beer.")))),
+            RedditHtml.parse(html),
+        )
+    }
+
+    @Test
+    fun readsAWwwGifInsideAParagraph() {
+        // A GIF in the middle of a paragraph, wrapped in a loader.
+        val gif = "https://external-preview.redd.it/5ySy6aW.gif?auto=webp"
+        val html = """<shreddit-async-loader bundlename="shreddit_player_loader"> <div id="t1_x-post-rtjson-content"> <p> Yeah... flour??<br/> <figure class="rte-media"> <div> <a href="$gif"><div><shreddit-player gif="" src="y"><source src="y"></shreddit-player></div></a></div></figure></p></div></shreddit-async-loader>"""
+        assertEquals(
+            listOf(Block.Paragraph(listOf(Span("Yeah... flour??")))  , Block.Paragraph(listOf(Span(gif, link = gif)))),
+            RedditHtml.parse(html),
+        )
+    }
 }
