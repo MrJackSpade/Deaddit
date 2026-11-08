@@ -176,7 +176,8 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
         try {
             val hacks = services.settings.hacks.value
             val blocking = services.settings.blocking.value
-            val added = mutableListOf<Item>()
+            // How many posts this load has shown; it goes on until there's a page of them.
+            var shown = 0
 
             // What's been seen, from what's loaded; blank titles and links are no duplicates.
             val loadedNames = loaded.mapTo(HashSet()) { it.name }
@@ -201,6 +202,8 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
                 if (blocking.duplicateThumbHandling != PostState.None) {
                     services.etags.cache(things.filterIsInstance<Post>().mapNotNull { it.thumbnailUrl() }.filter { it.isNotBlank() })
                 }
+
+                val added = mutableListOf<Item>()
 
                 for (thing in things) {
                     after = thing.name
@@ -229,9 +232,12 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
                     added += item
                     loaded += thing
                 }
-            } while (added.size < hacks.pageSize)
 
-            items += added
+                // Shown as each request comes in, not once the page is full: www's feeds are 24
+                // posts a request, slow to send, so a page can take several.
+                items += added
+                shown += added.size
+            } while (shown < hacks.pageSize)
 
             // Back only asks for confirmation from the second page on.
             bufferBack = bufferBack != null

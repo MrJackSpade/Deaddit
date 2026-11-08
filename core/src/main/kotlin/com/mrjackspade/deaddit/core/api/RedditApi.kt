@@ -1,5 +1,6 @@
 package com.mrjackspade.deaddit.core.api
 
+import com.mrjackspade.deaddit.core.markdown.HtmlMarkdownConverter
 import com.mrjackspade.deaddit.core.model.Comment
 import com.mrjackspade.deaddit.core.model.Message
 import com.mrjackspade.deaddit.core.model.More
@@ -47,12 +48,23 @@ sealed interface ListingItem {
             val kind = thing.jsonObject["kind"]!!.jsonPrimitive.content
             val data = thing.jsonObject["data"]!!
             return when (kind) {
-                "t3" -> PostItem(RedditJson.decodeFromJsonElement(data))
+                "t3" -> PostItem(decodePost(data))
                 "t1" -> CommentItem(RedditJson.decodeFromJsonElement(data))
                 "t4" -> MessageItem(RedditJson.decodeFromJsonElement(data))
                 "more" -> MoreItem(RedditJson.decodeFromJsonElement(data))
                 else -> throw IllegalStateException("Unexpected thing kind '$kind' in a listing.")
             }
+        }
+
+        /**
+         * A post. One read from www's HTML comes without selftext when it has a body, since www
+         * doesn't send the markdown: it's rebuilt from the body's HTML, as comments' is (Reddit's
+         * JSON always has selftext, "" when there's no body).
+         */
+        fun decodePost(data: JsonElement): Post {
+            val post = RedditJson.decodeFromJsonElement<Post>(data)
+            val html = post.bodyHtml
+            return if ("selftext" !in data.jsonObject && !html.isNullOrEmpty()) post.copy(body = HtmlMarkdownConverter.convert(html)) else post
         }
 
         /** The things in a listing (`{"kind": "Listing", "data": {"children": [...]}}`). */
@@ -144,7 +156,7 @@ class RedditApi(private val runner: CommandRunner) {
 
     /** The post on a www thread page (as a browser has it, past Reddit's JavaScript challenge). */
     suspend fun parseThreadPagePost(html: String): Post =
-        RedditJson.decodeFromJsonElement<Post>(call("ParseThreadPagePost") { put("html", html) })
+        ListingItem.decodePost(call("ParseThreadPagePost") { put("html", html) })
 
     suspend fun getPostsById(fullnames: List<String>): List<Post> =
         call("GetById") { put("fullnames", JsonArray(fullnames.map(::JsonPrimitive))) }.toPage().items
