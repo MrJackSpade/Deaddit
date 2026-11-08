@@ -17,6 +17,7 @@ import coil3.compose.LocalPlatformContext
 import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.size.Size
+import com.mrjackspade.deaddit.ui.Spinner
 import kotlin.math.roundToInt
 
 /**
@@ -24,6 +25,7 @@ import kotlin.math.roundToInt
  * pixel), no wider than the space it's in and no taller than the screen, keeping its shape.
  * Loaded at its original resolution, so it's never sampled down; small images are drawn larger.
  * A plain layout (not BoxWithConstraints), so rows that measure intrinsically can hold it.
+ * While it loads, the app's spinner stands in for it.
  */
 @Composable
 fun InlineImage(url: String, description: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
@@ -34,17 +36,28 @@ fun InlineImage(url: String, description: String, onClick: () -> Unit, modifier:
     val state by painter.state.collectAsState()
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
+    val intrinsic = painter.intrinsicSize
+    val loaded = state is AsyncImagePainter.State.Success && intrinsic.isSpecified && intrinsic.width > 0f && intrinsic.height > 0f
+    val loading = state is AsyncImagePainter.State.Empty || state is AsyncImagePainter.State.Loading
+
     Layout(
-        content = { Image(painter, contentDescription = description, contentScale = ContentScale.Fit, modifier = Modifier.clickable(onClick = onClick)) },
+        content = {
+            Image(painter, contentDescription = description, contentScale = ContentScale.Fit, modifier = Modifier.clickable(onClick = onClick))
+            if (loading) Spinner()
+        },
         modifier = modifier,
     ) { measurables, constraints ->
-        val intrinsic = painter.intrinsicSize
-        val loaded = state is AsyncImagePainter.State.Success && intrinsic.isSpecified && intrinsic.width > 0f && intrinsic.height > 0f
-
-        // Nothing until it has loaded, as the web view showed nothing; the painter still loads.
+        // The image takes no room until it has loaded (the painter still loads); the spinner, when
+        // there is one, takes its place.
         if (!loaded) {
-            val placeable = measurables.single().measure(Constraints.fixed(0, 0))
-            return@Layout layout(0, 0) { placeable.place(0, 0) }
+            val image = measurables[0].measure(Constraints.fixed(0, 0))
+            val spinner = measurables.getOrNull(1)?.measure(constraints)
+            val width = spinner?.width ?: 0
+            val height = spinner?.height ?: 0
+            return@Layout layout(width, height) {
+                image.place(0, 0)
+                spinner?.place(0, 0)
+            }
         }
 
         val naturalWidth = intrinsic.width.dp.toPx()
@@ -54,7 +67,7 @@ fun InlineImage(url: String, description: String, onClick: () -> Unit, modifier:
         val width = (naturalWidth * scale).roundToInt()
         val height = (naturalHeight * scale).roundToInt()
 
-        val placeable = measurables.single().measure(Constraints.fixed(width, height))
+        val placeable = measurables[0].measure(Constraints.fixed(width, height))
         layout(width, height) { placeable.place(0, 0) }
     }
 }
