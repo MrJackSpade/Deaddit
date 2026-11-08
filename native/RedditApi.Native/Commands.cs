@@ -55,8 +55,8 @@ namespace RedditApi.Native
                     return await client.GetMoreCommentsAsync(Str(args, "moreUrl"), Str(args, "cursor"), Str(args, "linkFullname"), Str(args, "subreddit"), Str(args, "parentFullname"), OptStr(args, "translate"));
                 case "GetMoreChildren":
                     return await client.GetMoreChildrenAsync(Str(args, "linkFullname"), StrList(args, "children"), OptStr(args, "sort"), OptInt(args, "depth"), OptStr(args, "subreddit"));
-                case "GetPost":
-                    return await client.GetPostAsync(Str(args, "idOrFullname"));
+                case "ParseThreadPagePost":
+                    return client.ParseThreadPagePost(Str(args, "html"));
                 case "GetById":
                     return await client.GetByIdAsync(StrList(args, "fullnames"));
                 case "Search":

@@ -142,9 +142,9 @@ class RedditApi(private val runner: CommandRunner) {
             put("translate", translate)
         }.jsonArray.map(ListingItem::parse)
 
-    suspend fun getPost(idOrFullname: String): Post? =
-        call("GetPost") { put("idOrFullname", idOrFullname) }.takeIf { it !is JsonNull }
-            ?.let { RedditJson.decodeFromJsonElement<Post>(it.jsonObject["data"]!!) }
+    /** The post on a www thread page (as a browser has it, past Reddit's JavaScript challenge). */
+    suspend fun parseThreadPagePost(html: String): Post =
+        RedditJson.decodeFromJsonElement<Post>(call("ParseThreadPagePost") { put("html", html) })
 
     suspend fun getPostsById(fullnames: List<String>): List<Post> =
         call("GetById") { put("fullnames", JsonArray(fullnames.map(::JsonPrimitive))) }.toPage().items

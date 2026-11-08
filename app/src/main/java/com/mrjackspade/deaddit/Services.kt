@@ -33,7 +33,7 @@ import java.io.File
 class Services(context: Context, val testMode: Boolean) {
     val api = RedditApi(NativeRedditApi::call)
     val settings = SettingsStore(context)
-    val reddit = RedditService(api) { settings.hacks.value }
+    val reddit = RedditService(api, com.mrjackspade.deaddit.api.ThreadPageLoader(context.applicationContext)::load) { settings.hacks.value }
     val sessions = SessionStore(context)
     val visits = VisitTracker(context)
     val history = HistoryTracker(context)

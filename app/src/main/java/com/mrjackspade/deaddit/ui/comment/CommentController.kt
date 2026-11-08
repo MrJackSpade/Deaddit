@@ -109,9 +109,7 @@ class CommentController(
             return null
         }
 
-        val fetched = services.reddit.getPost(comment.linkId!!)
-        if (fetched == null) services.dialogs.message("The parent post could not be fetched.")
-        return fetched
+        return services.reddit.getPost(comment.linkId!!)
     }
 
     private fun newBlockRule(comment: Comment) {

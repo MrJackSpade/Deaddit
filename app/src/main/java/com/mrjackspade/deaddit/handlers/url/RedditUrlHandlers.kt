@@ -61,7 +61,7 @@ class RedditCommentsPostUrlHandler(private val services: Services) : UrlHandler 
         val postId = match?.groupValues?.get(1) ?: ""
         val commentId = match?.groups?.get(2)?.value
 
-        val post = services.reddit.getPost(postId) ?: throw IllegalStateException("Reddit returned no post for id '$postId'")
+        val post = services.reddit.getPost(postId)
         // As the C# `new ApiComment { Id = commentId }`: only the ID, no name. The thread is fetched by that ID, and
         // the focus is then only the parent its top-level comments and "load more"s hang from, which reads no name.
         val focus = commentId?.let { CommentFocus(Comment(id = it, name = "")) }

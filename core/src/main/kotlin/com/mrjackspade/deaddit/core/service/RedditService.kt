@@ -39,9 +39,14 @@ private const val TRANSLATE_INTO = "en"
 
 /**
  * The app's Reddit operations (the C# app's RedditService): logs in as each call needs, applies
- * the user's outgoing-text settings, and shapes results for the screens.
+ * the user's outgoing-text settings, and shapes results for the screens. [threadPage] loads a www
+ * thread page as a browser has it (the page is behind Reddit's JavaScript challenge) and returns its HTML.
  */
-class RedditService(private val api: RedditApi, private val hacks: () -> ApplicationHacks) {
+class RedditService(
+    private val api: RedditApi,
+    private val threadPage: suspend (url: String) -> String,
+    private val hacks: () -> ApplicationHacks,
+) {
 
     /** The session's user, expired or not; null without a session (the C# LoggedInUser: Reddit.Api's AuthenticatedUser). */
     val loggedInUser: String? get() = api.session?.authenticatedUser
@@ -151,9 +156,10 @@ class RedditService(private val api: RedditApi, private val hacks: () -> Applica
         }
     }
 
-    suspend fun getPost(idOrFullname: String): Post? {
+    /** A post, from its www thread page. */
+    suspend fun getPost(idOrFullname: String): Post {
         api.ensureAuthenticated()
-        return api.getPost(idOrFullname)
+        return api.parseThreadPagePost(threadPage("https://www.reddit.com/comments/${idOrFullname.removePrefix("t3_")}/"))
     }
 
     suspend fun getPosts(ids: List<String>): List<Post> {
