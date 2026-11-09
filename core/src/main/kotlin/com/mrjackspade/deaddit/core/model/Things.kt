@@ -251,14 +251,15 @@ data class CommentText(val body: String, val bodyHtml: String?)
 
 /**
  * A "load more" placeholder. From www's HTML, [moreUrl] and [moreCursor] load it; from Reddit's
- * JSON, [children]. Neither means "continue this thread".
+ * JSON, [children]. Neither means "continue this thread". [count] is null when Reddit doesn't give
+ * one (www's later top-level pages).
  */
 @Serializable
 data class More(
     val id: String,
     val name: String,
     @SerialName("parent_id") val parentId: String? = null,
-    val count: Int = 0,
+    val count: Int? = null,
     val depth: Int = 0,
     val children: List<String> = emptyList(),
     @SerialName("more_url") val moreUrl: String? = null,

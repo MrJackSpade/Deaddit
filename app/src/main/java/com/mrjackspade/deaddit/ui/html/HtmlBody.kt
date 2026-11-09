@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateMapOf
@@ -51,7 +52,8 @@ import com.mrjackspade.deaddit.ui.color
  * styles with the app's stylesheet (site.css) over them. [onLink] gets every link tapped. A paragraph
  * that is just one link is drawn by what [inline] returns for it, when it returns something (inline
  * media). [onSpoiler] is told when a hidden spoiler is tapped (and revealed): in the C# app that tap
- * also reached the comment around it, selecting it.
+ * also reached the comment around it, selecting it. Its text can be selected and copied with a
+ * long press, as in the WebView.
  */
 @Composable
 fun HtmlBody(
@@ -66,14 +68,16 @@ fun HtmlBody(
     val revealed = remember(blocks) { mutableStateMapOf<Int, Boolean>() }
     val body = Body(fontSize, onLink, revealed, inline, onSpoiler)
 
-    Column(modifier) {
-        if (blocks.isNotEmpty()) {
-            // The first block's top margin and the last's bottom one collapse through the body
-            // (no padding or border of its own) and show around it.
-            val edges = Css.edges(blocks, body.em, listDepth = 0)
-            Spacer(Modifier.height(edges.top.dp))
-            body.Blocks(blocks, listDepth = 0)
-            Spacer(Modifier.height(edges.bottom.dp))
+    SelectionContainer(modifier) {
+        Column {
+            if (blocks.isNotEmpty()) {
+                // The first block's top margin and the last's bottom one collapse through the body
+                // (no padding or border of its own) and show around it.
+                val edges = Css.edges(blocks, body.em, listDepth = 0)
+                Spacer(Modifier.height(edges.top.dp))
+                body.Blocks(blocks, listDepth = 0)
+                Spacer(Modifier.height(edges.bottom.dp))
+            }
         }
     }
 }

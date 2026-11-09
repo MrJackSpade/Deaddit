@@ -87,7 +87,6 @@ class PostPage(
     ) : ThreadEntry(key, parent) {
         var clicked = false
         var loading by mutableStateOf(false)
-        val count: Int get() = node?.more?.count ?: collapsed!!.size
     }
 
     private val postModel = PostModel(post, PostState.None)
@@ -374,11 +373,13 @@ class PostPage(
     private fun MoreButton(entry: MoreEntry) {
         val styling = LocalStyling.current
 
+        val collapsed = entry.collapsed?.size
         val label = when (entry.reason) {
-            null -> if (entry.node!!.more.loadsInPlace) "More [${entry.count}]" else "Continue Thread"
-            CollapsedReasonCode.Deleted -> "Deleted [${entry.count}]"
-            CollapsedReasonCode.LowScore, CollapsedReasonCode.ScoreBelowThreshold -> "Low Score [${entry.count}]"
-            CollapsedReasonCode.BlockedAuthor -> "Blocked [${entry.count}]"
+            // www gives no count for its later top-level pages.
+            null -> if (entry.node!!.more.loadsInPlace) entry.node.more.count?.let { "More [$it]" } ?: "More" else "Continue Thread"
+            CollapsedReasonCode.Deleted -> "Deleted [$collapsed]"
+            CollapsedReasonCode.LowScore, CollapsedReasonCode.ScoreBelowThreshold -> "Low Score [$collapsed]"
+            CollapsedReasonCode.BlockedAuthor -> "Blocked [$collapsed]"
             // The C# app labelled any other reason with its name.
             CollapsedReasonCode.Empty -> "Empty"
         }
