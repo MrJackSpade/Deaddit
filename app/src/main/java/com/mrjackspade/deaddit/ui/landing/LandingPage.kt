@@ -1,18 +1,46 @@
 package com.mrjackspade.deaddit.ui.landing
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Layers
+import androidx.compose.material.icons.outlined.MoreHoriz
+import androidx.compose.material.icons.outlined.PersonOutline
+import androidx.compose.material.icons.outlined.Public
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextOverflow
+import com.mrjackspade.deaddit.ui.Divider
+import com.mrjackspade.deaddit.ui.IconAction
+import com.mrjackspade.deaddit.ui.ListGroup
+import com.mrjackspade.deaddit.ui.SectionLabel
+import com.mrjackspade.deaddit.ui.TopBarTitle
+import com.mrjackspade.deaddit.ui.cardShape
+import com.mrjackspade.deaddit.ui.chipShape
+import com.mrjackspade.deaddit.ui.px
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -47,7 +75,13 @@ import kotlinx.coroutines.launch
 /** The first page: the fixed feeds, the user's subscriptions and their multis. */
 class LandingPage(private val services: Services) : Screen() {
     /** One row: a feed to open, and (for removable rows) how to remove it. */
-    private class Entry(val label: String, val open: () -> Unit, val isMulti: Boolean = false, val remove: (suspend () -> Unit)? = null)
+    private class Entry(
+        val label: String,
+        val open: () -> Unit,
+        val isMulti: Boolean = false,
+        val icon: ImageVector? = null,
+        val remove: (suspend () -> Unit)? = null,
+    )
 
     /**
      * The subscriptions and multis, in the order they were added to the page, as the C# page's
@@ -58,10 +92,10 @@ class LandingPage(private val services: Services) : Screen() {
     private var selected by mutableStateOf<Entry?>(null)
 
     private val fixed = listOf(
-        Entry(Feed.Subreddit("All").displayName, { Pages.openFeed(services, Feed.Subreddit("All")) }),
-        Entry(Feed.Home.displayName, { Pages.openFeed(services, Feed.Home) }),
-        Entry(Feed.Saved.displayName, { Pages.openFeed(services, Feed.Saved) }),
-        Entry("History", { Pages.openHistory(services) }),
+        Entry(Feed.Subreddit("All").displayName, { Pages.openFeed(services, Feed.Subreddit("All")) }, icon = Icons.Outlined.Public),
+        Entry(Feed.Home.displayName, { Pages.openFeed(services, Feed.Home) }, icon = Icons.Outlined.Home),
+        Entry(Feed.Saved.displayName, { Pages.openFeed(services, Feed.Saved) }, icon = Icons.Outlined.BookmarkBorder),
+        Entry("History", { Pages.openHistory(services) }, icon = Icons.Outlined.History),
     )
 
     private var started = false
@@ -189,63 +223,127 @@ class LandingPage(private val services: Services) : Screen() {
 
         Column(Modifier.fillMaxSize().background(styling.secondaryColor.color)) {
             TopBar {
-                TopBarButton(Icons.Filled.Settings, "Settings") { Pages.openSettings(services) }
-                TopBarButton(Icons.Filled.Mail, "Messages") { Pages.openMessages(services) }
-                Spacer(Modifier.weight(1f))
-                TopBarButton(Icons.Filled.Add, "Add") { onAdd() }
-                TopBarButton(Icons.Filled.Person, "Profile") { onProfile() }
+                Spacer(Modifier.width(8.dp))
+                TopBarTitle("Subreddits")
+                TopBarButton(Icons.Outlined.Add, "Add") { onAdd() }
+                TopBarButton(Icons.Outlined.PersonOutline, "Profile") { onProfile() }
             }
 
-            LazyColumn(Modifier.fillMaxSize().navigationBarsPadding(), rememberLazyListState()) {
-                items(fixed) { Row(it) }
-                items(entries) { Row(it) }
-                if (loadingMultis) item { Spinner() }
+            val subscriptions = entries.filter { !it.isMulti }
+            val multis = entries.filter { it.isMulti }
+
+            LazyColumn(
+                Modifier.fillMaxSize().navigationBarsPadding(),
+                rememberLazyListState(),
+                contentPadding = PaddingValues(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 12.dp),
+            ) {
+                item(key = "fixed") { Tiles() }
+
+                if (subscriptions.isNotEmpty()) {
+                    item(key = "subscriptions-label") { SectionLabel("Subscribed", Modifier.padding(top = 16.dp)) }
+                    item(key = "subscriptions") { Group(subscriptions) }
+                }
+
+                if (multis.isNotEmpty()) {
+                    item(key = "multis-label") { SectionLabel("Multis", Modifier.padding(top = 16.dp)) }
+                    item(key = "multis") { Group(multis) }
+                }
+
+                if (loadingMultis) item(key = "spinner") { Spinner() }
+            }
+        }
+    }
+
+    /** The fixed feeds, two to a row, each an icon and its name. */
+    @Composable
+    private fun Tiles() {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            for (pair in fixed.chunked(2)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    for (entry in pair) Tile(entry, Modifier.weight(1f))
+                }
             }
         }
     }
 
     @Composable
-    private fun Row(entry: Entry) {
+    private fun Tile(entry: Entry, modifier: Modifier) {
+        val styling = LocalStyling.current
+        val shape = styling.cardShape
+        Row(
+            modifier.heightIn(min = 52.dp).clip(shape).background(styling.cardColor.color).border(1.dp, styling.borderColor.color, shape)
+                .clickable(onClick = entry.open).padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            entry.icon?.let { Icon(it, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(22.dp)) }
+            Text(entry.label, color = styling.textColor.color, fontSize = styling.titleFontSize.px, maxLines = 1)
+        }
+    }
+
+    /** Rows in one card; a row's options button selects it, showing Remove. */
+    @Composable
+    private fun Group(group: List<Entry>) {
+        ListGroup {
+            group.forEachIndexed { index, entry -> EntryRow(entry, last = index == group.lastIndex) }
+        }
+    }
+
+    @Composable
+    private fun EntryRow(entry: Entry, last: Boolean) {
         val styling = LocalStyling.current
         val isSelected = selected === entry
 
-        Column(
-            Modifier.fillMaxWidth()
-                .background(if (isSelected) styling.highlightColor.color else styling.secondaryColor.color),
-        ) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    entry.label,
-                    Modifier.weight(1f).clickable(onClick = entry.open).padding(10.dp),
-                    color = styling.textColor.color,
-                )
-                // The C# row's "⚙" text, padded as the label so the row keeps the same height.
+        Column(Modifier.fillMaxWidth().background(if (isSelected) styling.highlightColor.color else Color.Transparent)) {
+            Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    Modifier.weight(1f).clickable(onClick = entry.open).padding(start = 12.dp, top = 10.dp, bottom = 10.dp, end = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Mark(entry)
+                    Text(entry.label, color = styling.textColor.color, fontSize = styling.titleFontSize.px, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+
                 if (entry.remove != null) {
-                    Text(
-                        "\u2699",
-                        Modifier.clickable(role = Role.Button) { selected = if (isSelected) null else entry }
-                            .padding(10.dp)
-                            .semantics { contentDescription = "Options for ${entry.label}" },
-                        color = styling.textColor.color,
-                    )
+                    if (isSelected) {
+                        IconAction(Icons.Outlined.DeleteOutline, "Remove ${entry.label}") { remove(entry) }
+                        IconAction(Icons.Outlined.Close, "Close options") { selected = null }
+                    } else {
+                        IconAction(Icons.Outlined.MoreHoriz, "Options for ${entry.label}") { selected = entry }
+                    }
                 }
             }
+            if (!last) Divider()
+        }
+    }
 
-            if (isSelected && entry.remove != null) {
-                Text(
-                    "Remove",
-                    Modifier.clickable {
-                        scope.launch {
-                            try {
-                                entry.remove.invoke()
-                                if (selected === entry) selected = null
-                            } catch (e: Throwable) {
-                                services.dialogs.error(e)
-                            }
-                        }
-                    }.padding(10.dp),
-                    color = styling.textColor.color,
-                )
+    /** A multi's layers mark, or a subreddit's first letter on a quiet chip. */
+    @Composable
+    private fun Mark(entry: Entry) {
+        val styling = LocalStyling.current
+        if (entry.isMulti) {
+            Icon(Icons.Outlined.Layers, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(22.dp))
+            return
+        }
+        // Labels read "/r/name" or "/u/name": the name's first letter.
+        val letter = entry.label.substringAfterLast('/').firstOrNull()?.uppercaseChar()?.toString() ?: ""
+        Box(
+            Modifier.size(26.dp).clip(styling.chipShape).background(styling.tertiaryColor.color),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(letter, color = styling.subTextColor.color, fontSize = (styling.subTextFontSize * 0.9).px)
+        }
+    }
+
+    private fun remove(entry: Entry) {
+        val remove = entry.remove ?: return
+        scope.launch {
+            try {
+                remove()
+                if (selected === entry) selected = null
+            } catch (e: Throwable) {
+                services.dialogs.error(e)
             }
         }
     }

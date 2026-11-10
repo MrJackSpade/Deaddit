@@ -19,6 +19,14 @@ import com.mrjackspade.deaddit.ui.post.PostPage
 
 /** Opens pages (the C# app's AppNavigator). */
 object Pages {
+    /** The page a bottom-bar tab shows. */
+    fun tabRoot(services: Services, tab: Tab): Screen = when (tab) {
+        Tab.Home -> FeedPage(services, Feed.Home, Feed.Home.defaultSort)
+        Tab.Subreddits -> com.mrjackspade.deaddit.ui.landing.LandingPage(services)
+        Tab.Inbox -> FeedPage(services, Feed.Messages, InboxSort.Unread.toSort())
+        Tab.Settings -> com.mrjackspade.deaddit.ui.settings.SettingsPage(services)
+    }
+
     fun openFeed(services: Services, feed: Feed, sort: Sort? = feed.defaultSort) {
         services.navigator.push(FeedPage(services, feed, sort))
     }
@@ -54,7 +62,7 @@ object Pages {
 
     /** The editor for a new block rule; [onSaved] gets the rule as the user saved it. */
     fun openBlockRuleEditor(services: Services, rule: BlockRule, onSaved: (BlockRule) -> Unit) =
-        com.mrjackspade.deaddit.ui.editor.EditorPage.open(services, com.mrjackspade.deaddit.ui.editor.Schemas.blockRule, rule, onSaved)
+        com.mrjackspade.deaddit.ui.editor.EditorPage.open(services, com.mrjackspade.deaddit.ui.editor.Schemas.blockRule, rule, title = "Block rule", onSubmit = onSaved)
 
     /** The page for writing a private message to [user], optionally replying to [replyTo]. */
     fun openMessage(services: Services, user: User, replyTo: Message? = null) =

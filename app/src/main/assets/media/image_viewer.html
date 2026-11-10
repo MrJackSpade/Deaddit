@@ -82,6 +82,30 @@
             font-size: 15px;
             cursor: pointer;
         }
+        /* Page view: one image per screen, swiped across; the scroll view (the default above) is
+           every image down one continuous column, for comics drawn to scroll. */
+        .container.pages {
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-snap-type: x mandatory;
+        }
+        .container.pages.zoomed {
+            overflow: hidden;
+        }
+        .container.pages .image-wrapper {
+            flex-direction: row;
+            align-items: stretch;
+            height: 100%;
+        }
+        .container.pages .img-container {
+            flex: none;
+            height: 100%;
+            scroll-snap-align: start;
+        }
+        .container.pages img {
+            max-height: 100%;
+            object-fit: contain;
+        }
         .spinner {
             width: 40px;
             height: 40px;
@@ -96,7 +120,7 @@
     </style>
 </head>
 <body>
-    <div class="container" id="container">
+    <div class="container %MODE%" id="container">
         <div class="image-wrapper" id="wrapper">
             %IMAGES%
         </div>
@@ -186,12 +210,28 @@
             updateZoomState();
         }
 
+        function inPages() {
+            return container.classList.contains('pages');
+        }
+
+        /** The page showing, in page view: the one the strip is scrolled to. */
+        function currentPage() {
+            return Math.round(container.scrollLeft / container.clientWidth);
+        }
+
         function clampPosition() {
             const containerRect = container.getBoundingClientRect();
             const scaledWidth = wrapper.scrollWidth * scale;
             const scaledHeight = wrapper.scrollHeight * scale;
 
-            if (scaledWidth <= containerRect.width) {
+            if (inPages()) {
+                // Zoomed into one page of the strip: pan within that page only.
+                const left = container.scrollLeft;
+                const width = containerRect.width;
+                const minX = width + left - (left + width) * scale;
+                const maxX = left - left * scale;
+                posX = Math.min(maxX, Math.max(minX, posX));
+            } else if (scaledWidth <= containerRect.width) {
                 posX = (containerRect.width - scaledWidth) / 2;
             } else {
                 const minX = containerRect.width - scaledWidth;
@@ -257,8 +297,10 @@
 
                 const center = getCenter(e.touches);
                 const scaleChange = newScale / scale;
+                // In the strip's own coordinates: page view is scrolled across to the page showing.
+                const cx = center.x + container.scrollLeft;
 
-                posX = center.x - (center.x - posX) * scaleChange;
+                posX = cx - (cx - posX) * scaleChange;
                 posY = center.y - (center.y - posY) * scaleChange;
 
                 scale = newScale;
@@ -329,7 +371,7 @@
         let lastTapY = 0;
 
         function getActualSizeScale() {
-            const img = wrapper.querySelector('img');
+            const img = inPages() ? wrapper.querySelectorAll('img')[currentPage()] : wrapper.querySelector('img');
             if (!img || !img.naturalWidth) return 1;
             const displayedWidth = img.offsetWidth;
             return img.naturalWidth / displayedWidth;
@@ -345,7 +387,8 @@
                 const targetScale = Math.min(actualSizeScale, maxScale);
 
                 // Calculate position to center zoom on click point
-                posX = clientX - (clientX - posX) * (targetScale / scale);
+                const cx = clientX + container.scrollLeft;
+                posX = cx - (cx - posX) * (targetScale / scale);
                 posY = clientY - (clientY - posY) * (targetScale / scale);
                 scale = targetScale;
 
@@ -377,6 +420,48 @@
             e.preventDefault();
             toggleZoom(e.clientX, e.clientY);
         });
+
+        // The page showing, told to the app (its counter) as page view is swiped.
+        let reportedPage = -1;
+        function reportPage() {
+            if (!inPages() || !window.Deaddit) return;
+            const page = currentPage();
+            if (page !== reportedPage) {
+                reportedPage = page;
+                window.Deaddit.onPage(page);
+            }
+        }
+        container.addEventListener('scroll', reportPage);
+
+        /**
+         * Switches between page view ('pages') and scroll view ('scroll'), staying on the image
+         * showing: zoom resets, and the other view opens at that image.
+         */
+        function setMode(mode) {
+            const containers = wrapper.querySelectorAll('.img-container');
+            let index = 0;
+            if (inPages()) {
+                index = currentPage();
+            } else {
+                containers.forEach((c, i) => { if (c.offsetTop <= container.scrollTop + 1) index = i; });
+            }
+
+            scale = 1;
+            posX = 0;
+            posY = 0;
+            updateTransform();
+
+            container.classList.toggle('pages', mode === 'pages');
+            if (mode === 'pages') {
+                container.scrollTop = 0;
+                container.scrollLeft = index * container.clientWidth;
+                reportedPage = -1;
+                reportPage();
+            } else {
+                container.scrollLeft = 0;
+                container.scrollTop = containers[index] ? containers[index].offsetTop : 0;
+            }
+        }
     </script>
 </body>
 </html>

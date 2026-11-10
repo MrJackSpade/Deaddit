@@ -1,13 +1,31 @@
 package com.mrjackspade.deaddit.ui.post
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowDownward
+import androidx.compose.material.icons.outlined.ArrowUpward
+import androidx.compose.material.icons.outlined.Bookmark
+import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Link
+import androidx.compose.material.icons.outlined.MoreHoriz
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -17,25 +35,35 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.mrjackspade.deaddit.core.config.PostState
+import com.mrjackspade.deaddit.core.html.HtmlText
 import com.mrjackspade.deaddit.core.model.Distinguished
 import com.mrjackspade.deaddit.core.model.Post
 import com.mrjackspade.deaddit.core.model.VoteState
 import com.mrjackspade.deaddit.core.model.link
 import com.mrjackspade.deaddit.core.model.thumbnailUrl
+import com.mrjackspade.deaddit.core.util.CompactCount
 import com.mrjackspade.deaddit.core.util.UrlHelper
 import com.mrjackspade.deaddit.core.util.elapsed
+import com.mrjackspade.deaddit.ui.Card
+import com.mrjackspade.deaddit.ui.Divider
+import com.mrjackspade.deaddit.ui.IconAction
 import com.mrjackspade.deaddit.ui.LocalStyling
 import com.mrjackspade.deaddit.ui.color
-import com.mrjackspade.deaddit.ui.px
 import com.mrjackspade.deaddit.ui.flair.Flair
+import com.mrjackspade.deaddit.ui.innerShape
+import com.mrjackspade.deaddit.ui.px
 
 /**
  * A post as shown, with what the user can change on it. Made where the post is loaded, so a post
@@ -73,8 +101,9 @@ class PostActions(
 )
 
 /**
- * One post: thumbnail, title with flair and metadata, and the vote column; when [selected], its
- * author and age and the action buttons. In a feed ([inList]), visited posts are dimmed.
+ * One post. In a feed ([inList]) it's a card: thumbnail on the left, where it's from, title and
+ * flair, then votes and comments; when [selected], its other actions too. Read posts fade back
+ * (the visited opacity) and lose the title's weight. On its thread it's the page's heading.
  */
 @Composable
 fun PostRow(
@@ -85,67 +114,166 @@ fun PostRow(
     actions: PostActions,
 ) {
     val styling = LocalStyling.current
-    val post = model.post
+    val blocked = model.state == PostState.Block
+    val read = inList && (model.visited || model.state == PostState.Visited)
 
-    val background = when {
-        model.state == PostState.Block -> styling.blockedBackgroundColor.color
-        selected -> styling.highlightColor.color
-        else -> styling.secondaryColor.color
+    if (!inList) {
+        Column(Modifier.fillMaxWidth().background(if (blocked) styling.blockedBackgroundColor.color else Color.Transparent)) {
+            Summary(model, inList = false, showAuthor = true, read = false, actions = actions)
+            VoteRow(model, hideScore, actions, Modifier.padding(start = 6.dp))
+        }
+        return
     }
 
-    val dimmed = inList && (model.visited || model.state == PostState.Visited)
+    Card(
+        Modifier.padding(horizontal = 8.dp, vertical = 3.dp).alpha(if (read) styling.visitedOpacity.toFloat() else 1f),
+        selected = selected,
+        background = if (blocked) styling.blockedBackgroundColor.color else null,
+    ) {
+        Summary(model, inList = true, showAuthor = selected, read = read, actions = actions)
+        VoteRow(model, hideScore, actions, Modifier.padding(start = 6.dp, bottom = 4.dp))
 
-    Column(Modifier.fillMaxWidth().background(background).alpha(if (dimmed) styling.visitedOpacity.toFloat() else 1f)) {
-        Row(Modifier.fillMaxWidth()) {
-            AsyncImage(
-                model = model.thumbnail,
-                contentDescription = "Open ${com.mrjackspade.deaddit.core.html.HtmlText.display(post.title)}",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.size(styling.thumbnailSize.dp).clickable(role = Role.Button, onClick = actions.onThumbnail),
+        if (selected) {
+            Divider(Modifier.padding(horizontal = 8.dp))
+            Row(Modifier.fillMaxWidth().padding(4.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+                IconAction(
+                    if (model.saved) Icons.Outlined.Bookmark else Icons.Outlined.BookmarkBorder,
+                    if (model.saved) "Unsave" else "Save",
+                    active = model.saved,
+                    tint = if (model.saved) styling.accentColor.color else styling.subTextColor.color,
+                    onClick = actions.onSave,
+                )
+                IconAction(Icons.Outlined.Share, "Share", onClick = actions.onShare)
+                IconAction(Icons.Outlined.VisibilityOff, "Hide", onClick = actions.onHide)
+                IconAction(Icons.Outlined.MoreHoriz, "More", onClick = actions.onMore)
+            }
+        }
+    }
+}
+
+/** The thumbnail (or, for a link without one, a link mark that opens it) beside where the post is from and its title. */
+@Composable
+private fun Summary(model: PostModel, inList: Boolean, showAuthor: Boolean, read: Boolean, actions: PostActions) {
+    val styling = LocalStyling.current
+    val post = model.post
+    val title = HtmlText.display(post.title)
+
+    Row(
+        Modifier.fillMaxWidth().clickable(onClick = actions.onSelect)
+            .padding(start = if (inList) 12.dp else 16.dp, end = if (inList) 12.dp else 16.dp, top = 10.dp),
+    ) {
+        // A thread's own post is opened from its thumbnail only when it links somewhere.
+        if (model.thumbnail != null || !post.isSelf) {
+            Thumbnail(model.thumbnail, "Open $title", actions.onThumbnail)
+            Spacer(Modifier.width(10.dp))
+        }
+
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            val host = if (post.isSelf) null else UrlHelper.getDisplayHost(post.link)
+            val parts = listOfNotNull(
+                "r/${post.subreddit}",
+                post.author?.takeIf { showAuthor }?.let { "u/$it" },
+                post.createdUtc.elapsed(),
+                host,
             )
-
-            Column(
-                Modifier.weight(1f).clickable(onClick = actions.onSelect).padding(start = 5.dp, end = 5.dp, bottom = 5.dp),
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
-                    com.mrjackspade.deaddit.core.html.HtmlText.display(post.title),
-                    fontSize = styling.titleFontSize.px,
-                    color = when (post.distinguished) {
-                        Distinguished.Moderator -> styling.moderatorTitleTextColor.color
-                        Distinguished.Admin -> styling.adminTitleTextColor.color
-                        else -> styling.textColor.color
-                    },
-                )
-
-                Flair(post.linkFlairText, post.linkFlairRichtext, post.linkFlairBackgroundColor, post.linkFlairTextColor)
-
-                val host = if (post.isSelf) null else UrlHelper.getDisplayHost(post.link)
-                Text(
-                    "${post.numComments} 🗨 ${post.subreddit}" + (host?.let { " ($it)" } ?: ""),
-                    fontSize = styling.subTextFontSize.px,
+                    parts.joinToString(" · "),
+                    Modifier.weight(1f, fill = false),
                     color = styling.subTextColor.color,
+                    fontSize = styling.subTextFontSize.px,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
-
-                if (selected || !inList) {
-                    Text(
-                        "${post.createdUtc.elapsed()} by ${post.author}",
-                        fontSize = styling.subTextFontSize.px,
-                        color = styling.subTextColor.color,
-                    )
+                if (read) {
+                    Icon(Icons.Outlined.Check, contentDescription = "Read", tint = styling.subTextColor.color, modifier = Modifier.size(16.dp))
                 }
             }
 
-            VoteColumn(model, hideScore, actions.onVote)
+            Text(
+                title,
+                fontSize = (if (inList) styling.titleFontSize else styling.titleFontSize * 1.2).px,
+                fontWeight = if (read) FontWeight.Normal else FontWeight.SemiBold,
+                lineHeight = (if (inList) styling.titleFontSize else styling.titleFontSize * 1.2).px * 1.3f,
+                color = when (post.distinguished) {
+                    Distinguished.Moderator -> styling.moderatorTitleTextColor.color
+                    Distinguished.Admin -> styling.adminTitleTextColor.color
+                    else -> styling.textColor.color
+                },
+            )
+
+            Flair(post.linkFlairText, post.linkFlairRichtext, post.linkFlairBackgroundColor, post.linkFlairTextColor)
+        }
+    }
+}
+
+@Composable
+private fun Thumbnail(url: String?, description: String, onClick: () -> Unit) {
+    val styling = LocalStyling.current
+    val shape = styling.innerShape
+    val size = styling.thumbnailSize.dp
+    Box(
+        Modifier.size(size).clip(shape).background(styling.tertiaryColor.color).border(1.dp, styling.borderColor.color, shape)
+            .clickable(role = Role.Button, onClickLabel = description, onClick = onClick)
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center,
+    ) {
+        if (url != null) {
+            AsyncImage(model = url, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.size(size))
+        } else {
+            Icon(Icons.Outlined.Link, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(24.dp))
+        }
+    }
+}
+
+/** Up, the score, down, and the comment count that opens the thread. The vote's color marks a vote cast. */
+@Composable
+private fun VoteRow(model: PostModel, hideScore: Boolean, actions: PostActions, modifier: Modifier = Modifier) {
+    val styling = LocalStyling.current
+    val up = model.likes == VoteState.Upvote
+    val down = model.likes == VoteState.Downvote
+
+    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+        IconAction(
+            Icons.Outlined.ArrowUpward, "Upvote",
+            tint = if (up) styling.upvoteColor.color else styling.subTextColor.color,
+            active = up, activeColor = styling.upvoteColor.color,
+        ) { actions.onVote(VoteState.Upvote) }
+
+        if (!hideScore) {
+            Text(
+                CompactCount.format(model.score),
+                Modifier.widthIn(min = 36.dp),
+                color = when {
+                    up -> styling.upvoteColor.color
+                    down -> styling.downvoteColor.color
+                    else -> styling.subTextColor.color
+                },
+                fontSize = styling.subTextFontSize.px,
+                fontWeight = if (up || down) FontWeight.SemiBold else FontWeight.Normal,
+                textAlign = TextAlign.Center,
+            )
         }
 
-        if (selected) {
-            com.mrjackspade.deaddit.ui.FlexRow(Modifier.fillMaxWidth().background(background)) {
-                ActionButton("Share", actions.onShare)
-                ActionButton(if (model.saved) "Unsave" else "Save", actions.onSave)
-                ActionButton("Hide", actions.onHide)
-                ActionButton("...", actions.onMore, "More")
-                ActionButton("🗨", actions.onComments, "Comments")
-            }
+        IconAction(
+            Icons.Outlined.ArrowDownward, "Downvote",
+            tint = if (down) styling.downvoteColor.color else styling.subTextColor.color,
+            active = down, activeColor = styling.downvoteColor.color,
+        ) { actions.onVote(VoteState.Downvote) }
+
+        Spacer(Modifier.width(8.dp))
+
+        val comments = model.post.numComments
+        Row(
+            Modifier.heightIn(min = 40.dp).clip(styling.innerShape)
+                .clickable(role = Role.Button, onClick = actions.onComments)
+                .semantics { contentDescription = "$comments comments" }
+                .padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(20.dp))
+            Text(CompactCount.format(comments), color = styling.subTextColor.color, fontSize = styling.subTextFontSize.px)
         }
     }
 }
@@ -158,53 +286,4 @@ private fun thumbnailFor(post: Post): String? {
     // Uri.TryCreate(..., UriKind.Absolute), as the C# RedditPostWebComponent did.
     if (!com.mrjackspade.deaddit.core.model.isAbsoluteUrl(link)) throw IllegalStateException("Post ${post.name} has a URL that isn't absolute: '$link'.")
     return if (UrlHelper.getMimeTypeFromUri(link).startsWith("image/")) link else null
-}
-
-@Composable
-private fun VoteColumn(model: PostModel, hideScore: Boolean, onVote: (VoteState) -> Unit) {
-    val styling = LocalStyling.current
-    val up = model.likes == VoteState.Upvote
-    val down = model.likes == VoteState.Downvote
-
-    Column(Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            "▲",
-            Modifier.clickable(role = Role.Button) { onVote(VoteState.Upvote) }.semantics { contentDescription = "Upvote" },
-            fontSize = styling.titleFontSize.px,
-            color = if (up) styling.upvoteColor.color else styling.textColor.color,
-            textAlign = TextAlign.Center,
-        )
-        if (!hideScore) {
-            Text(
-                model.score.toString(),
-                fontSize = styling.titleFontSize.px,
-                color = when {
-                    up -> styling.upvoteColor.color
-                    down -> styling.downvoteColor.color
-                    else -> styling.textColor.color
-                },
-                textAlign = TextAlign.Center,
-            )
-        }
-        Text(
-            "▼",
-            Modifier.clickable(role = Role.Button) { onVote(VoteState.Downvote) }.semantics { contentDescription = "Downvote" },
-            fontSize = styling.titleFontSize.px,
-            color = if (down) styling.downvoteColor.color else styling.textColor.color,
-            textAlign = TextAlign.Center,
-        )
-    }
-}
-
-@Composable
-private fun ActionButton(text: String, onClick: () -> Unit, description: String? = null) {
-    val styling = LocalStyling.current
-    Text(
-        text,
-        Modifier.clickable(role = Role.Button, onClick = onClick).padding(10.dp)
-            .let { m -> if (description != null) m.semantics { contentDescription = description } else m },
-        fontSize = styling.titleFontSize.px,
-        color = styling.textColor.color,
-        textAlign = TextAlign.Center,
-    )
 }

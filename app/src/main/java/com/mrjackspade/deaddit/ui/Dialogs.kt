@@ -26,6 +26,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
 import com.mrjackspade.deaddit.api.RedditApiException
 import com.mrjackspade.deaddit.core.service.NotLoggedInException
 import kotlinx.coroutines.CancellationException
@@ -150,22 +159,44 @@ class Dialogs(private val testMode: Boolean) {
                 dismissButton = request.cancel?.let { cancel -> { TextButton({ request.result.complete(false) }) { Text(cancel) } } },
             )
 
-            is Sheet -> Dialog(onDismissRequest = { request.result.complete(null) }) {
-                Column(
-                    Modifier.fillMaxWidth().background(Color(0xFF2B2B2B), RoundedCornerShape(8.dp))
-                        .verticalScroll(rememberScrollState()),
+            // A sheet up from the bottom over a dimmed page: tapping outside it chooses nothing.
+            is Sheet -> Dialog(
+                onDismissRequest = { request.result.complete(null) },
+                properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
+            ) {
+                val styling = LocalStyling.current
+                val top = RoundedCornerShape(topStart = (styling.cornerRadius * 1.4f).dp, topEnd = (styling.cornerRadius * 1.4f).dp)
+                Box(
+                    Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f))
+                        .clickable(interactionSource = null, indication = null) { request.result.complete(null) },
+                    contentAlignment = Alignment.BottomCenter,
                 ) {
-                    request.title?.let { Text(it, Modifier.padding(16.dp), color = Color.White) }
-                    for (option in request.options) {
-                        HorizontalDivider(color = Color(0xFF444444))
-                        Text(
-                            option,
-                            Modifier.fillMaxWidth().clickable { request.result.complete(option) }.padding(16.dp),
-                            color = Color.White,
-                        )
-                    }
-                    request.cancel?.let { cancel ->
-                        TextButton({ request.result.complete(null) }, Modifier.align(Alignment.End).padding(8.dp)) { Text(cancel) }
+                    Column(
+                        Modifier.fillMaxWidth().heightIn(max = 560.dp).clip(top).background(styling.cardColor.color)
+                            .border(1.dp, styling.borderColor.color, top)
+                            .clickable(interactionSource = null, indication = null) { }
+                            .navigationBarsPadding().padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 12.dp)
+                            .verticalScroll(rememberScrollState()),
+                    ) {
+                        Box(Modifier.align(Alignment.CenterHorizontally).padding(bottom = 6.dp).size(width = 36.dp, height = 4.dp).clip(RoundedCornerShape(2.dp)).background(styling.borderColor.color))
+                        request.title?.let {
+                            Text(it.trimEnd(':'), Modifier.padding(horizontal = 10.dp, vertical = 6.dp), color = styling.subTextColor.color, fontSize = styling.subTextFontSize.px)
+                        }
+                        for (option in request.options) {
+                            Text(
+                                option,
+                                Modifier.fillMaxWidth().heightIn(min = 50.dp).clip(styling.innerShape)
+                                    .clickable(role = Role.Button) { request.result.complete(option) }
+                                    .padding(horizontal = 10.dp, vertical = 14.dp),
+                                color = styling.textColor.color,
+                                fontSize = styling.titleFontSize.px,
+                            )
+                        }
+                        request.cancel?.let { cancel ->
+                            TextButton({ request.result.complete(null) }, Modifier.align(Alignment.End).padding(top = 4.dp)) {
+                                Text(cancel, color = styling.subTextColor.color)
+                            }
+                        }
                     }
                 }
             }

@@ -1,17 +1,31 @@
 package com.mrjackspade.deaddit.ui.post
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.Reply
+import androidx.compose.material.icons.outlined.Bookmark
+import androidx.compose.material.icons.outlined.BookmarkBorder
+import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.MoreHoriz
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,12 +35,17 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.mrjackspade.deaddit.ui.Divider
+import com.mrjackspade.deaddit.ui.IconAction
+import com.mrjackspade.deaddit.ui.PillButton
+import com.mrjackspade.deaddit.ui.TopBar
+import com.mrjackspade.deaddit.ui.TopBarButton
+import com.mrjackspade.deaddit.ui.innerShape
 import com.mrjackspade.deaddit.Services
 import com.mrjackspade.deaddit.core.blocking.Blocking
 import com.mrjackspade.deaddit.core.config.PostState
@@ -99,8 +118,8 @@ class PostPage(
     private var selected by mutableStateOf<String?>(null)
     private var autoLoadImages by mutableStateOf(services.settings.hacks.value.autoLoadCommentImages)
 
-    /** The image button's label, set once: the C# button kept showing 🖼 after it was tapped. */
-    private val imageButtonLabel = if (autoLoadImages) "" else "🖼"
+    /** Whether the load-images button shows, set once: the C# button kept showing 🖼 after it was tapped. */
+    private val showImageButton = !autoLoadImages
 
     private val postBody = run {
         val visible = post.body.trim().filter { it != '‌' }
@@ -268,8 +287,21 @@ class PostPage(
 
         val rows by remember { derivedStateOf { flattenThread(root) } }
 
+        Column(Modifier.fillMaxSize().background(styling.secondaryColor.color)) {
+            TopBar {
+                TopBarButton(Icons.AutoMirrored.Outlined.ArrowBack, "Back", color = styling.textColor.color) { services.navigator.remove(this@PostPage) }
+                Text(
+                    "r/${post.subreddit}",
+                    Modifier.weight(1f).clickable { Pages.openSubredditAbout(services, post.subreddit!!) }.padding(horizontal = 8.dp, vertical = 10.dp),
+                    color = styling.subTextColor.color,
+                    fontSize = styling.subTextFontSize.px,
+                    maxLines = 1,
+                )
+                TopBarButton(Icons.Outlined.MoreHoriz, "More") { services.launchAction { postController.more(postModel) } }
+            }
+
         LazyColumn(
-            Modifier.fillMaxSize().background(styling.secondaryColor.color).statusBarsPadding().navigationBarsPadding(),
+            Modifier.fillMaxSize().navigationBarsPadding(),
             rememberLazyListState(),
         ) {
             item(key = "post") {
@@ -282,25 +314,21 @@ class PostPage(
                 )
             }
 
-            item(key = "actions") { ActionBar() }
-
             postBody?.let { blocks ->
                 item(key = "body") {
                     HtmlBody(
                         blocks,
-                        styling.titleFontSize.px,
+                        styling.commentFontSize.px,
                         onLink = ::openLink,
-                        modifier = Modifier.fillMaxWidth().padding(2.dp)
-                            .border(1.dp, styling.textColor.color)
-                            .background(styling.primaryColor.color)
-                            .padding(5.dp),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
                     )
                 }
             }
 
-            // The comment container's 5px right padding.
+            item(key = "actions") { ActionBar() }
+
             items(rows, key = { it.entry.key }) { row ->
-                ThreadRowFrame(row, selected, endPadding = 5.dp) {
+                ThreadRowFrame(row, selected) {
                     when (val entry = row.entry) {
                         is CommentEntry -> CommentView(
                             services,
@@ -322,40 +350,43 @@ class PostPage(
 
             if (loading) item(key = "spinner") { Spinner() }
         }
+        }
     }
 
+    /** The post's own actions, then the line that heads the comments. */
     @Composable
     private fun ActionBar() {
         val styling = LocalStyling.current
 
-        @Composable
-        fun Button(text: String, description: String, onClick: () -> Unit) {
-            Text(
-                text,
-                Modifier.clickable(role = Role.Button, onClick = onClick).padding(10.dp)
-                    .semantics { contentDescription = description },
-                color = styling.textColor.color,
-                fontSize = styling.titleFontSize.px,
-                textAlign = TextAlign.Center,
-            )
-        }
-
-        FlexRow(Modifier.fillMaxWidth().background(styling.secondaryColor.color)) {
-            Button("Share", "Share") {
-                services.launchAction {
-                    services.dialogs.choose(
-                        "Share:",
-                        // As in the C# app, "File" shares the post's link.
-                        Option("File") { postController.shareLink(post) },
-                        Option("Link") { postController.shareLink(post) },
-                        Option("Comments") { postController.shareComments(post) },
-                    )
+        Column(Modifier.fillMaxWidth()) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+                IconAction(
+                    if (postModel.saved) Icons.Outlined.Bookmark else Icons.Outlined.BookmarkBorder,
+                    if (postModel.saved) "Unsave" else "Save",
+                    active = postModel.saved,
+                    tint = if (postModel.saved) styling.accentColor.color else styling.subTextColor.color,
+                ) { services.launchAction { postController.toggleSave(postModel) } }
+                IconAction(Icons.Outlined.Share, "Share") {
+                    services.launchAction {
+                        services.dialogs.choose(
+                            "Share:",
+                            // As in the C# app, "File" shares the post's link.
+                            Option("File") { postController.shareLink(post) },
+                            Option("Link") { postController.shareLink(post) },
+                            Option("Comments") { postController.shareComments(post) },
+                        )
+                    }
+                }
+                // Shown until tapped, as the C# 🖼 button, which stayed after it was tapped.
+                if (showImageButton) {
+                    IconAction(Icons.Outlined.Image, "Load images", active = autoLoadImages) { autoLoadImages = true }
+                }
+                Spacer(Modifier.weight(1f))
+                PillButton("Reply", icon = Icons.AutoMirrored.Outlined.Reply) {
+                    Pages.openReply(services, post) { reply -> addTopLevelReply(reply) }
                 }
             }
-            Button(if (postModel.saved) "Unsave" else "Save", "Save") { services.launchAction { postController.toggleSave(postModel) } }
-            Button("...", "More") { services.launchAction { postController.more(postModel) } }
-            Button(imageButtonLabel, "Load images") { autoLoadImages = true }
-            Button("Reply", "Reply") { Pages.openReply(services, post) { reply -> addTopLevelReply(reply) } }
+            Divider(Modifier.padding(top = 6.dp))
         }
     }
 
@@ -368,7 +399,7 @@ class PostPage(
         }
     }
 
-    /** The C# MoreCommentsWebComponent: a full-width block, padded 5px left, top and bottom. */
+    /** The C# MoreCommentsWebComponent, as a quiet chip with its count, which loads or opens the rest. */
     @Composable
     private fun MoreButton(entry: MoreEntry) {
         val styling = LocalStyling.current
@@ -387,13 +418,15 @@ class PostPage(
         if (entry.loading) {
             Box(Modifier.fillMaxWidth()) { Spinner() }
         } else {
-            Text(
-                label,
-                Modifier.fillMaxWidth().background(styling.primaryColor.color)
-                    .clickable(role = Role.Button) { onMore(entry) }.padding(start = 5.dp, top = 5.dp, bottom = 5.dp),
-                color = styling.textColor.color,
-                fontSize = (styling.titleFontSize * 0.9).toInt().toDouble().px,
-            )
+            Row(
+                Modifier.padding(vertical = 6.dp).heightIn(min = 40.dp).clip(styling.innerShape).background(styling.tertiaryColor.color)
+                    .clickable(role = Role.Button) { onMore(entry) }.padding(start = 8.dp, end = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Icon(Icons.Outlined.ExpandMore, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(20.dp))
+                Text(label, color = styling.subTextColor.color, fontSize = styling.subTextFontSize.px)
+            }
         }
     }
 }

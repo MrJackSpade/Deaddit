@@ -1,8 +1,27 @@
 package com.mrjackspade.deaddit.ui.media
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import com.mrjackspade.deaddit.ui.AccentAction
+import com.mrjackspade.deaddit.ui.TopBarTitle
+import com.mrjackspade.deaddit.ui.chipShape
+import com.mrjackspade.deaddit.ui.innerShape
+import com.mrjackspade.deaddit.ui.px
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -55,48 +74,47 @@ class ImageSelectPage private constructor(private val services: Services, privat
 
         Column(Modifier.fillMaxSize().background(styling.secondaryColor.color)) {
             TopBar {
-                TopBarButton(Icons.AutoMirrored.Filled.ArrowBack, "Back") { services.navigator.remove(this@ImageSelectPage) }
-                Text(
-                    "Select Images",
-                    Modifier.weight(1f),
-                    color = styling.textColor.color,
-                    // A MAUI Label's 14.
-                    fontSize = 14.sp,
-                    textAlign = TextAlign.Center,
-                )
-                TopBarButton(Icons.Filled.Check, "OK") { confirm() }
+                TopBarButton(Icons.AutoMirrored.Outlined.ArrowBack, "Back", color = styling.textColor.color) { services.navigator.remove(this@ImageSelectPage) }
+                TopBarTitle("Select images")
+                Text("${checked.values.count { it }} / ${items.size}", Modifier.padding(end = 4.dp), color = styling.subTextColor.color, fontSize = styling.subTextFontSize.px)
+                AccentAction(Icons.Outlined.Check, "OK") { confirm() }
             }
 
-            LazyColumn(Modifier.fillMaxSize()) {
+            // Three across, each a tap to pick or unpick: picked ones edged in the accent, with a check.
+            LazyVerticalGrid(
+                GridCells.Fixed(3),
+                Modifier.fillMaxSize().navigationBarsPadding(),
+                contentPadding = PaddingValues(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
                 items(items.indices.toList()) { index ->
                     val item = items[index]
                     val isChecked = checked[index] == true
-                    Column {
-                        Row(
-                            Modifier.fillMaxWidth()
-                                .clickable(role = Role.Checkbox) { checked[index] = !isChecked }
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
+                    val shape = styling.innerShape
+                    Box(
+                        Modifier.aspectRatio(1f).clip(shape).background(styling.cardColor.color)
+                            .border(if (isChecked) 2.dp else 1.dp, if (isChecked) styling.accentColor.color else styling.borderColor.color, shape)
+                            .clickable(role = Role.Checkbox) { checked[index] = !isChecked }
+                            .semantics {
+                                contentDescription = item.fileName
+                                stateDescription = if (isChecked) "Picked" else "Not picked"
+                            },
+                    ) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(context).data(item.launchUrl).size(Size.ORIGINAL).build(),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                        Box(
+                            Modifier.align(Alignment.TopEnd).padding(6.dp).size(24.dp).clip(styling.chipShape)
+                                .background(if (isChecked) styling.accentColor.color else styling.secondaryColor.color.copy(alpha = 0.7f))
+                                .border(if (isChecked) 0.dp else 1.5.dp, styling.subTextColor.color, styling.chipShape),
+                            contentAlignment = Alignment.Center,
                         ) {
-                            Checkbox(
-                                checked = isChecked,
-                                onCheckedChange = { checked[index] = it },
-                                modifier = Modifier.size(24.dp),
-                                colors = CheckboxDefaults.colors(
-                                    checkedColor = styling.hyperlinkColor.color,
-                                    uncheckedColor = styling.textColor.color,
-                                ),
-                            )
-                            Box(Modifier.padding(start = 12.dp, end = 12.dp)) {
-                                AsyncImage(
-                                    model = ImageRequest.Builder(context).data(item.launchUrl).size(Size.ORIGINAL).build(),
-                                    contentDescription = item.fileName,
-                                    modifier = Modifier.sizeIn(maxWidth = 80.dp, maxHeight = 80.dp),
-                                )
-                            }
-                            Text(item.fileName, Modifier.weight(1f), color = styling.textColor.color)
+                            if (isChecked) Icon(Icons.Outlined.Check, contentDescription = null, tint = styling.secondaryColor.color, modifier = Modifier.size(16.dp))
                         }
-                        Box(Modifier.fillMaxWidth().height(1.dp).background(styling.tertiaryColor.color))
                     }
                 }
             }

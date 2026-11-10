@@ -1,24 +1,36 @@
 package com.mrjackspade.deaddit.ui.comment
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.LocalTextStyle
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Reply
+import androidx.compose.material.icons.outlined.ArrowDownward
+import androidx.compose.material.icons.outlined.ArrowUpward
+import androidx.compose.material.icons.outlined.MoreHoriz
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.LineHeightStyle
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.mrjackspade.deaddit.Services
 import com.mrjackspade.deaddit.core.html.Block
@@ -28,17 +40,18 @@ import com.mrjackspade.deaddit.core.model.Comment
 import com.mrjackspade.deaddit.core.model.Distinguished
 import com.mrjackspade.deaddit.core.model.Post
 import com.mrjackspade.deaddit.core.model.VoteState
+import com.mrjackspade.deaddit.core.util.CompactCount
 import com.mrjackspade.deaddit.core.util.elapsed
-import com.mrjackspade.deaddit.ui.FlexRow
+import com.mrjackspade.deaddit.ui.Chip
+import com.mrjackspade.deaddit.ui.IconAction
 import com.mrjackspade.deaddit.ui.LocalHacks
 import com.mrjackspade.deaddit.ui.LocalStyling
+import com.mrjackspade.deaddit.ui.accentEdge
+import com.mrjackspade.deaddit.ui.accentFill
 import com.mrjackspade.deaddit.ui.color
 import com.mrjackspade.deaddit.ui.flair.Flair
-import com.mrjackspade.deaddit.ui.flair.InlineChip
-import com.mrjackspade.deaddit.ui.html.CssMediumFontSize
 import com.mrjackspade.deaddit.ui.html.HtmlBody
-import com.mrjackspade.deaddit.ui.html.InlineFlow
-import com.mrjackspade.deaddit.ui.html.inlineBackground
+import com.mrjackspade.deaddit.ui.innerShape
 import com.mrjackspade.deaddit.ui.px
 
 /** A comment as shown, with what the user can change on it. */
@@ -94,9 +107,10 @@ class CommentModel(comment: Comment) {
 }
 
 /**
- * One comment: header (vote mark, author, score, age, tag or flair), body, and — when [isSelected] —
- * the action bar. [post] is the thread it's in, when known (for the OP mark). Tapping it anywhere
- * but a link selects it, a hidden spoiler included (the C# tap reached the comment too).
+ * One comment: header (author and their marks, age, score), tag or flair, body, and — when
+ * [isSelected] — its actions, on the highlight with an accent edge. [post] is the thread it's in,
+ * when known (for the OP mark). Tapping it anywhere but a link selects it, a hidden spoiler
+ * included (the C# tap reached the comment too).
  */
 @Composable
 fun CommentView(
@@ -110,11 +124,17 @@ fun CommentView(
     modifier: Modifier = Modifier,
 ) {
     val styling = LocalStyling.current
+    val shape = styling.innerShape
 
     Column(
         modifier.fillMaxWidth()
-            .background(if (isSelected) styling.highlightColor.color else Color.Transparent)
-            .clickable(onClick = onSelect),
+            .let { m ->
+                if (isSelected) m.clip(shape).background(styling.highlightColor.color).border(1.dp, styling.accentEdge, shape)
+                else m
+            }
+            .clickable(onClick = onSelect)
+            .padding(if (isSelected) 8.dp else 0.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Header(services, model, post)
 
@@ -127,12 +147,23 @@ fun CommentView(
         )
 
         if (isSelected) {
-            FlexRow(Modifier.fillMaxWidth().background(styling.highlightColor.color)) {
-                BarButton("▲", "Upvote", if (model.likes == VoteState.Upvote) styling.upvoteColor.color else styling.textColor.color) { actions.onVote(VoteState.Upvote) }
-                BarButton("▼", "Downvote", if (model.likes == VoteState.Downvote) styling.downvoteColor.color else styling.textColor.color) { actions.onVote(VoteState.Downvote) }
-                BarButton("...", "More", styling.textColor.color, actions.onMore)
-                BarButton("⢔", "Share", styling.textColor.color, actions.onShare)
-                BarButton("↩", "Reply", styling.textColor.color, actions.onReply)
+            val up = model.likes == VoteState.Upvote
+            val down = model.likes == VoteState.Downvote
+            Row(Modifier.fillMaxWidth().padding(top = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+                IconAction(
+                    Icons.Outlined.ArrowUpward, "Upvote",
+                    tint = if (up) styling.upvoteColor.color else styling.subTextColor.color,
+                    active = up, activeColor = styling.upvoteColor.color,
+                ) { actions.onVote(VoteState.Upvote) }
+                IconAction(
+                    Icons.Outlined.ArrowDownward, "Downvote",
+                    tint = if (down) styling.downvoteColor.color else styling.subTextColor.color,
+                    active = down, activeColor = styling.downvoteColor.color,
+                ) { actions.onVote(VoteState.Downvote) }
+                Spacer(Modifier.weight(1f))
+                IconAction(Icons.AutoMirrored.Outlined.Reply, "Reply", onClick = actions.onReply)
+                IconAction(Icons.Outlined.Share, "Share", onClick = actions.onShare)
+                IconAction(Icons.Outlined.MoreHoriz, "More", onClick = actions.onMore)
             }
         }
     }
@@ -148,9 +179,9 @@ class CommentActions(
 )
 
 /**
- * The C# CommentHeaderComponent: a line of inline text (wrapping, on one baseline) of the vote mark
- * and author (16px, the size of text given none), score and its arrow and age (the subtext size);
- * then the user's tag for the author, or their flair, on a line of its own.
+ * The author with their marks, the age (and, for a comment www translated, the switch between
+ * translation and original), then the score at the end, in the vote's color when one is cast;
+ * under it, the user's tag for the author or their flair.
  */
 @Composable
 private fun Header(services: Services, model: CommentModel, post: Post?) {
@@ -164,88 +195,76 @@ private fun Header(services: Services, model: CommentModel, post: Post?) {
     val hideScore = comment.scoreHidden != false ||
         (hacks.hideSelfKarma && comment.author.equals(services.reddit.loggedInUser, ignoreCase = true))
 
-    Column {
-        InlineFlow {
-            when (model.likes) {
-                VoteState.Upvote -> Text("▲", color = styling.upvoteColor.color, fontSize = CssMediumFontSize)
-                VoteState.Downvote -> Text("▼", color = styling.downvoteColor.color, fontSize = CssMediumFontSize)
-                VoteState.None -> Unit
-            }
-
-            AuthorName(comment.author ?: "", comment.distinguished, isOp = post != null && comment.author == post.author)
-
-            if (!hideScore) {
-                Text(model.score.toString(), color = sub, fontSize = subSize)
-                val arrow = if (model.score > 0) "▲" else if (model.score < 0) "▼" else ""
-                if (arrow.isNotEmpty()) {
-                    val arrowSize = subSize * 0.5f
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                AuthorName(comment.author ?: "", comment.distinguished, isOp = post != null && comment.author == post.author, modifier = Modifier.weight(1f, fill = false))
+                Text("·", color = sub, fontSize = subSize)
+                Text(comment.createdUtc.elapsed() ?: "", color = sub, fontSize = subSize, maxLines = 1)
+                if (comment.original != null) {
                     Text(
-                        arrow,
-                        Modifier.padding(start = 1.dp).alignMiddle(),
+                        if (model.showingOriginal) "original" else "translated",
+                        Modifier.clickable(role = Role.Button) { model.toggleTranslation() }
+                            .semantics { contentDescription = if (model.showingOriginal) "Show translation" else "Show original" },
                         color = sub,
-                        // line-height: 1
-                        style = LocalTextStyle.current.copy(
-                            fontSize = arrowSize,
-                            lineHeight = arrowSize,
-                            lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None),
-                        ),
+                        fontSize = subSize,
+                        maxLines = 1,
                     )
                 }
             }
 
-            Text(" ${comment.createdUtc.elapsed()}", color = sub, fontSize = subSize)
-
-            if (comment.original != null) {
-                Text(
-                    if (model.showingOriginal) " original" else " translated",
-                    Modifier.clickable(role = Role.Button) { model.toggleTranslation() }
-                        .semantics { contentDescription = if (model.showingOriginal) "Show translation" else "Show original" },
-                    color = sub,
-                    fontSize = subSize,
-                )
+            if (!hideScore) {
+                val color = when (model.likes) {
+                    VoteState.Upvote -> styling.upvoteColor.color
+                    VoteState.Downvote -> styling.downvoteColor.color
+                    VoteState.None -> sub
+                }
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Icon(
+                        if (model.likes == VoteState.Downvote) Icons.Outlined.ArrowDownward else Icons.Outlined.ArrowUpward,
+                        contentDescription = when (model.likes) {
+                            VoteState.Upvote -> "Score, upvoted"
+                            VoteState.Downvote -> "Score, downvoted"
+                            VoteState.None -> "Score"
+                        },
+                        tint = color,
+                        modifier = Modifier.size(15.dp),
+                    )
+                    Text(CompactCount.format(model.score), color = color, fontSize = subSize, maxLines = 1)
+                }
             }
         }
 
         val tag = comment.author?.let(services.userTags::get)
         if (tag != null) {
-            InlineFlow { InlineChip(tag, Color(0xFFFF4444), styling.primaryColor.color, subSize) }
+            Chip(tag, color = styling.accentColor.color, background = styling.accentFill)
         } else {
-            Flair(comment.authorFlairText, comment.authorFlairRichtext, comment.authorFlairBackgroundColor, comment.authorFlairTextColor, inline = true)
+            Flair(comment.authorFlairText, comment.authorFlairRichtext, comment.authorFlairBackgroundColor, comment.authorFlairTextColor)
         }
     }
 }
 
-/**
- * The author's name (16px), marked as OP, moderator or admin: an inline box with 2px of padding,
- * painted over the lines around it, and 5px of margin after it.
- */
+/** The author's name, followed by a small OP, MOD or ADMIN chip in that mark's colors. */
 @Composable
-fun AuthorName(author: String, distinguished: Distinguished?, isOp: Boolean) {
+fun AuthorName(author: String, distinguished: Distinguished?, isOp: Boolean, modifier: Modifier = Modifier) {
     val styling = LocalStyling.current
 
-    val (background, text) = when (distinguished) {
-        Distinguished.Moderator -> styling.moderatorAuthorBackgroundColor.color to styling.moderatorAuthorTextColor.color
-        Distinguished.Admin -> styling.adminAuthorBackgroundColor.color to styling.adminAuthorTextColor.color
-        else -> if (isOp) styling.opBackgroundColor.color to styling.opTextColor.color else Color.Transparent to styling.subTextColor.color
+    val mark = when (distinguished) {
+        Distinguished.Moderator -> Triple("MOD", styling.moderatorAuthorTextColor.color, styling.moderatorAuthorBackgroundColor.color)
+        Distinguished.Admin -> Triple("ADMIN", styling.adminAuthorTextColor.color, styling.adminAuthorBackgroundColor.color)
+        else -> if (isOp) Triple("OP", styling.opTextColor.color, styling.opBackgroundColor.color) else null
     }
 
-    Text(
-        author,
-        Modifier.inlineBackground(background, padding = 2.dp, radius = 3.dp, marginEnd = 5.dp),
-        color = text,
-        fontSize = CssMediumFontSize,
-    )
-}
-
-/** An action bar button: as wide as its label, sharing the bar's spare room (CSS flex-grow: 1). */
-@Composable
-private fun BarButton(text: String, description: String, color: Color, onClick: () -> Unit) {
-    Text(
-        text,
-        Modifier.clickable(role = Role.Button, onClick = onClick).padding(10.dp)
-            .semantics { contentDescription = description },
-        color = color,
-        fontSize = LocalStyling.current.titleFontSize.px,
-        textAlign = TextAlign.Center,
-    )
+    Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(
+            author,
+            Modifier.weight(1f, fill = false),
+            color = styling.textColor.color,
+            fontSize = styling.subTextFontSize.px,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        if (mark != null) Chip(mark.first, color = mark.second, background = mark.third)
+    }
 }

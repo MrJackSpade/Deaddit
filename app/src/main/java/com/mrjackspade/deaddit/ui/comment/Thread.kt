@@ -8,11 +8,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.mrjackspade.deaddit.ui.LocalStyling
+import com.mrjackspade.deaddit.ui.accentEdge
 import com.mrjackspade.deaddit.ui.color
 
 /**
@@ -22,10 +29,7 @@ import com.mrjackspade.deaddit.ui.color
 abstract class ThreadEntry(val key: String, val parent: CommentEntry?) {
     val depth: Int = if (parent == null) 0 else parent.depth + 1
 
-    /**
-     * The padding around the row's content on the left, top and bottom: a comment's box has 5px
-     * (RedditCommentWebComponent); a page's own rows draw their own.
-     */
+    /** The padding above and below the row's content: a comment has its own; a page's own rows draw theirs. */
     open val padding: Dp get() = 0.dp
 }
 
@@ -80,16 +84,15 @@ fun removeEntry(roots: MutableList<ThreadEntry>, model: CommentModel): Boolean {
 }
 
 /**
- * A row of a comment tree, laid out as the C# app's nested boxes: each comment a box padded 5px
- * left, top and bottom, its replies in a container 8px further in behind a 1px line. So a reply's
- * text is 14px further in than its parent's; a parent and its first reply are 5px apart, siblings
- * 10px; and each level's line runs down the replies only, stopping above the parent's bottom
- * padding. The line is the subtext color, the highlight color while its comment is selected, and
- * the text color once it has been deselected. [selected] is the selected row's key; [endPadding]
- * the container's right padding.
+ * A row of a comment tree. Each top-level comment and everything under it is one card, drawn a
+ * row at a time: its first row has the card's top, its last row the card's bottom (and the gap to
+ * the next card). Inside, each comment is padded above and below, its replies [LEVEL_STEP] further
+ * in beside a 2dp line that runs down the replies only, stopping above the parent's bottom
+ * padding. The line is the border color, the accent edge while its comment is selected, and the
+ * subtext color once it has been deselected. [selected] is the selected row's key.
  */
 @Composable
-fun ThreadRowFrame(row: ThreadRow, selected: String?, endPadding: Dp, content: @Composable () -> Unit) {
+fun ThreadRowFrame(row: ThreadRow, selected: String?, content: @Composable () -> Unit) {
     val styling = LocalStyling.current
     val entry = row.entry
     val depth = entry.depth
@@ -98,41 +101,78 @@ fun ThreadRowFrame(row: ThreadRow, selected: String?, endPadding: Dp, content: @
     val ancestors = generateSequence(entry.parent) { it.parent }.toList().asReversed()
     val colors = ancestors.map { ancestor ->
         when {
-            selected == ancestor.key -> styling.highlightColor.color
-            ancestor.model.everSelected -> styling.textColor.color
-            else -> styling.subTextColor.color
+            selected == ancestor.key -> styling.accentEdge
+            ancestor.model.everSelected -> styling.subTextColor.color
+            else -> styling.borderColor.color
         }
     }
 
     // The boxes ending at this row are the innermost [closing] ancestors; each one's line stops
     // above its own bottom padding and those of the boxes around it.
     val firstClosing = depth - row.closing
-    val ownBottom = if (entry is CommentEntry && entry.children.isNotEmpty()) 0.dp else entry.padding
+    val hasReplies = entry is CommentEntry && entry.children.isNotEmpty()
+    val ownBottom = if (hasReplies) 0.dp else entry.padding
+    val first = depth == 0
+    val last = firstClosing == 0 && !hasReplies
 
-    Box(
-        Modifier.fillMaxWidth().padding(end = endPadding).drawBehind {
-            val step = LEVEL_STEP.toPx()
-            val padding = COMMENT_PADDING.toPx()
-            val line = 1.dp.toPx()
-            colors.forEachIndexed { level, color ->
-                val short = if (level >= firstClosing) padding * (level - firstClosing + 1) else 0f
-                drawRect(color, topLeft = Offset(padding + step * level, 0f), size = Size(line, size.height - short))
-            }
-        },
-    ) {
-        Column(
-            Modifier.fillMaxWidth().padding(
-                start = LEVEL_STEP * depth + entry.padding,
-                top = entry.padding,
-                bottom = ownBottom + COMMENT_PADDING * row.closing,
-            ),
+    val card = styling.cardColor.color
+    val edge = styling.borderColor.color
+    val radius = styling.cornerRadius.dp
+
+    Box(Modifier.fillMaxWidth().padding(start = CARD_MARGIN, end = CARD_MARGIN, top = if (first) CARD_GAP else 0.dp)) {
+        Box(
+            Modifier.fillMaxWidth().drawBehind {
+                val r = radius.toPx()
+                val stroke = 1.dp.toPx()
+                // The card's outline, run past the row's top and bottom where the card goes on
+                // above or below, and cut to the row: so only the first and last rows show its ends.
+                val top = if (first) stroke / 2 else -r * 2
+                val bottom = if (last) size.height - stroke / 2 else size.height + r * 2
+                clipRect {
+                    val outline = Path().apply {
+                        addRoundRect(RoundRect(Rect(stroke / 2, top, size.width - stroke / 2, bottom), CornerRadius(r)))
+                    }
+                    drawPath(outline, card)
+                    drawPath(outline, edge, style = Stroke(stroke))
+                }
+
+                val step = LEVEL_STEP.toPx()
+                val padding = COMMENT_PADDING.toPx()
+                val line = 2.dp.toPx()
+                val inset = (CARD_INNER + LINE_OFFSET).toPx()
+                colors.forEachIndexed { level, color ->
+                    val short = if (level >= firstClosing) padding * (level - firstClosing + 1) else 0f
+                    drawRect(color, topLeft = Offset(inset + step * level, 0f), size = Size(line, size.height - short))
+                }
+            },
         ) {
-            content()
+            Column(
+                Modifier.fillMaxWidth().padding(
+                    start = CARD_INNER + LEVEL_STEP * depth,
+                    end = CARD_INNER,
+                    top = entry.padding + if (first) CARD_EDGE else 0.dp,
+                    bottom = ownBottom + COMMENT_PADDING * row.closing + if (last) CARD_EDGE else 0.dp,
+                ),
+            ) {
+                content()
+            }
         }
     }
 }
 
-private val COMMENT_PADDING = 5.dp
+/** Above and below each comment. */
+private val COMMENT_PADDING = 6.dp
 
-/** How much further in each level of replies is: the line (1px) and the replies' padding (8px), and the comment's own padding (5px). */
+/** How much further in each level of replies is. */
 private val LEVEL_STEP = 14.dp
+
+/** Between the screen's edges and the cards, and between cards. */
+private val CARD_MARGIN = 8.dp
+private val CARD_GAP = 6.dp
+
+/** Inside a card: from its sides to the comments, and the extra room under its top and over its bottom. */
+private val CARD_INNER = 12.dp
+private val CARD_EDGE = 4.dp
+
+/** Where a level's line sits in the step before its replies. */
+private val LINE_OFFSET = 3.dp

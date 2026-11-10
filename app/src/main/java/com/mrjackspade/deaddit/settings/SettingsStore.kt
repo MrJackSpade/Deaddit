@@ -9,6 +9,7 @@ import com.mrjackspade.deaddit.core.config.ApplicationHacks
 import com.mrjackspade.deaddit.core.config.ApplicationStyling
 import com.mrjackspade.deaddit.core.config.BlockConfiguration
 import com.mrjackspade.deaddit.core.config.LandingPageConfiguration
+import com.mrjackspade.deaddit.core.config.Lantern
 import com.mrjackspade.deaddit.core.config.SavePathConfiguration
 import com.mrjackspade.deaddit.core.config.SettingsJson
 import com.mrjackspade.deaddit.core.util.DotNetStrings
@@ -46,4 +47,18 @@ class SettingsStore(context: Context) {
     val ai = Setting("Deaddit.Configurations.AIConfiguration", serializer<AIConfiguration>()) { AIConfiguration() }
     val savePaths = Setting("Deaddit.Core.Configurations.Models.SavePathConfiguration", serializer<SavePathConfiguration>()) { SavePathConfiguration() }
     val landing = Setting("Deaddit.Core.Configurations.Models.LandingPageConfiguration", serializer<LandingPageConfiguration>()) { LandingPageConfiguration() }
+
+    init {
+        // A styling saved under older defaults gets the current ones, once (the owner's call when
+        // the Lantern design replaced the old look): from then on, what the user sets stays.
+        // The styling keeps its key and format; only its values are replaced.
+        if (preferences.getInt(STYLING_VERSION_KEY, 1) < Lantern.STYLING_VERSION) {
+            styling.save(ApplicationStyling())
+            preferences.edit().putInt(STYLING_VERSION_KEY, Lantern.STYLING_VERSION).apply()
+        }
+    }
+
+    private companion object {
+        const val STYLING_VERSION_KEY = "Deaddit.StylingVersion"
+    }
 }

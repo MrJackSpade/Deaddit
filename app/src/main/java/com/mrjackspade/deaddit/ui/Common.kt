@@ -8,18 +8,17 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -29,49 +28,66 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
-/** The bar across the top of a page, in the primary color. */
+/** The bar across the top of a page, in the primary color, under the status bar. */
 @Composable
 fun TopBar(content: @Composable RowScope.() -> Unit) {
     val styling = LocalStyling.current
     Row(
-        Modifier.fillMaxWidth().background(styling.primaryColor.color).statusBarsPadding(),
+        Modifier.fillMaxWidth().background(styling.primaryColor.color).statusBarsPadding()
+            .heightIn(min = 56.dp).padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         content = content,
     )
 }
 
-/**
- * An icon button, for top bars and the landing page: every one the same icon set, size and
- * color. [description] is what screen readers announce.
- */
+/** A page's title in its top bar, taking the room the buttons leave. */
 @Composable
-fun TopBarButton(icon: ImageVector, description: String, color: Color = LocalStyling.current.textColor.color, onClick: () -> Unit) {
-    Box(
-        Modifier.clickable(role = Role.Button, onClick = onClick).padding(12.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(icon, contentDescription = description, tint = color, modifier = Modifier.size(ICON_SIZE))
-    }
+fun RowScope.TopBarTitle(text: String) {
+    Text(
+        text,
+        Modifier.weight(1f).padding(horizontal = 8.dp),
+        color = LocalStyling.current.textColor.color,
+        fontSize = 20.sp,
+        fontWeight = FontWeight.SemiBold,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
 }
 
-/** The size of every icon button. */
-val ICON_SIZE = 26.dp
-
 /**
- * The loading indicator: the C# app's CSS spinner (site.css "spinner"), a 48px ring with a 5px
- * white border whose bottom segment is the highlight color, turning once a second, centered
- * across the width.
+ * An icon button for top bars: every one the same icon set, size and color. [description] is
+ * what screen readers announce; [active] marks a toggle that's on, in the accent.
  */
 @Composable
+fun TopBarButton(
+    icon: ImageVector,
+    description: String,
+    color: Color = LocalStyling.current.subTextColor.color,
+    active: Boolean = false,
+    onClick: () -> Unit,
+) {
+    IconAction(icon, description, tint = if (active) LocalStyling.current.accentColor.color else color, active = active, size = 44.dp, onClick = onClick)
+}
+
+/** The size of the icons in icon buttons. */
+val ICON_SIZE = 22.dp
+
+/** The loading indicator: a ring in the border color with an accent arc, turning once a second, centered across the width. */
+@Composable
 fun Spinner() {
-    val highlight = LocalStyling.current.highlightColor.color
+    val styling = LocalStyling.current
+    val ring = styling.borderColor.color
+    val arc = styling.accentColor.color
     val turn by rememberInfiniteTransition(label = "spinner").animateFloat(
         initialValue = 0f,
         targetValue = 360f,
@@ -79,19 +95,15 @@ fun Spinner() {
         label = "rotation",
     )
 
-    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-        Canvas(Modifier.size(48.dp)) {
-            val border = 5.dp.toPx()
-            // CSS draws the border inside the box (box-sizing: border-box): the stroke runs
-            // along the middle of that band.
+    Box(Modifier.fillMaxWidth().padding(vertical = 16.dp), contentAlignment = Alignment.Center) {
+        Canvas(Modifier.size(32.dp)) {
+            val border = 4.dp.toPx()
             val inset = border / 2
             val topLeft = Offset(inset, inset)
             val arcSize = Size(size.width - border, size.height - border)
-            val stroke = Stroke(border)
             rotate(turn) {
-                drawArc(Color.White, 0f, 360f, useCenter = false, topLeft = topLeft, size = arcSize, style = stroke)
-                // A round box's bottom border runs between its diagonal corners: 45° to 135°.
-                drawArc(highlight, 45f, 90f, useCenter = false, topLeft = topLeft, size = arcSize, style = stroke)
+                drawArc(ring, 0f, 360f, useCenter = false, topLeft = topLeft, size = arcSize, style = Stroke(border))
+                drawArc(arc, 45f, 90f, useCenter = false, topLeft = topLeft, size = arcSize, style = Stroke(border, cap = StrokeCap.Round))
             }
         }
     }
@@ -113,24 +125,25 @@ class BusyCounter {
 }
 
 /**
- * The C# BusyOverlay: a translucent rounded block with a white spinner, centered over the page
- * while [busy] has work running. The block takes the taps that land on it; the page around it
- * stays usable, as the C# overlay was input-transparent outside its block.
+ * The C# BusyOverlay: a translucent card with a spinner, centered over the page while [busy] has
+ * work running. The card takes the taps that land on it; the page around it stays usable, as the
+ * C# overlay was input-transparent outside its block.
  */
 @Composable
 fun BusyOverlay(busy: BusyCounter) {
     if (busy.count <= 0) return
+    val styling = LocalStyling.current
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Box(
-            Modifier.background(Color(0xAA000000), RoundedCornerShape(12.dp))
+            Modifier.background(styling.cardColor.color.copy(alpha = 0.92f), styling.cardShape)
                 .pointerInput(Unit) {
                     awaitPointerEventScope {
                         while (true) awaitPointerEvent().changes.forEach { it.consume() }
                     }
                 }
-                .padding(30.dp),
+                .padding(28.dp),
         ) {
-            CircularProgressIndicator(color = Color.White)
+            CircularProgressIndicator(color = styling.accentColor.color, trackColor = styling.borderColor.color)
         }
     }
 }

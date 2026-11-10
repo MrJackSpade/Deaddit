@@ -1,8 +1,10 @@
 package com.mrjackspade.deaddit.ui.media
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.foundation.layout.navigationBarsPadding
 
 import android.content.Context
 import androidx.annotation.OptIn
@@ -97,14 +99,15 @@ class VideoPlayerPage(private val services: Services, private val item: FileDown
             services.appScope.launch { load(exo, context) }
         }
 
-        Box(Modifier.fillMaxSize()) {
+        Box(Modifier.fillMaxSize().background(styling.secondaryColor.color)) {
             Column(Modifier.fillMaxSize()) {
                 TopBar {
+                    TopBarButton(Icons.AutoMirrored.Outlined.ArrowBack, "Back", color = styling.textColor.color) { services.navigator.remove(this@VideoPlayerPage) }
                     Spacer(Modifier.weight(1f))
-                    TopBarButton(Icons.Filled.Share, "Share") { share() }
-                    TopBarButton(Icons.Filled.Save, "Save") { save() }
+                    TopBarButton(Icons.Outlined.Share, "Share") { share() }
+                    TopBarButton(Icons.Outlined.Download, "Save") { save() }
                 }
-                playerView.Content(Modifier.fillMaxWidth().weight(1f).background(styling.secondaryColor.color))
+                playerView.Content(Modifier.fillMaxWidth().weight(1f).navigationBarsPadding().background(styling.secondaryColor.color))
             }
             BusyOverlay(busy)
         }

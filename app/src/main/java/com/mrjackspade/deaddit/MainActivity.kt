@@ -11,8 +11,9 @@ import androidx.compose.ui.Modifier
 import com.mrjackspade.deaddit.ui.DeadditTheme
 import com.mrjackspade.deaddit.ui.NavigationHost
 import com.mrjackspade.deaddit.ui.Navigator
+import com.mrjackspade.deaddit.ui.Pages
+import com.mrjackspade.deaddit.ui.Tab
 import com.mrjackspade.deaddit.ui.color
-import com.mrjackspade.deaddit.ui.landing.LandingPage
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,8 +34,9 @@ class MainActivity : ComponentActivity() {
         }
 
         // The pages outlive the activity (rotation, theme changes): the navigator is made once.
+        // The app opens on the subreddit list, as it always has.
         if (!services.hasNavigator) {
-            services.navigator = Navigator(LandingPage(services))
+            services.navigator = Navigator({ tab -> Pages.tabRoot(services, tab) }, Tab.Subreddits)
         }
 
         setContent {

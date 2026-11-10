@@ -105,6 +105,11 @@ object Schemas {
         double("Title Font Size", 11, get = { it.titleFontSize }, set = { o, v -> o.copy(titleFontSize = v) })
         color("Upvote Color", 9, get = { it.upvoteColor }, set = { o, v -> o.copy(upvoteColor = v) })
         double("Visited Opacity", 13, get = { it.visitedOpacity }, set = { o, v -> o.copy(visitedOpacity = v) })
+        color("Card Color", 2, description = "The cards posts and comments sit on", get = { it.cardColor }, set = { o, v -> o.copy(cardColor = v) })
+        color("Border Color", 2, description = "The edges of cards and the lines between rows", get = { it.borderColor }, set = { o, v -> o.copy(borderColor = v) })
+        color("Accent Color", 2, description = "What's active or selected: the current tab's choice, a selected card's edge, the main button", get = { it.accentColor }, set = { o, v -> o.copy(accentColor = v) })
+        int("Corner Radius", 12, description = "How round cards' corners are, in dp", get = { it.cornerRadius }, set = { o, v -> o.copy(cornerRadius = v) })
+        bool("Muted Flair", 8, description = "Show flair in the app's own quiet colors instead of each subreddit's", get = { it.mutedFlair }, set = { o, v -> o.copy(mutedFlair = v) })
     }
 
     private val aiPrompt: Schema<AiPrompt> = schema {

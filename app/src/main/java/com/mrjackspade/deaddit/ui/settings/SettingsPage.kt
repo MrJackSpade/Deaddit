@@ -1,8 +1,27 @@
 package com.mrjackspade.deaddit.ui.settings
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Contrast
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.FolderOpen
+import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material.icons.outlined.Upload
+import androidx.compose.material.icons.outlined.Videocam
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.mrjackspade.deaddit.ui.IconAction
+import com.mrjackspade.deaddit.ui.ListGroup
+import com.mrjackspade.deaddit.ui.ListRow
+import com.mrjackspade.deaddit.ui.PillButton
+import com.mrjackspade.deaddit.ui.SectionLabel
+import com.mrjackspade.deaddit.ui.TopBarTitle
+import com.mrjackspade.deaddit.ui.px
 
 import android.content.Intent
 import android.net.Uri
@@ -70,7 +89,7 @@ class SettingsPage(private val services: Services) : Screen() {
         val settings = services.settings
         val current = EditorConfiguration(settings.ai.value, settings.hacks.value, settings.blocking.value, settings.styling.value)
 
-        EditorPage.open(services, Schemas.configuration, current) { edited ->
+        EditorPage.open(services, Schemas.configuration, current, title = "Configuration") { edited ->
             settings.hacks.save(edited.hacks)
             settings.blocking.save(edited.blocking)
             settings.styling.save(edited.styling)
@@ -160,58 +179,75 @@ class SettingsPage(private val services: Services) : Screen() {
     override fun Content() {
         val styling = LocalStyling.current
         val savePaths = services.settings.savePaths.value
+        val isTab = services.navigator.isTabRoot(this)
 
-        Column(Modifier.fillMaxSize().background(styling.tertiaryColor.color)) {
+        Column(Modifier.fillMaxSize().background(styling.secondaryColor.color)) {
             TopBar {
-                TopBarButton(Icons.AutoMirrored.Filled.ArrowBack, "Back") { services.navigator.remove(this@SettingsPage) }
-                Text("Settings", Modifier.weight(1f), color = styling.textColor.color, fontSize = 14.sp, textAlign = TextAlign.Center)
+                if (!isTab) {
+                    TopBarButton(Icons.AutoMirrored.Outlined.ArrowBack, "Back", color = styling.textColor.color) { services.navigator.remove(this@SettingsPage) }
+                } else {
+                    Spacer(Modifier.width(8.dp))
+                }
+                TopBarTitle("Settings")
             }
 
             Column(
-                Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding().padding(8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Text("Version ${BuildConfig.VERSION_NAME}", Modifier.fillMaxWidth(), color = styling.subTextColor.color, fontSize = 14.sp, textAlign = TextAlign.Center)
+                ListGroup {
+                    ListRow("Display", icon = Icons.Outlined.Contrast, onClick = { services.navigator.push(DisplayPage(services)) }) { Chevron() }
+                    ListRow("Configuration", icon = Icons.Outlined.Tune, divider = false, onClick = ::editConfiguration) { Chevron() }
+                }
 
-                SettingsButton("Edit Configuration", Modifier.fillMaxWidth()) { editConfiguration() }
+                Column {
+                    SectionLabel("Folders")
+                    ListGroup {
+                        FolderRow(
+                            Icons.Outlined.Image, "image folder", savePaths.defaultImageDirectory, divider = true,
+                            onBrowse = { pickFolderInto { paths, folder -> paths.copy(defaultImageDirectory = folder) } },
+                            onClear = { services.settings.savePaths.update { it.copy(defaultImageDirectory = null) } },
+                        )
+                        FolderRow(
+                            Icons.Outlined.Videocam, "video folder", savePaths.defaultVideoDirectory, divider = false,
+                            onBrowse = { pickFolderInto { paths, folder -> paths.copy(defaultVideoDirectory = folder) } },
+                            onClear = { services.settings.savePaths.update { it.copy(defaultVideoDirectory = null) } },
+                        )
+                    }
+                }
 
-                FolderSetting("Default Image Folder", savePaths.defaultImageDirectory,
-                    onBrowse = { pickFolderInto { paths, folder -> paths.copy(defaultImageDirectory = folder) } },
-                    onClear = { services.settings.savePaths.update { it.copy(defaultImageDirectory = null) } },
-                )
+                Column {
+                    SectionLabel("Backup")
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        PillButton("Export", Modifier.weight(1f), icon = Icons.Outlined.Upload) { export() }
+                        PillButton("Import", Modifier.weight(1f), icon = Icons.Outlined.Download) { import() }
+                    }
+                }
 
-                FolderSetting("Default Video Folder", savePaths.defaultVideoDirectory,
-                    onBrowse = { pickFolderInto { paths, folder -> paths.copy(defaultVideoDirectory = folder) } },
-                    onClear = { services.settings.savePaths.update { it.copy(defaultVideoDirectory = null) } },
-                )
-
-                SettingsButton("Export Settings", Modifier.fillMaxWidth()) { export() }
-                SettingsButton("Import Settings", Modifier.fillMaxWidth()) { import() }
+                Text("Version ${BuildConfig.VERSION_NAME}", Modifier.padding(start = 6.dp), color = styling.subTextColor.color, fontSize = (styling.subTextFontSize * 0.9).px)
             }
         }
     }
 
     @Composable
-    private fun FolderSetting(heading: String, folder: String?, onBrowse: () -> Unit, onClear: () -> Unit) {
-        val styling = LocalStyling.current
-        Text(heading, color = styling.textColor.color, fontSize = 14.sp)
-        Text(
-            if (folder.isNullOrBlank()) "(use system save dialog)" else folder,
-            color = styling.subTextColor.color,
-            fontSize = 12.sp,
-            maxLines = 1,
-            overflow = TextOverflow.MiddleEllipsis,
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            SettingsButton("Browse...", description = "Browse for the ${heading.lowercase()}") { onBrowse() }
-            SettingsButton("Clear", description = "Clear the ${heading.lowercase()}") { onClear() }
-        }
+    private fun Chevron() {
+        Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null, tint = LocalStyling.current.subTextColor.color, modifier = Modifier.padding(end = 8.dp))
     }
 
-    /** A MAUI Button in the secondary color, as the C# page colored them. */
+    /** A default save folder: where it is (or that saving asks each time), with browse and clear. */
     @Composable
-    private fun SettingsButton(text: String, modifier: Modifier = Modifier, description: String? = null, onClick: () -> Unit) {
-        MauiButton(text, LocalStyling.current.secondaryColor.color, modifier, description = description, onClick = onClick)
+    private fun FolderRow(icon: ImageVector, name: String, folder: String?, divider: Boolean, onBrowse: () -> Unit, onClear: () -> Unit) {
+        val styling = LocalStyling.current
+        val set = !folder.isNullOrBlank()
+        ListRow(
+            if (set) folder!! else "Ask each time",
+            icon = icon,
+            labelColor = if (set) styling.textColor.color else styling.subTextColor.color,
+            divider = divider,
+        ) {
+            IconAction(Icons.Outlined.FolderOpen, "Browse for the $name", onClick = onBrowse)
+            if (set) IconAction(Icons.Outlined.Close, "Clear the $name", onClick = onClear)
+        }
     }
 
     /**

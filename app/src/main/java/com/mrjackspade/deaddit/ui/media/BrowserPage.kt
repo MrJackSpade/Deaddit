@@ -1,8 +1,30 @@
 package com.mrjackspade.deaddit.ui.media
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.LockOpen
+import androidx.compose.material.icons.outlined.OpenInBrowser
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import com.mrjackspade.deaddit.ui.Divider
+import com.mrjackspade.deaddit.ui.IconAction
+import com.mrjackspade.deaddit.ui.innerShape
+import com.mrjackspade.deaddit.ui.px
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -141,23 +163,31 @@ class BrowserPage(private val services: Services, private val url: String) : Scr
         // Back leaves a fullscreen video before the page; the WebView then calls onHideCustomView.
         BackHandler(enabled = fullscreen != null) { fullscreen?.callback?.onCustomViewHidden() }
 
-        Box(Modifier.fillMaxSize()) {
+        Box(Modifier.fillMaxSize().background(styling.secondaryColor.color)) {
             Column(Modifier.fillMaxSize()) {
                 TopBar {
-                    Spacer(Modifier.weight(1f))
-                    TopBarButton(Icons.Filled.OpenInBrowser, "Open in browser") { act { openInBrowser(context) } }
-                    TopBarButton(Icons.Filled.LockOpen, "Bypass paywall") {
-                        webView.get(context).loadUrl("https://www.removepaywall.com/search?url=$url")
+                    TopBarButton(Icons.Outlined.Close, "Close", color = styling.textColor.color) { services.navigator.remove(this@BrowserPage) }
+                    Row(
+                        Modifier.weight(1f).padding(end = 8.dp).heightIn(min = 38.dp).clip(styling.innerShape).background(styling.cardColor.color)
+                            .border(1.dp, styling.borderColor.color, styling.innerShape).padding(horizontal = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Icon(Icons.Outlined.Lock, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(16.dp))
+                        Text(Uri.parse(url).host ?: url, color = styling.subTextColor.color, fontSize = styling.subTextFontSize.px, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
-                    TopBarButton(
-                        Icons.AutoMirrored.Filled.MenuBook, "Reader mode",
-                        color = if (readerMode) styling.hyperlinkColor.color else styling.textColor.color,
-                    ) { act { toggleReader(context) } }
-                    TopBarButton(Icons.Filled.Share, "Share") { act { services.platform.shareText(url, null) } }
-                    // The C# save button does nothing ("Logic to save current state or media").
-                    TopBarButton(Icons.Filled.Save, "Save") {}
                 }
                 webView.Content(Modifier.fillMaxWidth().weight(1f))
+                Divider()
+                Row(Modifier.fillMaxWidth().navigationBarsPadding().padding(vertical = 6.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+                    IconAction(Icons.AutoMirrored.Outlined.MenuBook, "Reader mode", size = 44.dp, active = readerMode,
+                        tint = if (readerMode) styling.accentColor.color else styling.subTextColor.color) { act { toggleReader(context) } }
+                    IconAction(Icons.Outlined.LockOpen, "Bypass paywall", size = 44.dp) {
+                        webView.get(context).loadUrl("https://www.removepaywall.com/search?url=$url")
+                    }
+                    IconAction(Icons.Outlined.OpenInBrowser, "Open in browser", size = 44.dp) { act { openInBrowser(context) } }
+                    IconAction(Icons.Outlined.Share, "Share", size = 44.dp) { act { services.platform.shareText(url, null) } }
+                }
             }
             BusyOverlay(busy)
         }

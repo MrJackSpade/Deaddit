@@ -88,35 +88,49 @@ data class ApplicationHacks(
     @SerialName("SwearObfuscation") val swearObfuscation: Boolean = false,
 )
 
+/**
+ * Every color and size the app draws with. The defaults are the Lantern design's Balanced look
+ * (see [Lantern]); [Lantern.STYLING_VERSION] says which defaults a saved styling was made from.
+ *
+ * Roles: primary is the top and bottom bars, secondary the page, card the cards on it, highlight a
+ * selected card, tertiary chips and active tabs, border the cards' edges, accent what's active or
+ * selected.
+ */
 @Serializable
 data class ApplicationStyling(
-    @SerialName("AdminAuthorBackgroundColor") val adminAuthorBackgroundColor: DynamicColor = DynamicColor.parse("#ff4500"),
-    @SerialName("AdminAuthorTextColor") val adminAuthorTextColor: DynamicColor = DynamicColor.parse("#FFFFFF"),
-    @SerialName("AdminTitleTextColor") val adminTitleTextColor: DynamicColor = DynamicColor.parse("#ff4500"),
-    @SerialName("BlockedBackgroundColor") val blockedBackgroundColor: DynamicColor = DynamicColor.parse("#3b1f1f"),
-    @SerialName("CommentFontSize") val commentFontSize: Double = 12.0,
-    @SerialName("DistinguishedTitleColor") val distinguishedTitleColor: DynamicColor = DynamicColor.parse("#287F24"),
-    @SerialName("DownvoteColor") val downvoteColor: DynamicColor = DynamicColor.parse("#7193ff"),
-    @SerialName("FlairDarkTextColor") val flairDarkTextColor: DynamicColor = DynamicColor.parse("#000000"),
-    @SerialName("FlairLightTextColor") val flairLightTextColor: DynamicColor = DynamicColor.parse("#FFFFFF"),
+    @SerialName("AdminAuthorBackgroundColor") val adminAuthorBackgroundColor: DynamicColor = DynamicColor.parse("#40262A"),
+    @SerialName("AdminAuthorTextColor") val adminAuthorTextColor: DynamicColor = DynamicColor.parse("#F28B82"),
+    @SerialName("AdminTitleTextColor") val adminTitleTextColor: DynamicColor = DynamicColor.parse("#F28B82"),
+    @SerialName("BlockedBackgroundColor") val blockedBackgroundColor: DynamicColor = DynamicColor.parse("#2E2224"),
+    @SerialName("CommentFontSize") val commentFontSize: Double = 15.0,
+    @SerialName("DistinguishedTitleColor") val distinguishedTitleColor: DynamicColor = DynamicColor.parse("#5FC898"),
+    @SerialName("DownvoteColor") val downvoteColor: DynamicColor = DynamicColor.parse("#6FB0F2"),
+    @SerialName("FlairDarkTextColor") val flairDarkTextColor: DynamicColor = DynamicColor.parse("#141518"),
+    @SerialName("FlairLightTextColor") val flairLightTextColor: DynamicColor = DynamicColor.parse("#EFEDE8"),
     @SerialName("SwapFlairColors") val swapFlairColors: Boolean = false,
-    @SerialName("HighlightColor") val highlightColor: DynamicColor = DynamicColor.parse("#313E4F"),
-    @SerialName("HyperlinkColor") val hyperlinkColor: DynamicColor = DynamicColor.parse("#75AEB1"),
-    @SerialName("ModeratorAuthorBackgroundColor") val moderatorAuthorBackgroundColor: DynamicColor = DynamicColor.parse("#287F24"),
-    @SerialName("ModeratorAuthorTextColor") val moderatorAuthorTextColor: DynamicColor = DynamicColor.parse("#FFFFFF"),
-    @SerialName("ModeratorTitleTextColor") val moderatorTitleTextColor: DynamicColor = DynamicColor.parse("#287F24"),
-    @SerialName("OpBackgroundColor") val opBackgroundColor: DynamicColor = DynamicColor.parse("#0055df"),
-    @SerialName("OpTextColor") val opTextColor: DynamicColor = DynamicColor.parse("#FFFFFF"),
-    @SerialName("PrimaryColor") val primaryColor: DynamicColor = DynamicColor.parse("#212121"),
-    @SerialName("SecondaryColor") val secondaryColor: DynamicColor = DynamicColor.parse("#303030"),
-    @SerialName("SubTextColor") val subTextColor: DynamicColor = DynamicColor.parse("#CCCCCC"),
-    @SerialName("SubTextFontSize") val subTextFontSize: Double = 12.0,
-    @SerialName("TertiaryColor") val tertiaryColor: DynamicColor = DynamicColor.parse("#434343"),
-    @SerialName("TextColor") val textColor: DynamicColor = DynamicColor.parse("#FFFFFF"),
-    @SerialName("ThumbnailSize") val thumbnailSize: Int = 75,
-    @SerialName("TitleFontSize") val titleFontSize: Double = 16.0,
-    @SerialName("UpvoteColor") val upvoteColor: DynamicColor = DynamicColor.parse("#ff4500"),
-    @SerialName("VisitedOpacity") val visitedOpacity: Double = 0.3,
+    @SerialName("HighlightColor") val highlightColor: DynamicColor = DynamicColor.parse("#282B30"),
+    @SerialName("HyperlinkColor") val hyperlinkColor: DynamicColor = DynamicColor.parse("#A9C4E4"),
+    @SerialName("ModeratorAuthorBackgroundColor") val moderatorAuthorBackgroundColor: DynamicColor = DynamicColor.parse("#1E3A2D"),
+    @SerialName("ModeratorAuthorTextColor") val moderatorAuthorTextColor: DynamicColor = DynamicColor.parse("#5FC898"),
+    @SerialName("ModeratorTitleTextColor") val moderatorTitleTextColor: DynamicColor = DynamicColor.parse("#5FC898"),
+    @SerialName("OpBackgroundColor") val opBackgroundColor: DynamicColor = DynamicColor.parse("#53412A"),
+    @SerialName("OpTextColor") val opTextColor: DynamicColor = DynamicColor.parse("#F0A23A"),
+    @SerialName("PrimaryColor") val primaryColor: DynamicColor = DynamicColor.parse("#141518"),
+    @SerialName("SecondaryColor") val secondaryColor: DynamicColor = DynamicColor.parse("#141518"),
+    @SerialName("SubTextColor") val subTextColor: DynamicColor = DynamicColor.parse("#AEACA6"),
+    @SerialName("SubTextFontSize") val subTextFontSize: Double = 14.0,
+    @SerialName("TertiaryColor") val tertiaryColor: DynamicColor = DynamicColor.parse("#2F3238"),
+    @SerialName("TextColor") val textColor: DynamicColor = DynamicColor.parse("#EFEDE8"),
+    @SerialName("ThumbnailSize") val thumbnailSize: Int = 64,
+    @SerialName("TitleFontSize") val titleFontSize: Double = 17.0,
+    @SerialName("UpvoteColor") val upvoteColor: DynamicColor = DynamicColor.parse("#F0A23A"),
+    @SerialName("VisitedOpacity") val visitedOpacity: Double = 0.22,
+    @SerialName("CardColor") val cardColor: DynamicColor = DynamicColor.parse("#1F2125"),
+    @SerialName("BorderColor") val borderColor: DynamicColor = DynamicColor.parse("#3A3D44"),
+    @SerialName("AccentColor") val accentColor: DynamicColor = DynamicColor.parse("#F0A23A"),
+    @SerialName("CornerRadius") val cornerRadius: Int = 10,
+    /** Flair as a quiet chip in the app's colors, instead of the subreddit's own colors. */
+    @SerialName("MutedFlair") val mutedFlair: Boolean = true,
 )
 
 @Serializable

@@ -1,6 +1,18 @@
 package com.mrjackspade.deaddit.ui.messages
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Send
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.ui.unit.dp
+import com.mrjackspade.deaddit.ui.AccentAction
+import com.mrjackspade.deaddit.ui.TopBar
+import com.mrjackspade.deaddit.ui.TopBarButton
+import com.mrjackspade.deaddit.ui.TopBarTitle
+import com.mrjackspade.deaddit.ui.accentEdge
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,21 +63,29 @@ class MessagePage(private val services: Services, private val user: User, privat
     override fun Content() {
         val styling = LocalStyling.current
 
-        Column(Modifier.fillMaxSize().background(styling.secondaryColor.color).statusBarsPadding().navigationBarsPadding().imePadding()) {
+        Column(Modifier.fillMaxSize().background(styling.secondaryColor.color).navigationBarsPadding().imePadding()) {
+            TopBar {
+                TopBarButton(Icons.Outlined.Close, "Cancel", color = styling.textColor.color) { leave() }
+                TopBarTitle("Message")
+                AccentAction(Icons.AutoMirrored.Outlined.Send, "Submit") { submit() }
+            }
+
             Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())) {
                 UserHeader(services, user, showMessage = false)
                 // Shown, not selectable, as the C# page added it without a selection group.
                 if (replyTo != null) MessageView(services, replyTo, isSelected = false, onSelect = { }, selectable = false)
             }
 
-            TextInput(subject, { subject = it }, background = styling.primaryColor.color, placeholder = "Subject")
-            TextInput(body, { body = it }, background = styling.primaryColor.color, placeholder = "Body", singleLine = false)
-
-            Row(Modifier.fillMaxWidth().background(styling.secondaryColor.color)) {
-                FlatButton("Cancel") { leave() }
-                // The C# Preview button did nothing.
-                FlatButton("Preview") { }
-                FlatButton("Submit") { submit() }
+            Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                TextInput(subject, { subject = it }, background = styling.cardColor.color, placeholder = "Subject")
+                TextInput(
+                    body, { body = it },
+                    background = styling.highlightColor.color,
+                    border = styling.accentEdge,
+                    placeholder = "Message",
+                    singleLine = false,
+                    modifier = Modifier.heightIn(min = 160.dp),
+                )
             }
         }
     }

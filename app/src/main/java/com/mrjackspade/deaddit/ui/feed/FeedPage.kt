@@ -1,7 +1,15 @@
 package com.mrjackspade.deaddit.ui.feed
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import com.mrjackspade.deaddit.ui.Segmented
+import com.mrjackspade.deaddit.ui.TopBarTitle
 
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -350,30 +358,27 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
             Toast.makeText(context, "Press back again to exit", Toast.LENGTH_SHORT).show()
         }
 
+        val isTab = services.navigator.isTabRoot(this)
+
         Column(Modifier.fillMaxSize().background(styling.secondaryColor.color)) {
             TopBar {
-                TopBarButton(Icons.Filled.Refresh, "Reload") { scope.launch { reload() } }
-                TopBarButton(
-                    Icons.Filled.Block,
-                    if (blockEnabled) "Blocking on" else "Blocking off",
-                    color = if (blockEnabled) Color.Red else styling.textColor.color,
-                ) {
+                if (!isTab) {
+                    TopBarButton(Icons.AutoMirrored.Outlined.ArrowBack, "Back", color = styling.textColor.color) { services.navigator.remove(this@FeedPage) }
+                } else {
+                    Spacer(Modifier.width(8.dp))
+                }
+                TopBarTitle(feed.displayName)
+                TopBarButton(Icons.Outlined.Refresh, "Reload") { scope.launch { reload() } }
+                TopBarButton(Icons.Outlined.Block, if (blockEnabled) "Blocking on" else "Blocking off", active = blockEnabled) {
                     blockEnabled = !blockEnabled
                     scope.launch { reload() }
                 }
-                Text(
-                    feed.name,
-                    Modifier.weight(1f),
-                    color = styling.textColor.color,
-                    textAlign = TextAlign.Center,
-                )
-                TopBarButton(Icons.Filled.Info, "About") {
-                    if (feed is Feed.Subreddit) Pages.openSubredditAbout(services, feed.name)
+                if (feed is Feed.Subreddit && feed != Feed.Home) {
+                    TopBarButton(Icons.Outlined.Info, "About") { Pages.openSubredditAbout(services, feed.name) }
                 }
-                TopBarButton(Icons.Filled.Settings, "Settings") { Pages.openSettings(services) }
             }
 
-            LazyColumn(Modifier.fillMaxSize().navigationBarsPadding(), listState) {
+            LazyColumn(Modifier.fillMaxSize().navigationBarsPadding(), listState, contentPadding = PaddingValues(top = 3.dp, bottom = 8.dp)) {
                 header?.let { user -> item(key = "header") { UserHeader(services, user) } }
 
                 if (showSorts) {
@@ -395,7 +400,7 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
                         is Item.CommentItem -> Column {
                             for (row in flattenThread(listOf(item.entry))) {
                                 val entry = row.entry as CommentEntry
-                                ThreadRowFrame(row, selected, endPadding = 0.dp) {
+                                ThreadRowFrame(row, selected) {
                                     CommentView(
                                         services,
                                         entry.model,
@@ -422,26 +427,18 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
         }
     }
 
-    /** One button per sort, each as wide as its label with the spare room shared (CSS flex-grow). */
+    /** The sorts as a row of choices, the current one picked. */
     @Composable
     private fun SortButtons() {
-        val styling = LocalStyling.current
-        FlexRow(Modifier.fillMaxWidth()) {
-            for (option in feed.sorts) {
-                Text(
-                    option.label,
-                    Modifier
-                        .background(if (option == sort) styling.tertiaryColor.color else styling.secondaryColor.color)
-                        .clickable(role = Role.Button) {
-                            sort = option
-                            scope.launch { reload() }
-                        }
-                        .padding(15.dp),
-                    color = styling.textColor.color,
-                    fontSize = styling.titleFontSize.px,
-                    textAlign = TextAlign.Center,
-                )
-            }
-        }
+        val sorts = feed.sorts
+        Segmented(
+            sorts.map { it.label },
+            sorts.indexOf(sort).takeIf { it >= 0 },
+            onSelect = { index ->
+                sort = sorts[index]
+                scope.launch { reload() }
+            },
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+        )
     }
 }

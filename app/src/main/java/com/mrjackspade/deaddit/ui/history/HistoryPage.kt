@@ -1,8 +1,11 @@
 package com.mrjackspade.deaddit.ui.history
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.ui.unit.dp
+import com.mrjackspade.deaddit.ui.TopBarTitle
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -139,12 +142,12 @@ class HistoryPage(private val services: Services) : Screen() {
 
         Column(Modifier.fillMaxSize().background(styling.secondaryColor.color)) {
             TopBar {
-                TopBarButton(Icons.Filled.Refresh, "Reload") { scope.launch { reload() } }
-                Text("History", Modifier.weight(1f), color = styling.textColor.color, textAlign = TextAlign.Center)
-                TopBarButton(Icons.Filled.Settings, "Settings") { Pages.openSettings(services) }
+                TopBarButton(Icons.AutoMirrored.Outlined.ArrowBack, "Back", color = styling.textColor.color) { services.navigator.remove(this@HistoryPage) }
+                TopBarTitle("History")
+                TopBarButton(Icons.Outlined.Refresh, "Reload") { scope.launch { reload() } }
             }
 
-            LazyColumn(Modifier.fillMaxSize().navigationBarsPadding(), listState) {
+            LazyColumn(Modifier.fillMaxSize().navigationBarsPadding(), listState, contentPadding = PaddingValues(top = 3.dp, bottom = 8.dp)) {
                 items(posts, key = { it.post.name }) { model ->
                     PostRow(
                         model,

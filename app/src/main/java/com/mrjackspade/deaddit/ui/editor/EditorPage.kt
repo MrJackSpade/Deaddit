@@ -43,9 +43,30 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mrjackspade.deaddit.Services
 import com.mrjackspade.deaddit.core.config.DynamicColor
-import com.mrjackspade.deaddit.ui.FilledButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.heightIn
+import com.mrjackspade.deaddit.ui.AccentAction
+import com.mrjackspade.deaddit.ui.Card
 import com.mrjackspade.deaddit.ui.FormInput
-import com.mrjackspade.deaddit.ui.MauiButton
+import com.mrjackspade.deaddit.ui.IconAction
+import com.mrjackspade.deaddit.ui.ListGroup
+import com.mrjackspade.deaddit.ui.ListRow
+import com.mrjackspade.deaddit.ui.PillButton
+import com.mrjackspade.deaddit.ui.ToggleSwitch
+import com.mrjackspade.deaddit.ui.TopBar
+import com.mrjackspade.deaddit.ui.TopBarButton
+import com.mrjackspade.deaddit.ui.TopBarTitle
+import com.mrjackspade.deaddit.ui.innerShape
 import com.mrjackspade.deaddit.ui.LocalStyling
 import com.mrjackspade.deaddit.ui.Screen
 import com.mrjackspade.deaddit.ui.color
@@ -61,14 +82,15 @@ class EditorPage<T> private constructor(
     private val services: Services,
     private val schema: Schema<T>,
     private val ref: Ref<T>,
+    private val title: String,
     private val onSubmit: ((T) -> Unit)?,
 ) : Screen() {
 
     companion object {
-        /** Opens the editor for [original]; [onSubmit] gets the edited value. */
-        fun <T> open(services: Services, schema: Schema<T>, original: T, onSubmit: (T) -> Unit) {
+        /** Opens the editor for [original], headed [title]; [onSubmit] gets the edited value. */
+        fun <T> open(services: Services, schema: Schema<T>, original: T, title: String = "Edit", onSubmit: (T) -> Unit) {
             val copy = mutableStateOf(original)
-            services.navigator.push(EditorPage(services, schema, Ref({ copy.value }, { copy.value = it }), onSubmit))
+            services.navigator.push(EditorPage(services, schema, Ref({ copy.value }, { copy.value = it }), title, onSubmit))
         }
     }
 
@@ -80,54 +102,71 @@ class EditorPage<T> private constructor(
     override fun Content() {
         val styling = LocalStyling.current
 
-        Column(Modifier.fillMaxSize().background(styling.secondaryColor.color).statusBarsPadding().navigationBarsPadding().imePadding()) {
-            Column(Modifier.weight(1f).fillMaxWidth().clipToBounds().verticalScroll(rememberScrollState()).padding(10.dp)) {
-                for (field in schema.fields) FieldView(field)
-            }
-
-            // Two equal columns, as the C# page's grid: nested pages hide Submit, leaving Back in the first.
-            Row(Modifier.fillMaxWidth().background(styling.secondaryColor.color)) {
-                ButtonBarButton(if (topLevel) "Cancel" else "Back") { leave() }
+        Column(Modifier.fillMaxSize().background(styling.secondaryColor.color).navigationBarsPadding().imePadding()) {
+            // The top-level page discards (close) or saves (the accent check); nested pages edit
+            // the same copy, so they only go back.
+            TopBar {
+                TopBarButton(
+                    if (topLevel) Icons.Outlined.Close else Icons.AutoMirrored.Outlined.ArrowBack,
+                    if (topLevel) "Cancel" else "Back",
+                    color = styling.textColor.color,
+                ) { leave() }
+                TopBarTitle(title)
                 if (topLevel) {
-                    ButtonBarButton("Submit") {
+                    AccentAction(Icons.Outlined.Check, "Submit") {
                         onSubmit!!(ref.get())
                         leave()
                     }
-                } else {
-                    Spacer(Modifier.weight(1f))
+                }
+            }
+
+            Column(
+                Modifier.weight(1f).fillMaxWidth().clipToBounds().verticalScroll(rememberScrollState()).padding(horizontal = 8.dp, vertical = 6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                for (field in schema.fields) FieldView(field)
+            }
+        }
+    }
+
+    /**
+     * One field. A switch or a nested object is one row, label and control side by side; the
+     * rest have their label (with an "i" button for its description) over the input.
+     */
+    @Composable
+    private fun FieldView(field: Field<T>) {
+        when (field) {
+            is BoolField -> RowField(field) { BoolInput(field) }
+            is ObjectField<T, *> -> ObjectInput(field)
+            else -> Column(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 6.dp)) {
+                Label(field)
+                Box(Modifier.padding(top = 6.dp)) {
+                    when (field) {
+                        is TextField -> TextInputField(field)
+                        is IntField -> NumberInput(field.label, field.get(ref.get()).toString(), "Invalid integer value") { text ->
+                            // .NET int.TryParse: surrounding whitespace allowed.
+                            text.trim().toIntOrNull()?.also { ref.set(field.set(ref.get(), it)) } != null
+                        }
+                        is DoubleField -> NumberInput(field.label, dotNetString(field.get(ref.get())), "Invalid decimal value") { text ->
+                            text.trim().toDoubleOrNull()?.also { ref.set(field.set(ref.get(), it)) } != null
+                        }
+                        is ColorField -> ColorInput(field)
+                        is EnumField<T, *> -> EnumInput(field)
+                        is ListField<T, *> -> ListInput(field)
+                        is BoolField, is ObjectField<T, *> -> Unit
+                    }
                 }
             }
         }
     }
 
-    /** A MAUI Button with a 5 margin, in the primary color. */
+    /** A field as a card row: label (and its "i") at the start, [control] at the end. */
     @Composable
-    private fun androidx.compose.foundation.layout.RowScope.ButtonBarButton(text: String, onClick: () -> Unit) {
-        val styling = LocalStyling.current
-        MauiButton(text, styling.primaryColor.color, Modifier.weight(1f).padding(5.dp), onClick = onClick)
-    }
-
-    /** One field: its label (with an "i" button for its description) and its input. */
-    @Composable
-    private fun FieldView(field: Field<T>) {
-        Column(Modifier.fillMaxWidth().padding(5.dp).padding(5.dp)) {
-            Label(field)
-            Box(Modifier.padding(top = 5.dp)) {
-                when (field) {
-                    is BoolField -> BoolInput(field)
-                    is TextField -> TextInputField(field)
-                    is IntField -> NumberInput(field.label, field.get(ref.get()).toString(), "Invalid integer value") { text ->
-                        // .NET int.TryParse: surrounding whitespace allowed.
-                        text.trim().toIntOrNull()?.also { ref.set(field.set(ref.get(), it)) } != null
-                    }
-                    is DoubleField -> NumberInput(field.label, dotNetString(field.get(ref.get())), "Invalid decimal value") { text ->
-                        text.trim().toDoubleOrNull()?.also { ref.set(field.set(ref.get(), it)) } != null
-                    }
-                    is ColorField -> ColorInput(field)
-                    is EnumField<T, *> -> EnumInput(field)
-                    is ObjectField<T, *> -> ObjectInput(field)
-                    is ListField<T, *> -> ListInput(field)
-                }
+    private fun RowField(field: Field<T>, control: @Composable () -> Unit) {
+        Card {
+            Row(Modifier.fillMaxWidth().heightIn(min = 52.dp).padding(start = 12.dp, end = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.weight(1f).padding(vertical = 8.dp)) { Label(field) }
+                control()
             }
         }
     }
@@ -142,16 +181,16 @@ class EditorPage<T> private constructor(
         val description = field.description
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(field.label, color = styling.textColor.color, fontSize = styling.subTextFontSize.px)
+            Text(field.label, color = styling.textColor.color, fontSize = (styling.subTextFontSize * 1.05).px)
             if (!description.isNullOrBlank()) {
                 Box(
-                    Modifier.padding(start = 8.dp).size(20.dp).clip(CircleShape).background(styling.tertiaryColor.color)
+                    Modifier.padding(start = 6.dp).size(28.dp).clip(CircleShape)
                         .clickable(role = Role.Button, onClickLabel = "About ${field.label}") {
                             scope.launch { services.dialogs.alert(field.label, description, "OK") }
                         },
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("i", color = styling.textColor.color, fontSize = 12.sp)
+                    Icon(Icons.Outlined.Info, contentDescription = "About ${field.label}", tint = styling.subTextColor.color, modifier = Modifier.size(18.dp))
                 }
             }
         }
@@ -159,13 +198,7 @@ class EditorPage<T> private constructor(
 
     @Composable
     private fun BoolInput(field: BoolField<T>) {
-        val styling = LocalStyling.current
-        Checkbox(
-            checked = field.get(ref.get()),
-            onCheckedChange = { ref.set(field.set(ref.get(), it)) },
-            modifier = Modifier.semantics { contentDescription = field.label },
-            colors = CheckboxDefaults.colors(uncheckedColor = styling.textColor.color, checkmarkColor = styling.textColor.color),
-        )
+        ToggleSwitch(field.get(ref.get()), { ref.set(field.set(ref.get(), it)) }, field.label)
     }
 
     @Composable
@@ -182,8 +215,8 @@ class EditorPage<T> private constructor(
                 value = it
                 ref.set(field.set(ref.get(), it.text))
             },
-            background = styling.tertiaryColor.color,
-            border = styling.tertiaryColor.color,
+            background = styling.cardColor.color,
+            border = styling.borderColor.color,
             singleLine = !field.multiline,
             minLines = if (field.multiline) 4 else 1,
             modifier = Modifier.semantics { contentDescription = field.label },
@@ -204,8 +237,8 @@ class EditorPage<T> private constructor(
                     value = it
                     valid = apply(it.text)
                 },
-                background = styling.tertiaryColor.color,
-                border = if (valid) styling.tertiaryColor.color else ERROR,
+                background = styling.cardColor.color,
+                border = if (valid) styling.borderColor.color else ERROR,
                 modifier = Modifier.semantics { contentDescription = label },
                 // An HTML type="number" input, which brings up the number keyboard.
                 keyboard = KeyboardType.Decimal,
@@ -229,8 +262,8 @@ class EditorPage<T> private constructor(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     Modifier.padding(end = 8.dp).size(36.dp)
-                        .border(1.dp, styling.tertiaryColor.color, RoundedCornerShape(4.dp))
-                        .background(Color(0xFF000000.toInt() or (current.toArgb() and 0xFFFFFF)), RoundedCornerShape(4.dp)),
+                        .border(1.dp, styling.borderColor.color, styling.innerShape)
+                        .background(Color(0xFF000000.toInt() or (current.toArgb() and 0xFFFFFF)), styling.innerShape),
                 )
                 FormInput(
                     value,
@@ -249,8 +282,8 @@ class EditorPage<T> private constructor(
                             valid = false
                         }
                     },
-                    background = styling.tertiaryColor.color,
-                    border = if (valid) styling.tertiaryColor.color else ERROR,
+                    background = styling.cardColor.color,
+                    border = if (valid) styling.borderColor.color else ERROR,
                     placeholder = "#RRGGBB",
                     modifier = Modifier.weight(1f).semantics { contentDescription = field.label },
                 )
@@ -267,16 +300,16 @@ class EditorPage<T> private constructor(
 
         Box {
             Row(
-                Modifier.fillMaxWidth().border(1.dp, styling.tertiaryColor.color, RoundedCornerShape(4.dp))
-                    .background(styling.tertiaryColor.color, RoundedCornerShape(4.dp))
-                    .clickable(role = Role.DropdownList) { open = true }.padding(8.dp)
+                Modifier.fillMaxWidth().clip(styling.innerShape).border(1.dp, styling.borderColor.color, styling.innerShape)
+                    .background(styling.cardColor.color)
+                    .clickable(role = Role.DropdownList) { open = true }.padding(horizontal = 12.dp, vertical = 10.dp)
                     .semantics { contentDescription = "${field.label}: $current" },
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text(current, color = styling.textColor.color, fontSize = 14.sp)
-                Text("▾", color = styling.textColor.color, fontSize = 14.sp)
+                Text(current, color = styling.textColor.color, fontSize = 15.sp)
+                Icon(Icons.Outlined.ExpandMore, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(20.dp))
             }
-            DropdownMenu(open, { open = false }, Modifier.background(styling.tertiaryColor.color)) {
+            DropdownMenu(open, { open = false }, Modifier.background(styling.cardColor.color)) {
                 field.names.forEachIndexed { index, name ->
                     DropdownMenuItem(
                         text = { Text(name, color = styling.textColor.color) },
@@ -290,51 +323,50 @@ class EditorPage<T> private constructor(
         }
     }
 
+    /** A nested object: a card row with its label that opens its own page. */
     @Composable
     private fun ObjectInput(field: ObjectField<T, *>) {
         val styling = LocalStyling.current
-        FilledButton("Edit", styling.primaryColor.color, Modifier.semantics { contentDescription = "Edit ${field.label}" }) {
-            field.edit(ref, nested)
+        Card(Modifier.clickable(role = Role.Button, onClickLabel = "Edit ${field.label}") { field.edit(ref, nested(field.label)) }) {
+            Row(Modifier.fillMaxWidth().heightIn(min = 52.dp).padding(start = 12.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(field.label, Modifier.weight(1f), color = styling.textColor.color, fontSize = (styling.subTextFontSize * 1.05).px)
+                Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null, tint = styling.subTextColor.color)
+            }
         }
     }
 
+    /** A list: its items as rows of one card, each with edit and remove, then Add. */
     @Composable
     private fun ListInput(field: ListField<T, *>) {
         val styling = LocalStyling.current
         val labels = field.labels(ref.get())
 
-        Column {
-            Column(Modifier.padding(bottom = 8.dp)) {
-                labels.forEachIndexed { index, label ->
-                    Column {
-                        Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text(label, Modifier.weight(1f), color = styling.textColor.color)
-                            FilledButton("Edit", styling.primaryColor.color, Modifier.padding(start = 8.dp).semantics { contentDescription = "Edit $label" }, horizontal = 8.dp, vertical = 4.dp) {
-                                field.edit(ref, index, nested)
-                            }
-                            FilledButton("Remove", REMOVE, Modifier.padding(start = 8.dp).semantics { contentDescription = "Remove $label" }, textColor = Color.White, horizontal = 8.dp, vertical = 4.dp) {
-                                field.remove(ref, index)
-                            }
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            if (labels.isNotEmpty()) {
+                ListGroup {
+                    labels.forEachIndexed { index, label ->
+                        ListRow(label, divider = index != labels.lastIndex) {
+                            IconAction(Icons.Outlined.Edit, "Edit $label") { field.edit(ref, index, nested(label)) }
+                            IconAction(Icons.Outlined.DeleteOutline, "Remove $label") { field.remove(ref, index) }
                         }
-                        Box(Modifier.fillMaxWidth().size(1.dp).background(styling.tertiaryColor.color))
                     }
                 }
             }
-            FilledButton("Add", styling.primaryColor.color, Modifier.semantics { contentDescription = "Add to ${field.label}" }) {
-                field.add(ref, nested)
+            PillButton("Add", icon = Icons.Outlined.Add, modifier = Modifier.semantics { contentDescription = "Add to ${field.label}" }) {
+                field.add(ref, nested(field.label))
             }
         }
     }
 
-    private val nested = object : NestedEditor {
+    /** Opens nested objects and list items, each headed [title]. */
+    private fun nested(title: String) = object : NestedEditor {
         override fun <C> open(schema: Schema<C>, ref: Ref<C>) {
-            services.navigator.push(EditorPage(services, schema, ref, null))
+            services.navigator.push(EditorPage(services, schema, ref, title, null))
         }
     }
 }
 
-private val ERROR = Color(0xFFFF4444)
-private val REMOVE = Color(0xFFCC3333)
+private val ERROR = Color(0xFFF28B82)
 
 /** A double as .NET's ToString() writes it: whole numbers without ".0". */
 private fun dotNetString(value: Double): String =

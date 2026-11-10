@@ -31,7 +31,7 @@ class SettingsImportTest {
 
         assertEquals(DynamicColor(255, 33, 33, 33), data.styling.primaryColor)
         assertEquals(18.0, data.styling.titleFontSize, 0.0)
-        assertEquals(DynamicColor.parse("#ff4500"), data.styling.upvoteColor)
+        assertEquals(ApplicationStyling().upvoteColor, data.styling.upvoteColor)
         assertEquals(ClaudeModel.Claude_Opus_4_1, data.aiConfiguration.prompts[0].model)
         assertEquals(ClaudeModel.None, data.aiConfiguration.prompts[1].model)
         assertEquals("spam", data.blockConfiguration.blackList.rules.single().author)

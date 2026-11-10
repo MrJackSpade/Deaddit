@@ -5,11 +5,34 @@ import android.provider.OpenableColumns
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Send
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.ExpandLess
+import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
+import com.mrjackspade.deaddit.ui.AccentAction
+import com.mrjackspade.deaddit.ui.Card
+import com.mrjackspade.deaddit.ui.Divider
+import com.mrjackspade.deaddit.ui.IconAction
+import com.mrjackspade.deaddit.ui.TopBar
+import com.mrjackspade.deaddit.ui.TopBarButton
+import com.mrjackspade.deaddit.ui.TopBarTitle
+import com.mrjackspade.deaddit.ui.accentEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -207,13 +230,83 @@ class ReplyPage(
         }
     }
 
+    /** Whether the thread above shows in full; collapsed, it's one line, leaving the editor the room. */
+    private var threadShown by mutableStateOf(true)
+
     @Composable
     override fun Content() {
         val styling = LocalStyling.current
+
+        Column(Modifier.fillMaxSize().background(styling.secondaryColor.color).navigationBarsPadding().imePadding()) {
+            TopBar {
+                TopBarButton(Icons.Outlined.Close, "Cancel", color = styling.textColor.color) { leave() }
+                TopBarTitle(if (toEdit != null) "Edit" else "Reply")
+                AccentAction(Icons.AutoMirrored.Outlined.Send, "Submit") { submit() }
+            }
+
+            if (rows.isNotEmpty()) {
+                Card(Modifier.padding(horizontal = 8.dp).let { if (threadShown) it.weight(1f) else it }) {
+                    Row(
+                        Modifier.fillMaxWidth().heightIn(min = 44.dp).clickable(role = Role.Button) { threadShown = !threadShown }
+                            .semantics { contentDescription = if (threadShown) "Hide thread" else "Show thread" }
+                            .padding(start = 12.dp, end = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(18.dp))
+                        Text(if (threadShown) "Thread" else preview(), Modifier.weight(1f), color = styling.subTextColor.color, fontSize = styling.subTextFontSize.px, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Icon(if (threadShown) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, contentDescription = null, tint = styling.subTextColor.color)
+                    }
+                    if (threadShown) {
+                        Divider()
+                        Thread(Modifier.weight(1f))
+                    }
+                }
+            }
+
+            Column(
+                Modifier.padding(start = 8.dp, end = 8.dp, top = 6.dp).let { if (!threadShown || rows.isEmpty()) it.weight(1f) else it },
+            ) {
+                // The box grows as it's typed into; with the thread collapsed it has the page.
+                TextInput(
+                    text,
+                    { text = it },
+                    background = styling.highlightColor.color,
+                    border = styling.accentEdge,
+                    singleLine = false,
+                    placeholder = if (toEdit != null) "Edit" else "Reply",
+                    modifier = Modifier.heightIn(min = 140.dp).let { if (!threadShown || rows.isEmpty()) it.weight(1f) else it },
+                )
+
+                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    IconAction(Icons.Outlined.Image, "Attach image") { attachImage() }
+                    if (showAi) {
+                        if (aiLoading) {
+                            Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator(Modifier.size(22.dp), color = styling.accentColor.color, strokeWidth = 2.dp)
+                            }
+                        } else {
+                            IconAction(Icons.Outlined.AutoAwesome, "AI assist") { aiAssist() }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /** The collapsed thread's one line: what's being replied to. */
+    private fun preview(): String = when (val last = chain.lastOrNull()) {
+        is Post -> last.title
+        null -> ""
+        else -> "${last.author ?: ""}: ${last.body.replace('\n', ' ')}"
+    }
+
+    @Composable
+    private fun Thread(modifier: Modifier) {
+        val styling = LocalStyling.current
         val hacks = services.settings.hacks.value
 
-        Column(Modifier.fillMaxSize().background(styling.secondaryColor.color).statusBarsPadding().navigationBarsPadding().imePadding()) {
-            LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
+        LazyColumn(modifier.fillMaxWidth()) {
                 for (row in rows) {
                     when (row) {
                         is PostRowEntry -> {
@@ -231,12 +324,9 @@ class ReplyPage(
                                 item(key = "${post.name}-body") {
                                     HtmlBody(
                                         post.bodyHtml?.let(RedditHtml::parse) ?: emptyList(),
-                                        styling.titleFontSize.px,
+                                        styling.commentFontSize.px,
                                         onLink = { url -> services.launchAction { Links.open(services, url) } },
-                                        modifier = Modifier.fillMaxWidth().padding(2.dp)
-                                            .border(1.dp, styling.textColor.color)
-                                            .background(styling.primaryColor.color)
-                                            .padding(5.dp),
+                                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
                                     )
                                 }
                             }
@@ -253,43 +343,11 @@ class ReplyPage(
                                     commentController.onSelected(row.model)
                                 },
                                 actions = commentController.actions(row.model),
-                                modifier = Modifier.padding(5.dp),
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                             )
                         }
                     }
                 }
-            }
-
-            // As the C# page's grid ("*, Auto"): the thread above takes what's left, and the box
-            // sizes to its text (an auto-sizing Editor), growing as it's typed into.
-            TextInput(
-                text,
-                { text = it },
-                background = styling.primaryColor.color,
-                singleLine = false,
-            )
-
-            Row(
-                Modifier.fillMaxWidth().background(styling.secondaryColor.color).horizontalScroll(rememberScrollState()),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                FlatButton("Cancel") { leave() }
-                // The C# Preview button did nothing.
-                FlatButton("Preview") { }
-                FlatButton("📷", description = "Attach image") { attachImage() }
-                FlatButton("Submit") { submit() }
-                if (showAi) {
-                    // A transparent MAUI Button with padding 10, greyed out while it's disabled.
-                    MauiButton(
-                        if (aiLoading) "Loading..." else "AI Assist",
-                        Color.Transparent,
-                        fontSize = styling.titleFontSize.px,
-                        padding = PaddingValues(10.dp),
-                        enabled = !aiLoading,
-                    ) { aiAssist() }
-                    if (aiLoading) CircularProgressIndicator(Modifier.size(24.dp), color = styling.textColor.color)
-                }
-            }
         }
     }
 }

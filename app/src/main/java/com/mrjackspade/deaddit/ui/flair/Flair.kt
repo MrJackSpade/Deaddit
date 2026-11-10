@@ -20,6 +20,7 @@ import com.mrjackspade.deaddit.core.util.CssColor
 import com.mrjackspade.deaddit.core.util.CssColorValue
 import com.mrjackspade.deaddit.ui.LocalHacks
 import com.mrjackspade.deaddit.ui.LocalStyling
+import com.mrjackspade.deaddit.ui.chipShape
 import com.mrjackspade.deaddit.ui.color
 import com.mrjackspade.deaddit.ui.html.InlineFlow
 import com.mrjackspade.deaddit.ui.html.inlineBackground
@@ -59,36 +60,43 @@ fun Flair(text: String?, richtext: List<FlairPart>, background: String?, textCol
     val parsed = remember(background) { background?.let(CssColor::parse) }
     val swapped = styling.swapFlairColors && background != null
 
-    val fg = if (swapped) (parsed as? CssColorValue.Argb)?.let { Color(it.argb) } ?: Color.Unspecified else flairText
+    // Muted (the default), every flair is a quiet chip in the app's colors, whatever the subreddit's.
+    val fg = when {
+        styling.mutedFlair -> styling.subTextColor.color
+        swapped -> (parsed as? CssColorValue.Argb)?.let { Color(it.argb) } ?: Color.Unspecified
+        else -> flairText
+    }
     val bg = when {
+        styling.mutedFlair -> styling.tertiaryColor.color
         swapped || background == null -> styling.primaryColor.color
         parsed is CssColorValue.Argb -> Color(parsed.argb)
         parsed == CssColorValue.CurrentColor -> fg
         else -> Color.Transparent
     }
+    val fontSize = (styling.subTextFontSize * 0.9).px
 
     if (parts == null && inline) {
-        InlineFlow(modifier) { InlineChip(plain!!, fg, bg, styling.subTextFontSize.px) }
+        InlineFlow(modifier) { InlineChip(plain!!, fg, bg, fontSize) }
         return
     }
 
     val box: @Composable (Modifier) -> Unit = { m ->
         Row(
-            m.padding(2.dp).background(bg, RoundedCornerShape(4.dp)).padding(4.dp),
+            m.background(bg, styling.chipShape).padding(horizontal = 7.dp, vertical = 1.dp),
             horizontalArrangement = Arrangement.spacedBy(2.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (parts != null) {
                 for (part in parts) {
                     if (part.type == "emoji") {
-                        val size = (styling.subTextFontSize * 1.2).toInt().dp
+                        val size = (styling.subTextFontSize * 1.1).toInt().dp
                         AsyncImage(part.url, contentDescription = part.alias, modifier = Modifier.size(size))
                     } else {
-                        Text(part.text!!, color = fg, fontSize = styling.subTextFontSize.px)
+                        Text(part.text!!, color = fg, fontSize = fontSize)
                     }
                 }
             } else {
-                Text(plain!!, color = fg, fontSize = styling.subTextFontSize.px)
+                Text(plain!!, color = fg, fontSize = fontSize)
             }
         }
     }
