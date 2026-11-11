@@ -161,18 +161,18 @@ fun ThreadRowFrame(row: ThreadRow, selected: String?, content: @Composable () ->
 }
 
 /** Above and below each comment. */
-private val COMMENT_PADDING = 6.dp
+private val COMMENT_PADDING = 12.dp
 
 /** How much further in each level of replies is. */
 private val LEVEL_STEP = 14.dp
 
 /** Between the screen's edges and the cards, and between cards. */
 private val CARD_MARGIN = 8.dp
-private val CARD_GAP = 6.dp
+private val CARD_GAP = 10.dp
 
 /** Inside a card: from its sides to the comments, and the extra room under its top and over its bottom. */
 private val CARD_INNER = 12.dp
-private val CARD_EDGE = 4.dp
+private val CARD_EDGE = 0.dp
 
 /** Where a level's line sits in the step before its replies. */
 private val LINE_OFFSET = 3.dp

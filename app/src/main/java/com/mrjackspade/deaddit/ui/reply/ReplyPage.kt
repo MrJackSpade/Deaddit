@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
@@ -241,7 +242,6 @@ class ReplyPage(
             TopBar {
                 TopBarButton(Icons.Outlined.Close, "Cancel", color = styling.textColor.color) { leave() }
                 TopBarTitle(if (toEdit != null) "Edit" else "Reply")
-                AccentAction(Icons.AutoMirrored.Outlined.Send, "Submit") { submit() }
             }
 
             if (rows.isNotEmpty()) {
@@ -289,6 +289,9 @@ class ReplyPage(
                             IconAction(Icons.Outlined.AutoAwesome, "AI assist") { aiAssist() }
                         }
                     }
+                    // Send sits under the box, at the end, where the thumb finishes typing.
+                    Spacer(Modifier.weight(1f))
+                    AccentAction(Icons.AutoMirrored.Outlined.Send, "Submit") { submit() }
                 }
             }
         }

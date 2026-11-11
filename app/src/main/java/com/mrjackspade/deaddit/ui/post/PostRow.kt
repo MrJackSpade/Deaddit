@@ -120,7 +120,7 @@ fun PostRow(
     if (!inList) {
         Column(Modifier.fillMaxWidth().background(if (blocked) styling.blockedBackgroundColor.color else Color.Transparent)) {
             Summary(model, inList = false, showAuthor = true, read = false, actions = actions)
-            VoteRow(model, hideScore, actions, Modifier.padding(start = 6.dp))
+            VoteRow(model, hideScore, actions, Modifier.padding(end = 10.dp))
         }
         return
     }
@@ -131,7 +131,7 @@ fun PostRow(
         background = if (blocked) styling.blockedBackgroundColor.color else null,
     ) {
         Summary(model, inList = true, showAuthor = selected, read = read, actions = actions)
-        VoteRow(model, hideScore, actions, Modifier.padding(start = 6.dp, bottom = 4.dp))
+        VoteRow(model, hideScore, actions, Modifier.padding(end = 6.dp, bottom = 4.dp))
 
         if (selected) {
             Divider(Modifier.padding(horizontal = 8.dp))
@@ -226,14 +226,34 @@ private fun Thumbnail(url: String?, description: String, onClick: () -> Unit) {
     }
 }
 
-/** Up, the score, down, and the comment count that opens the thread. The vote's color marks a vote cast. */
+/**
+ * At the right edge, mirroring the thumbnail on the left: the comment count that opens the thread,
+ * then up, the score, and down. The vote's color marks a vote cast.
+ */
 @Composable
 private fun VoteRow(model: PostModel, hideScore: Boolean, actions: PostActions, modifier: Modifier = Modifier) {
     val styling = LocalStyling.current
     val up = model.likes == VoteState.Upvote
     val down = model.likes == VoteState.Downvote
 
-    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+    Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Spacer(Modifier.weight(1f))
+
+        val comments = model.post.numComments
+        Row(
+            Modifier.heightIn(min = 40.dp).clip(styling.innerShape)
+                .clickable(role = Role.Button, onClick = actions.onComments)
+                .semantics { contentDescription = "$comments comments" }
+                .padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(20.dp))
+            Text(CompactCount.format(comments), color = styling.subTextColor.color, fontSize = styling.subTextFontSize.px)
+        }
+
+        Spacer(Modifier.width(8.dp))
+
         IconAction(
             Icons.Outlined.ArrowUpward, "Upvote",
             tint = if (up) styling.upvoteColor.color else styling.subTextColor.color,
@@ -260,21 +280,6 @@ private fun VoteRow(model: PostModel, hideScore: Boolean, actions: PostActions, 
             tint = if (down) styling.downvoteColor.color else styling.subTextColor.color,
             active = down, activeColor = styling.downvoteColor.color,
         ) { actions.onVote(VoteState.Downvote) }
-
-        Spacer(Modifier.width(8.dp))
-
-        val comments = model.post.numComments
-        Row(
-            Modifier.heightIn(min = 40.dp).clip(styling.innerShape)
-                .clickable(role = Role.Button, onClick = actions.onComments)
-                .semantics { contentDescription = "$comments comments" }
-                .padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(20.dp))
-            Text(CompactCount.format(comments), color = styling.subTextColor.color, fontSize = styling.subTextFontSize.px)
-        }
     }
 }
 
