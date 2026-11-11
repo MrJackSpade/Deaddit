@@ -102,8 +102,8 @@ class PostActions(
 
 /**
  * One post. In a feed ([inList]) it's a card: thumbnail on the left, where it's from, title and
- * flair, then votes and comments; when [selected], its other actions too. Read posts fade back
- * (the visited opacity) and lose the title's weight. On its thread it's the page's heading.
+ * flair, then votes; when [selected], its actions, ending with the comment count. Read posts fade
+ * back (the visited opacity) and lose the title's weight. On its thread it's the page's heading.
  */
 @Composable
 fun PostRow(
@@ -135,7 +135,7 @@ fun PostRow(
 
         if (selected) {
             Divider(Modifier.padding(horizontal = 8.dp))
-            Row(Modifier.fillMaxWidth().padding(4.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+            Row(Modifier.fillMaxWidth().padding(start = 4.dp, end = 6.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                 IconAction(
                     if (model.saved) Icons.Outlined.Bookmark else Icons.Outlined.BookmarkBorder,
                     if (model.saved) "Unsave" else "Save",
@@ -146,8 +146,27 @@ fun PostRow(
                 IconAction(Icons.Outlined.Share, "Share", onClick = actions.onShare)
                 IconAction(Icons.Outlined.VisibilityOff, "Hide", onClick = actions.onHide)
                 IconAction(Icons.Outlined.MoreHoriz, "More", onClick = actions.onMore)
+                Spacer(Modifier.weight(1f))
+                CommentsButton(model.post.numComments, actions.onComments)
             }
         }
+    }
+}
+
+/** The comment count, which opens the thread. */
+@Composable
+private fun CommentsButton(comments: Int, onClick: () -> Unit) {
+    val styling = LocalStyling.current
+    Row(
+        Modifier.heightIn(min = 40.dp).clip(styling.innerShape)
+            .clickable(role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = "$comments comments" }
+            .padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(20.dp))
+        Text(CompactCount.format(comments), color = styling.subTextColor.color, fontSize = styling.subTextFontSize.px)
     }
 }
 
@@ -230,8 +249,8 @@ private fun Thumbnail(url: String?, description: String, onClick: () -> Unit) {
 }
 
 /**
- * At the right edge, mirroring the thumbnail on the left: up, the score and down, then in the
- * corner the comment count that opens the thread. The vote's color marks a vote cast.
+ * At the right edge, mirroring the thumbnail on the left: up, the score and down. The vote's
+ * color marks a vote cast.
  */
 @Composable
 private fun VoteRow(model: PostModel, hideScore: Boolean, actions: PostActions, modifier: Modifier = Modifier) {
@@ -268,21 +287,6 @@ private fun VoteRow(model: PostModel, hideScore: Boolean, actions: PostActions, 
             tint = if (down) styling.downvoteColor.color else styling.subTextColor.color,
             active = down, activeColor = styling.downvoteColor.color,
         ) { actions.onVote(VoteState.Downvote) }
-
-        Spacer(Modifier.width(8.dp))
-
-        val comments = model.post.numComments
-        Row(
-            Modifier.heightIn(min = 40.dp).clip(styling.innerShape)
-                .clickable(role = Role.Button, onClick = actions.onComments)
-                .semantics { contentDescription = "$comments comments" }
-                .padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(20.dp))
-            Text(CompactCount.format(comments), color = styling.subTextColor.color, fontSize = styling.subTextFontSize.px)
-        }
     }
 }
 

@@ -22,13 +22,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ArrowDownward
 import androidx.compose.material.icons.outlined.ArrowUpward
+import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Contrast
 import androidx.compose.material.icons.outlined.CropSquare
 import androidx.compose.material.icons.outlined.FormatSize
+import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.Opacity
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -55,6 +59,7 @@ import com.mrjackspade.deaddit.Services
 import com.mrjackspade.deaddit.core.config.ApplicationStyling
 import com.mrjackspade.deaddit.core.config.Lantern
 import com.mrjackspade.deaddit.ui.Card
+import com.mrjackspade.deaddit.ui.Divider
 import com.mrjackspade.deaddit.ui.LocalStyling
 import com.mrjackspade.deaddit.ui.Screen
 import com.mrjackspade.deaddit.ui.Segmented
@@ -180,7 +185,7 @@ class DisplayPage(private val services: Services) : Screen() {
         }
     }
 
-    /** A post as the feed shows it, upvoted and selected, over one already read. */
+    /** A post as the feed shows it, upvoted and selected (its actions showing), over one already read. */
     @Composable
     private fun Preview(styling: ApplicationStyling) {
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -226,10 +231,20 @@ class DisplayPage(private val services: Services) : Screen() {
                 Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
                     Icon(Icons.Outlined.ArrowDownward, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(22.dp))
                 }
-                Spacer(Modifier.width(8.dp))
-                Row(Modifier.heightIn(min = 40.dp).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(20.dp))
-                    Text(comments, color = styling.subTextColor.color, fontSize = styling.subTextFontSize.px)
+            }
+            if (selected) {
+                Divider(Modifier.padding(horizontal = 8.dp))
+                Row(Modifier.fillMaxWidth().padding(start = 4.dp, end = 6.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    for (icon in listOf(Icons.Outlined.BookmarkBorder, Icons.Outlined.Share, Icons.Outlined.VisibilityOff, Icons.Outlined.MoreHoriz)) {
+                        Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
+                            Icon(icon, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(22.dp))
+                        }
+                    }
+                    Spacer(Modifier.weight(1f))
+                    Row(Modifier.heightIn(min = 40.dp).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(20.dp))
+                        Text(comments, color = styling.subTextColor.color, fontSize = styling.subTextFontSize.px)
+                    }
                 }
             }
         }
