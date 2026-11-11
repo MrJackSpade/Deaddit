@@ -230,8 +230,8 @@ private fun Thumbnail(url: String?, description: String, onClick: () -> Unit) {
 }
 
 /**
- * At the right edge, mirroring the thumbnail on the left: the comment count that opens the thread,
- * then up, the score, and down. The vote's color marks a vote cast.
+ * At the right edge, mirroring the thumbnail on the left: up, the score and down, then in the
+ * corner the comment count that opens the thread. The vote's color marks a vote cast.
  */
 @Composable
 private fun VoteRow(model: PostModel, hideScore: Boolean, actions: PostActions, modifier: Modifier = Modifier) {
@@ -241,21 +241,6 @@ private fun VoteRow(model: PostModel, hideScore: Boolean, actions: PostActions, 
 
     Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Spacer(Modifier.weight(1f))
-
-        val comments = model.post.numComments
-        Row(
-            Modifier.heightIn(min = 40.dp).clip(styling.innerShape)
-                .clickable(role = Role.Button, onClick = actions.onComments)
-                .semantics { contentDescription = "$comments comments" }
-                .padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(20.dp))
-            Text(CompactCount.format(comments), color = styling.subTextColor.color, fontSize = styling.subTextFontSize.px)
-        }
-
-        Spacer(Modifier.width(8.dp))
 
         IconAction(
             Icons.Outlined.ArrowUpward, "Upvote",
@@ -283,6 +268,21 @@ private fun VoteRow(model: PostModel, hideScore: Boolean, actions: PostActions, 
             tint = if (down) styling.downvoteColor.color else styling.subTextColor.color,
             active = down, activeColor = styling.downvoteColor.color,
         ) { actions.onVote(VoteState.Downvote) }
+
+        Spacer(Modifier.width(8.dp))
+
+        val comments = model.post.numComments
+        Row(
+            Modifier.heightIn(min = 40.dp).clip(styling.innerShape)
+                .clickable(role = Role.Button, onClick = actions.onComments)
+                .semantics { contentDescription = "$comments comments" }
+                .padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(20.dp))
+            Text(CompactCount.format(comments), color = styling.subTextColor.color, fontSize = styling.subTextFontSize.px)
+        }
     }
 }
 

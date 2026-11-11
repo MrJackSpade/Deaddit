@@ -209,11 +209,6 @@ class DisplayPage(private val services: Services) : Screen() {
             Row(Modifier.fillMaxWidth().padding(end = 6.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                 val up = !read
                 Spacer(Modifier.weight(1f))
-                Row(Modifier.heightIn(min = 40.dp).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(20.dp))
-                    Text(comments, color = styling.subTextColor.color, fontSize = styling.subTextFontSize.px)
-                }
-                Spacer(Modifier.width(8.dp))
                 Box(
                     Modifier.size(40.dp).clip(styling.innerShape).background(if (up) styling.accentFill else Color.Transparent),
                     contentAlignment = Alignment.Center,
@@ -230,6 +225,11 @@ class DisplayPage(private val services: Services) : Screen() {
                 )
                 Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
                     Icon(Icons.Outlined.ArrowDownward, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(22.dp))
+                }
+                Spacer(Modifier.width(8.dp))
+                Row(Modifier.heightIn(min = 40.dp).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(20.dp))
+                    Text(comments, color = styling.subTextColor.color, fontSize = styling.subTextFontSize.px)
                 }
             }
         }
