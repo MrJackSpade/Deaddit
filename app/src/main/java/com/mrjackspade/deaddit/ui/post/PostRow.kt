@@ -119,7 +119,7 @@ fun PostRow(
 
     if (!inList) {
         Column(Modifier.fillMaxWidth().background(if (blocked) styling.blockedBackgroundColor.color else Color.Transparent)) {
-            Summary(model, inList = false, showAuthor = true, read = false, actions = actions)
+            Summary(model, inList = false, full = true, read = false, actions = actions)
             VoteRow(model, hideScore, actions, Modifier.padding(end = 10.dp))
         }
         return
@@ -130,7 +130,7 @@ fun PostRow(
         selected = selected,
         background = if (blocked) styling.blockedBackgroundColor.color else null,
     ) {
-        Summary(model, inList = true, showAuthor = selected, read = read, actions = actions)
+        Summary(model, inList = true, full = selected, read = read, actions = actions)
         VoteRow(model, hideScore, actions, Modifier.padding(end = 6.dp, bottom = 4.dp))
 
         if (selected) {
@@ -151,9 +151,12 @@ fun PostRow(
     }
 }
 
-/** The thumbnail (or, for a link without one, a link mark that opens it) beside where the post is from and its title. */
+/**
+ * The thumbnail (or, for a link without one, a link mark that opens it) beside where the post is
+ * from and its title. [full] adds the author and lets that line wrap; otherwise it's one line.
+ */
 @Composable
-private fun Summary(model: PostModel, inList: Boolean, showAuthor: Boolean, read: Boolean, actions: PostActions) {
+private fun Summary(model: PostModel, inList: Boolean, full: Boolean, read: Boolean, actions: PostActions) {
     val styling = LocalStyling.current
     val post = model.post
     val title = HtmlText.display(post.title)
@@ -172,7 +175,7 @@ private fun Summary(model: PostModel, inList: Boolean, showAuthor: Boolean, read
             val host = if (post.isSelf) null else UrlHelper.getDisplayHost(post.link)
             val parts = listOfNotNull(
                 "r/${post.subreddit}",
-                post.author?.takeIf { showAuthor }?.let { "u/$it" },
+                post.author?.takeIf { full }?.let { "u/$it" },
                 post.createdUtc.elapsed(),
                 host,
             )
@@ -182,7 +185,7 @@ private fun Summary(model: PostModel, inList: Boolean, showAuthor: Boolean, read
                     Modifier.weight(1f, fill = false),
                     color = styling.subTextColor.color,
                     fontSize = styling.subTextFontSize.px,
-                    maxLines = 1,
+                    maxLines = if (full) Int.MAX_VALUE else 1,
                     overflow = TextOverflow.Ellipsis,
                 )
                 if (read) {

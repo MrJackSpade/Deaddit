@@ -179,9 +179,9 @@ class CommentActions(
 )
 
 /**
- * The author with their marks, the age (and, for a comment www translated, the switch between
- * translation and original), then the score at the end, in the vote's color when one is cast;
- * under it, the user's tag for the author or their flair.
+ * The author with their marks, the age, the score in the vote's color when one is cast (and, for a
+ * comment www translated, the switch between translation and original); under it, the user's tag
+ * for the author or their flair.
  */
 @Composable
 private fun Header(services: Services, model: CommentModel, post: Post?) {
@@ -196,29 +196,18 @@ private fun Header(services: Services, model: CommentModel, post: Post?) {
         (hacks.hideSelfKarma && comment.author.equals(services.reddit.loggedInUser, ignoreCase = true))
 
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        // The score follows the age, so it stays with the comment at any depth.
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                AuthorName(comment.author ?: "", comment.distinguished, isOp = post != null && comment.author == post.author, modifier = Modifier.weight(1f, fill = false))
-                Text("·", color = sub, fontSize = subSize)
-                Text(comment.createdUtc.elapsed() ?: "", color = sub, fontSize = subSize, maxLines = 1)
-                if (comment.original != null) {
-                    Text(
-                        if (model.showingOriginal) "original" else "translated",
-                        Modifier.clickable(role = Role.Button) { model.toggleTranslation() }
-                            .semantics { contentDescription = if (model.showingOriginal) "Show translation" else "Show original" },
-                        color = sub,
-                        fontSize = subSize,
-                        maxLines = 1,
-                    )
-                }
-            }
-
+            AuthorName(comment.author ?: "", comment.distinguished, isOp = post != null && comment.author == post.author, modifier = Modifier.weight(1f, fill = false))
+            Text("·", color = sub, fontSize = subSize)
+            Text(comment.createdUtc.elapsed() ?: "", color = sub, fontSize = subSize, maxLines = 1)
             if (!hideScore) {
                 val color = when (model.likes) {
                     VoteState.Upvote -> styling.upvoteColor.color
                     VoteState.Downvote -> styling.downvoteColor.color
                     VoteState.None -> sub
                 }
+                Text("·", color = sub, fontSize = subSize)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                     Icon(
                         if (model.likes == VoteState.Downvote) Icons.Outlined.ArrowDownward else Icons.Outlined.ArrowUpward,
@@ -232,6 +221,16 @@ private fun Header(services: Services, model: CommentModel, post: Post?) {
                     )
                     Text(CompactCount.format(model.score), color = color, fontSize = subSize, maxLines = 1)
                 }
+            }
+            if (comment.original != null) {
+                Text(
+                    if (model.showingOriginal) "original" else "translated",
+                    Modifier.clickable(role = Role.Button) { model.toggleTranslation() }
+                        .semantics { contentDescription = if (model.showingOriginal) "Show translation" else "Show original" },
+                    color = sub,
+                    fontSize = subSize,
+                    maxLines = 1,
+                )
             }
         }
 
