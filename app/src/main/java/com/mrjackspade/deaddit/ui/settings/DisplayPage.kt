@@ -201,6 +201,13 @@ class DisplayPage(private val services: Services) : Screen() {
             Column(Modifier.padding(start = 12.dp, end = 12.dp, top = 10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(meta, color = styling.subTextColor.color, fontSize = styling.subTextFontSize.px)
+                    if (!selected) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text("·", color = styling.subTextColor.color, fontSize = styling.subTextFontSize.px)
+                            Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(15.dp))
+                            Text(comments, color = styling.subTextColor.color, fontSize = styling.subTextFontSize.px)
+                        }
+                    }
                     if (read) Icon(Icons.Outlined.Check, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(16.dp))
                 }
                 Text(

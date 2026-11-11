@@ -172,7 +172,8 @@ private fun CommentsButton(comments: Int, onClick: () -> Unit) {
 
 /**
  * The thumbnail (or, for a link without one, a link mark that opens it) beside where the post is
- * from and its title. [full] adds the author and lets that line wrap; otherwise it's one line.
+ * from and its title. [full] adds the author and lets that line wrap; otherwise it's one line,
+ * ending in a feed with the comment count.
  */
 @Composable
 private fun Summary(model: PostModel, inList: Boolean, full: Boolean, read: Boolean, actions: PostActions) {
@@ -207,6 +208,18 @@ private fun Summary(model: PostModel, inList: Boolean, full: Boolean, read: Bool
                     maxLines = if (full) Int.MAX_VALUE else 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+                // A selected card has the count in its action bar instead.
+                if (inList && !full) {
+                    Row(
+                        Modifier.semantics(mergeDescendants = true) { contentDescription = "${post.numComments} comments" },
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text("·", color = styling.subTextColor.color, fontSize = styling.subTextFontSize.px)
+                        Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(15.dp))
+                        Text(CompactCount.format(post.numComments), color = styling.subTextColor.color, fontSize = styling.subTextFontSize.px, maxLines = 1)
+                    }
+                }
                 if (read) {
                     Icon(Icons.Outlined.Check, contentDescription = "Read", tint = styling.subTextColor.color, modifier = Modifier.size(16.dp))
                 }
