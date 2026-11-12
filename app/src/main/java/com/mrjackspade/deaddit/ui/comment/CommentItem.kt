@@ -48,7 +48,9 @@ import com.mrjackspade.deaddit.ui.LocalHacks
 import com.mrjackspade.deaddit.ui.LocalStyling
 import com.mrjackspade.deaddit.ui.accentEdge
 import com.mrjackspade.deaddit.ui.accentFill
+import com.mrjackspade.deaddit.ui.chipShape
 import com.mrjackspade.deaddit.ui.color
+import com.mrjackspade.deaddit.ui.fill
 import com.mrjackspade.deaddit.ui.flair.Flair
 import com.mrjackspade.deaddit.ui.html.HtmlBody
 import com.mrjackspade.deaddit.ui.innerShape
@@ -179,9 +181,9 @@ class CommentActions(
 )
 
 /**
- * The author with their marks, the age, the score in the vote's color when one is cast (and, for a
- * comment www translated, the switch between translation and original); under it, the user's tag
- * for the author or their flair.
+ * The author with their marks, the age, the score (on a chip in the vote's color when one is
+ * cast) and, for a comment www translated, the switch between translation and original; under it,
+ * the user's tag for the author or their flair.
  */
 @Composable
 private fun Header(services: Services, model: CommentModel, post: Post?) {
@@ -201,14 +203,21 @@ private fun Header(services: Services, model: CommentModel, post: Post?) {
             AuthorName(comment.author ?: "", comment.distinguished, isOp = post != null && comment.author == post.author, modifier = Modifier.weight(1f, fill = false))
             Text("·", color = sub, fontSize = subSize)
             Text(comment.createdUtc.elapsed() ?: "", color = sub, fontSize = subSize, maxLines = 1)
-            if (!hideScore) {
+            // A vote cast sits on a chip in its color, so it's seen without selecting the comment;
+            // with the score hidden, the chip holds the arrow alone.
+            val voted = model.likes != VoteState.None
+            if (!hideScore || voted) {
                 val color = when (model.likes) {
                     VoteState.Upvote -> styling.upvoteColor.color
                     VoteState.Downvote -> styling.downvoteColor.color
                     VoteState.None -> sub
                 }
                 Text("·", color = sub, fontSize = subSize)
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                Row(
+                    Modifier.let { if (voted) it.clip(styling.chipShape).background(color.fill()).padding(horizontal = 6.dp, vertical = 1.dp) else it },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                ) {
                     Icon(
                         if (model.likes == VoteState.Downvote) Icons.Outlined.ArrowDownward else Icons.Outlined.ArrowUpward,
                         contentDescription = when (model.likes) {
@@ -219,7 +228,15 @@ private fun Header(services: Services, model: CommentModel, post: Post?) {
                         tint = color,
                         modifier = Modifier.size(15.dp),
                     )
-                    Text(CompactCount.format(model.score), color = color, fontSize = subSize, maxLines = 1)
+                    if (!hideScore) {
+                        Text(
+                            CompactCount.format(model.score),
+                            color = color,
+                            fontSize = subSize,
+                            fontWeight = if (voted) FontWeight.SemiBold else FontWeight.Normal,
+                            maxLines = 1,
+                        )
+                    }
                 }
             }
             if (comment.original != null) {
