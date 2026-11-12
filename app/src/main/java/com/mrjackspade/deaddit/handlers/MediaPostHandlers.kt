@@ -17,7 +17,7 @@ class RedditGalleryHandler(private val services: Services) : PostHandler {
     override suspend fun launch(post: Post, caller: PostHandlers) = Pages.openImages(services, getSortedGalleryItems(post))
 
     override suspend fun share(post: Post, caller: PostHandlers) =
-        services.media.shareDownloads(post.title, getSortedGalleryItems(post), services.media.gifConverter())
+        services.media.shareDownloads(getSortedGalleryItems(post), services.media.gifConverter())
 
     private fun getSortedGalleryItems(post: Post): List<FileDownload> {
         val toReturn = mutableListOf<FileDownload>()
@@ -50,7 +50,7 @@ class RedditVideoHandler(private val services: Services) : PostHandler {
 
     override suspend fun launch(post: Post, caller: PostHandlers) = Pages.openVideo(services, getDownload(post))
 
-    override suspend fun share(post: Post, caller: PostHandlers) = services.media.shareDownloads(post.title, listOf(getDownload(post)))
+    override suspend fun share(post: Post, caller: PostHandlers) = services.media.shareDownloads(listOf(getDownload(post)))
 
     private fun getDownload(post: Post): FileDownload {
         val dashUrl = requireNotNull(post.media?.redditVideo?.dashUrl) { "The post's Reddit video has no DASH URL." }

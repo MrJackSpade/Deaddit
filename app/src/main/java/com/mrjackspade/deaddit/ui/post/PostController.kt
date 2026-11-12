@@ -98,7 +98,7 @@ class PostController(
         }
 
         if (services.posts.urls.canDownload(post.link, services.posts)) {
-            services.media.shareDownloads(post.title, listOf(services.posts.urls.download(post.link, services.posts)))
+            services.media.shareDownloads(listOf(services.posts.urls.download(post.link, services.posts)))
         }
     }
 

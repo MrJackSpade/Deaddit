@@ -23,8 +23,8 @@ class Platform(private val context: Context) {
         )
     }
 
-    /** Shares files from the app's cache, through its FileProvider. */
-    fun shareFiles(files: List<File>, mimeType: String, title: String?) {
+    /** Shares files from the app's cache, through its FileProvider: only the files, no text. */
+    fun shareFiles(files: List<File>, mimeType: String) {
         val uris = ArrayList(files.map { FileProvider.getUriForFile(context, "${context.packageName}.files", it) })
         val send = if (uris.size == 1) {
             Intent(Intent.ACTION_SEND).putExtra(Intent.EXTRA_STREAM, uris[0])
@@ -32,9 +32,8 @@ class Platform(private val context: Context) {
             Intent(Intent.ACTION_SEND_MULTIPLE).putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
         }
         send.type = mimeType
-        send.putExtra(Intent.EXTRA_SUBJECT, title)
         send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        context.startActivity(Intent.createChooser(send, title).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION))
+        context.startActivity(Intent.createChooser(send, null).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION))
     }
 
     fun copy(text: String) {

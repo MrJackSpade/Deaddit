@@ -44,7 +44,7 @@ class MediaService(
     fun gifConverter(): StreamConverter? = if (settings.hacks.value.convertGifsToMp4) GifToMp4Converter() else null
 
     /** Downloads the files (converting those [converter] takes) and shares them. */
-    suspend fun shareDownloads(title: String?, downloads: List<FileDownload>, converter: StreamConverter? = null) {
+    suspend fun shareDownloads(downloads: List<FileDownload>, converter: StreamConverter? = null) {
         val shareDir = File(context.cacheDir, SHARE_DIR)
         val files = downloads.map { item ->
             val (fileName, temp) = fetch(item, converter)
@@ -59,7 +59,7 @@ class MediaService(
 
         // One type when the files share it, as MAUI's ShareMultipleFilesRequest sent; any type otherwise.
         val types = files.map { mimeTypeOf(it.name) }.distinct()
-        platform.shareFiles(files, types.singleOrNull() ?: "*/*", title)
+        platform.shareFiles(files, types.singleOrNull() ?: "*/*")
     }
 
     /**

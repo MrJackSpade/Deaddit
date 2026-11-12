@@ -164,7 +164,7 @@ class VideoPlayerPage(private val services: Services, private val item: FileDown
         runningSave?.cancel()
         services.appScope.launch {
             try {
-                busy.run { services.media.shareDownloads("", listOf(item), services.media.gifConverter()) }
+                busy.run { services.media.shareDownloads(listOf(item), services.media.gifConverter()) }
             } catch (e: Throwable) {
                 services.dialogs.error(e)
             }

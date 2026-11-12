@@ -165,7 +165,7 @@ class ImageViewerPage(private val services: Services, private val items: List<Fi
                 val selected = promptForSelection()
                 if (selected.isNullOrEmpty()) return@launch
                 runningSave?.cancel()
-                busy.run { services.media.shareDownloads("", selected, services.media.gifConverter()) }
+                busy.run { services.media.shareDownloads(selected, services.media.gifConverter()) }
             } catch (e: Throwable) {
                 services.dialogs.error(e)
             }
