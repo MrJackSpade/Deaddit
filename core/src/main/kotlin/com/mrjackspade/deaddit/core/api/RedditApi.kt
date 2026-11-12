@@ -132,14 +132,16 @@ class RedditApi(private val runner: CommandRunner) {
         call("GetSortedPosts") { put("path", path); put("parameters", parameters.toJson()) }.toPage()
 
     /**
-     * A thread's comments from www's HTML (or one comment's, with its parents), as a tree, with
-     * "load more" placeholders for the rest. [translate] is a language to have www translate into.
+     * A thread's comments from www's HTML (or one comment's with its replies, and [context] of its
+     * parents above it), as a tree, with "load more" placeholders for the rest. [translate] is a
+     * language to have www translate into.
      */
-    suspend fun getThreadComments(subreddit: String, linkFullname: String, commentFullname: String?, translate: String?): List<ListingItem> =
+    suspend fun getThreadComments(subreddit: String, linkFullname: String, commentFullname: String?, context: Int, translate: String?): List<ListingItem> =
         call("GetThreadComments") {
             put("subreddit", subreddit)
             put("linkFullname", linkFullname)
             put("commentFullname", commentFullname)
+            put("context", context)
             put("translate", translate)
         }.jsonArray.map(ListingItem::parse)
 

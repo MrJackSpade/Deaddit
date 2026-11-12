@@ -50,7 +50,7 @@ namespace RedditApi.Native
                         return new Dictionary<string, object?> { ["post"] = post, ["comments"] = TypedThings.WithTypedReplies(comments, Bridge.ModelJson) };
                     }
                 case "GetThreadComments":
-                    return await client.GetThreadCommentsAsync(Str(args, "subreddit"), Str(args, "linkFullname"), OptStr(args, "commentFullname"), OptStr(args, "translate"));
+                    return await client.GetThreadCommentsAsync(Str(args, "subreddit"), Str(args, "linkFullname"), OptStr(args, "commentFullname"), Int(args, "context"), OptStr(args, "translate"));
                 case "GetMoreComments":
                     return await client.GetMoreCommentsAsync(Str(args, "moreUrl"), Str(args, "cursor"), Str(args, "linkFullname"), Str(args, "subreddit"), Str(args, "parentFullname"), OptStr(args, "translate"));
                 case "GetMoreChildren":
@@ -144,6 +144,11 @@ namespace RedditApi.Native
         private static string? OptStr(JsonElement args, string name)
         {
             return args.ValueKind == JsonValueKind.Object && args.TryGetProperty(name, out JsonElement v) && v.ValueKind != JsonValueKind.Null ? v.GetString() : null;
+        }
+
+        private static int Int(JsonElement args, string name)
+        {
+            return args.GetProperty(name).GetInt32();
         }
 
         private static int? OptInt(JsonElement args, string name)

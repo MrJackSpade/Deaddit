@@ -100,13 +100,13 @@ class RedditService(
     }
 
     /**
-     * A post's comment tree, from www's HTML; focused on [focus] and its parents when given (www
-     * sends all of a focused comment's parents, so [CommentFocus.context] doesn't apply).
+     * A post's comment tree, from www's HTML; when [focus] is given, its comment with its replies
+     * and [CommentFocus.context] of its parents above it.
      */
     suspend fun comments(post: Post, focus: CommentFocus? = null): List<ThreadNode> {
         api.ensureAuthenticated()
         val subreddit = requireNotNull(post.subreddit) { "${post.name} has no subreddit." }
-        val load = { translate: String? -> suspend { api.getThreadComments(subreddit, post.name, focus?.comment?.name, translate) } }
+        val load = { translate: String? -> suspend { api.getThreadComments(subreddit, post.name, focus?.comment?.name, focus?.context ?: 0, translate) } }
         val items = load(null)()
         return CommentTree.fromComments(items, post.id, focus?.comment, prepare(translations(items, load(TRANSLATE_INTO))))
     }
