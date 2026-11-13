@@ -8,17 +8,17 @@ private const val TICKS_PER_MINUTE = TICKS_PER_SECOND * 60
 private const val TICKS_PER_HOUR = TICKS_PER_MINUTE * 60
 private const val TICKS_PER_DAY = TICKS_PER_HOUR * 24
 
-/** How long ago this was, as "3 hours ago"; null when there is no time. */
+/** How long ago this was, as "3h"; null when there is no time. */
 @JvmName("elapsedOrNull")
 fun Instant?.elapsed(): String? = this?.elapsed()
 
-/** How long ago this was, as "3 hours ago". */
+/** How long ago this was, as "3h". */
 fun Instant.elapsed(): String = elapsed(Instant.now())
 
 /**
- * How long before [now] this was. Each unit is the whole number of that unit, truncated toward zero, computed as
- * .NET's TimeSpan.TotalDays/TotalHours/... did: 100ns ticks divided as doubles. Years are 365 days and months 30.
- * A time in the future reads "just now".
+ * How long before [now] this was, in its largest whole unit: "2y", "11mo", "3d", "4h", "5m", "6s", or "now". Each
+ * unit is truncated toward zero, computed as .NET's TimeSpan.TotalDays/TotalHours/... did: 100ns ticks divided as
+ * doubles. Years are 365 days and months 30. A time in the future reads "now".
  */
 internal fun Instant.elapsed(now: Instant): String {
     val difference = Duration.between(this, now)
@@ -30,58 +30,34 @@ internal fun Instant.elapsed(now: Instant): String {
     val totalDays = ticks.toDouble() / TICKS_PER_DAY
 
     val years = (totalDays / 365).toInt()
-    if (years > 1) {
-        return "$years years ago"
-    }
-
     if (years > 0) {
-        return "$years year ago"
+        return "${years}y"
     }
 
     val months = (totalDays / 30).toInt()
-    if (months > 1) {
-        return "$months months ago"
-    }
-
     if (months > 0) {
-        return "$months month ago"
+        return "${months}mo"
     }
 
     val days = totalDays.toInt()
-    if (days > 1) {
-        return "$days days ago"
-    }
-
     if (days > 0) {
-        return "$days day ago"
+        return "${days}d"
     }
 
     val hours = (ticks.toDouble() / TICKS_PER_HOUR).toInt()
-    if (hours > 1) {
-        return "$hours hours ago"
-    }
-
     if (hours > 0) {
-        return "$hours hour ago"
+        return "${hours}h"
     }
 
     val minutes = (ticks.toDouble() / TICKS_PER_MINUTE).toInt()
-    if (minutes > 1) {
-        return "$minutes minutes ago"
-    }
-
     if (minutes > 0) {
-        return "$minutes minute ago"
+        return "${minutes}m"
     }
 
     val seconds = (ticks.toDouble() / TICKS_PER_SECOND).toInt()
-    if (seconds > 1) {
-        return "$seconds seconds ago"
-    }
-
     if (seconds > 0) {
-        return "$seconds second ago"
+        return "${seconds}s"
     }
 
-    return "just now"
+    return "now"
 }

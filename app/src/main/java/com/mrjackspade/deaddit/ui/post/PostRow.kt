@@ -193,8 +193,9 @@ private fun Summary(model: PostModel, inList: Boolean, full: Boolean, read: Bool
 
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             val host = if (post.isSelf) null else UrlHelper.getDisplayHost(post.link)
+            // A thread page has the subreddit in its top bar.
             val parts = listOfNotNull(
-                "r/${post.subreddit}",
+                "r/${post.subreddit}".takeIf { inList },
                 post.author?.takeIf { full }?.let { "u/$it" },
                 post.createdUtc.elapsed(),
                 host,
