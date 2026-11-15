@@ -122,7 +122,7 @@ class ReplyPage(
     // A message can't be replied to here; the C# page drew nothing for one.
     private val rows: List<ChainRow> = chain.mapNotNull { thing ->
         when (thing) {
-            is Post -> PostRowEntry(PostModel(thing, PostState.None))
+            is Post -> PostRowEntry(PostModel(thing, PostState.None, services.postStatuses.of(thing)))
             is Comment -> CommentRowEntry(CommentModel(thing))
             is Message -> null
         }

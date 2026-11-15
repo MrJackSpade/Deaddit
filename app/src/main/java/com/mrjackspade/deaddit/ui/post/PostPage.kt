@@ -108,7 +108,7 @@ class PostPage(
         var loading by mutableStateOf(false)
     }
 
-    private val postModel = PostModel(post, PostState.None)
+    private val postModel = PostModel(post, PostState.None, services.postStatuses.of(post))
     private val root = mutableStateListOf<ThreadEntry>()
 
     /** Numbers the "more" rows: Reddit names every "continue this thread" stub alike (t1__). */

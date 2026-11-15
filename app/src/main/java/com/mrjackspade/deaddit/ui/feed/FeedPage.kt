@@ -231,7 +231,7 @@ class FeedPage(private val services: Services, private val feed: Feed, initialSo
                                 thing.thumbnailUrl()?.takeIf { it.isNotEmpty() }?.let { loadedEtags += services.etags.get(it) }
                             }
 
-                            Item.PostEntry(PostModel(thing, state).also { it.visited = services.visits.hasVisited(thing) })
+                            Item.PostEntry(PostModel(thing, state, services.postStatuses.loaded(thing)).also { it.visited = services.visits.hasVisited(thing) })
                         }
                         is Comment -> Item.CommentItem(CommentEntry(CommentModel(thing), null))
                         is Message -> Item.MessageEntry(thing)

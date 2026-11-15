@@ -37,6 +37,7 @@ class Services(context: Context, val testMode: Boolean) {
     val sessions = SessionStore(context)
     val visits = VisitTracker(context)
     val history = HistoryTracker(context)
+    val postStatuses = com.mrjackspade.deaddit.ui.post.PostStatuses()
     val userTags = UserTags(File(context.filesDir, "user_tags.tsv"))
     val dialogs = Dialogs(testMode)
 

@@ -114,7 +114,7 @@ class HistoryPage(private val services: Services) : Screen() {
             val byName = services.reddit.getPosts(ids).associateBy { it.name }
             for (id in ids) {
                 val post = byName[if (id.startsWith("t3_")) id else "t3_$id"] ?: byName[id] ?: continue
-                posts += PostModel(post, PostState.None)
+                posts += PostModel(post, PostState.None, services.postStatuses.loaded(post))
             }
         } finally {
             loading = false

@@ -1,10 +1,11 @@
 package com.mrjackspade.deaddit.ui.flair
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,6 +13,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -44,7 +50,7 @@ fun Flair(text: String?, richtext: List<FlairPart>, background: String?, textCol
     val hacks = LocalHacks.current
 
     val resolveImages = !hacks.skipResolvingFlairImages
-    val parts = if (resolveImages && richtext.isNotEmpty()) richtext.filter { isShown(it) } else null
+    val parts = if (resolveImages && richtext.isNotEmpty()) richtext.takeIf { it.any(::isShown) }?.let(::inlineParts).orEmpty() else null
     val plain = if (parts == null) text?.let { if (hacks.skipResolvingFlairImages) it.replace(EMOJI_TAG, "").trim() else it } else null
 
     if (parts.isNullOrEmpty() && plain.isNullOrBlank()) return
@@ -83,18 +89,10 @@ fun Flair(text: String?, richtext: List<FlairPart>, background: String?, textCol
     val box: @Composable (Modifier) -> Unit = { m ->
         Row(
             m.background(bg, styling.chipShape).padding(horizontal = 7.dp, vertical = 1.dp),
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (parts != null) {
-                for (part in parts) {
-                    if (part.type == "emoji") {
-                        val size = (styling.subTextFontSize * 1.1).toInt().dp
-                        AsyncImage(part.url, contentDescription = part.alias, modifier = Modifier.size(size))
-                    } else {
-                        Text(part.text!!, color = fg, fontSize = fontSize)
-                    }
-                }
+                RichtextLine(parts, fg, fontSize, (styling.subTextFontSize * 1.1).toInt().dp)
             } else {
                 Text(plain!!, color = fg, fontSize = fontSize)
             }
@@ -116,6 +114,45 @@ fun InlineChip(text: String, color: Color, background: Color, fontSize: TextUnit
         color = color,
         fontSize = fontSize,
     )
+}
+
+/**
+ * Richtext flair as one line of text, as www lays it out inline: emoji images side by side with
+ * nothing between them (a flair can be one picture cut into several), text with its own spaces.
+ */
+@Composable
+private fun RichtextLine(parts: List<FlairPart>, color: Color, fontSize: TextUnit, emojiSize: Dp) {
+    val emojiSp = with(LocalDensity.current) { emojiSize.toSp() }
+    val line = remember(parts) {
+        buildAnnotatedString {
+            parts.forEachIndexed { i, part -> if (part.type == "emoji") appendInlineContent("$i", part.alias.orEmpty()) else append(part.text!!) }
+        }
+    }
+    val images = remember(parts, emojiSp) {
+        parts.withIndex().filter { it.value.type == "emoji" }.associate { (i, part) ->
+            "$i" to InlineTextContent(Placeholder(emojiSp, emojiSp, PlaceholderVerticalAlign.Center)) {
+                AsyncImage(part.url, contentDescription = part.alias, modifier = Modifier.fillMaxSize())
+            }
+        }
+    }
+    Text(line, color = color, fontSize = fontSize, inlineContent = images)
+}
+
+/**
+ * The parts drawn: images with a link and text that isn't empty, whitespace kept between them
+ * but not at either end, where a browser drops it.
+ */
+private fun inlineParts(richtext: List<FlairPart>): List<FlairPart> {
+    val parts = richtext.filter { if (it.type == "emoji") !it.url.isNullOrBlank() else !it.text.isNullOrEmpty() }.toMutableList()
+    while (parts.firstOrNull()?.let { it.type != "emoji" } == true) {
+        val text = parts.first().text!!.trimStart()
+        if (text.isEmpty()) parts.removeAt(0) else { parts[0] = parts[0].copy(text = text); break }
+    }
+    while (parts.lastOrNull()?.let { it.type != "emoji" } == true) {
+        val text = parts.last().text!!.trimEnd()
+        if (text.isEmpty()) parts.removeAt(parts.lastIndex) else { parts[parts.lastIndex] = parts.last().copy(text = text); break }
+    }
+    return parts
 }
 
 private fun isShown(part: FlairPart): Boolean =

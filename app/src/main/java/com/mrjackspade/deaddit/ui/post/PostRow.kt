@@ -29,7 +29,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -70,22 +69,16 @@ import com.mrjackspade.deaddit.ui.px
  * that can't be shown (a malformed link) fails that load, whose error is shown, as the C# app's
  * row did when it was built; drawing it can't throw.
  */
-class PostModel(val post: Post, val state: PostState) {
+class PostModel(val post: Post, val state: PostState, private val status: PostStatus) {
     /** The thumbnail: Reddit's, or the post's own link when that's an image. */
     val thumbnail: String? = thumbnailFor(post)
 
-    var likes by mutableStateOf(post.likes)
-    var score by mutableIntStateOf(post.score)
-    var saved by mutableStateOf(post.saved)
+    var likes by status::likes
+    var score by status::score
+    var saved by status::saved
     var visited by mutableStateOf(false)
 
-    /** Applies a tap on ▲ or ▼, as the C# vote container did, and returns the new state to send. */
-    fun toggle(direction: VoteState): VoteState {
-        val target = if (likes == direction) VoteState.None else direction
-        score += target.direction - likes.direction
-        likes = target
-        return target
-    }
+    fun toggle(direction: VoteState): VoteState = status.toggle(direction)
 }
 
 /** What a post row does when tapped; the page decides. */
