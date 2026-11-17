@@ -10,14 +10,26 @@ import com.mrjackspade.deaddit.handlers.PostHandlers
 import com.mrjackspade.deaddit.handlers.UrlHandler
 import com.mrjackspade.deaddit.ui.Pages
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.Request
 
 /**
- * RedGifs pages: finds the video file's properly capitalized name in the page, then plays the
- * first of the known file URLs the page mentions (or, failing that, that exists).
+ * RedGifs pages: asks RedGifs' API (as its own site does) for the video's HD file and plays it.
+ * The C# scraped the watch page instead, which only links the silent file and found nothing at all
+ * for links ending in "/" or carrying a "#rel=..." fragment.
  */
 class RedGifsHandler(private val services: Services) : UrlHandler {
+    private val json = Json { ignoreUnknownKeys = true }
+    private val tokenLock = Mutex()
+    private var token: String? = null
+
     // RedGifs requires URL resolution, not directly downloadable
     override fun canDownload(url: String?, posts: PostHandlers?) = false
     override fun canInline(url: String) = false
@@ -26,60 +38,45 @@ class RedGifsHandler(private val services: Services) : UrlHandler {
     override fun inlineUrl(url: String): String? = null
 
     override suspend fun launch(url: String, posts: PostHandlers?) {
-        var name = url.split('/').last()
+        val id = gifId(url)
+        val gif = withContext(Dispatchers.IO) { getGif(id, url) }
+        val urls = gif["urls"]?.jsonObject ?: throw IllegalStateException("RedGifs has no files for $url")
+        val videoUrl = listOf("hd", "sd", "silent").firstNotNullOfOrNull { urls[it]?.jsonPrimitive?.contentOrNull?.takeIf(String::isNotBlank) }
+            ?: throw IllegalStateException("RedGifs has no video file for $url")
+        Pages.openVideo(services, FileDownload.of(videoUrl))
+    }
 
-        if (name.contains('?')) {
-            name = name.split('?').first()
-        }
+    /** The gif's id: the last path segment of /watch/<id>, /ifr/<id>, ..., lowercased as RedGifs' API wants it. */
+    private fun gifId(url: String): String {
+        val path = url.substringBefore('#').substringBefore('?').substringAfter("://").substringAfter('/', "")
+        val segment = path.split('/').lastOrNull { it.isNotBlank() } ?: throw IllegalArgumentException("No RedGifs id in $url")
+        return segment.substringBefore('.').substringBefore('-').lowercase()
+    }
 
-        val source = withContext(Dispatchers.IO) {
-            services.http.newCall(Request.Builder().url(url).build()).execute().use { response ->
-                if (!response.isSuccessful) throw IllegalStateException("RedGifs answered HTTP ${response.code} for $url")
-                response.body!!.string()
-            }
-        }
-
-        var properlyCapitalized = ""
-
-        for (chunk in source.split("\"").drop(1)) {
-            if (!isAbsoluteUrl(chunk)) continue
-
-            if ((chunk.contains("files.redgifs.com", ignoreCase = true) || chunk.contains("media.redgifs.com", ignoreCase = true)) &&
-                chunk.contains(name, ignoreCase = true)
-            ) {
-                val indexOfName = chunk.indexOf(name, ignoreCase = true)
-                properlyCapitalized = chunk.substring(indexOfName, indexOfName + name.length)
-                break
-            }
-        }
-
-        val newUrls = listOf(
-            "https://files.redgifs.com/$properlyCapitalized.mp4",
-            "https://files.redgifs.com/$properlyCapitalized-mobile.mp4",
-            "https://files.redgifs.com/$properlyCapitalized-silent.mp4",
-            "https://media.redgifs.com/$properlyCapitalized.mp4",
-            "https://media.redgifs.com/$properlyCapitalized-mobile.mp4",
-            "https://media.redgifs.com/$properlyCapitalized-silent.mp4",
-        )
-
-        var newUrl = newUrls.firstOrNull { source.contains(it) } ?: ""
-
-        if (newUrl.isEmpty()) {
-            for (candidate in newUrls) {
-                if (exists(candidate)) {
-                    newUrl = candidate
-                    break
+    /** GET /v2/gifs/<id>'s "gif" object, fetching a temporary token first and again if it has expired. */
+    private suspend fun getGif(id: String, url: String): JsonObject {
+        for (attempt in 0..1) {
+            val bearer = tokenLock.withLock { token ?: fetchToken().also { token = it } }
+            val request = Request.Builder().url("https://api.redgifs.com/v2/gifs/$id").header("Authorization", "Bearer $bearer").build()
+            services.http.newCall(request).execute().use { response ->
+                when {
+                    response.isSuccessful -> return json.parseToJsonElement(response.body!!.string()).jsonObject["gif"]?.jsonObject
+                        ?: throw IllegalStateException("RedGifs answered without the gif for $url")
+                    (response.code == 401 || response.code == 403) && attempt == 0 -> tokenLock.withLock { if (token == bearer) token = null }
+                    response.code == 404 || response.code == 410 -> throw IllegalStateException("RedGifs no longer has $url (HTTP ${response.code})")
+                    else -> throw IllegalStateException("RedGifs answered HTTP ${response.code} for $url")
                 }
             }
         }
-
-        Pages.openVideo(services, FileDownload.of(newUrl))
+        throw IllegalStateException("RedGifs refused its own token for $url")
     }
 
-    /** Whether a HEAD request for [url] succeeds. Network failures propagate (the C# swallowed them as "doesn't exist"). */
-    private suspend fun exists(url: String): Boolean = withContext(Dispatchers.IO) {
-        services.http.newCall(Request.Builder().url(url).head().build()).execute().use { it.isSuccessful }
-    }
+    private fun fetchToken(): String =
+        services.http.newCall(Request.Builder().url("https://api.redgifs.com/v2/auth/temporary").build()).execute().use { response ->
+            if (!response.isSuccessful) throw IllegalStateException("RedGifs answered HTTP ${response.code} for a token")
+            json.parseToJsonElement(response.body!!.string()).jsonObject["token"]?.jsonPrimitive?.contentOrNull
+                ?: throw IllegalStateException("RedGifs answered without a token")
+        }
 
     private fun isRedGifs(url: String): Boolean {
         // As in the C#, the MIME check runs first, so a string that isn't a URI throws here.
