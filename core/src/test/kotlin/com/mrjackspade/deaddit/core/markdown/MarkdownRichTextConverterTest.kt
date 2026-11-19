@@ -154,6 +154,69 @@ class MarkdownRichTextConverterTest {
         assertEquals(2, text.format!![0][0])
     }
 
+    @Test
+    fun convert_ItalicUnderscoreBetweenWords_ReturnsFormatCode2() {
+        val text = convert("they're (_absolutely_) not")[0].children[0]
+
+        assertEquals("they're (absolutely) not", text.text)
+        assertEquals(listOf(listOf(2, 9, 10)), text.format)
+    }
+
+    @Test
+    fun convert_UnderscoresInsideWord_StayLiteral() {
+        // Reddit's markdown never treats intraword underscores as emphasis.
+        val text = convert("snake_case_name and u/some_user_name")[0].children[0]
+
+        assertEquals("snake_case_name and u/some_user_name", text.text)
+        assertNull(text.format)
+    }
+
+    @Test
+    fun convert_BoldUnderscoresInsideWord_StayLiteral() {
+        val text = convert("a__b__c")[0].children[0]
+
+        assertEquals("a__b__c", text.text)
+        assertNull(text.format)
+    }
+
+    @Test
+    fun convert_ItalicUnderscoreContainingInnerUnderscore_ClosesAtWordEnd() {
+        val text = convert("_foo_bar_")[0].children[0]
+
+        assertEquals("foo_bar", text.text)
+        assertEquals(listOf(listOf(2, 0, 7)), text.format)
+    }
+
+    // endregion
+
+    // region Bare URLs
+
+    @Test
+    fun convert_BareUrlWithUnderscores_StaysLiteral() {
+        val markdown = "see https://en.wikipedia.org/wiki/Wireless_Application_Protocol for more"
+        val text = convert(markdown)[0].children[0]
+
+        assertEquals(markdown, text.text)
+        assertNull(text.format)
+    }
+
+    @Test
+    fun convert_BareUrlWithMarkers_StaysLiteral() {
+        val markdown = "https://e.com/_a_/*b*/~~c~~/^d www.e.com/_x_ ftp://e.com/__y__"
+        val text = convert(markdown)[0].children[0]
+
+        assertEquals(markdown, text.text)
+        assertNull(text.format)
+    }
+
+    @Test
+    fun convert_FormattingAfterBareUrl_StillApplies() {
+        val text = convert("https://e.com/a_b_c *after*")[0].children[0]
+
+        assertEquals("https://e.com/a_b_c after", text.text)
+        assertEquals(listOf(listOf(2, 20, 5)), text.format)
+    }
+
     // endregion
 
     // region Bold+Italic

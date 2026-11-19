@@ -277,6 +277,15 @@ object MarkdownRichTextConverter {
         }
 
         while (i < markdown.length) {
+            // Bare URL: kept as written, so the markers it can contain (_ * ~ ^ `) aren't read as formatting
+            val urlEnd = bareUrlEnd(markdown, i)
+
+            if (urlEnd != -1) {
+                result.append(markdown, i, urlEnd)
+                i = urlEnd
+                continue
+            }
+
             // Spoiler: >!text!<
             if (markdown[i] == '>' && i + 1 < markdown.length && markdown[i + 1] == '!') {
                 val end = markdown.indexOf("!<", i + 2)
@@ -299,13 +308,18 @@ object MarkdownRichTextConverter {
                 }
             }
 
+            // Underscores inside a word (snake_case, u/some_name) are text, as in Reddit's markdown
+            if (markdown[i] == '_' && i > 0 && markdown[i - 1].isLetterOrDigit()) {
+                while (i < markdown.length && markdown[i] == '_') result.append(markdown[i++])
+                continue
+            }
+
             // Bold+Italic: ***text*** or ___text___
             if (i + 2 < markdown.length &&
                 ((markdown[i] == '*' && markdown[i + 1] == '*' && markdown[i + 2] == '*') ||
                     (markdown[i] == '_' && markdown[i + 1] == '_' && markdown[i + 2] == '_'))
             ) {
-                val closing = markdown[i].toString().repeat(3)
-                val end = markdown.indexOf(closing, i + 3)
+                val end = closingMarker(markdown, i, 3)
 
                 if (end != -1) {
                     val inner = markdown.substring(i + 3, end)
@@ -323,8 +337,7 @@ object MarkdownRichTextConverter {
                 ((markdown[i] == '*' && markdown[i + 1] == '*') ||
                     (markdown[i] == '_' && markdown[i + 1] == '_'))
             ) {
-                val closing = markdown[i].toString().repeat(2)
-                val end = markdown.indexOf(closing, i + 2)
+                val end = closingMarker(markdown, i, 2)
 
                 if (end != -1) {
                     appendRun(markdown.substring(i + 2, end), 1)
@@ -335,7 +348,7 @@ object MarkdownRichTextConverter {
 
             // Italic: *text* or _text_
             if (markdown[i] == '*' || markdown[i] == '_') {
-                val end = markdown.indexOf(markdown[i], i + 1)
+                val end = closingMarker(markdown, i, 1)
 
                 if (end != -1 && end > i + 1) {
                     appendRun(markdown.substring(i + 1, end), 2)
@@ -416,5 +429,39 @@ object MarkdownRichTextConverter {
         }
 
         return result.toString()
+    }
+
+    private val urlPrefixes = listOf("https://", "http://", "ftp://", "www.")
+
+    /**
+     * Where the bare URL starting at [start] ends (the next whitespace), or -1 when none starts
+     * there. As in Reddit's markdown, a URL only starts at a word boundary.
+     */
+    private fun bareUrlEnd(markdown: String, start: Int): Int {
+        if (start > 0 && markdown[start - 1].isLetterOrDigit()) return -1
+        val prefix = urlPrefixes.firstOrNull { markdown.regionMatches(start, it, 0, it.length, ignoreCase = true) } ?: return -1
+        if (start + prefix.length >= markdown.length || DotNetText.isWhiteSpace(markdown[start + prefix.length])) return -1
+
+        var end = start + prefix.length
+        while (end < markdown.length && !DotNetText.isWhiteSpace(markdown[end])) end++
+        return end
+    }
+
+    /**
+     * Where the [count] markers opening at [open] close, or -1 when they don't. Underscores, as in
+     * Reddit's markdown, don't close inside a word (_foo_bar_ is one run).
+     */
+    private fun closingMarker(markdown: String, open: Int, count: Int): Int {
+        val marker = markdown[open]
+        val closing = marker.toString().repeat(count)
+        if (marker != '_') return markdown.indexOf(closing, open + count)
+
+        var end = markdown.indexOf(closing, open + count)
+        while (end != -1) {
+            val after = end + count
+            if (after >= markdown.length || !markdown[after].isLetterOrDigit()) return end
+            end = markdown.indexOf(closing, end + 1)
+        }
+        return -1
     }
 }
