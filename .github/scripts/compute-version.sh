@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Prints "version=<X.Y.Z>" or "version=<X.Y.Z>-preview-<N>" derived from existing git tags.
+# Prints the next version tag to push (publish.yml publishes it), from the git tags:
 #   release: last release tag with the build number incremented
 #   preview: the next release version plus a counter of previews already cut for it
+# Fetch tags first (git fetch --tags) so the count includes every published one.
 set -euo pipefail
 
 channel="$1"
@@ -17,11 +18,11 @@ next="$major.$minor.$((build + 1))"
 
 case "$channel" in
   release)
-    echo "version=$next"
+    echo "$next"
     ;;
   preview)
     count=$(git tag -l "$next-preview-*" | wc -l)
-    echo "version=$next-preview-$((count + 1))"
+    echo "$next-preview-$((count + 1))"
     ;;
   *)
     echo "Unknown channel: $channel" >&2

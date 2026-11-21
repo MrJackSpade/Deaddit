@@ -24,15 +24,16 @@ Reddit keeps blocking endpoints with a 403 "blocked by network security" page. `
 
 ## Deployment
 
-Publishing runs entirely in GitHub Actions (`.github/workflows/publish.yml`). It builds `libredditapi.so` for each ABI, runs the core tests, builds the signed APK, computes the version from existing tags, creates the GitHub release (which creates the tag), and — for `release` only — posts to r/DeadditApp. Trigger it and follow it with:
+Publishing runs entirely in GitHub Actions (`.github/workflows/publish.yml`), triggered by pushing a version tag: `X.Y.Z` is a release, `X.Y.Z-preview-N` a preview. It builds `libredditapi.so` for each ABI, runs the core tests, builds the signed APK at the tag's version, creates the GitHub release, and — for a release only (which must be on `main`) — posts to r/DeadditApp. Push `main` first, then tag the pushed commit and follow the run:
 
 ```bash
-gh workflow run publish.yml --ref main -f channel=preview
-gh workflow run publish.yml --ref main -f channel=release
+git push origin main && git fetch --tags \
+  && tag=$(.github/scripts/compute-version.sh preview) \
+  && git tag "$tag" && git push origin "$tag"     # or: compute-version.sh release
 gh run watch
 ```
 
-The workflow builds what is on GitHub, so commit and push to `main` first. Publishing IS the testing step — the user is the only one using the app.
+Publishing IS the testing step — the user is the only one using the app.
 
 Signing and Reddit credentials live only in repository secrets (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`, `ANDROID_KEYSTORE_PASSWORD`, `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, `REDDIT_USERNAME`, `REDDIT_PASSWORD`). Never commit a keystore or credential file.
 
