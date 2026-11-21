@@ -8,7 +8,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.heightIn
@@ -244,55 +246,79 @@ class ReplyPage(
                 TopBarTitle(if (toEdit != null) "Edit" else "Reply")
             }
 
-            if (rows.isNotEmpty()) {
-                Card(Modifier.padding(horizontal = 8.dp).let { if (threadShown) it.weight(1f) else it }) {
-                    Row(
-                        Modifier.fillMaxWidth().heightIn(min = 44.dp).clickable(role = Role.Button) { threadShown = !threadShown }
-                            .semantics { contentDescription = if (threadShown) "Hide thread" else "Show thread" }
-                            .padding(start = 12.dp, end = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(18.dp))
-                        Text(if (threadShown) "Thread" else preview(), Modifier.weight(1f), color = styling.subTextColor.color, fontSize = styling.subTextFontSize.px, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Icon(if (threadShown) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, contentDescription = null, tint = styling.subTextColor.color)
-                    }
-                    if (threadShown) {
-                        Divider()
-                        Thread(Modifier.weight(1f))
-                    }
+            // The editor is measured before the thread's card takes what's left, so with the thread
+            // shown it's capped at half the page: past that the box scrolls inside, and Send stays.
+            BoxWithConstraints(Modifier.weight(1f)) {
+                val withThread = threadShown && rows.isNotEmpty()
+                val editorMax = maxHeight / 2
+                Column(Modifier.fillMaxSize()) {
+                    if (rows.isNotEmpty()) ThreadCard()
+                    Editor(
+                        fillPage = !withThread,
+                        modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 6.dp)
+                            .let { if (withThread) it.heightIn(max = editorMax) else it.weight(1f) },
+                    )
                 }
             }
+        }
+    }
 
-            Column(
-                Modifier.padding(start = 8.dp, end = 8.dp, top = 6.dp).let { if (!threadShown || rows.isEmpty()) it.weight(1f) else it },
+    /** The thread above, collapsible to one line. Shown, it takes what the editor leaves. */
+    @Composable
+    private fun ColumnScope.ThreadCard() {
+        val styling = LocalStyling.current
+        Card(Modifier.padding(horizontal = 8.dp).let { if (threadShown) it.weight(1f) else it }) {
+            Row(
+                Modifier.fillMaxWidth().heightIn(min = 44.dp).clickable(role = Role.Button) { threadShown = !threadShown }
+                    .semantics { contentDescription = if (threadShown) "Hide thread" else "Show thread" }
+                    .padding(start = 12.dp, end = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                // The box grows as it's typed into; with the thread collapsed it has the page.
-                TextInput(
-                    text,
-                    { text = it },
-                    background = styling.highlightColor.color,
-                    border = styling.accentEdge,
-                    singleLine = false,
-                    placeholder = if (toEdit != null) "Edit" else "Reply",
-                    modifier = Modifier.heightIn(min = 140.dp).let { if (!threadShown || rows.isEmpty()) it.weight(1f) else it },
-                )
+                Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null, tint = styling.subTextColor.color, modifier = Modifier.size(18.dp))
+                Text(if (threadShown) "Thread" else preview(), Modifier.weight(1f), color = styling.subTextColor.color, fontSize = styling.subTextFontSize.px, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Icon(if (threadShown) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, contentDescription = null, tint = styling.subTextColor.color)
+            }
+            if (threadShown) {
+                Divider()
+                Thread(Modifier.weight(1f))
+            }
+        }
+    }
 
-                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconAction(Icons.Outlined.Image, "Attach image") { attachImage() }
-                    if (showAi) {
-                        if (aiLoading) {
-                            Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator(Modifier.size(22.dp), color = styling.accentColor.color, strokeWidth = 2.dp)
-                            }
-                        } else {
-                            IconAction(Icons.Outlined.AutoAwesome, "AI assist") { aiAssist() }
+    /**
+     * The box and its actions. The actions row is measured first, so the box only gets what's left
+     * under [modifier]'s height and scrolls inside past it. [fillPage]: the box fills that height;
+     * otherwise it grows as it's typed into, up to it.
+     */
+    @Composable
+    private fun Editor(fillPage: Boolean, modifier: Modifier) {
+        val styling = LocalStyling.current
+        Column(modifier) {
+            TextInput(
+                text,
+                { text = it },
+                background = styling.highlightColor.color,
+                border = styling.accentEdge,
+                singleLine = false,
+                placeholder = if (toEdit != null) "Edit" else "Reply",
+                modifier = Modifier.weight(1f, fill = fillPage).heightIn(min = 140.dp),
+            )
+
+            Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                IconAction(Icons.Outlined.Image, "Attach image") { attachImage() }
+                if (showAi) {
+                    if (aiLoading) {
+                        Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(Modifier.size(22.dp), color = styling.accentColor.color, strokeWidth = 2.dp)
                         }
+                    } else {
+                        IconAction(Icons.Outlined.AutoAwesome, "AI assist") { aiAssist() }
                     }
-                    // Send sits under the box, at the end, where the thumb finishes typing.
-                    Spacer(Modifier.weight(1f))
-                    AccentAction(Icons.AutoMirrored.Outlined.Send, "Submit") { submit() }
                 }
+                // Send sits under the box, at the end, where the thumb finishes typing.
+                Spacer(Modifier.weight(1f))
+                AccentAction(Icons.AutoMirrored.Outlined.Send, "Submit") { submit() }
             }
         }
     }
